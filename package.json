@@ -7,7 +7,7 @@
     "build": "truffle compile && ./flatten",
     "deploy": "truffle migrate",
     "lint": "./node_modules/.bin/eslint src && ./node_modules/.bin/solhint contracts/**/*.sol",
-    "test": "npm run clean && truffle compile && truffle test"
+    "test": "truffle test"
   },
   "author": "",
   "license": "ISC",
