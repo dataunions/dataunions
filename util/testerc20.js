@@ -120,12 +120,12 @@ async function testSend() {
     let tx
     //    const [duhome, duforeign] = await deployDUContracts()
     const [duhome, duforeign] = [homeDU, foreignDU]
-    /*
-    tx = await duhome.addMember(member)
+/*
+    const memb = '0xdC353aA3d81fC3d67Eb49F443df258029B01D8aB'
+    tx = await duhome.addMember(memb)
     await tx.wait()
-    console.log(`added member ${member}`)
-//       await deployForeignErc20()        
-    */
+    console.log(`added member ${memb}`)
+*/    
     const bal = await foreignErc20.balanceOf(wallet_foreign.address)
     console.log(`bal ${bal}`)
 
@@ -137,30 +137,19 @@ async function testSend() {
     tx = await duforeign.sendTokensToBridge()
     await tx.wait()
 
-    console.log(`withdraw for ${member}`)
-    tx = await duhome.withdraw(member, true)
-    await tx.wait()
-    console.log(`withdraw submitted for ${member}`)
-
 }
-
+async function withdraw(address){
+    console.log(`withdraw for ${address}`)
+    tx = await homeDU.withdraw(address, true)
+    await tx.wait()
+    console.log(`withdraw submitted for ${address}`)
+}
 async function start() {
-    /*
-    log(`Deploying BridgeTest contract from ${wallet.address}`)
-    const deployer = new ContractFactory(BridgeTest.abi, BridgeTest.bytecode, wallet)
-    const dtx = await deployer.deploy({gasLimit: 7900000} )
-    const bridgetest = await dtx.deployed()
-    console.log(`bridgetest: ${bridgetest.address}`)
-
-    */
     let tx
     try {
+
         //await testSend()
-        //    tx = await foreignDU.withdraw(member)
-        // tx = await homeDU.withdraw(member, true)
-        //console.log(`withdraw ${JSON.stringify(tx)}`)
-        //  await  tx.wait()
-        //tx = await foreignDU.amb()
+        //await withdraw(member)        
         let bal = await foreignErc20.balanceOf(member)
         console.log(`foreign bal ${bal}`)
         bal = await homeErc677.balanceOf(member)
@@ -176,21 +165,6 @@ async function start() {
     catch (err) {
         console.error(err)
     }
-    /*
-
-    //    let tx = await homeAmb.requireToPassMessage(home_amb,'0x456', 6000000)
-
-//encode fn call
-    let data = foreignBridgeTest.interface.functions.foo.encode([123])
-    console.log(`data: ${JSON.stringify(data)}`)
-    
-    //pass across bridge:
-    let tx = await foreignAmb.requireToPassMessage(home_bridgetest, data, 2000000).catch((err) => {console.log(err)})
-//    let tx = await homeAmb.requireToPassMessage(foreign_bridgetest, data, 6000000).catch((err) => {console.log(err)})
-
-    console.log(`tx: ${JSON.stringify(tx)}`)
-    await tx.wait()
-*/
 }
 start()
 
