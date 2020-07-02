@@ -130,10 +130,12 @@ async function testSend() {
     console.log(`bal ${bal}`)
 
     let amt = "1000000000000000000"
+    //transfer ERC20 to mainet contract
     tx = await foreignErc20.transfer(duforeign.address, amt)
     await tx.wait()
     console.log(`transferred ${amt} to ${duforeign.address}`)
     console.log(`sending to bridge`)
+    //sends tokens to sidechain contract via bridge, calls sidechain.addRevenue()
     tx = await duforeign.sendTokensToBridge()
     await tx.wait()
 
@@ -151,15 +153,15 @@ async function start() {
         //await testSend()
         //await withdraw(member)        
         let bal = await foreignErc20.balanceOf(member)
-        console.log(`foreign bal ${bal}`)
+        console.log(`${member} foreign token bal ${bal}`)
         bal = await homeErc677.balanceOf(member)
-        console.log(`home bal ${bal}`)
+        console.log(`${member} home token bal ${bal}`)
         bal = await homeDU.getWithdrawableEarnings(member)
-        console.log(`withdrawable ${bal}`)
+        console.log(`${member} home DU withdrawable ${bal}`)
         bal = await homeDU.totalEarnings()
-        console.log(`TOTAL earnings HOME ${bal}`)
+        console.log(`total earnings DU home ${bal}`)
         bal = await homeErc677.balanceOf(homeDU.address)
-        console.log(`home DU bal ${bal}`)
+        console.log(`home DU token bal ${bal}`)
 
     }
     catch (err) {

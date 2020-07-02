@@ -74,6 +74,7 @@ contract DataUnionMainnet is Ownable {
         address _token_mediator,
         uint256 _sidechain_maxgas
     ) public onlyOwner {
+        require(!isInitialized(),"init_once");
         amb = IAMB(_amb);
         sidechain_DU = _sidechain_DU;
         sidechain_maxgas = _sidechain_maxgas;

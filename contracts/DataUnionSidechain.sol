@@ -88,6 +88,7 @@ contract DataUnionSidechain is Ownable {
         address _token_mediator,
         address _mainchain_DU
     ) public onlyOwner {
+        require(!isInitialized(),"init_once");
         token = ERC677(token_address);
         setAdminFee(adminFeeFraction_);
         addJoinPartAgents(agents);
