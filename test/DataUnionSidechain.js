@@ -40,7 +40,7 @@ contract("DataUnionSidechain", accounts => {
         
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
         //last 2 args are dummy. doesnt talk to mainnet contract in test
-        await dataUnionSidechain.initialize(testToken.address, adminFeeFractionWei, agents,agents[0],agents[0], {from: creator})
+        await dataUnionSidechain.initialize(creator, testToken.address, adminFeeFractionWei, agents,agents[0],agents[0], {from: creator})
         await testToken.mint(creator, w3.utils.toWei("10000"), { from: creator })
         await dataUnionSidechain.addMembers(members, {from: agents[1]})
         console.log(`creator: ${creator}`)
