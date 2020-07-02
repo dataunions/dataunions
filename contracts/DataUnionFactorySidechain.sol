@@ -63,7 +63,7 @@ contract DataUnionFactorySidechain {
 
     //https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-sdk/master/packages/lib/contracts/upgradeability/ProxyFactory.sol
     function deployMinimal(address template, bytes memory _data, bytes32 salt)
-        public
+        internal
         returns (address proxy)
     {
         emit DeployRequest(template, salt);
@@ -125,25 +125,27 @@ contract DataUnionFactorySidechain {
         public
         returns (bool, bytes memory)
     {
-        require(msg.sender == address(amb), "only_amb");
-        address sender = amb.messageSender();
+        //if the request didnt come from AMB, use the sender's address as the corresponding "mainnet" address
+        address sender = msg.sender == address(amb) ? amb.messageSender() : msg.sender;
         address recipient = sidechainAddress(sender);
         require(recipient != address(0), "du_not_found");
         return recipient.call(data);
     }
 /*
-    address _owner,
+    initialize(address _owner,
         address token_address,
         uint256 adminFeeFraction_,
         address[] memory agents,
         address _token_mediator,
-        address _mainchain_DU
-    
+        address _mainchain_DU)
+
+
+    users can only deploy with salt = their key.
 */
     function deployNewDUSidechain(address owner, uint256 adminFeeFraction, address[] memory agents) public returns (address) {
-        require(msg.sender == address(amb), "only_amb");
-        address du_mainnet = amb.messageSender();
-//        address du_mainnet = msg.sender;
+        //if the request didnt come from AMB, use the sender's address as the corresponding "mainnet" address
+        address du_mainnet = msg.sender == address(amb) ? amb.messageSender() : msg.sender;
+        bytes32 salt = bytes32(uint256(du_mainnet));
         bytes memory data = abi.encodeWithSignature("initialize(address,address,uint256,address[],address,address)",
             owner,
             token_mediator.erc677token(),
@@ -152,7 +154,7 @@ contract DataUnionFactorySidechain {
             address(token_mediator),
             du_mainnet
         );
-        address du = deployMinimal(data_union_sidechain_template, data, bytes32(uint256(du_mainnet)));
+        address du = deployMinimal(data_union_sidechain_template, data, salt);
         emit DUCreated(du_mainnet, du);
         return du;
     }
