@@ -54,7 +54,6 @@ contract DataUnionFactorySidechain {
     address public data_union_sidechain_template;
     IAMB public amb;
     ITokenMediator public token_mediator;
-    mapping(address => address) public mainchain2sidechain;
 
     constructor( address _token_mediator, address _data_union_sidechain_template) public {
         token_mediator = ITokenMediator(_token_mediator);
@@ -128,7 +127,7 @@ contract DataUnionFactorySidechain {
     {
         require(msg.sender == address(amb), "only_amb");
         address sender = amb.messageSender();
-        address recipient = mainchain2sidechain[sender];
+        address recipient = sidechainAddress(sender);
         require(recipient != address(0), "du_not_found");
         return recipient.call(data);
     }
@@ -154,7 +153,6 @@ contract DataUnionFactorySidechain {
             du_mainnet
         );
         address du = deployMinimal(data_union_sidechain_template, data, bytes32(uint256(du_mainnet)));
-        mainchain2sidechain[du_mainnet] = du;
         emit DUCreated(du_mainnet, du);
         return du;
     }
