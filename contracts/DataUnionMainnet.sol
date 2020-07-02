@@ -62,7 +62,9 @@ contract DataUnionMainnet is Ownable {
         address _token_mediator,
         address _sidechain_DU_factory,
         uint256 _sidechain_maxgas,
-        address _sidechain_template_DU
+        address _sidechain_template_DU,
+        uint256 adminFeeFraction,
+        address[] memory agents
     )  public Ownable(msg.sender) {
         token_mediator = ITokenMediator(_token_mediator);
         amb = IAMB(token_mediator.bridgeContract());
@@ -70,6 +72,12 @@ contract DataUnionMainnet is Ownable {
         sidechain_DU_factory = _sidechain_DU_factory;
         sidechain_maxgas = _sidechain_maxgas;
         sidechain_template_DU = _sidechain_template_DU;
+        deployNewDUSidechain(adminFeeFraction, agents);
+    }
+
+    function deployNewDUSidechain(uint256 adminFeeFraction, address[] memory agents) public {
+        bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,uint256,address[])", owner, adminFeeFraction, agents);
+        amb.requireToPassMessage(sidechain_DU_factory, data, sidechain_maxgas);
     }
 
     function sidechainAddress()
@@ -93,9 +101,11 @@ contract DataUnionMainnet is Ownable {
             codehash := keccak256(clone, 0x37)
         }
         // address(this) will always be used by sidechain factory as salt for CREATE2
-        return address(uint160(uint256(keccak256(abi.encodePacked(byte(0xff),address(sidechain_DU_factory),bytes32(bytes20(address(this))),codehash)))));
+        return address(uint160(uint256(keccak256(abi.encodePacked(byte(0xff),address(sidechain_DU_factory),bytes32(uint256(address(this))),codehash)))));
     }
 
+/*
+2 way doesnt work atm
     //calls withdraw(member) on home network
     function withdraw(address member) public {
         bytes memory data = abi.encodeWithSignature(
@@ -105,6 +115,7 @@ contract DataUnionMainnet is Ownable {
         );
         amb.requireToPassMessage(sidechainAddress(), data, sidechain_maxgas);
     }
+    */
 
     function onPurchase(
         bytes32 productId,

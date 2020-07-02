@@ -79,21 +79,26 @@ contract DataUnionSidechain is Ownable {
         _;
     }
 
-    constructor() public Ownable(msg.sender) {}
+    //owner set by initialize()
+    constructor() public Ownable(address(0)) {}
 
     function initialize(
+        address _owner,
         address token_address,
         uint256 adminFeeFraction_,
         address[] memory agents,
         address _token_mediator,
         address _mainchain_DU
-    ) public onlyOwner {
+    ) public {
         require(!isInitialized(),"init_once");
+        //set owner at the end. caller needs admin to initialize()
+        owner = msg.sender;
         token = ERC677(token_address);
         setAdminFee(adminFeeFraction_);
         addJoinPartAgents(agents);
         token_mediator = _token_mediator;
         mainchain_DU = _mainchain_DU;
+        owner = _owner;
     }
 
     function isInitialized() public view returns (bool){

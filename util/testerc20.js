@@ -48,7 +48,14 @@ const foreign_erc_mediator = '0xDa6fB5F5ED2DD586C78e8cbD7228A3a8206af5b1'
 const foreign_erc20 = '0xED56b560D42917185A829789C3eF1E118a421Acc'
 const home_du = '0xf0cDf673b5CF0633Ac5210b6f62cc699CA6DC05C'
 const foreign_du = '0xaea6245Cd5A7f69bA0892e806e50DC60afC8B3c2'
-const home_du_factory = '0xB21572BBC5CEf6E08F16b6Db015bD3B5a4d73762'
+
+//new factory:
+//const foreign_du = '0xA0c6FBBD665EE34002E91892E21fFc13E82EEDc9'
+//const home_du = '0xa83F8b4f9b23aB5B2F06d725D6BDfdCa40e9006E'
+
+
+
+const home_du_factory = '0x812f60265611050dc5BaEeb22C1435Ea42B8fcA2'
 
 const homeBridgeTest = new Contract(home_bridgetest, BridgeTest.abi, wallet_home)
 const foreignBridgeTest = new Contract(foreign_bridgetest, BridgeTest.abi, wallet_foreign)
@@ -74,55 +81,87 @@ async function deployForeignErc20() {
     console.log(`minted ${amt}`)
 }
 async function deployDUSidechainFactory(){
-/*
+    log(`Deploying template DU home contract from ${wallet_home.address}`)
+    let deployer = new ContractFactory(DataUnionSidechain.abi, DataUnionSidechain.bytecode, wallet_home)
+    let dtx = await deployer.deploy({ gasLimit: 7900000 })
+    let duhome = await dtx.deployed()
+    console.log(`duhome template: ${duhome.address}`)
+
     // constructor( address _token_mediator, address _data_union_sidechain_template) public {
     log(`Deploying DU factory contract from ${wallet_home.address}`)
-    let deployer = new ContractFactory(DataUnionFactorySidechain.abi, DataUnionFactorySidechain.bytecode, wallet_home)
-    let dtx = await deployer.deploy(home_erc_mediator, home_du, { gasLimit: 7900000 })
-    const fact = await dtx.deployed()
-*/
-    let fact = homeDUFactory
+    deployer = new ContractFactory(DataUnionFactorySidechain.abi, DataUnionFactorySidechain.bytecode, wallet_home)
+    dtx = await deployer.deploy(home_erc_mediator, duhome.address, { gasLimit: 7900000 })
+    let fact = await dtx.deployed()
+
+//    let fact = homeDUFactory
+
     console.log(`factory: ${fact.address}`)
     //function deployMinimal(address _logic, bytes memory _data, bytes32 salt)
-    let salt = utils.hexZeroPad('0x1', 32)  
-    let pa = await fact.predictAddressCreate2(home_du, salt)
+    let salt = utils.hexZeroPad(wallet_home.address, 32)  
+    console.log(`salt ${salt}`)
+    
+    let pa = await fact.predictAddressCreate2(duhome.address, salt)
     console.log(`predicted ${pa}`)
-    let tx = await fact.deployMinimal(home_du,'0x',salt)
+    let tx
+//    tx = await fact.deployMinimal(duhome.address,'0x',salt)
+    tx = await fact.deployNewDUSidechain(wallet_home.address, 0, [wallet_foreign.address])
     let rslt = await tx.wait();
     console.log(`rslt ${JSON.stringify(rslt)}`)
 
 }
 
 async function deployDUContracts() {
+    /*
     log(`Deploying DU home contract from ${wallet_home.address}`)
     let deployer = new ContractFactory(DataUnionSidechain.abi, DataUnionSidechain.bytecode, wallet_home)
     let dtx = await deployer.deploy({ gasLimit: 7900000 })
-    const duhome = await dtx.deployed()
-    console.log(`duhome: ${duhome.address}`)
+    let duhome = await dtx.deployed()
+    console.log(`duhome template: ${duhome.address}`)
 
+    
+        address _token_mediator,
+        address _sidechain_DU_factory,
+        uint256 _sidechain_maxgas,
+        address _sidechain_template_DU,
+        uint256 adminFeeFraction,
+        address[] memory agents
+*/
+    const template = await homeDUFactory.data_union_sidechain_template()
 
     log(`Deploying DU foreign contract from ${wallet_foreign.address}`)
     deployer = new ContractFactory(DataUnionMainnet.abi, DataUnionMainnet.bytecode, wallet_foreign)
-    dtx = await deployer.deploy({ gasLimit: 7900000 })
+    const agents = [wallet_foreign.address]
+    dtx = await deployer.deploy(
+        foreign_erc_mediator,
+        home_du_factory,
+        2000000,
+        template,
+        0,
+        agents,
+        { gasLimit: 7900000 })
     const duforeign = await dtx.deployed()
     console.log(`duforeign: ${duforeign.address}`)
 
+    tx = await duforeign.deployNewDUSidechain(0, agents)
+    await tx.wait()
+    const homeaddress = await duforeign.sidechainAddress()
+    console.log(`duhome: ${homeaddress}`)
+    const duhome = new Contract(homeaddress, DataUnionSidechain.abi, wallet_home)
+
     /*
-function initialize(
+    function initialize(
     address token_address,
     uint256 adminFeeFraction_,
     address[] memory agents,
     address _token_mediator,
     address _mainchain_DU
 )
-    */
     let tx
     console.log("init home contract")
     tx = await duhome.initialize(home_erc677, 0, [wallet_home.address], home_erc_mediator, duforeign.address)
     console.log(`init home contract submitted: ${JSON.stringify(tx)}`)
     await tx.wait()
     console.log(`init home contract done `)
-    /*
 
     function initialize(
         address _amb,
@@ -131,12 +170,12 @@ function initialize(
         address _token_mediator,
         uint256 _sidechain_maxgas
     )
-    */
     console.log("init foreign contract")
     tx = await duforeign.initialize(foreign_amb, duhome.address, foreign_erc20, foreign_erc_mediator, 2000000)
     console.log(`init foreign contract submitted: ${JSON.stringify(tx)}`)
     await tx.wait()
     console.log(`init foreign contract done `)
+*/
     return [duhome, duforeign]
 }
 
@@ -173,10 +212,12 @@ async function withdraw(address){
 async function start() {
     let tx
     try {
-
-        //await testSend()
+        //await deployDUContracts()
+        await testSend()
         //await withdraw(member)        
-        await deployDUSidechainFactory()     
+        //await deployDUSidechainFactory()   
+        let fact = await foreignDU.sidechain_DU_factory()  
+        console.log(`fact ${fact}`)
         let bal = await foreignErc20.balanceOf(member)
         console.log(`${member} foreign token bal ${bal}`)
         bal = await homeErc677.balanceOf(member)
