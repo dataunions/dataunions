@@ -3,7 +3,8 @@ const {
     ContractFactory,
     utils: { defaultAbiCoder, computeAddress, parseEther, formatEther },
     Wallet,
-    providers: { Web3Provider, JsonRpcProvider }
+    providers: { Web3Provider, JsonRpcProvider },
+    utils
 } = require("ethers")
 const tokenbridge_contracts = '../../tokenbridge/contracts'
 const HomeAMB = require(tokenbridge_contracts + "/build/contracts/HomeAMB.json")
@@ -14,6 +15,7 @@ const ERC20 = require(tokenbridge_contracts + "/build/contracts/ERC20.json")
 const ERC20Mintable = require("../build/contracts/ERC20Mintable.json")
 const DataUnionMainnet = require("../build/contracts/DataUnionMainnet.json")
 const DataUnionSidechain = require("../build/contracts/DataUnionSidechain.json")
+const DataUnionFactorySidechain = require("../build/contracts/DataUnionFactorySidechain.json")
 
 const log = process.env.QUIET ? (() => { }) : console.log // eslint-disable-line no-console
 class LoggingProvider extends JsonRpcProvider {
@@ -46,6 +48,8 @@ const foreign_erc_mediator = '0xDa6fB5F5ED2DD586C78e8cbD7228A3a8206af5b1'
 const foreign_erc20 = '0xED56b560D42917185A829789C3eF1E118a421Acc'
 const home_du = '0xf0cDf673b5CF0633Ac5210b6f62cc699CA6DC05C'
 const foreign_du = '0xaea6245Cd5A7f69bA0892e806e50DC60afC8B3c2'
+const home_du_factory = '0xB21572BBC5CEf6E08F16b6Db015bD3B5a4d73762'
+
 const homeBridgeTest = new Contract(home_bridgetest, BridgeTest.abi, wallet_home)
 const foreignBridgeTest = new Contract(foreign_bridgetest, BridgeTest.abi, wallet_foreign)
 const homeAmb = new Contract(home_amb, HomeAMB.abi, wallet_home)
@@ -53,6 +57,7 @@ const foreignAmb = new Contract(foreign_amb, ForeignAMB.abi, wallet_foreign)
 const homeErc677 = new Contract(home_erc677, ERC677BridgeToken.abi, wallet_home)
 const foreignErc20 = new Contract(foreign_erc20, ERC20Mintable.abi, wallet_foreign)
 
+const homeDUFactory = new Contract(home_du_factory, DataUnionFactorySidechain.abi, wallet_home)
 const homeDU = new Contract(home_du, DataUnionSidechain.abi, wallet_home)
 const foreignDU = new Contract(foreign_du, DataUnionMainnet.abi, wallet_foreign)
 const member = '0x4178baBE9E5148c6D5fd431cD72884B07Ad855a0'
@@ -67,6 +72,25 @@ async function deployForeignErc20() {
     let tx = await erc20.mint(wallet_foreign.address, amt)
     await tx.wait()
     console.log(`minted ${amt}`)
+}
+async function deployDUSidechainFactory(){
+/*
+    // constructor( address _token_mediator, address _data_union_sidechain_template) public {
+    log(`Deploying DU factory contract from ${wallet_home.address}`)
+    let deployer = new ContractFactory(DataUnionFactorySidechain.abi, DataUnionFactorySidechain.bytecode, wallet_home)
+    let dtx = await deployer.deploy(home_erc_mediator, home_du, { gasLimit: 7900000 })
+    const fact = await dtx.deployed()
+*/
+    let fact = homeDUFactory
+    console.log(`factory: ${fact.address}`)
+    //function deployMinimal(address _logic, bytes memory _data, bytes32 salt)
+    let salt = utils.hexZeroPad('0x1', 32)  
+    let pa = await fact.predictAddressCreate2(home_du, salt)
+    console.log(`predicted ${pa}`)
+    let tx = await fact.deployMinimal(home_du,'0x',salt)
+    let rslt = await tx.wait();
+    console.log(`rslt ${JSON.stringify(rslt)}`)
+
 }
 
 async function deployDUContracts() {
@@ -152,6 +176,7 @@ async function start() {
 
         //await testSend()
         //await withdraw(member)        
+        await deployDUSidechainFactory()     
         let bal = await foreignErc20.balanceOf(member)
         console.log(`${member} foreign token bal ${bal}`)
         bal = await homeErc677.balanceOf(member)
