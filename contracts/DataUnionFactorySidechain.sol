@@ -3,6 +3,7 @@ pragma solidity ^0.6.0;
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./Ownable.sol";
+import "./CloneLib.sol";
 
 interface IAMB {
     function messageSender() external view returns (address);
@@ -61,64 +62,11 @@ contract DataUnionFactorySidechain {
         amb = IAMB(token_mediator.bridgeContract());
     }
 
-    //https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-sdk/master/packages/lib/contracts/upgradeability/ProxyFactory.sol
-    function deployMinimal(address template, bytes memory _data, bytes32 salt)
-        internal
-        returns (address proxy)
-    {
-        emit DeployRequest(template, salt);
-        // Adapted from https://github.com/optionality/clone-factory/blob/32782f82dfc5a00d103a7e61a17a5dedbd1e8e9d/contracts/CloneFactory.sol
-        bytes20 targetBytes = bytes20(template);
-        assembly {
-            let clone := mload(0x40)
-            mstore(
-                clone,
-                0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000
-            )
-            mstore(add(clone, 0x14), targetBytes)
-            mstore(
-                add(clone, 0x28),
-                0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000
-            )
-            proxy := create2(0, clone, 0x37, salt)
-        }
-        
-        if (_data.length > 0) {
-            (bool success, ) = proxy.call(_data);
-            require(success);
-        }
-        
-        emit ContractDeployed(proxy);
-    }
-
     function sidechainAddress(address mainet_address)
         public view
         returns (address proxy)
     {
-        return predictAddressCreate2(data_union_sidechain_template, bytes32(bytes20(mainet_address)));
-    }
-
-    function predictAddressCreate2(address template, bytes32 salt)
-        public view
-        returns (address proxy)
-    {
-        // Adapted from https://github.com/optionality/clone-factory/blob/32782f82dfc5a00d103a7e61a17a5dedbd1e8e9d/contracts/CloneFactory.sol
-        bytes20 targetBytes = bytes20(template);
-        bytes32 codehash;
-        assembly {
-            let clone := mload(0x40)
-            mstore(
-                clone,
-                0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000
-            )
-            mstore(add(clone, 0x14), targetBytes)
-            mstore(
-                add(clone, 0x28),
-                0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000
-            )
-            codehash := keccak256(clone, 0x37)
-        }
-        return address(uint160(uint256(keccak256(abi.encodePacked(byte(0xff),address(this),salt,codehash)))));
+        return CloneLib.predictCloneAddressCreate2(data_union_sidechain_template, address(this), bytes32(bytes20(mainet_address)));
     }
 
     function relayMessageToSidechainDU(bytes memory data)
@@ -154,7 +102,8 @@ contract DataUnionFactorySidechain {
             address(token_mediator),
             du_mainnet
         );
-        address du = deployMinimal(data_union_sidechain_template, data, salt);
+        emit DeployRequest(data_union_sidechain_template, salt);
+        address du = CloneLib.deployCodeAndInit(CloneLib.cloneBytecode(data_union_sidechain_template), data, salt);
         emit DUCreated(du_mainnet, du);
         return du;
     }

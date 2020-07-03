@@ -4,6 +4,7 @@ import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./Ownable.sol";
 import "./PurchaseListener.sol";
+import "./CloneLib.sol";
 
 interface IAMB {
     function messageSender() external view returns (address);
@@ -84,24 +85,7 @@ contract DataUnionMainnet is Ownable {
         public view
         returns (address proxy)
     {
-        // Adapted from https://github.com/optionality/clone-factory/blob/32782f82dfc5a00d103a7e61a17a5dedbd1e8e9d/contracts/CloneFactory.sol
-        bytes20 targetBytes = bytes20(sidechain_template_DU);
-        bytes32 codehash;
-        assembly {
-            let clone := mload(0x40)
-            mstore(
-                clone,
-                0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000
-            )
-            mstore(add(clone, 0x14), targetBytes)
-            mstore(
-                add(clone, 0x28),
-                0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000
-            )
-            codehash := keccak256(clone, 0x37)
-        }
-        // address(this) will always be used by sidechain factory as salt for CREATE2
-        return address(uint160(uint256(keccak256(abi.encodePacked(byte(0xff),address(sidechain_DU_factory),bytes32(uint256(address(this))),codehash)))));
+        return CloneLib.predictCloneAddressCreate2(sidechain_template_DU, sidechain_DU_factory, bytes32(uint256(address(this))));
     }
 
 /*

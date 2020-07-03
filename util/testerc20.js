@@ -48,16 +48,14 @@ const foreign_erc_mediator = '0xcd5ABf6FD59eFa7834E2510181B2c409d42752d5'
 const foreign_erc20 = '0xb23dffE7267Ec8ffcE409D5623B7a73f536e7D9B'
 
 
-const home_du = '0x6b6f3Ee36dc8Bf7E337D9E053c40CEEb14f3F436'
-const foreign_du = '0xf1ae2198CBb4d9B1DC478CC419744931706DCEE5'
+const home_du = '0x431E833aBb6882CB125a75bA91BE36311078c1fB'
+const foreign_du = '0x862FD06E0a3D5B651ED88e1C650E4f87ffD45018'
 
 //new factory:
 //const foreign_du = '0x5Aa81fB577a1765bb61E4841d958bDA75b5fa789'
 //const home_du = '0xBad2D444d70605f1d19b8b04621346E39359f9D0'
 
-
-
-const home_du_factory = '0x95015699fE9e3C3D9f072C4624dE5D53F23856Bb'
+const home_du_factory = '0x88dD19b1655c1937265C41f3610BE7f6470CE44E'
 
 const homeBridgeTest = new Contract(home_bridgetest, BridgeTest.abi, wallet_home)
 const foreignBridgeTest = new Contract(foreign_bridgetest, BridgeTest.abi, wallet_foreign)
@@ -219,7 +217,6 @@ async function start() {
         //await testSend()
         //await withdraw(member)        
         //await deployDUSidechainFactory() 
-        
         /*
         tx = await homeDU.addMember(member)
         await tx.wait()
