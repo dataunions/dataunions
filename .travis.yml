@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+  - "9.5.0"
+before_install:
+  - "npm i -g npm@6.0.1"
+branches:
+  only:
+    - master
+    - next
+    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
+jobs:
+  include:
+    - script:
+        - "npm run test"
+      stage: "smart contract tests"

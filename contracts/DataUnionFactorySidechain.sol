@@ -1,0 +1,110 @@
+pragma solidity ^0.6.0;
+
+import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "./Ownable.sol";
+import "./CloneLib.sol";
+
+interface IAMB {
+    function messageSender() external view returns (address);
+
+    function maxGasPerTx() external view returns (uint256);
+
+    function transactionHash() external view returns (bytes32);
+
+    function messageId() external view returns (bytes32);
+
+    function messageSourceChainId() external view returns (bytes32);
+
+    function messageCallStatus(bytes32 _messageId) external view returns (bool);
+
+    function failedMessageDataHash(bytes32 _messageId)
+        external
+        view
+        returns (bytes32);
+
+    function failedMessageReceiver(bytes32 _messageId)
+        external
+        view
+        returns (address);
+
+    function failedMessageSender(bytes32 _messageId)
+        external
+        view
+        returns (address);
+
+    function requireToPassMessage(
+        address _contract,
+        bytes calldata _data,
+        uint256 _gas
+    ) external returns (bytes32);
+}
+
+interface ITokenMediator {
+    function erc677token() external view returns (address);
+    function bridgeContract() external view returns (address);
+    function relayTokens(address _from, address _receiver, uint256 _value) external;
+}
+
+
+contract DataUnionFactorySidechain {
+    event DUCreated(address indexed mainnet, address indexed sidenet);
+    event ContractDeployed(address indexed sidenet);
+    event DeployRequest(address indexed template, bytes32 indexed salt);
+
+    address public data_union_sidechain_template;
+    IAMB public amb;
+    ITokenMediator public token_mediator;
+
+    constructor( address _token_mediator, address _data_union_sidechain_template) public {
+        token_mediator = ITokenMediator(_token_mediator);
+        data_union_sidechain_template = _data_union_sidechain_template;
+        amb = IAMB(token_mediator.bridgeContract());
+    }
+
+    function sidechainAddress(address mainet_address)
+        public view
+        returns (address proxy)
+    {
+        return CloneLib.predictCloneAddressCreate2(data_union_sidechain_template, address(this), bytes32(bytes20(mainet_address)));
+    }
+
+    function relayMessageToSidechainDU(bytes memory data)
+        public
+        returns (bool, bytes memory)
+    {
+        //if the request didnt come from AMB, use the sender's address as the corresponding "mainnet" address
+        address sender = msg.sender == address(amb) ? amb.messageSender() : msg.sender;
+        address recipient = sidechainAddress(sender);
+        require(recipient != address(0), "du_not_found");
+        return recipient.call(data);
+    }
+/*
+    initialize(address _owner,
+        address token_address,
+        uint256 adminFeeFraction_,
+        address[] memory agents,
+        address _token_mediator,
+        address _mainchain_DU)
+
+
+    users can only deploy with salt = their key.
+*/
+    function deployNewDUSidechain(address owner, uint256 adminFeeFraction, address[] memory agents) public returns (address) {
+        //if the request didnt come from AMB, use the sender's address as the corresponding "mainnet" address
+        address du_mainnet = msg.sender == address(amb) ? amb.messageSender() : msg.sender;
+        bytes32 salt = bytes32(uint256(du_mainnet));
+        bytes memory data = abi.encodeWithSignature("initialize(address,address,uint256,address[],address,address)",
+            owner,
+            token_mediator.erc677token(),
+            adminFeeFraction,
+            agents,
+            address(token_mediator),
+            du_mainnet
+        );
+        emit DeployRequest(data_union_sidechain_template, salt);
+        address du = CloneLib.deployCodeAndInit(CloneLib.cloneBytecode(data_union_sidechain_template), data, salt);
+        emit DUCreated(du_mainnet, du);
+        return du;
+    }
+}

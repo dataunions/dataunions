@@ -1,0 +1,27 @@
+{
+  "name": "dataunion-onchain-contracts",
+  "version": "0.0.1",
+  "description": "Smart contracts for Data Union with onchain accounting",
+  "scripts": {
+    "clean": "rm -rf build/ && mkdir -p build/contracts",
+    "build": "truffle compile && ./flatten",
+    "deploy": "truffle migrate",
+    "lint": "./node_modules/.bin/eslint src && ./node_modules/.bin/solhint contracts/**/*.sol",
+    "test": "truffle test"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^5.14.1",
+    "openzeppelin-solidity": "^3.0.0",
+    "@openzeppelin/upgrades": "^2.8.0",
+    "truffle": "^5.1.23",
+    "truffle-flattener": "^1.4.3",
+    "web3": "^1.2.4"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.1.0",
+    "@openzeppelin/upgrades": "^2.8.0",
+    "ethers": "^4.0.47"
+  }
+}
