@@ -83,7 +83,7 @@ contract DataUnionFactoryMainnet {
         return CloneLib.predictCloneAddressCreate2(
             data_union_sidechain_template,
             data_union_sidechain_factory,
-            bytes32(bytes20(mainet_address)));
+            bytes32(uint256(mainet_address)));
     }
 
 /*

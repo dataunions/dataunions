@@ -64,7 +64,7 @@ contract DataUnionFactorySidechain {
         public view
         returns (address proxy)
     {
-        return CloneLib.predictCloneAddressCreate2(data_union_sidechain_template, address(this), bytes32(bytes20(mainet_address)));
+        return CloneLib.predictCloneAddressCreate2(data_union_sidechain_template, address(this), bytes32(uint256(mainet_address)));
     }
 
 /*
