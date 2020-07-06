@@ -53,14 +53,14 @@
     "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/PurchaseListener.sol",
     "exportedSymbols": {
       "PurchaseListener": [
-        1776
+        2005
       ]
     },
-    "id": 1777,
+    "id": 2006,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1759,
+        "id": 1988,
         "literals": [
           "solidity",
           "^",
@@ -68,7 +68,7 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:23:5"
+        "src": "0:23:7"
       },
       {
         "abstract": false,
@@ -77,9 +77,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 1776,
+        "id": 2005,
         "linearizedBaseContracts": [
-          1776
+          2005
         ],
         "name": "PurchaseListener",
         "nodeType": "ContractDefinition",
@@ -87,13 +87,13 @@
           {
             "body": null,
             "documentation": {
-              "id": 1760,
+              "id": 1989,
               "nodeType": "StructuredDocumentation",
-              "src": "279:245:5",
+              "src": "279:245:7",
               "text": "Similarly to ETH transfer, returning false will decline the transaction\n  (declining should probably cause revert, but that's up to the caller)\nIMPORTANT: include onlyMarketplace modifier to your implementations!"
             },
             "functionSelector": "4a439cc0",
-            "id": 1775,
+            "id": 2004,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -101,18 +101,18 @@
             "nodeType": "FunctionDefinition",
             "overrides": null,
             "parameters": {
-              "id": 1771,
+              "id": 2000,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1762,
+                  "id": 1991,
                   "mutability": "mutable",
                   "name": "productId",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 1775,
-                  "src": "549:17:5",
+                  "scope": 2004,
+                  "src": "549:17:7",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -120,10 +120,10 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 1761,
+                    "id": 1990,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
-                    "src": "549:7:5",
+                    "src": "549:7:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
                       "typeString": "bytes32"
@@ -134,13 +134,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 1764,
+                  "id": 1993,
                   "mutability": "mutable",
                   "name": "subscriber",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 1775,
-                  "src": "568:18:5",
+                  "scope": 2004,
+                  "src": "568:18:7",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -148,10 +148,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1763,
+                    "id": 1992,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "568:7:5",
+                    "src": "568:7:7",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -163,13 +163,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 1766,
+                  "id": 1995,
                   "mutability": "mutable",
                   "name": "endTimestamp",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 1775,
-                  "src": "588:17:5",
+                  "scope": 2004,
+                  "src": "588:17:7",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -177,10 +177,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1765,
+                    "id": 1994,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
-                    "src": "588:4:5",
+                    "src": "588:4:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -191,13 +191,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 1768,
+                  "id": 1997,
                   "mutability": "mutable",
                   "name": "priceDatacoin",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 1775,
-                  "src": "607:18:5",
+                  "scope": 2004,
+                  "src": "607:18:7",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -205,10 +205,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1767,
+                    "id": 1996,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
-                    "src": "607:4:5",
+                    "src": "607:4:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -219,13 +219,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 1770,
+                  "id": 1999,
                   "mutability": "mutable",
                   "name": "feeDatacoin",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 1775,
-                  "src": "627:16:5",
+                  "scope": 2004,
+                  "src": "627:16:7",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -233,10 +233,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1769,
+                    "id": 1998,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
-                    "src": "627:4:5",
+                    "src": "627:4:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -246,21 +246,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "548:96:5"
+              "src": "548:96:7"
             },
             "returnParameters": {
-              "id": 1774,
+              "id": 2003,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1773,
+                  "id": 2002,
                   "mutability": "mutable",
                   "name": "accepted",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 1775,
-                  "src": "671:13:5",
+                  "scope": 2004,
+                  "src": "671:13:7",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -268,10 +268,10 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 1772,
+                    "id": 2001,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
-                    "src": "671:4:5",
+                    "src": "671:4:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
                       "typeString": "bool"
@@ -281,33 +281,33 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "670:15:5"
+              "src": "670:15:7"
             },
-            "scope": 1776,
-            "src": "529:157:5",
+            "scope": 2005,
+            "src": "529:157:7",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 1777,
-        "src": "25:663:5"
+        "scope": 2006,
+        "src": "25:663:7"
       }
     ],
-    "src": "0:689:5"
+    "src": "0:689:7"
   },
   "legacyAST": {
     "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/PurchaseListener.sol",
     "exportedSymbols": {
       "PurchaseListener": [
-        1776
+        2005
       ]
     },
-    "id": 1777,
+    "id": 2006,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1759,
+        "id": 1988,
         "literals": [
           "solidity",
           "^",
@@ -315,7 +315,7 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:23:5"
+        "src": "0:23:7"
       },
       {
         "abstract": false,
@@ -324,9 +324,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 1776,
+        "id": 2005,
         "linearizedBaseContracts": [
-          1776
+          2005
         ],
         "name": "PurchaseListener",
         "nodeType": "ContractDefinition",
@@ -334,13 +334,13 @@
           {
             "body": null,
             "documentation": {
-              "id": 1760,
+              "id": 1989,
               "nodeType": "StructuredDocumentation",
-              "src": "279:245:5",
+              "src": "279:245:7",
               "text": "Similarly to ETH transfer, returning false will decline the transaction\n  (declining should probably cause revert, but that's up to the caller)\nIMPORTANT: include onlyMarketplace modifier to your implementations!"
             },
             "functionSelector": "4a439cc0",
-            "id": 1775,
+            "id": 2004,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -348,18 +348,18 @@
             "nodeType": "FunctionDefinition",
             "overrides": null,
             "parameters": {
-              "id": 1771,
+              "id": 2000,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1762,
+                  "id": 1991,
                   "mutability": "mutable",
                   "name": "productId",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 1775,
-                  "src": "549:17:5",
+                  "scope": 2004,
+                  "src": "549:17:7",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -367,10 +367,10 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 1761,
+                    "id": 1990,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
-                    "src": "549:7:5",
+                    "src": "549:7:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
                       "typeString": "bytes32"
@@ -381,13 +381,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 1764,
+                  "id": 1993,
                   "mutability": "mutable",
                   "name": "subscriber",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 1775,
-                  "src": "568:18:5",
+                  "scope": 2004,
+                  "src": "568:18:7",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -395,10 +395,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1763,
+                    "id": 1992,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "568:7:5",
+                    "src": "568:7:7",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -410,13 +410,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 1766,
+                  "id": 1995,
                   "mutability": "mutable",
                   "name": "endTimestamp",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 1775,
-                  "src": "588:17:5",
+                  "scope": 2004,
+                  "src": "588:17:7",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -424,10 +424,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1765,
+                    "id": 1994,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
-                    "src": "588:4:5",
+                    "src": "588:4:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -438,13 +438,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 1768,
+                  "id": 1997,
                   "mutability": "mutable",
                   "name": "priceDatacoin",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 1775,
-                  "src": "607:18:5",
+                  "scope": 2004,
+                  "src": "607:18:7",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -452,10 +452,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1767,
+                    "id": 1996,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
-                    "src": "607:4:5",
+                    "src": "607:4:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -466,13 +466,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 1770,
+                  "id": 1999,
                   "mutability": "mutable",
                   "name": "feeDatacoin",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 1775,
-                  "src": "627:16:5",
+                  "scope": 2004,
+                  "src": "627:16:7",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -480,10 +480,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1769,
+                    "id": 1998,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
-                    "src": "627:4:5",
+                    "src": "627:4:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -493,21 +493,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "548:96:5"
+              "src": "548:96:7"
             },
             "returnParameters": {
-              "id": 1774,
+              "id": 2003,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1773,
+                  "id": 2002,
                   "mutability": "mutable",
                   "name": "accepted",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 1775,
-                  "src": "671:13:5",
+                  "scope": 2004,
+                  "src": "671:13:7",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -515,10 +515,10 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 1772,
+                    "id": 2001,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
-                    "src": "671:4:5",
+                    "src": "671:4:7",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
                       "typeString": "bool"
@@ -528,20 +528,20 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "670:15:5"
+              "src": "670:15:7"
             },
-            "scope": 1776,
-            "src": "529:157:5",
+            "scope": 2005,
+            "src": "529:157:7",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 1777,
-        "src": "25:663:5"
+        "scope": 2006,
+        "src": "25:663:7"
       }
     ],
-    "src": "0:689:5"
+    "src": "0:689:7"
   },
   "compiler": {
     "name": "solc",
@@ -549,7 +549,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-07-02T16:59:04.376Z",
+  "updatedAt": "2020-07-06T16:48:16.173Z",
   "devdoc": {
     "methods": {}
   },

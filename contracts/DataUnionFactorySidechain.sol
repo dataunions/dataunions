@@ -48,9 +48,7 @@ interface ITokenMediator {
 
 
 contract DataUnionFactorySidechain {
-    event DUCreated(address indexed mainnet, address indexed sidenet);
-    event ContractDeployed(address indexed sidenet);
-    event DeployRequest(address indexed template, bytes32 indexed salt);
+    event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
 
     address public data_union_sidechain_template;
     IAMB public amb;
@@ -69,16 +67,6 @@ contract DataUnionFactorySidechain {
         return CloneLib.predictCloneAddressCreate2(data_union_sidechain_template, address(this), bytes32(bytes20(mainet_address)));
     }
 
-    function relayMessageToSidechainDU(bytes memory data)
-        public
-        returns (bool, bytes memory)
-    {
-        //if the request didnt come from AMB, use the sender's address as the corresponding "mainnet" address
-        address sender = msg.sender == address(amb) ? amb.messageSender() : msg.sender;
-        address recipient = sidechainAddress(sender);
-        require(recipient != address(0), "du_not_found");
-        return recipient.call(data);
-    }
 /*
     initialize(address _owner,
         address token_address,
@@ -102,9 +90,8 @@ contract DataUnionFactorySidechain {
             address(token_mediator),
             du_mainnet
         );
-        emit DeployRequest(data_union_sidechain_template, salt);
-        address du = CloneLib.deployCodeAndInit(CloneLib.cloneBytecode(data_union_sidechain_template), data, salt);
-        emit DUCreated(du_mainnet, du);
+        address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_sidechain_template), data, salt);
+        emit SidechainDUCreated(du_mainnet, du, owner, data_union_sidechain_template);
         return du;
     }
 }

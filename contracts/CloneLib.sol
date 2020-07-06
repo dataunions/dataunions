@@ -54,7 +54,25 @@ library CloneLib {
             );
     }
 
-    function deployCodeAndInit(
+    function deployCodeAndInitUsingCreate(
+        bytes memory code,
+        bytes memory init_data
+    ) internal returns (address proxy) {
+        uint256 len = code.length;
+        assembly {
+            proxy := create(0, add(code, 0x20), len)
+        }
+
+        if (init_data.length > 0) {
+            (bool success, ) = proxy.call(init_data);
+            require(success);
+        }
+    }
+/*
+    predictable address. see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1014.md
+*/
+
+    function deployCodeAndInitUsingCreate2(
         bytes memory code,
         bytes memory init_data,
         bytes32 salt
