@@ -47,7 +47,7 @@ interface ITokenMediator {
     function relayTokens(address _from, address _receiver, uint256 _value) external;
 }
 
-contract DataUnionMainnet is Ownable {
+contract DataUnionMainnet is Ownable{
     using SafeMath for uint256;
 
     IAMB public amb;
@@ -59,23 +59,33 @@ contract DataUnionMainnet is Ownable {
     // needed to compute sidechain address
     address public sidechain_template_DU;
 
-    constructor(
+    constructor() public Ownable(address(0)) {}
+
+    function initialize(
         address _token_mediator,
         address _sidechain_DU_factory,
         uint256 _sidechain_maxgas,
         address _sidechain_template_DU,
+        address _owner,
         uint256 adminFeeFraction,
         address[] memory agents
-    )  public Ownable(msg.sender) {
+    )  public {
+        require(!isInitialized(), "init_once");
         token_mediator = ITokenMediator(_token_mediator);
         amb = IAMB(token_mediator.bridgeContract());
         token = ERC20(token_mediator.erc677token());
         sidechain_DU_factory = _sidechain_DU_factory;
         sidechain_maxgas = _sidechain_maxgas;
         sidechain_template_DU = _sidechain_template_DU;
+        owner = _owner;
         deployNewDUSidechain(adminFeeFraction, agents);
     }
 
+    function isInitialized() public view returns (bool) {
+        return address(token) != address(0);
+    }
+
+    
     function deployNewDUSidechain(uint256 adminFeeFraction, address[] memory agents) public {
         bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,uint256,address[])", owner, adminFeeFraction, agents);
         amb.requireToPassMessage(sidechain_DU_factory, data, sidechain_maxgas);

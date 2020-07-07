@@ -732,29 +732,62 @@ library CloneLib {
         }
     }
 
-        function predictCloneAddressCreate2(address template, address deployer, bytes32 salt)
-        internal pure
-        returns (address proxy)
-    {
+    function predictCloneAddressCreate2(
+        address template,
+        address deployer,
+        bytes32 salt
+    ) internal pure returns (address proxy) {
         bytes32 codehash = keccak256(cloneBytecode(template));
-        return address(uint160(uint256(keccak256(abi.encodePacked(byte(0xff), deployer, salt, codehash)))));
+        return
+            address(
+                uint160(
+                    uint256(
+                        keccak256(
+                            abi.encodePacked(
+                                bytes1(0xff),
+                                deployer,
+                                salt,
+                                codehash
+                            )
+                        )
+                    )
+                )
+            );
     }
 
-        function deployCodeAndInit(bytes memory code, bytes memory init_data, bytes32 salt)
-        internal
-        returns (address proxy)
-    {
-        uint len = code.length;
+    function deployCodeAndInitUsingCreate(
+        bytes memory code,
+        bytes memory init_data
+    ) internal returns (address proxy) {
+        uint256 len = code.length;
         assembly {
-            proxy := create2(0, add(code, 0x20), len, salt)
+            proxy := create(0, add(code, 0x20), len)
         }
-        
+
         if (init_data.length > 0) {
             (bool success, ) = proxy.call(init_data);
             require(success);
         }
     }
+/*
+    predictable address. see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1014.md
+*/
 
+    function deployCodeAndInitUsingCreate2(
+        bytes memory code,
+        bytes memory init_data,
+        bytes32 salt
+    ) internal returns (address proxy) {
+        uint256 len = code.length;
+        assembly {
+            proxy := create2(0, add(code, 0x20), len, salt)
+        }
+
+        if (init_data.length > 0) {
+            (bool success, ) = proxy.call(init_data);
+            require(success);
+        }
+    }
 }
 
 // File: contracts/DataUnionMainnet.sol
@@ -807,7 +840,7 @@ interface ITokenMediator {
     function relayTokens(address _from, address _receiver, uint256 _value) external;
 }
 
-contract DataUnionMainnet is Ownable {
+contract DataUnionMainnet is Ownable{
     using SafeMath for uint256;
 
     IAMB public amb;
@@ -819,23 +852,33 @@ contract DataUnionMainnet is Ownable {
     // needed to compute sidechain address
     address public sidechain_template_DU;
 
-    constructor(
+    constructor() public Ownable(address(0)) {}
+
+    function initialize(
         address _token_mediator,
         address _sidechain_DU_factory,
         uint256 _sidechain_maxgas,
         address _sidechain_template_DU,
+        address _owner,
         uint256 adminFeeFraction,
         address[] memory agents
-    )  public Ownable(msg.sender) {
+    )  public {
+        require(!isInitialized(), "init_once");
         token_mediator = ITokenMediator(_token_mediator);
         amb = IAMB(token_mediator.bridgeContract());
         token = ERC20(token_mediator.erc677token());
         sidechain_DU_factory = _sidechain_DU_factory;
         sidechain_maxgas = _sidechain_maxgas;
         sidechain_template_DU = _sidechain_template_DU;
+        owner = _owner;
         deployNewDUSidechain(adminFeeFraction, agents);
     }
 
+    function isInitialized() public view returns (bool) {
+        return address(token) != address(0);
+    }
+
+    
     function deployNewDUSidechain(uint256 adminFeeFraction, address[] memory agents) public {
         bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,uint256,address[])", owner, adminFeeFraction, agents);
         amb.requireToPassMessage(sidechain_DU_factory, data, sidechain_maxgas);

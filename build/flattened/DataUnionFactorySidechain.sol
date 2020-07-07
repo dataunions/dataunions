@@ -317,29 +317,62 @@ library CloneLib {
         }
     }
 
-        function predictCloneAddressCreate2(address template, address deployer, bytes32 salt)
-        internal pure
-        returns (address proxy)
-    {
+    function predictCloneAddressCreate2(
+        address template,
+        address deployer,
+        bytes32 salt
+    ) internal pure returns (address proxy) {
         bytes32 codehash = keccak256(cloneBytecode(template));
-        return address(uint160(uint256(keccak256(abi.encodePacked(byte(0xff), deployer, salt, codehash)))));
+        return
+            address(
+                uint160(
+                    uint256(
+                        keccak256(
+                            abi.encodePacked(
+                                bytes1(0xff),
+                                deployer,
+                                salt,
+                                codehash
+                            )
+                        )
+                    )
+                )
+            );
     }
 
-        function deployCodeAndInit(bytes memory code, bytes memory init_data, bytes32 salt)
-        internal
-        returns (address proxy)
-    {
-        uint len = code.length;
+    function deployCodeAndInitUsingCreate(
+        bytes memory code,
+        bytes memory init_data
+    ) internal returns (address proxy) {
+        uint256 len = code.length;
         assembly {
-            proxy := create2(0, add(code, 0x20), len, salt)
+            proxy := create(0, add(code, 0x20), len)
         }
-        
+
         if (init_data.length > 0) {
             (bool success, ) = proxy.call(init_data);
             require(success);
         }
     }
+/*
+    predictable address. see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1014.md
+*/
 
+    function deployCodeAndInitUsingCreate2(
+        bytes memory code,
+        bytes memory init_data,
+        bytes32 salt
+    ) internal returns (address proxy) {
+        uint256 len = code.length;
+        assembly {
+            proxy := create2(0, add(code, 0x20), len, salt)
+        }
+
+        if (init_data.length > 0) {
+            (bool success, ) = proxy.call(init_data);
+            require(success);
+        }
+    }
 }
 
 // File: contracts/DataUnionFactorySidechain.sol
@@ -393,9 +426,7 @@ interface ITokenMediator {
 
 
 contract DataUnionFactorySidechain {
-    event DUCreated(address indexed mainnet, address indexed sidenet);
-    event ContractDeployed(address indexed sidenet);
-    event DeployRequest(address indexed template, bytes32 indexed salt);
+    event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
 
     address public data_union_sidechain_template;
     IAMB public amb;
@@ -414,16 +445,6 @@ contract DataUnionFactorySidechain {
         return CloneLib.predictCloneAddressCreate2(data_union_sidechain_template, address(this), bytes32(bytes20(mainet_address)));
     }
 
-    function relayMessageToSidechainDU(bytes memory data)
-        public
-        returns (bool, bytes memory)
-    {
-        //if the request didnt come from AMB, use the sender's address as the corresponding "mainnet" address
-        address sender = msg.sender == address(amb) ? amb.messageSender() : msg.sender;
-        address recipient = sidechainAddress(sender);
-        require(recipient != address(0), "du_not_found");
-        return recipient.call(data);
-    }
 /*
     initialize(address _owner,
         address token_address,
@@ -447,9 +468,8 @@ contract DataUnionFactorySidechain {
             address(token_mediator),
             du_mainnet
         );
-        emit DeployRequest(data_union_sidechain_template, salt);
-        address du = CloneLib.deployCodeAndInit(CloneLib.cloneBytecode(data_union_sidechain_template), data, salt);
-        emit DUCreated(du_mainnet, du);
+        address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_sidechain_template), data, salt);
+        emit SidechainDUCreated(du_mainnet, du, owner, data_union_sidechain_template);
         return du;
     }
 }
