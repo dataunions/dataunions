@@ -85,6 +85,20 @@ contract DataUnionFactoryMainnet {
             data_union_sidechain_factory,
             bytes32(uint256(mainet_address)));
     }
+    /*
+        
+    */
+    function mainnetAddress(address deployer, string memory name)
+        public view
+        returns (address)
+    {
+        bytes32 salt = keccak256(abi.encodePacked(bytes(name), deployer));
+        return CloneLib.predictCloneAddressCreate2(
+            data_union_mainnet_template,
+            address(this),
+            salt);
+    }
+
 
 /*
     function initialize(
@@ -98,7 +112,8 @@ contract DataUnionFactoryMainnet {
     )  public {
     users can only deploy with salt = their key.
 */
-    function deployNewDataUnion(address owner, uint256 adminFeeFraction, address[] memory agents) public returns (address) {
+    function deployNewDataUnion(address owner, uint256 adminFeeFraction, address[] memory agents, string memory name) public returns (address) {
+        bytes32 salt = keccak256(abi.encodePacked(bytes(name), msg.sender));
         bytes memory data = abi.encodeWithSignature("initialize(address,address,uint256,address,address,uint256,address[])",
             token_mediator,
             data_union_sidechain_factory,
@@ -108,7 +123,7 @@ contract DataUnionFactoryMainnet {
             adminFeeFraction,
             agents
         );
-        address du = CloneLib.deployCodeAndInitUsingCreate(CloneLib.cloneBytecode(data_union_mainnet_template), data);
+        address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_mainnet_template), data, salt);
         emit MainnetDUCreated(du, sidechainAddress(du), owner, data_union_mainnet_template);
         return du;
     }
