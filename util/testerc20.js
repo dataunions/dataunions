@@ -119,33 +119,11 @@ async function deployDUFactories(){
     let factMainnet = await dtx.deployed()
     console.log(`factMainnet: ${factMainnet.address}`)
 
-    let tx = await factMainnet.deployNewDUMainnet(wallet_foreign.address, 0, [wallet_foreign.address])
+    let tx = await factMainnet.deployNewDataUnion(wallet_foreign.address, 0, [wallet_foreign.address])
     let rslt = await tx.wait();
     console.log(`rslt ${JSON.stringify(rslt)}`)
         
     
-//    let fact = homeDUFactory
-
-/*
-    ( address _token_mediator, 
-        address _data_union_mainnet_template,
-        address _data_union_sidechain_template,
-        address _data_union_sidechain_factory,
-        uint256 _sidechain_maxgas)
-*/
-/*
-    //function deployMinimal(address _logic, bytes memory _data, bytes32 salt)
-    let salt = utils.hexZeroPad(wallet_home.address, 32)  
-    console.log(`salt ${salt}`)
-    
-    let pa = await fact.predictAddressCreate2(duhome.address, salt)
-    console.log(`predicted ${pa}`)
-    let tx
-//    tx = await fact.deployMinimal(duhome.address,'0x',salt)
-    tx = await fact.deployNewDUSidechain(wallet_home.address, 0, [wallet_foreign.address])
-    let rslt = await tx.wait();
-    console.log(`rslt ${JSON.stringify(rslt)}`)
-*/
 }
 
 async function deployDUContracts() {

@@ -98,7 +98,7 @@ contract DataUnionFactoryMainnet {
     )  public {
     users can only deploy with salt = their key.
 */
-    function deployNewDUMainnet(address owner, uint256 adminFeeFraction, address[] memory agents) public returns (address) {
+    function deployNewDataUnion(address owner, uint256 adminFeeFraction, address[] memory agents) public returns (address) {
         bytes memory data = abi.encodeWithSignature("initialize(address,address,uint256,address,address,uint256,address[])",
             token_mediator,
             data_union_sidechain_factory,
