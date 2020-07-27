@@ -5,6 +5,7 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./Ownable.sol";
 import "./CloneLib.sol";
 
+//Tokenbridge Arbitrary Message Bridge
 interface IAMB {
     function messageSender() external view returns (address);
 

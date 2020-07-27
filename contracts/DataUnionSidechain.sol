@@ -246,6 +246,34 @@ contract DataUnionSidechain is Ownable {
             );
     }
 
+    /*
+        transfer tokens from outside contract, add to recipient's in-contract balance
+    */
+
+    function transferToMemberInContract(address recipient, uint amount) public {
+        uint bal_before = token.balanceOf(address(this));
+        require(token.transferFrom(msg.sender, address(this), amount), "transfer_failed");
+        uint bal_after = token.balanceOf(address(this));
+        require(bal_after.sub(bal_before) >= amount, "transfer_failed");
+        _increaseBalance(recipient,  amount);
+    }
+    /*
+        transfer tokens from sender's in-contract balance to recipient's in-contract balance
+    */
+
+    function transferBetweensMembersInContract(address recipient, uint amount) public {
+        MemberInfo storage info = memberData[msg.sender];
+        require(info.status == ActiveStatus.Active, "member_not_active");
+        info.earnings_before_last_join = info.earnings_before_last_join.sub(amount);
+        _increaseBalance(recipient,  amount);
+    }    
+
+    function _increaseBalance(address member, uint amount) internal {
+        MemberInfo storage info = memberData[member];
+        require(info.status == ActiveStatus.Active, "member_not_active");
+        info.earnings_before_last_join = info.earnings_before_last_join.add(amount);
+    }
+
     function withdrawMembers(address[] memory members, bool sendToMainnet)
         public
         returns (uint256)

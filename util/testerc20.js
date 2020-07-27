@@ -28,10 +28,8 @@ class LoggingProvider extends JsonRpcProvider {
         });
     }
 }
-const provider_home = new JsonRpcProvider('https://staging.streamr.com:8540');
-const provider_foreign = new JsonRpcProvider('http://127.0.0.1:8545');
-//const provider = new LoggingProvider('http://127.0.0.1:8545');
-
+const provider_home = new JsonRpcProvider('http://10.200.10.1:8546')
+const provider_foreign = new JsonRpcProvider('http://10.200.10.1:8545')
 
 const wallet_home = new Wallet('0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0', provider_home)
 
@@ -43,14 +41,14 @@ const home_amb = '0xA9A988fAd795CAFF275Cc054e94283BBb953a386'
 const foreign_amb = '0xE4eA76e830a659282368cA2e7E4d18C4AE52D8B3'
 const home_bridgetest = '0x604D72069f5b591f7DF96e11bDbEB4C68E5d3C5b'
 const foreign_bridgetest = '0x00E680d549FE53a627a3db86a6F88fA2471CFfAa'
-const home_erc677 = '0x6FFA7a5B794B2A02f824689fbfFF223ad13AFF3b'
+const home_erc677 = '0x19e0ADCC0Cb8a2deB174e9bD9A6644F2764E35A7'
 const home_erc_mediator = '0x844a0d86ec9ECE5aa104078EF6028F68a86f42d1'
 const foreign_erc_mediator = '0xcd5ABf6FD59eFa7834E2510181B2c409d42752d5'
-const foreign_erc20 = '0xb23dffE7267Ec8ffcE409D5623B7a73f536e7D9B'
+const foreign_erc20 = '0xbAA81A0179015bE47Ad439566374F2Bae098686F'
 
 
-const home_du = '0xA6Cd36220553eaA65b3AB3353b7cF6803287415B'
-const foreign_du = '0x3a49633a3206606f3835974Cc695b0eC373fb83b'
+const home_du = '0xfc18950d835c56C5fD6ad94D50E86cE1a1F8B971'
+const foreign_du = '0xedB9E5c7e97c90013Ecc609535b76a6f4C17E938'
 
 //new factory:
 //const foreign_du = '0x5Aa81fB577a1765bb61E4841d958bDA75b5fa789'
