@@ -42,6 +42,11 @@ contract DataUnionSidechain is Ownable {
     event EarningsWithdrawn(address indexed member, uint256 amount);
     event AdminFeesWithdrawn(address indexed admin, uint256 amount);
 
+    //in-contract transfers
+    event TransferWithinContract(address indexed from, address indexed to, uint amount);
+    event TransferToAddressInContract(address indexed from, address indexed to, uint amount);
+    
+
     struct MemberInfo {
         ActiveStatus status;
         uint256 earnings_before_last_join;
@@ -54,9 +59,13 @@ contract DataUnionSidechain is Ownable {
     address public token_mediator;
     address public mainchain_DU;
 
-    //totalRevenue = totalEarnings + totalAdminFees;
+/*
+    totalEarnings includes:
+         member earnings (ie revenue - admin fees) 
+         tokens held for members via transferToMemberInContract()
 
-    //excluding adminFee:
+    totalRevenue = totalEarnings + totalAdminFees;
+*/
     uint256 public totalEarnings;
     uint256 public totalEarningsWithdrawn;
 
@@ -256,21 +265,24 @@ contract DataUnionSidechain is Ownable {
         uint bal_after = token.balanceOf(address(this));
         require(bal_after.sub(bal_before) >= amount, "transfer_failed");
         _increaseBalance(recipient,  amount);
+        totalEarnings = totalEarnings.add(amount);
+        emit TransferToAddressInContract(msg.sender, recipient,  amount);
     }
     /*
         transfer tokens from sender's in-contract balance to recipient's in-contract balance
     */
 
-    function transferBetweensMembersInContract(address recipient, uint amount) public {
+    function transferWithinContract(address recipient, uint amount) public {
         MemberInfo storage info = memberData[msg.sender];
-        require(info.status == ActiveStatus.Active, "member_not_active");
+//        require member active?
+//        require(info.status == ActiveStatus.Active, "member_not_active");
         info.earnings_before_last_join = info.earnings_before_last_join.sub(amount);
         _increaseBalance(recipient,  amount);
-    }    
+        emit TransferWithinContract(msg.sender, recipient, amount);
+     }
 
     function _increaseBalance(address member, uint amount) internal {
         MemberInfo storage info = memberData[member];
-        require(info.status == ActiveStatus.Active, "member_not_active");
         info.earnings_before_last_join = info.earnings_before_last_join.add(amount);
     }
 
