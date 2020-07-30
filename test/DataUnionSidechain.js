@@ -136,11 +136,12 @@ contract("DataUnionSidechain", accounts => {
             assertEqual(bal, amtWei)
         }),
         it("members can send intra-contract", async () => {
+            assert(await testToken.transfer(dataUnionSidechain.address, amtWei))
+            await dataUnionSidechain.addRevenue({from: unused[1]})
             const amt = new BN(w3.utils.toWei("1"), 10)
             await dataUnionSidechain.transferWithinContract(unused[1], amt, {from: members[0]})
             let bal = await dataUnionSidechain.getWithdrawableEarnings(unused[1])
             assertEqual(bal, amt)
-            
         })
     })
 })

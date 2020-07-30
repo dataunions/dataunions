@@ -44,10 +44,6 @@ const home_erc_mediator = '0x6cCdd5d866ea766f6DF5965aA98DeCCD629ff222'
 const foreign_erc_mediator = '0x3AE0ad89b0e094fD09428589849C161f0F7f4E6A'
 const foreign_erc20 = '0xbAA81A0179015bE47Ad439566374F2Bae098686F'
 
-//new factory:
-//const foreign_du = '0x5Aa81fB577a1765bb61E4841d958bDA75b5fa789'
-//const home_du = '0xBad2D444d70605f1d19b8b04621346E39359f9D0'
-
 const home_du_factory = '0xA90CeCcA042312b8f2e8B924C04Ce62516CBF7b2'
 const foreign_du_factory = '0xb23dffE7267Ec8ffcE409D5623B7a73f536e7D9B'
 
@@ -188,19 +184,21 @@ async function printStats(mainnet_address, member){
 async function start() {
     let tx
     try {
-/*
-//make a DU
+
+//make a DU. address is a function(deployer_address, factory_address, name)
         let duname = "test0"
         console.log(`creating DU mainnet with name = ${duname}`)        
         await deployDU(duname)
-*/
 
+
+/*
 //test DU
         const mainnet_address = '0x2256AAa0ddb2400bfd05334a2b62C1f0c78efD84'
         //await addMembers(mainnet_address, [member])
         //await testSend(mainnet_address)
         await withdraw(mainnet_address, member)        
         await printStats(mainnet_address, member)
+*/
     }
     catch (err) {
         console.error(err)

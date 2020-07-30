@@ -273,10 +273,9 @@ contract DataUnionSidechain is Ownable {
     */
 
     function transferWithinContract(address recipient, uint amount) public {
+        require(getWithdrawableEarnings(msg.sender) >= amount, "insufficient_balance");
         MemberInfo storage info = memberData[msg.sender];
-//        require member active?
-//        require(info.status == ActiveStatus.Active, "member_not_active");
-        info.earnings_before_last_join = info.earnings_before_last_join.sub(amount);
+        info.withdrawnEarnings = info.withdrawnEarnings.add(amount);
         _increaseBalance(recipient,  amount);
         emit TransferWithinContract(msg.sender, recipient, amount);
      }
