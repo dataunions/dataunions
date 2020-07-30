@@ -44,10 +44,6 @@ const home_erc_mediator = '0x6cCdd5d866ea766f6DF5965aA98DeCCD629ff222'
 const foreign_erc_mediator = '0x3AE0ad89b0e094fD09428589849C161f0F7f4E6A'
 const foreign_erc20 = '0xbAA81A0179015bE47Ad439566374F2Bae098686F'
 
-
-const home_du = '0x0dbeB5A3A9C280596b4C39bF4e5001566aBD4F54'
-const foreign_du = '0xa06212C113AC6D5A06833928a94f561fAb13e079'
-
 //new factory:
 //const foreign_du = '0x5Aa81fB577a1765bb61E4841d958bDA75b5fa789'
 //const home_du = '0xBad2D444d70605f1d19b8b04621346E39359f9D0'
@@ -63,8 +59,6 @@ const foreignErc20 = new Contract(foreign_erc20, ERC20Mintable.abi, wallet_forei
 const homeDUFactory = new Contract(home_du_factory, DataUnionFactorySidechain.abi, wallet_home)
 const foreignDUFactory = new Contract(foreign_du_factory, DataUnionFactoryMainnet.abi, wallet_foreign)
 
-const homeDU = new Contract(home_du, DataUnionSidechain.abi, wallet_home)
-const foreignDU = new Contract(foreign_du, DataUnionMainnet.abi, wallet_foreign)
 const member = '0x4178baBE9E5148c6D5fd431cD72884B07Ad855a0'
 
 async function deployForeignErc20() {
@@ -120,75 +114,93 @@ async function deployDUFactories(){
     
 }
 
+async function getContracts(mainnet_address){
+    const foreignDU = new Contract(mainnet_address, DataUnionMainnet.abi, wallet_foreign)
+    let sidechain_address = await foreignDU.sidechainAddress()  
+    const homeDU = new Contract(sidechain_address, DataUnionSidechain.abi, wallet_home)
+    return [homeDU, foreignDU]
+}
+
 async function deployDU(duname) {
     let factMainnet = new Contract(foreign_du_factory , DataUnionFactoryMainnet.abi, wallet_foreign)
     let tx = await factMainnet.deployNewDataUnion(wallet_foreign.address, 0, [wallet_foreign.address], duname)
     let rslt = await tx.wait();
-    let mainnet_addresss = await factMainnet.mainnetAddress(wallet_foreign.address, duname)
+    let mainnet_address = await factMainnet.mainnetAddress(wallet_foreign.address, duname)
+
     console.log(`rslt ${JSON.stringify(rslt)}`)
-    console.log(`mainnet_addresss ${mainnet_addresss}`)
+    console.log(`DU mainnet address ${mainnet_address}`)
+
+    const foreignDU = new Contract(mainnet_address, DataUnionMainnet.abi, wallet_foreign)
+    let sidechain_address = await foreignDU.sidechainAddress() 
+    console.log(`DU sidechain address ${sidechain_address}`)
+    const homeDU = new Contract(sidechain_address, DataUnionSidechain.abi, wallet_home)
+
+    return mainnet_address;
 }
 
-async function testSend() {
+async function testSend(mainnet_address) {
     let tx
-    //    const [duhome, duforeign] = await deployDUContracts()
-    const [duhome, duforeign] = [homeDU, foreignDU]
-/*
-    const memb = '0xdC353aA3d81fC3d67Eb49F443df258029B01D8aB'
-    tx = await duhome.addMember(memb)
-    await tx.wait()
-    console.log(`added member ${memb}`)
-*/    
+    [homeDU, foreignDU] = await getContracts(mainnet_address)
     const bal = await foreignErc20.balanceOf(wallet_foreign.address)
     console.log(`bal ${bal}`)
-
     let amt = "1000000000000000000"
     //transfer ERC20 to mainet contract
-    tx = await foreignErc20.transfer(duforeign.address, amt)
+    tx = await foreignErc20.transfer(foreignDU.address, amt)
     await tx.wait()
-    console.log(`transferred ${amt} to ${duforeign.address}`)
+    console.log(`transferred ${amt} to ${foreignDU.address}`)
     console.log(`sending to bridge`)
     //sends tokens to sidechain contract via bridge, calls sidechain.addRevenue()
-    tx = await duforeign.sendTokensToBridge()
+    tx = await foreignDU.sendTokensToBridge()
     await tx.wait()
+}
+async function withdraw(mainnet_address, member){
+    [homeDU, foreignDU] = await getContracts(mainnet_address)
+    console.log(`withdraw for ${member}`)
+    tx = await homeDU.withdraw(member, true)
+    await tx.wait()
+    console.log(`withdraw submitted for ${member}`)
+}
 
-}
-async function withdraw(address){
-    console.log(`withdraw for ${address}`)
-    tx = await homeDU.withdraw(address, true)
+async function addMembers(mainnet_address, members){
+    [homeDU, foreignDU] = await getContracts(mainnet_address)
+    const tx = await homeDU.addMembers(members)
     await tx.wait()
-    console.log(`withdraw submitted for ${address}`)
+    console.log(`Added members ${members} to DU at mainnet address ${mainnet_address}`)
 }
+
+async function printStats(mainnet_address, member){
+    [homeDU, foreignDU] = await getContracts(mainnet_address)
+    console.log(`DU mainnet address ${mainnet_address}`)
+    console.log(`DU sidechain address ${foreignDU.address}`)
+
+    let bal = await foreignErc20.balanceOf(member)
+    console.log(`${member} foreign token bal ${bal}`)
+    bal = await homeErc677.balanceOf(member)
+    console.log(`${member} home token bal ${bal}`)
+    bal = await homeDU.getWithdrawableEarnings(member)
+    console.log(`${member} home DU withdrawable ${bal}`)
+    bal = await homeDU.totalEarnings()
+    console.log(`total earnings DU home ${bal}`)
+    bal = await homeErc677.balanceOf(homeDU.address)
+    console.log(`home DU token bal ${bal}`)
+}
+
 async function start() {
     let tx
     try {
-//        await deployDU("t0")
-        //await deployForeignErc20()
-        //await deployDUContracts()
-        //await testSend()
-        //await withdraw(member)        
-        //await deployDUFactories() 
-/*        
-        tx = await homeDU.addMember(member)
-        await tx.wait()
-        console.log(`added member ${member}`)
-*/      
+/*
+//make a DU
+        let duname = "test0"
+        console.log(`creating DU mainnet with name = ${duname}`)        
+        await deployDU(duname)
+*/
 
-        let sc = await foreignDU.sidechainAddress()  
-        console.log(`sc ${sc}`)
-        let fact = await foreignDU.sidechain_DU_factory()  
-        console.log(`fact ${fact}`)
-        let bal = await foreignErc20.balanceOf(member)
-        console.log(`${member} foreign token bal ${bal}`)
-        bal = await homeErc677.balanceOf(member)
-        console.log(`${member} home token bal ${bal}`)
-        bal = await homeDU.getWithdrawableEarnings(member)
-        console.log(`${member} home DU withdrawable ${bal}`)
-        bal = await homeDU.totalEarnings()
-        console.log(`total earnings DU home ${bal}`)
-        bal = await homeErc677.balanceOf(homeDU.address)
-        console.log(`home DU token bal ${bal}`)
-
+//test DU
+        const mainnet_address = '0x2256AAa0ddb2400bfd05334a2b62C1f0c78efD84'
+        //await addMembers(mainnet_address, [member])
+        //await testSend(mainnet_address)
+        await withdraw(mainnet_address, member)        
+        await printStats(mainnet_address, member)
     }
     catch (err) {
         console.error(err)
