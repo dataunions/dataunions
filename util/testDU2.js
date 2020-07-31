@@ -188,7 +188,7 @@ async function start() {
         //await addMembers(mainnet_address, [member])
         //await testSend(mainnet_address)
         //await withdraw(mainnet_address, member)        
-        await printStats(mainnet_address, member)
+        //await printStats(mainnet_address, member)
 
     }
     catch (err) {
