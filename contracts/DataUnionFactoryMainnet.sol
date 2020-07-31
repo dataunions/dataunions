@@ -124,6 +124,7 @@ contract DataUnionFactoryMainnet {
             agents
         );
         address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_mainnet_template), data, salt);
+        require(du != address(0), "err_du_already_created");
         emit MainnetDUCreated(du, sidechainAddress(du), owner, data_union_mainnet_template);
         return du;
     }

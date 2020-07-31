@@ -6,12 +6,8 @@ const {
     providers: { Web3Provider, JsonRpcProvider },
     utils
 } = require("ethers")
-const tokenbridge_contracts = '../../tokenbridge/contracts'
-const HomeAMB = require(tokenbridge_contracts + "/build/contracts/HomeAMB.json")
-const ForeignAMB = require(tokenbridge_contracts + "/build/contracts/ForeignAMB.json")
-const BridgeTest = require(tokenbridge_contracts + "/build/contracts/BridgeTest.json")
-const ERC677BridgeToken = require(tokenbridge_contracts + "/build/contracts/ERC677BridgeToken.json")
-const ERC20 = require(tokenbridge_contracts + "/build/contracts/ERC20.json")
+const ERC677BridgeToken = require("../build/contracts/ERC677.json")
+const ERC20 = require("../build/contracts/IERC20.json")
 const ERC20Mintable = require("../build/contracts/ERC20Mintable.json")
 const DataUnionMainnet = require("../build/contracts/DataUnionMainnet.json")
 const DataUnionSidechain = require("../build/contracts/DataUnionSidechain.json")
@@ -47,8 +43,6 @@ const foreign_erc20 = '0xbAA81A0179015bE47Ad439566374F2Bae098686F'
 const home_du_factory = '0xA90CeCcA042312b8f2e8B924C04Ce62516CBF7b2'
 const foreign_du_factory = '0xb23dffE7267Ec8ffcE409D5623B7a73f536e7D9B'
 
-const homeAmb = new Contract(home_amb, HomeAMB.abi, wallet_home)
-const foreignAmb = new Contract(foreign_amb, ForeignAMB.abi, wallet_foreign)
 const homeErc677 = new Contract(home_erc677, ERC677BridgeToken.abi, wallet_home)
 const foreignErc20 = new Contract(foreign_erc20, ERC20Mintable.abi, wallet_foreign)
 
@@ -185,20 +179,17 @@ async function start() {
     let tx
     try {
 
-//make a DU. address is a function(deployer_address, factory_address, name)
         let duname = "test0"
-        console.log(`creating DU mainnet with name = ${duname}`)        
-        await deployDU(duname)
-
-
-/*
-//test DU
-        const mainnet_address = '0x2256AAa0ddb2400bfd05334a2b62C1f0c78efD84'
+        //address is a function(deployer_address, factory_address, name)
+        const mainnet_address = await foreignDUFactory.mainnetAddress(wallet_foreign.address, duname)
+        const sidechain_address = await foreignDUFactory.sidechainAddress(mainnet_address)
+        console.log(`working with DU named ${duname}, mainnet_address = ${mainnet_address}, sidechain_address = ${sidechain_address}`)
+        //await deployDU(duname)
         //await addMembers(mainnet_address, [member])
         //await testSend(mainnet_address)
-        await withdraw(mainnet_address, member)        
+        //await withdraw(mainnet_address, member)        
         await printStats(mainnet_address, member)
-*/
+
     }
     catch (err) {
         console.error(err)
