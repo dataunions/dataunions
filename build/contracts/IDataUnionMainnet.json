@@ -15,19 +15,19 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"sidechainAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"proxy\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/heynow/streamr/data-union-solidity/contracts/DataUnionFactoryMainnet.sol\":\"IDataUnionMainnet\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/heynow/streamr/data-union-solidity/contracts/CloneLib.sol\":{\"keccak256\":\"0xdf06796d7e573b14bd8fec12cb4f986fc701d883401e143e353fbc04018804cd\",\"urls\":[\"bzz-raw://7d230957e8e93226df9a71148703d35f43896e2c64e30e3258a5f05c950ecf8e\",\"dweb:/ipfs/QmUp5eNWRoPEHkYZsqKSLMU71YjroLcPyz8vB2mvjPUyys\"]},\"/home/heynow/streamr/data-union-solidity/contracts/DataUnionFactoryMainnet.sol\":{\"keccak256\":\"0xb6ff9357c569fefb1fd26400d04c479ddbeb74f610bbeec097e648c44ff8fd35\",\"urls\":[\"bzz-raw://ebd7d284575fc66d2fa485cdbeaeefe58298585e678fca3129b353056b2b7c75\",\"dweb:/ipfs/QmdCTZ8fNii2MRe3fgJtBp9skSsB7s3x48tkMAnewrvaoj\"]},\"/home/heynow/streamr/data-union-solidity/contracts/Ownable.sol\":{\"keccak256\":\"0x8e5368ad3ec610556637ae08dd70ad0fb552b94d411a599ca6623bf66fb6fc52\",\"urls\":[\"bzz-raw://d1e510ab06e5a8cac23269350011bab848235bb9fefe327d7004ee3852eef35c\",\"dweb:/ipfs/QmYQjNk6DMqMZMYdjocb7fUcseEW1jBQTwA6v6qjC7YmDP\"]},\"openzeppelin-solidity/contracts/math/SafeMath.sol\":{\"keccak256\":\"0x04d34b3cd5677bea25f8dfceb6dec0eaa071d4d4b789a43f13fe0c415ba4c296\",\"urls\":[\"bzz-raw://e7e8b526a6839e5ba14f0d23a830387fec47f7043ce01d42c9f285b709a9d080\",\"dweb:/ipfs/QmXmhhFmX5gcAvVzNiDPAGA35iHMPNaYtQkACswRHBVTNw\"]},\"openzeppelin-solidity/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x6cc1cb934a3ac2137a7dcaed018af9e235392236ceecfd3687259702b9c767ad\",\"urls\":[\"bzz-raw://0055fa88138cd1c3c6440370f8580f85857f8fe9dec41c99af9eafbeb8d9c3ce\",\"dweb:/ipfs/QmX1xDh8vwGLLCH8ti45eXjQ7Wcxv1FEGTR3jkFnd5Nv6F\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"sidechainAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"proxy\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/heynow/streamr/data-union-solidity/contracts/DataUnionFactoryMainnet.sol\":\"IDataUnionMainnet\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/heynow/streamr/data-union-solidity/contracts/CloneLib.sol\":{\"keccak256\":\"0xdf06796d7e573b14bd8fec12cb4f986fc701d883401e143e353fbc04018804cd\",\"urls\":[\"bzz-raw://7d230957e8e93226df9a71148703d35f43896e2c64e30e3258a5f05c950ecf8e\",\"dweb:/ipfs/QmUp5eNWRoPEHkYZsqKSLMU71YjroLcPyz8vB2mvjPUyys\"]},\"/home/heynow/streamr/data-union-solidity/contracts/DataUnionFactoryMainnet.sol\":{\"keccak256\":\"0x0d8394524387d3ec943cbbb3e0ece4bcdd632ddcd79d8aa2cf2e671677972b91\",\"urls\":[\"bzz-raw://1bee57a6b204df0715c6382a48472f52c399a95951bddda653bc4bfb5d534d44\",\"dweb:/ipfs/QmauPRHTjh6GfAfaeuLN5NGsb6XDaAtNuzxyZtFBkNdgoH\"]},\"/home/heynow/streamr/data-union-solidity/contracts/Ownable.sol\":{\"keccak256\":\"0x8e5368ad3ec610556637ae08dd70ad0fb552b94d411a599ca6623bf66fb6fc52\",\"urls\":[\"bzz-raw://d1e510ab06e5a8cac23269350011bab848235bb9fefe327d7004ee3852eef35c\",\"dweb:/ipfs/QmYQjNk6DMqMZMYdjocb7fUcseEW1jBQTwA6v6qjC7YmDP\"]},\"openzeppelin-solidity/contracts/math/SafeMath.sol\":{\"keccak256\":\"0x04d34b3cd5677bea25f8dfceb6dec0eaa071d4d4b789a43f13fe0c415ba4c296\",\"urls\":[\"bzz-raw://e7e8b526a6839e5ba14f0d23a830387fec47f7043ce01d42c9f285b709a9d080\",\"dweb:/ipfs/QmXmhhFmX5gcAvVzNiDPAGA35iHMPNaYtQkACswRHBVTNw\"]},\"openzeppelin-solidity/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x6cc1cb934a3ac2137a7dcaed018af9e235392236ceecfd3687259702b9c767ad\",\"urls\":[\"bzz-raw://0055fa88138cd1c3c6440370f8580f85857f8fe9dec41c99af9eafbeb8d9c3ce\",\"dweb:/ipfs/QmX1xDh8vwGLLCH8ti45eXjQ7Wcxv1FEGTR3jkFnd5Nv6F\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
   "sourceMap": "",
   "deployedSourceMap": "",
-  "source": "pragma solidity ^0.6.0;\n\nimport \"openzeppelin-solidity/contracts/token/ERC20/IERC20.sol\";\nimport \"openzeppelin-solidity/contracts/math/SafeMath.sol\";\nimport \"./Ownable.sol\";\nimport \"./CloneLib.sol\";\n\ninterface IAMB {\n    function messageSender() external view returns (address);\n\n    function maxGasPerTx() external view returns (uint256);\n\n    function transactionHash() external view returns (bytes32);\n\n    function messageId() external view returns (bytes32);\n\n    function messageSourceChainId() external view returns (bytes32);\n\n    function messageCallStatus(bytes32 _messageId) external view returns (bool);\n\n    function failedMessageDataHash(bytes32 _messageId)\n        external\n        view\n        returns (bytes32);\n\n    function failedMessageReceiver(bytes32 _messageId)\n        external\n        view\n        returns (address);\n\n    function failedMessageSender(bytes32 _messageId)\n        external\n        view\n        returns (address);\n\n    function requireToPassMessage(\n        address _contract,\n        bytes calldata _data,\n        uint256 _gas\n    ) external returns (bytes32);\n}\n\ninterface ITokenMediator {\n    function erc677token() external view returns (address);\n    function bridgeContract() external view returns (address);\n    function relayTokens(address _from, address _receiver, uint256 _value) external;\n}\n\ninterface IDataUnionMainnet {\n        function sidechainAddress() external view returns (address proxy);\n}\n\n\ncontract DataUnionFactoryMainnet {\n    event MainnetDUCreated(address indexed mainnet, address indexed sidechain, address indexed owner, address template);\n\n    address public data_union_mainnet_template;\n\n    //needed to calculate address of sidechain contract\n    address public data_union_sidechain_template;\n    address public data_union_sidechain_factory;\n    uint256 public sidechain_maxgas;\n    IAMB public amb;\n    ITokenMediator public token_mediator;\n\n    constructor( address _token_mediator, \n                address _data_union_mainnet_template,\n                address _data_union_sidechain_template,\n                address _data_union_sidechain_factory,\n                uint256 _sidechain_maxgas) public {\n        token_mediator = ITokenMediator(_token_mediator);\n        data_union_mainnet_template = _data_union_mainnet_template;\n        data_union_sidechain_template = _data_union_sidechain_template;\n        data_union_sidechain_factory = _data_union_sidechain_factory;\n        amb = IAMB(token_mediator.bridgeContract());\n        sidechain_maxgas = _sidechain_maxgas;\n    }\n\n    function sidechainAddress(address mainet_address)\n        public view\n        returns (address proxy)\n    {\n        return CloneLib.predictCloneAddressCreate2(\n            data_union_sidechain_template,\n            data_union_sidechain_factory,\n            bytes32(uint256(mainet_address)));\n    }\n    /*\n        \n    */\n    function mainnetAddress(address deployer, string memory name)\n        public view\n        returns (address)\n    {\n        bytes32 salt = keccak256(abi.encodePacked(bytes(name), deployer));\n        return CloneLib.predictCloneAddressCreate2(\n            data_union_mainnet_template,\n            address(this),\n            salt);\n    }\n\n\n/*\n    function initialize(\n        address _token_mediator,\n        address _sidechain_DU_factory,\n        uint256 _sidechain_maxgas,\n        address _sidechain_template_DU,\n        address _owner,\n        uint256 adminFeeFraction,\n        address[] memory agents\n    )  public {\n    users can only deploy with salt = their key.\n*/\n    function deployNewDataUnion(address owner, uint256 adminFeeFraction, address[] memory agents, string memory name) public returns (address) {\n        bytes32 salt = keccak256(abi.encodePacked(bytes(name), msg.sender));\n        bytes memory data = abi.encodeWithSignature(\"initialize(address,address,uint256,address,address,uint256,address[])\",\n            token_mediator,\n            data_union_sidechain_factory,\n            sidechain_maxgas,\n            data_union_sidechain_template,\n            owner,\n            adminFeeFraction,\n            agents\n        );\n        address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_mainnet_template), data, salt);\n        emit MainnetDUCreated(du, sidechainAddress(du), owner, data_union_mainnet_template);\n        return du;\n    }\n}\n",
+  "source": "pragma solidity ^0.6.0;\n\nimport \"openzeppelin-solidity/contracts/token/ERC20/IERC20.sol\";\nimport \"openzeppelin-solidity/contracts/math/SafeMath.sol\";\nimport \"./Ownable.sol\";\nimport \"./CloneLib.sol\";\n\ninterface IAMB {\n    function messageSender() external view returns (address);\n\n    function maxGasPerTx() external view returns (uint256);\n\n    function transactionHash() external view returns (bytes32);\n\n    function messageId() external view returns (bytes32);\n\n    function messageSourceChainId() external view returns (bytes32);\n\n    function messageCallStatus(bytes32 _messageId) external view returns (bool);\n\n    function failedMessageDataHash(bytes32 _messageId)\n        external\n        view\n        returns (bytes32);\n\n    function failedMessageReceiver(bytes32 _messageId)\n        external\n        view\n        returns (address);\n\n    function failedMessageSender(bytes32 _messageId)\n        external\n        view\n        returns (address);\n\n    function requireToPassMessage(\n        address _contract,\n        bytes calldata _data,\n        uint256 _gas\n    ) external returns (bytes32);\n}\n\ninterface ITokenMediator {\n    function erc677token() external view returns (address);\n    function bridgeContract() external view returns (address);\n    function relayTokens(address _from, address _receiver, uint256 _value) external;\n}\n\ninterface IDataUnionMainnet {\n        function sidechainAddress() external view returns (address proxy);\n}\n\n\ncontract DataUnionFactoryMainnet {\n    event MainnetDUCreated(address indexed mainnet, address indexed sidechain, address indexed owner, address template);\n\n    address public data_union_mainnet_template;\n\n    //needed to calculate address of sidechain contract\n    address public data_union_sidechain_template;\n    address public data_union_sidechain_factory;\n    uint256 public sidechain_maxgas;\n    IAMB public amb;\n    ITokenMediator public token_mediator;\n\n    constructor( address _token_mediator, \n                address _data_union_mainnet_template,\n                address _data_union_sidechain_template,\n                address _data_union_sidechain_factory,\n                uint256 _sidechain_maxgas) public {\n        token_mediator = ITokenMediator(_token_mediator);\n        data_union_mainnet_template = _data_union_mainnet_template;\n        data_union_sidechain_template = _data_union_sidechain_template;\n        data_union_sidechain_factory = _data_union_sidechain_factory;\n        amb = IAMB(token_mediator.bridgeContract());\n        sidechain_maxgas = _sidechain_maxgas;\n    }\n\n    function sidechainAddress(address mainet_address)\n        public view\n        returns (address proxy)\n    {\n        return CloneLib.predictCloneAddressCreate2(\n            data_union_sidechain_template,\n            data_union_sidechain_factory,\n            bytes32(uint256(mainet_address)));\n    }\n    /*\n        \n    */\n    function mainnetAddress(address deployer, string memory name)\n        public view\n        returns (address)\n    {\n        bytes32 salt = keccak256(abi.encodePacked(bytes(name), deployer));\n        return CloneLib.predictCloneAddressCreate2(\n            data_union_mainnet_template,\n            address(this),\n            salt);\n    }\n\n\n/*\n    function initialize(\n        address _token_mediator,\n        address _sidechain_DU_factory,\n        uint256 _sidechain_maxgas,\n        address _sidechain_template_DU,\n        address _owner,\n        uint256 adminFeeFraction,\n        address[] memory agents\n    )  public {\n    users can only deploy with salt = their key.\n*/\n    function deployNewDataUnion(address owner, uint256 adminFeeFraction, address[] memory agents, string memory name) public returns (address) {\n        bytes32 salt = keccak256(abi.encodePacked(bytes(name), msg.sender));\n        bytes memory data = abi.encodeWithSignature(\"initialize(address,address,uint256,address,address,uint256,address[])\",\n            token_mediator,\n            data_union_sidechain_factory,\n            sidechain_maxgas,\n            data_union_sidechain_template,\n            owner,\n            adminFeeFraction,\n            agents\n        );\n        address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_mainnet_template), data, salt);\n        require(du != address(0), \"err_du_already_created\");\n        emit MainnetDUCreated(du, sidechainAddress(du), owner, data_union_mainnet_template);\n        return du;\n    }\n}\n",
   "sourcePath": "/home/heynow/streamr/data-union-solidity/contracts/DataUnionFactoryMainnet.sol",
   "ast": {
     "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/DataUnionFactoryMainnet.sol",
     "exportedSymbols": {
       "DataUnionFactoryMainnet": [
-        412
+        422
       ],
       "IAMB": [
         199
@@ -39,7 +39,7 @@
         219
       ]
     },
-    "id": 413,
+    "id": 423,
     "nodeType": "SourceUnit",
     "nodes": [
       {
@@ -58,8 +58,8 @@
         "file": "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol",
         "id": 131,
         "nodeType": "ImportDirective",
-        "scope": 413,
-        "sourceUnit": 2864,
+        "scope": 423,
+        "sourceUnit": 3032,
         "src": "25:64:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -69,8 +69,8 @@
         "file": "openzeppelin-solidity/contracts/math/SafeMath.sol",
         "id": 132,
         "nodeType": "ImportDirective",
-        "scope": 413,
-        "sourceUnit": 2279,
+        "scope": 423,
+        "sourceUnit": 2447,
         "src": "90:59:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -80,8 +80,8 @@
         "file": "./Ownable.sol",
         "id": 133,
         "nodeType": "ImportDirective",
-        "scope": 413,
-        "sourceUnit": 2037,
+        "scope": 423,
+        "sourceUnit": 2205,
         "src": "150:23:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -91,7 +91,7 @@
         "file": "./CloneLib.sol",
         "id": 134,
         "nodeType": "ImportDirective",
-        "scope": 413,
+        "scope": 423,
         "sourceUnit": 129,
         "src": "174:24:1",
         "symbolAliases": [],
@@ -897,7 +897,7 @@
             "visibility": "external"
           }
         ],
-        "scope": 413,
+        "scope": 423,
         "src": "200:902:1"
       },
       {
@@ -1149,7 +1149,7 @@
             "visibility": "external"
           }
         ],
-        "scope": 413,
+        "scope": 423,
         "src": "1104:236:1"
       },
       {
@@ -1226,7 +1226,7 @@
             "visibility": "external"
           }
         ],
-        "scope": 413,
+        "scope": 423,
         "src": "1342:106:1"
       },
       {
@@ -1236,9 +1236,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 412,
+        "id": 422,
         "linearizedBaseContracts": [
-          412
+          422
         ],
         "name": "DataUnionFactoryMainnet",
         "nodeType": "ContractDefinition",
@@ -1386,7 +1386,7 @@
             "name": "data_union_mainnet_template",
             "nodeType": "VariableDeclaration",
             "overrides": null,
-            "scope": 412,
+            "scope": 422,
             "src": "1612:42:1",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1416,7 +1416,7 @@
             "name": "data_union_sidechain_template",
             "nodeType": "VariableDeclaration",
             "overrides": null,
-            "scope": 412,
+            "scope": 422,
             "src": "1717:44:1",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1446,7 +1446,7 @@
             "name": "data_union_sidechain_factory",
             "nodeType": "VariableDeclaration",
             "overrides": null,
-            "scope": 412,
+            "scope": 422,
             "src": "1767:43:1",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1476,7 +1476,7 @@
             "name": "sidechain_maxgas",
             "nodeType": "VariableDeclaration",
             "overrides": null,
-            "scope": 412,
+            "scope": 422,
             "src": "1816:31:1",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1505,7 +1505,7 @@
             "name": "amb",
             "nodeType": "VariableDeclaration",
             "overrides": null,
-            "scope": 412,
+            "scope": 422,
             "src": "1853:15:1",
             "stateVariable": true,
             "storageLocation": "default",
@@ -1536,7 +1536,7 @@
             "name": "token_mediator",
             "nodeType": "VariableDeclaration",
             "overrides": null,
-            "scope": 412,
+            "scope": 422,
             "src": "1874:36:1",
             "stateVariable": true,
             "storageLocation": "default",
@@ -2116,7 +2116,7 @@
               "parameters": [],
               "src": "2171:0:1"
             },
-            "scope": 412,
+            "scope": 422,
             "src": "1917:628:1",
             "stateMutability": "nonpayable",
             "virtual": false,
@@ -2413,7 +2413,7 @@
               ],
               "src": "2637:15:1"
             },
-            "scope": 412,
+            "scope": 422,
             "src": "2551:297:1",
             "stateMutability": "view",
             "virtual": false,
@@ -2660,7 +2660,7 @@
                             "referencedDeclaration": -28,
                             "src": "3178:4:1",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_contract$_DataUnionFactoryMainnet_$412",
+                              "typeIdentifier": "t_contract$_DataUnionFactoryMainnet_$422",
                               "typeString": "contract DataUnionFactoryMainnet"
                             }
                           }
@@ -2668,7 +2668,7 @@
                         "expression": {
                           "argumentTypes": [
                             {
-                              "typeIdentifier": "t_contract$_DataUnionFactoryMainnet_$412",
+                              "typeIdentifier": "t_contract$_DataUnionFactoryMainnet_$422",
                               "typeString": "contract DataUnionFactoryMainnet"
                             }
                           ],
@@ -2896,7 +2896,7 @@
               ],
               "src": "2974:9:1"
             },
-            "scope": 412,
+            "scope": 422,
             "src": "2876:333:1",
             "stateMutability": "view",
             "virtual": false,
@@ -2904,9 +2904,9 @@
           },
           {
             "body": {
-              "id": 410,
+              "id": 420,
               "nodeType": "Block",
-              "src": "3688:669:1",
+              "src": "3688:730:1",
               "statements": [
                 {
                   "assignments": [
@@ -2920,7 +2920,7 @@
                       "name": "salt",
                       "nodeType": "VariableDeclaration",
                       "overrides": null,
-                      "scope": 410,
+                      "scope": 420,
                       "src": "3698:12:1",
                       "stateVariable": false,
                       "storageLocation": "default",
@@ -3142,7 +3142,7 @@
                       "name": "data",
                       "nodeType": "VariableDeclaration",
                       "overrides": null,
-                      "scope": 410,
+                      "scope": 420,
                       "src": "3775:17:1",
                       "stateVariable": false,
                       "storageLocation": "memory",
@@ -3370,7 +3370,7 @@
                       "name": "du",
                       "nodeType": "VariableDeclaration",
                       "overrides": null,
-                      "scope": 410,
+                      "scope": 420,
                       "src": "4122:10:1",
                       "stateVariable": false,
                       "storageLocation": "default",
@@ -3551,17 +3551,182 @@
                   "src": "4122:116:1"
                 },
                 {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "commonType": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        "id": 405,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "argumentTypes": null,
+                          "id": 400,
+                          "name": "du",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 388,
+                          "src": "4256:2:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": "!=",
+                        "rightExpression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "hexValue": "30",
+                              "id": 403,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "number",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "4270:1:1",
+                              "subdenomination": null,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_rational_0_by_1",
+                                "typeString": "int_const 0"
+                              },
+                              "value": "0"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_rational_0_by_1",
+                                "typeString": "int_const 0"
+                              }
+                            ],
+                            "id": 402,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "lValueRequested": false,
+                            "nodeType": "ElementaryTypeNameExpression",
+                            "src": "4262:7:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_address_$",
+                              "typeString": "type(address)"
+                            },
+                            "typeName": {
+                              "id": 401,
+                              "name": "address",
+                              "nodeType": "ElementaryTypeName",
+                              "src": "4262:7:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": null,
+                                "typeString": null
+                              }
+                            }
+                          },
+                          "id": 404,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "kind": "typeConversion",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "4262:10:1",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address_payable",
+                            "typeString": "address payable"
+                          }
+                        },
+                        "src": "4256:16:1",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "hexValue": "6572725f64755f616c72656164795f63726561746564",
+                        "id": 406,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "string",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "4274:24:1",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_stringliteral_46c42c503009efdad7079c26c2e22b9cc93d6b693385a9a5a80d9525e9f3840e",
+                          "typeString": "literal_string \"err_du_already_created\""
+                        },
+                        "value": "err_du_already_created"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_stringliteral_46c42c503009efdad7079c26c2e22b9cc93d6b693385a9a5a80d9525e9f3840e",
+                          "typeString": "literal_string \"err_du_already_created\""
+                        }
+                      ],
+                      "id": 399,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        -18,
+                        -18
+                      ],
+                      "referencedDeclaration": -18,
+                      "src": "4248:7:1",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 407,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "4248:51:1",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 408,
+                  "nodeType": "ExpressionStatement",
+                  "src": "4248:51:1"
+                },
+                {
                   "eventCall": {
                     "argumentTypes": null,
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 400,
+                        "id": 410,
                         "name": "du",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
                         "referencedDeclaration": 388,
-                        "src": "4270:2:1",
+                        "src": "4331:2:1",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
@@ -3572,12 +3737,12 @@
                         "arguments": [
                           {
                             "argumentTypes": null,
-                            "id": 402,
+                            "id": 412,
                             "name": "du",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
                             "referencedDeclaration": 388,
-                            "src": "4291:2:1",
+                            "src": "4352:2:1",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
                               "typeString": "address"
@@ -3591,18 +3756,18 @@
                               "typeString": "address"
                             }
                           ],
-                          "id": 401,
+                          "id": 411,
                           "name": "sidechainAddress",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
                           "referencedDeclaration": 312,
-                          "src": "4274:16:1",
+                          "src": "4335:16:1",
                           "typeDescriptions": {
                             "typeIdentifier": "t_function_internal_view$_t_address_$returns$_t_address_$",
                             "typeString": "function (address) view returns (address)"
                           }
                         },
-                        "id": 403,
+                        "id": 413,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -3610,7 +3775,7 @@
                         "lValueRequested": false,
                         "names": [],
                         "nodeType": "FunctionCall",
-                        "src": "4274:20:1",
+                        "src": "4335:20:1",
                         "tryCall": false,
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -3619,12 +3784,12 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 404,
+                        "id": 414,
                         "name": "owner",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
                         "referencedDeclaration": 347,
-                        "src": "4296:5:1",
+                        "src": "4357:5:1",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
@@ -3632,12 +3797,12 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 405,
+                        "id": 415,
                         "name": "data_union_mainnet_template",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
                         "referencedDeclaration": 237,
-                        "src": "4303:27:1",
+                        "src": "4364:27:1",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
@@ -3663,18 +3828,18 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 399,
+                      "id": 409,
                       "name": "MainnetDUCreated",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
                       "referencedDeclaration": 235,
-                      "src": "4253:16:1",
+                      "src": "4314:16:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_event_nonpayable$_t_address_$_t_address_$_t_address_$_t_address_$returns$__$",
                         "typeString": "function (address,address,address,address)"
                       }
                     },
-                    "id": 406,
+                    "id": 416,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -3682,41 +3847,41 @@
                     "lValueRequested": false,
                     "names": [],
                     "nodeType": "FunctionCall",
-                    "src": "4253:78:1",
+                    "src": "4314:78:1",
                     "tryCall": false,
                     "typeDescriptions": {
                       "typeIdentifier": "t_tuple$__$",
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 407,
+                  "id": 417,
                   "nodeType": "EmitStatement",
-                  "src": "4248:83:1"
+                  "src": "4309:83:1"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 408,
+                    "id": 418,
                     "name": "du",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
                     "referencedDeclaration": 388,
-                    "src": "4348:2:1",
+                    "src": "4409:2:1",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
                     }
                   },
                   "functionReturnParameters": 358,
-                  "id": 409,
+                  "id": 419,
                   "nodeType": "Return",
-                  "src": "4341:9:1"
+                  "src": "4402:9:1"
                 }
               ]
             },
             "documentation": null,
             "functionSelector": "cb8a191b",
-            "id": 411,
+            "id": 421,
             "implemented": true,
             "kind": "function",
             "modifiers": [],
@@ -3734,7 +3899,7 @@
                   "name": "owner",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 411,
+                  "scope": 421,
                   "src": "3577:13:1",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -3763,7 +3928,7 @@
                   "name": "adminFeeFraction",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 411,
+                  "scope": 421,
                   "src": "3592:24:1",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -3791,7 +3956,7 @@
                   "name": "agents",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 411,
+                  "scope": 421,
                   "src": "3618:23:1",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -3830,7 +3995,7 @@
                   "name": "name",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 411,
+                  "scope": 421,
                   "src": "3643:18:1",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -3865,7 +4030,7 @@
                   "name": "",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 411,
+                  "scope": 421,
                   "src": "3679:7:1",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -3890,24 +4055,24 @@
               ],
               "src": "3678:9:1"
             },
-            "scope": 412,
-            "src": "3549:808:1",
+            "scope": 422,
+            "src": "3549:869:1",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "public"
           }
         ],
-        "scope": 413,
-        "src": "1451:2908:1"
+        "scope": 423,
+        "src": "1451:2969:1"
       }
     ],
-    "src": "0:4360:1"
+    "src": "0:4421:1"
   },
   "legacyAST": {
     "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/DataUnionFactoryMainnet.sol",
     "exportedSymbols": {
       "DataUnionFactoryMainnet": [
-        412
+        422
       ],
       "IAMB": [
         199
@@ -3919,7 +4084,7 @@
         219
       ]
     },
-    "id": 413,
+    "id": 423,
     "nodeType": "SourceUnit",
     "nodes": [
       {
@@ -3938,8 +4103,8 @@
         "file": "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol",
         "id": 131,
         "nodeType": "ImportDirective",
-        "scope": 413,
-        "sourceUnit": 2864,
+        "scope": 423,
+        "sourceUnit": 3032,
         "src": "25:64:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -3949,8 +4114,8 @@
         "file": "openzeppelin-solidity/contracts/math/SafeMath.sol",
         "id": 132,
         "nodeType": "ImportDirective",
-        "scope": 413,
-        "sourceUnit": 2279,
+        "scope": 423,
+        "sourceUnit": 2447,
         "src": "90:59:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -3960,8 +4125,8 @@
         "file": "./Ownable.sol",
         "id": 133,
         "nodeType": "ImportDirective",
-        "scope": 413,
-        "sourceUnit": 2037,
+        "scope": 423,
+        "sourceUnit": 2205,
         "src": "150:23:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -3971,7 +4136,7 @@
         "file": "./CloneLib.sol",
         "id": 134,
         "nodeType": "ImportDirective",
-        "scope": 413,
+        "scope": 423,
         "sourceUnit": 129,
         "src": "174:24:1",
         "symbolAliases": [],
@@ -4777,7 +4942,7 @@
             "visibility": "external"
           }
         ],
-        "scope": 413,
+        "scope": 423,
         "src": "200:902:1"
       },
       {
@@ -5029,7 +5194,7 @@
             "visibility": "external"
           }
         ],
-        "scope": 413,
+        "scope": 423,
         "src": "1104:236:1"
       },
       {
@@ -5106,7 +5271,7 @@
             "visibility": "external"
           }
         ],
-        "scope": 413,
+        "scope": 423,
         "src": "1342:106:1"
       },
       {
@@ -5116,9 +5281,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": true,
-        "id": 412,
+        "id": 422,
         "linearizedBaseContracts": [
-          412
+          422
         ],
         "name": "DataUnionFactoryMainnet",
         "nodeType": "ContractDefinition",
@@ -5266,7 +5431,7 @@
             "name": "data_union_mainnet_template",
             "nodeType": "VariableDeclaration",
             "overrides": null,
-            "scope": 412,
+            "scope": 422,
             "src": "1612:42:1",
             "stateVariable": true,
             "storageLocation": "default",
@@ -5296,7 +5461,7 @@
             "name": "data_union_sidechain_template",
             "nodeType": "VariableDeclaration",
             "overrides": null,
-            "scope": 412,
+            "scope": 422,
             "src": "1717:44:1",
             "stateVariable": true,
             "storageLocation": "default",
@@ -5326,7 +5491,7 @@
             "name": "data_union_sidechain_factory",
             "nodeType": "VariableDeclaration",
             "overrides": null,
-            "scope": 412,
+            "scope": 422,
             "src": "1767:43:1",
             "stateVariable": true,
             "storageLocation": "default",
@@ -5356,7 +5521,7 @@
             "name": "sidechain_maxgas",
             "nodeType": "VariableDeclaration",
             "overrides": null,
-            "scope": 412,
+            "scope": 422,
             "src": "1816:31:1",
             "stateVariable": true,
             "storageLocation": "default",
@@ -5385,7 +5550,7 @@
             "name": "amb",
             "nodeType": "VariableDeclaration",
             "overrides": null,
-            "scope": 412,
+            "scope": 422,
             "src": "1853:15:1",
             "stateVariable": true,
             "storageLocation": "default",
@@ -5416,7 +5581,7 @@
             "name": "token_mediator",
             "nodeType": "VariableDeclaration",
             "overrides": null,
-            "scope": 412,
+            "scope": 422,
             "src": "1874:36:1",
             "stateVariable": true,
             "storageLocation": "default",
@@ -5996,7 +6161,7 @@
               "parameters": [],
               "src": "2171:0:1"
             },
-            "scope": 412,
+            "scope": 422,
             "src": "1917:628:1",
             "stateMutability": "nonpayable",
             "virtual": false,
@@ -6293,7 +6458,7 @@
               ],
               "src": "2637:15:1"
             },
-            "scope": 412,
+            "scope": 422,
             "src": "2551:297:1",
             "stateMutability": "view",
             "virtual": false,
@@ -6540,7 +6705,7 @@
                             "referencedDeclaration": -28,
                             "src": "3178:4:1",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_contract$_DataUnionFactoryMainnet_$412",
+                              "typeIdentifier": "t_contract$_DataUnionFactoryMainnet_$422",
                               "typeString": "contract DataUnionFactoryMainnet"
                             }
                           }
@@ -6548,7 +6713,7 @@
                         "expression": {
                           "argumentTypes": [
                             {
-                              "typeIdentifier": "t_contract$_DataUnionFactoryMainnet_$412",
+                              "typeIdentifier": "t_contract$_DataUnionFactoryMainnet_$422",
                               "typeString": "contract DataUnionFactoryMainnet"
                             }
                           ],
@@ -6776,7 +6941,7 @@
               ],
               "src": "2974:9:1"
             },
-            "scope": 412,
+            "scope": 422,
             "src": "2876:333:1",
             "stateMutability": "view",
             "virtual": false,
@@ -6784,9 +6949,9 @@
           },
           {
             "body": {
-              "id": 410,
+              "id": 420,
               "nodeType": "Block",
-              "src": "3688:669:1",
+              "src": "3688:730:1",
               "statements": [
                 {
                   "assignments": [
@@ -6800,7 +6965,7 @@
                       "name": "salt",
                       "nodeType": "VariableDeclaration",
                       "overrides": null,
-                      "scope": 410,
+                      "scope": 420,
                       "src": "3698:12:1",
                       "stateVariable": false,
                       "storageLocation": "default",
@@ -7022,7 +7187,7 @@
                       "name": "data",
                       "nodeType": "VariableDeclaration",
                       "overrides": null,
-                      "scope": 410,
+                      "scope": 420,
                       "src": "3775:17:1",
                       "stateVariable": false,
                       "storageLocation": "memory",
@@ -7250,7 +7415,7 @@
                       "name": "du",
                       "nodeType": "VariableDeclaration",
                       "overrides": null,
-                      "scope": 410,
+                      "scope": 420,
                       "src": "4122:10:1",
                       "stateVariable": false,
                       "storageLocation": "default",
@@ -7431,17 +7596,182 @@
                   "src": "4122:116:1"
                 },
                 {
+                  "expression": {
+                    "argumentTypes": null,
+                    "arguments": [
+                      {
+                        "argumentTypes": null,
+                        "commonType": {
+                          "typeIdentifier": "t_address",
+                          "typeString": "address"
+                        },
+                        "id": 405,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "argumentTypes": null,
+                          "id": 400,
+                          "name": "du",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 388,
+                          "src": "4256:2:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address",
+                            "typeString": "address"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": "!=",
+                        "rightExpression": {
+                          "argumentTypes": null,
+                          "arguments": [
+                            {
+                              "argumentTypes": null,
+                              "hexValue": "30",
+                              "id": 403,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "number",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "4270:1:1",
+                              "subdenomination": null,
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_rational_0_by_1",
+                                "typeString": "int_const 0"
+                              },
+                              "value": "0"
+                            }
+                          ],
+                          "expression": {
+                            "argumentTypes": [
+                              {
+                                "typeIdentifier": "t_rational_0_by_1",
+                                "typeString": "int_const 0"
+                              }
+                            ],
+                            "id": 402,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "lValueRequested": false,
+                            "nodeType": "ElementaryTypeNameExpression",
+                            "src": "4262:7:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_address_$",
+                              "typeString": "type(address)"
+                            },
+                            "typeName": {
+                              "id": 401,
+                              "name": "address",
+                              "nodeType": "ElementaryTypeName",
+                              "src": "4262:7:1",
+                              "typeDescriptions": {
+                                "typeIdentifier": null,
+                                "typeString": null
+                              }
+                            }
+                          },
+                          "id": 404,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "kind": "typeConversion",
+                          "lValueRequested": false,
+                          "names": [],
+                          "nodeType": "FunctionCall",
+                          "src": "4262:10:1",
+                          "tryCall": false,
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_address_payable",
+                            "typeString": "address payable"
+                          }
+                        },
+                        "src": "4256:16:1",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "argumentTypes": null,
+                        "hexValue": "6572725f64755f616c72656164795f63726561746564",
+                        "id": 406,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "string",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "4274:24:1",
+                        "subdenomination": null,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_stringliteral_46c42c503009efdad7079c26c2e22b9cc93d6b693385a9a5a80d9525e9f3840e",
+                          "typeString": "literal_string \"err_du_already_created\""
+                        },
+                        "value": "err_du_already_created"
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_stringliteral_46c42c503009efdad7079c26c2e22b9cc93d6b693385a9a5a80d9525e9f3840e",
+                          "typeString": "literal_string \"err_du_already_created\""
+                        }
+                      ],
+                      "id": 399,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        -18,
+                        -18
+                      ],
+                      "referencedDeclaration": -18,
+                      "src": "4248:7:1",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
+                        "typeString": "function (bool,string memory) pure"
+                      }
+                    },
+                    "id": 407,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "4248:51:1",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 408,
+                  "nodeType": "ExpressionStatement",
+                  "src": "4248:51:1"
+                },
+                {
                   "eventCall": {
                     "argumentTypes": null,
                     "arguments": [
                       {
                         "argumentTypes": null,
-                        "id": 400,
+                        "id": 410,
                         "name": "du",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
                         "referencedDeclaration": 388,
-                        "src": "4270:2:1",
+                        "src": "4331:2:1",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
@@ -7452,12 +7782,12 @@
                         "arguments": [
                           {
                             "argumentTypes": null,
-                            "id": 402,
+                            "id": 412,
                             "name": "du",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
                             "referencedDeclaration": 388,
-                            "src": "4291:2:1",
+                            "src": "4352:2:1",
                             "typeDescriptions": {
                               "typeIdentifier": "t_address",
                               "typeString": "address"
@@ -7471,18 +7801,18 @@
                               "typeString": "address"
                             }
                           ],
-                          "id": 401,
+                          "id": 411,
                           "name": "sidechainAddress",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
                           "referencedDeclaration": 312,
-                          "src": "4274:16:1",
+                          "src": "4335:16:1",
                           "typeDescriptions": {
                             "typeIdentifier": "t_function_internal_view$_t_address_$returns$_t_address_$",
                             "typeString": "function (address) view returns (address)"
                           }
                         },
-                        "id": 403,
+                        "id": 413,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": false,
@@ -7490,7 +7820,7 @@
                         "lValueRequested": false,
                         "names": [],
                         "nodeType": "FunctionCall",
-                        "src": "4274:20:1",
+                        "src": "4335:20:1",
                         "tryCall": false,
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
@@ -7499,12 +7829,12 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 404,
+                        "id": 414,
                         "name": "owner",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
                         "referencedDeclaration": 347,
-                        "src": "4296:5:1",
+                        "src": "4357:5:1",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
@@ -7512,12 +7842,12 @@
                       },
                       {
                         "argumentTypes": null,
-                        "id": 405,
+                        "id": 415,
                         "name": "data_union_mainnet_template",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
                         "referencedDeclaration": 237,
-                        "src": "4303:27:1",
+                        "src": "4364:27:1",
                         "typeDescriptions": {
                           "typeIdentifier": "t_address",
                           "typeString": "address"
@@ -7543,18 +7873,18 @@
                           "typeString": "address"
                         }
                       ],
-                      "id": 399,
+                      "id": 409,
                       "name": "MainnetDUCreated",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
                       "referencedDeclaration": 235,
-                      "src": "4253:16:1",
+                      "src": "4314:16:1",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_event_nonpayable$_t_address_$_t_address_$_t_address_$_t_address_$returns$__$",
                         "typeString": "function (address,address,address,address)"
                       }
                     },
-                    "id": 406,
+                    "id": 416,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
@@ -7562,41 +7892,41 @@
                     "lValueRequested": false,
                     "names": [],
                     "nodeType": "FunctionCall",
-                    "src": "4253:78:1",
+                    "src": "4314:78:1",
                     "tryCall": false,
                     "typeDescriptions": {
                       "typeIdentifier": "t_tuple$__$",
                       "typeString": "tuple()"
                     }
                   },
-                  "id": 407,
+                  "id": 417,
                   "nodeType": "EmitStatement",
-                  "src": "4248:83:1"
+                  "src": "4309:83:1"
                 },
                 {
                   "expression": {
                     "argumentTypes": null,
-                    "id": 408,
+                    "id": 418,
                     "name": "du",
                     "nodeType": "Identifier",
                     "overloadedDeclarations": [],
                     "referencedDeclaration": 388,
-                    "src": "4348:2:1",
+                    "src": "4409:2:1",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
                       "typeString": "address"
                     }
                   },
                   "functionReturnParameters": 358,
-                  "id": 409,
+                  "id": 419,
                   "nodeType": "Return",
-                  "src": "4341:9:1"
+                  "src": "4402:9:1"
                 }
               ]
             },
             "documentation": null,
             "functionSelector": "cb8a191b",
-            "id": 411,
+            "id": 421,
             "implemented": true,
             "kind": "function",
             "modifiers": [],
@@ -7614,7 +7944,7 @@
                   "name": "owner",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 411,
+                  "scope": 421,
                   "src": "3577:13:1",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -7643,7 +7973,7 @@
                   "name": "adminFeeFraction",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 411,
+                  "scope": 421,
                   "src": "3592:24:1",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -7671,7 +8001,7 @@
                   "name": "agents",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 411,
+                  "scope": 421,
                   "src": "3618:23:1",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -7710,7 +8040,7 @@
                   "name": "name",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 411,
+                  "scope": 421,
                   "src": "3643:18:1",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -7745,7 +8075,7 @@
                   "name": "",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 411,
+                  "scope": 421,
                   "src": "3679:7:1",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -7770,18 +8100,18 @@
               ],
               "src": "3678:9:1"
             },
-            "scope": 412,
-            "src": "3549:808:1",
+            "scope": 422,
+            "src": "3549:869:1",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "public"
           }
         ],
-        "scope": 413,
-        "src": "1451:2908:1"
+        "scope": 423,
+        "src": "1451:2969:1"
       }
     ],
-    "src": "0:4360:1"
+    "src": "0:4421:1"
   },
   "compiler": {
     "name": "solc",
@@ -7789,7 +8119,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-07-10T03:46:08.186Z",
+  "updatedAt": "2020-07-31T15:24:36.397Z",
   "devdoc": {
     "methods": {}
   },

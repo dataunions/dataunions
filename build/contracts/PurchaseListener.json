@@ -53,14 +53,14 @@
     "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/PurchaseListener.sol",
     "exportedSymbols": {
       "PurchaseListener": [
-        2005
+        2213
       ]
     },
-    "id": 2006,
+    "id": 2214,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1988,
+        "id": 2196,
         "literals": [
           "solidity",
           "^",
@@ -77,9 +77,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 2005,
+        "id": 2213,
         "linearizedBaseContracts": [
-          2005
+          2213
         ],
         "name": "PurchaseListener",
         "nodeType": "ContractDefinition",
@@ -87,13 +87,13 @@
           {
             "body": null,
             "documentation": {
-              "id": 1989,
+              "id": 2197,
               "nodeType": "StructuredDocumentation",
               "src": "279:245:7",
               "text": "Similarly to ETH transfer, returning false will decline the transaction\n  (declining should probably cause revert, but that's up to the caller)\nIMPORTANT: include onlyMarketplace modifier to your implementations!"
             },
             "functionSelector": "4a439cc0",
-            "id": 2004,
+            "id": 2212,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -101,17 +101,17 @@
             "nodeType": "FunctionDefinition",
             "overrides": null,
             "parameters": {
-              "id": 2000,
+              "id": 2208,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1991,
+                  "id": 2199,
                   "mutability": "mutable",
                   "name": "productId",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2004,
+                  "scope": 2212,
                   "src": "549:17:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -120,7 +120,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 1990,
+                    "id": 2198,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "549:7:7",
@@ -134,12 +134,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 1993,
+                  "id": 2201,
                   "mutability": "mutable",
                   "name": "subscriber",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2004,
+                  "scope": 2212,
                   "src": "568:18:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -148,7 +148,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1992,
+                    "id": 2200,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "568:7:7",
@@ -163,12 +163,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 1995,
+                  "id": 2203,
                   "mutability": "mutable",
                   "name": "endTimestamp",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2004,
+                  "scope": 2212,
                   "src": "588:17:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -177,7 +177,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1994,
+                    "id": 2202,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
                     "src": "588:4:7",
@@ -191,12 +191,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 1997,
+                  "id": 2205,
                   "mutability": "mutable",
                   "name": "priceDatacoin",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2004,
+                  "scope": 2212,
                   "src": "607:18:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -205,7 +205,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1996,
+                    "id": 2204,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
                     "src": "607:4:7",
@@ -219,12 +219,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 1999,
+                  "id": 2207,
                   "mutability": "mutable",
                   "name": "feeDatacoin",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2004,
+                  "scope": 2212,
                   "src": "627:16:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -233,7 +233,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1998,
+                    "id": 2206,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
                     "src": "627:4:7",
@@ -249,17 +249,17 @@
               "src": "548:96:7"
             },
             "returnParameters": {
-              "id": 2003,
+              "id": 2211,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2002,
+                  "id": 2210,
                   "mutability": "mutable",
                   "name": "accepted",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2004,
+                  "scope": 2212,
                   "src": "671:13:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -268,7 +268,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 2001,
+                    "id": 2209,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "671:4:7",
@@ -283,14 +283,14 @@
               ],
               "src": "670:15:7"
             },
-            "scope": 2005,
+            "scope": 2213,
             "src": "529:157:7",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 2006,
+        "scope": 2214,
         "src": "25:663:7"
       }
     ],
@@ -300,14 +300,14 @@
     "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/PurchaseListener.sol",
     "exportedSymbols": {
       "PurchaseListener": [
-        2005
+        2213
       ]
     },
-    "id": 2006,
+    "id": 2214,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1988,
+        "id": 2196,
         "literals": [
           "solidity",
           "^",
@@ -324,9 +324,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 2005,
+        "id": 2213,
         "linearizedBaseContracts": [
-          2005
+          2213
         ],
         "name": "PurchaseListener",
         "nodeType": "ContractDefinition",
@@ -334,13 +334,13 @@
           {
             "body": null,
             "documentation": {
-              "id": 1989,
+              "id": 2197,
               "nodeType": "StructuredDocumentation",
               "src": "279:245:7",
               "text": "Similarly to ETH transfer, returning false will decline the transaction\n  (declining should probably cause revert, but that's up to the caller)\nIMPORTANT: include onlyMarketplace modifier to your implementations!"
             },
             "functionSelector": "4a439cc0",
-            "id": 2004,
+            "id": 2212,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -348,17 +348,17 @@
             "nodeType": "FunctionDefinition",
             "overrides": null,
             "parameters": {
-              "id": 2000,
+              "id": 2208,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1991,
+                  "id": 2199,
                   "mutability": "mutable",
                   "name": "productId",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2004,
+                  "scope": 2212,
                   "src": "549:17:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -367,7 +367,7 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 1990,
+                    "id": 2198,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
                     "src": "549:7:7",
@@ -381,12 +381,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 1993,
+                  "id": 2201,
                   "mutability": "mutable",
                   "name": "subscriber",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2004,
+                  "scope": 2212,
                   "src": "568:18:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -395,7 +395,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1992,
+                    "id": 2200,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "568:7:7",
@@ -410,12 +410,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 1995,
+                  "id": 2203,
                   "mutability": "mutable",
                   "name": "endTimestamp",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2004,
+                  "scope": 2212,
                   "src": "588:17:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -424,7 +424,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1994,
+                    "id": 2202,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
                     "src": "588:4:7",
@@ -438,12 +438,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 1997,
+                  "id": 2205,
                   "mutability": "mutable",
                   "name": "priceDatacoin",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2004,
+                  "scope": 2212,
                   "src": "607:18:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -452,7 +452,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1996,
+                    "id": 2204,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
                     "src": "607:4:7",
@@ -466,12 +466,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 1999,
+                  "id": 2207,
                   "mutability": "mutable",
                   "name": "feeDatacoin",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2004,
+                  "scope": 2212,
                   "src": "627:16:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -480,7 +480,7 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 1998,
+                    "id": 2206,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
                     "src": "627:4:7",
@@ -496,17 +496,17 @@
               "src": "548:96:7"
             },
             "returnParameters": {
-              "id": 2003,
+              "id": 2211,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2002,
+                  "id": 2210,
                   "mutability": "mutable",
                   "name": "accepted",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2004,
+                  "scope": 2212,
                   "src": "671:13:7",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -515,7 +515,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 2001,
+                    "id": 2209,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "671:4:7",
@@ -530,14 +530,14 @@
               ],
               "src": "670:15:7"
             },
-            "scope": 2005,
+            "scope": 2213,
             "src": "529:157:7",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 2006,
+        "scope": 2214,
         "src": "25:663:7"
       }
     ],
@@ -549,7 +549,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-07-06T16:48:16.173Z",
+  "updatedAt": "2020-07-31T15:14:02.110Z",
   "devdoc": {
     "methods": {}
   },
