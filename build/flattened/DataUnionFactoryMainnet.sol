@@ -375,7 +375,7 @@ library CloneLib {
     }
 }
 
-// File: contracts/DataUnionFactorySidechain.sol
+// File: contracts/DataUnionFactoryMainnet.sol
 
 pragma solidity ^0.6.0;
 
@@ -424,52 +424,85 @@ interface ITokenMediator {
     function relayTokens(address _from, address _receiver, uint256 _value) external;
 }
 
+interface IDataUnionMainnet {
+        function sidechainAddress() external view returns (address proxy);
+}
 
-contract DataUnionFactorySidechain {
-    event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
 
+contract DataUnionFactoryMainnet {
+    event MainnetDUCreated(address indexed mainnet, address indexed sidechain, address indexed owner, address template);
+
+    address public data_union_mainnet_template;
+
+    //needed to calculate address of sidechain contract
     address public data_union_sidechain_template;
+    address public data_union_sidechain_factory;
+    uint256 public sidechain_maxgas;
     IAMB public amb;
     ITokenMediator public token_mediator;
 
-    constructor( address _token_mediator, address _data_union_sidechain_template) public {
+    constructor( address _token_mediator, 
+                address _data_union_mainnet_template,
+                address _data_union_sidechain_template,
+                address _data_union_sidechain_factory,
+                uint256 _sidechain_maxgas) public {
         token_mediator = ITokenMediator(_token_mediator);
+        data_union_mainnet_template = _data_union_mainnet_template;
         data_union_sidechain_template = _data_union_sidechain_template;
+        data_union_sidechain_factory = _data_union_sidechain_factory;
         amb = IAMB(token_mediator.bridgeContract());
+        sidechain_maxgas = _sidechain_maxgas;
     }
 
     function sidechainAddress(address mainet_address)
         public view
         returns (address proxy)
     {
-        return CloneLib.predictCloneAddressCreate2(data_union_sidechain_template, address(this), bytes32(uint256(mainet_address)));
+        return CloneLib.predictCloneAddressCreate2(
+            data_union_sidechain_template,
+            data_union_sidechain_factory,
+            bytes32(uint256(mainet_address)));
+    }
+    /*
+        
+    */
+    function mainnetAddress(address deployer, string memory name)
+        public view
+        returns (address)
+    {
+        bytes32 salt = keccak256(abi.encodePacked(bytes(name), deployer));
+        return CloneLib.predictCloneAddressCreate2(
+            data_union_mainnet_template,
+            address(this),
+            salt);
     }
 
+
 /*
-    initialize(address _owner,
-        address token_address,
-        uint256 adminFeeFraction_,
-        address[] memory agents,
+    function initialize(
         address _token_mediator,
-        address _mainchain_DU)
-
-
+        address _sidechain_DU_factory,
+        uint256 _sidechain_maxgas,
+        address _sidechain_template_DU,
+        address _owner,
+        uint256 adminFeeFraction,
+        address[] memory agents
+    )  public {
     users can only deploy with salt = their key.
 */
-    function deployNewDUSidechain(address owner, uint256 adminFeeFraction, address[] memory agents) public returns (address) {
-        //if the request didnt come from AMB, use the sender's address as the corresponding "mainnet" address
-        address du_mainnet = msg.sender == address(amb) ? amb.messageSender() : msg.sender;
-        bytes32 salt = bytes32(uint256(du_mainnet));
-        bytes memory data = abi.encodeWithSignature("initialize(address,address,uint256,address[],address,address)",
+    function deployNewDataUnion(address owner, uint256 adminFeeFraction, address[] memory agents, string memory name) public returns (address) {
+        bytes32 salt = keccak256(abi.encodePacked(bytes(name), msg.sender));
+        bytes memory data = abi.encodeWithSignature("initialize(address,address,uint256,address,address,uint256,address[])",
+            token_mediator,
+            data_union_sidechain_factory,
+            sidechain_maxgas,
+            data_union_sidechain_template,
             owner,
-            token_mediator.erc677token(),
             adminFeeFraction,
-            agents,
-            address(token_mediator),
-            du_mainnet
+            agents
         );
-        address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_sidechain_template), data, salt);
-        emit SidechainDUCreated(du_mainnet, du, owner, data_union_sidechain_template);
+        address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_mainnet_template), data, salt);
+        emit MainnetDUCreated(du, sidechainAddress(du), owner, data_union_mainnet_template);
         return du;
     }
 }

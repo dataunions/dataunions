@@ -42,6 +42,11 @@ contract DataUnionSidechain is Ownable {
     event EarningsWithdrawn(address indexed member, uint256 amount);
     event AdminFeesWithdrawn(address indexed admin, uint256 amount);
 
+    //in-contract transfers
+    event TransferWithinContract(address indexed from, address indexed to, uint amount);
+    event TransferToAddressInContract(address indexed from, address indexed to, uint amount);
+    
+
     struct MemberInfo {
         ActiveStatus status;
         uint256 earnings_before_last_join;
@@ -54,9 +59,13 @@ contract DataUnionSidechain is Ownable {
     address public token_mediator;
     address public mainchain_DU;
 
-    //totalRevenue = totalEarnings + totalAdminFees;
+/*
+    totalEarnings includes:
+         member earnings (ie revenue - admin fees) 
+         tokens held for members via transferToMemberInContract()
 
-    //excluding adminFee:
+    totalRevenue = totalEarnings + totalAdminFees;
+*/
     uint256 public totalEarnings;
     uint256 public totalEarningsWithdrawn;
 
@@ -244,6 +253,36 @@ contract DataUnionSidechain is Ownable {
             totalRevenue().sub(totalEarningsWithdrawn).sub(
                 totalAdminFeesWithdrawn
             );
+    }
+
+    /*
+        transfer tokens from outside contract, add to recipient's in-contract balance
+    */
+
+    function transferToMemberInContract(address recipient, uint amount) public {
+        uint bal_before = token.balanceOf(address(this));
+        require(token.transferFrom(msg.sender, address(this), amount), "transfer_failed");
+        uint bal_after = token.balanceOf(address(this));
+        require(bal_after.sub(bal_before) >= amount, "transfer_failed");
+        _increaseBalance(recipient,  amount);
+        totalEarnings = totalEarnings.add(amount);
+        emit TransferToAddressInContract(msg.sender, recipient,  amount);
+    }
+    /*
+        transfer tokens from sender's in-contract balance to recipient's in-contract balance
+    */
+
+    function transferWithinContract(address recipient, uint amount) public {
+        require(getWithdrawableEarnings(msg.sender) >= amount, "insufficient_balance");
+        MemberInfo storage info = memberData[msg.sender];
+        info.withdrawnEarnings = info.withdrawnEarnings.add(amount);
+        _increaseBalance(recipient,  amount);
+        emit TransferWithinContract(msg.sender, recipient, amount);
+     }
+
+    function _increaseBalance(address member, uint amount) internal {
+        MemberInfo storage info = memberData[member];
+        info.earnings_before_last_join = info.earnings_before_last_join.add(amount);
     }
 
     function withdrawMembers(address[] memory members, bool sendToMainnet)

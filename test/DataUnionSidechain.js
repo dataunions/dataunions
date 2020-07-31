@@ -48,7 +48,7 @@ contract("DataUnionSidechain", accounts => {
         console.log(`members: ${JSON.stringify(members)}`)
         console.log(`unused: ${JSON.stringify(unused)}`)
     }),
-    describe("Test1", () => {
+    describe("Basic Functions", () => {
         it("add/remove members", async () => {
             const initial_member_count  = +(await dataUnionSidechain.active_members())
             assertEqual(initial_member_count, members.length)
@@ -126,6 +126,22 @@ contract("DataUnionSidechain", accounts => {
             await dataUnionSidechain.withdrawAdminFees(false,{from: unused[1]})
             const ownerTokenAfter = await testToken.balanceOf(creator);
             assertEqual(ownerTokenAfter.sub(ownerTokenBefore), adminFeeWei.mul(new BN(3)))
+        })
+    }),
+    describe("In-Contract Transfers", () => {
+        it("can transfer tokens to member in-contract", async () => {
+            await testToken.approve(dataUnionSidechain.address, amtWei, {from: creator})
+            await dataUnionSidechain.transferToMemberInContract(unused[0], amtWei, {from: creator})
+            let bal = await dataUnionSidechain.getWithdrawableEarnings(unused[0])
+            assertEqual(bal, amtWei)
+        }),
+        it("members can send intra-contract", async () => {
+            assert(await testToken.transfer(dataUnionSidechain.address, amtWei))
+            await dataUnionSidechain.addRevenue({from: unused[1]})
+            const amt = new BN(w3.utils.toWei("1"), 10)
+            await dataUnionSidechain.transferWithinContract(unused[1], amt, {from: members[0]})
+            let bal = await dataUnionSidechain.getWithdrawableEarnings(unused[1])
+            assertEqual(bal, amt)
         })
     })
 })
