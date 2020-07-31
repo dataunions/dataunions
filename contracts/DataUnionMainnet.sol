@@ -47,7 +47,7 @@ interface ITokenMediator {
     function relayTokens(address _from, address _receiver, uint256 _value) external;
 }
 
-contract DataUnionMainnet is Ownable{
+contract DataUnionMainnet is Ownable, PurchaseListener {
     using SafeMath for uint256;
 
     IAMB public amb;
@@ -117,7 +117,7 @@ contract DataUnionMainnet is Ownable{
         uint256 endTimestamp,
         uint256 priceDatacoin,
         uint256 feeDatacoin
-    ) external returns (bool accepted) {
+    ) external override returns (bool accepted) {
         sendTokensToBridge();
         return true;
     }
