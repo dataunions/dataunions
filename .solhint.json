@@ -1,0 +1,12 @@
+{
+    "extends": "solhint:recommended",
+    "rules": {
+        "indent": ["error", 4],
+        "quotes": ["error", "double"],
+        "max-line-length": false,
+        "mark-callable-contracts": false,
+        "space-after-comma": "error",
+        "bracket-align": "error",
+        "statement-indent": "error"
+    }
+}

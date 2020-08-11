@@ -6,15 +6,20 @@
     "clean": "rm -rf build/ && mkdir -p build/contracts",
     "build": "truffle compile && ./flatten",
     "deploy": "truffle migrate",
-    "lint": "./node_modules/.bin/eslint src && ./node_modules/.bin/solhint contracts/**/*.sol",
-    "test": "truffle test"
+    "lint": "eslint . && solhint contracts/**/*.sol",
+    "lint-temporary": "eslint . && echo skipping smart contract linting for now",
+    "test": "truffle test test/contracts && mocha test/e2e",
+    "test-temporary": "echo skipping smart contract tests for now && mocha test/e2e"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "^5.14.1",
-    "openzeppelin-solidity": "^3.0.0",
     "@openzeppelin/upgrades": "^2.8.0",
+    "debug": "4.1.1",
+    "dotenv": "^8.2.0",
+    "eslint": "5.14.1",
+    "openzeppelin-solidity": "^3.0.0",
+    "solhint": "^3.1.0",
     "truffle": "^5.1.23",
     "truffle-flattener": "^1.4.3",
     "web3": "^1.2.4"

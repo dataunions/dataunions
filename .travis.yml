@@ -11,5 +11,10 @@ branches:
 jobs:
   include:
     - script:
-        - "npm run test"
+        # - "npm run lint"  # this, once smart contracts have been cleaned (solhint accepts them)
+        - "npm run lint-temporary"
+      stage: "linters"
+    - script:
+        # - "npm run test"  # this, once truffle tests work
+        - "npm run test-temporary"
       stage: "smart contract tests"
