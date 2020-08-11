@@ -45,7 +45,7 @@ contract DataUnionSidechain is Ownable {
     //in-contract transfers
     event TransferWithinContract(address indexed from, address indexed to, uint amount);
     event TransferToAddressInContract(address indexed from, address indexed to, uint amount);
-    
+
 
     struct MemberInfo {
         ActiveStatus status;
@@ -61,7 +61,7 @@ contract DataUnionSidechain is Ownable {
 
 /*
     totalEarnings includes:
-         member earnings (ie revenue - admin fees) 
+         member earnings (ie revenue - admin fees)
          tokens held for members via transferToMemberInContract()
 
     totalRevenue = totalEarnings + totalAdminFees;
@@ -268,10 +268,14 @@ contract DataUnionSidechain is Ownable {
         totalEarnings = totalEarnings.add(amount);
         emit TransferToAddressInContract(msg.sender, recipient,  amount);
     }
-    /*
-        transfer tokens from sender's in-contract balance to recipient's in-contract balance
-    */
 
+    /**
+     * Transfer tokens from sender's in-contract balance to recipient's in-contract balance
+     * This is done by "withdrawing" sender's earnings and crediting them to recipient's unwithdrawn earnings,
+     *   so withdrawnEarnings never decreases for anyone (within this function)
+     * @param recipient
+     * @param amount
+     */
     function transferWithinContract(address recipient, uint amount) public {
         require(getWithdrawableEarnings(msg.sender) >= amount, "insufficient_balance");
         MemberInfo storage info = memberData[msg.sender];
