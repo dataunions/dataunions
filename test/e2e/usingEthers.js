@@ -39,7 +39,7 @@ describe("Data Union tests using only ethers.js directly", () => {
 
     let factoryMainnet
     before(async function () {
-        this.timeout(60000)
+        this.timeout(process.env.TEST_TIMEOUT || 60000)
         const factorySidechain = await deployDataUnionFactorySidechain(walletSidechain)
         const templateSidechain = getTemplateSidechain()
         factoryMainnet = await deployDataUnionFactoryMainnet(walletMainnet, templateSidechain.address, factorySidechain.address)
@@ -47,11 +47,11 @@ describe("Data Union tests using only ethers.js directly", () => {
     })
 
     it("can deploy, add members and withdraw", async function () {
-        this.timeout(300000)
+        this.timeout(process.env.TEST_TIMEOUT || 300000)
         const member = "0x4178baBE9E5148c6D5fd431cD72884B07Ad855a0"
         const duname = "test0"
 
-        const duMainnet = await deployDU(duname, factoryMainnet, providerSidechain, 240000)
+        const duMainnet = await deployDU(duname, factoryMainnet, providerSidechain, process.env.TEST_TIMEOUT || 240000)
         const sidechainAddress = await factoryMainnet.sidechainAddress(duMainnet.address)
         const duSidechain = new Contract(
             sidechainAddress,
