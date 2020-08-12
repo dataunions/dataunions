@@ -22,7 +22,7 @@ let templateSidechain
 async function deployDataUnionFactorySidechain(wallet) {
     log(`Deploying template DU sidechain contract from ${wallet.address}`)
     const templateDeployer = new ContractFactory(DataUnionSidechain.abi, DataUnionSidechain.bytecode, wallet)
-    const templateTx = await templateDeployer.deploy({ gasLimit: 7900000 })
+    const templateTx = await templateDeployer.deploy({ gasLimit: 6000000 })
     templateSidechain = await templateTx.deployed()
     log(`Side-chain template DU: ${templateSidechain.address}`)
 
@@ -32,7 +32,7 @@ async function deployDataUnionFactorySidechain(wallet) {
     const factoryTx = await factoryDeployer.deploy(
         home_erc_mediator,
         templateSidechain.address,
-        { gasLimit: 7900000 }
+        { gasLimit: 6000000 }
     )
     return factoryTx.deployed()
 }
@@ -51,7 +51,7 @@ async function deployDataUnionFactoryMainnet(wallet, sidechainTemplateAddress, s
         DataUnionMainnet.bytecode,
         wallet
     )
-    const templateTx = await templateDeployer.deploy({ gasLimit: 7900000 })
+    const templateTx = await templateDeployer.deploy({ gasLimit: 6000000 })
     const templateDU = await templateTx.deployed()
     log(`Mainnet template DU: ${templateDU.address}`)
 
@@ -68,7 +68,7 @@ async function deployDataUnionFactoryMainnet(wallet, sidechainTemplateAddress, s
         sidechainTemplateAddress,
         sidechainFactoryAddress,
         2000000,
-        { gasLimit: 7900000 }
+        { gasLimit: 6000000 }
     )
     return factoryTx.deployed()
 }
