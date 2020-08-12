@@ -24,8 +24,14 @@ const {
     getTemplateSidechain,
 } = require("../utils/deployDUFactories")
 
-const providerSidechain = new JsonRpcProvider("http://10.200.10.1:8546")
-const providerMainnet = new JsonRpcProvider("http://10.200.10.1:8545")
+const providerSidechain = new JsonRpcProvider({
+    url: "http://10.200.10.1:8546",
+    timeout: process.env.TEST_TIMEOUT,
+})
+const providerMainnet = new JsonRpcProvider({
+    url: "http://10.200.10.1:8545",
+    timeout: process.env.TEST_TIMEOUT,
+})
 const walletSidechain = new Wallet(ORACLE_VALIDATOR_ADDRESS_PRIVATE_KEY, providerSidechain)
 const walletMainnet = new Wallet(ORACLE_VALIDATOR_ADDRESS_PRIVATE_KEY, providerMainnet)
 
