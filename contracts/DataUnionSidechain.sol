@@ -295,31 +295,50 @@ contract DataUnionSidechain is Ownable {
         }
         return withdrawn;
     }
-
+    
     function withdraw(address member, bool sendToMainnet)
         public
         returns (uint256)
     {
-        uint256 withdrawable = getWithdrawableEarnings(member);
-        if (withdrawable == 0) return 0;
-        MemberInfo storage info = memberData[member];
-        info.withdrawnEarnings = info.withdrawnEarnings.add(withdrawable);
-        totalEarningsWithdrawn = totalEarningsWithdrawn.add(withdrawable);
+        require(msg.sender == member || msg.sender == owner, "permission_denied");
+        _withdrawTo(member, member, getWithdrawableEarnings(member), sendToMainnet);
+    }
+
+    function withdrawTo(address to, bool sendToMainnet)
+        public
+        returns (uint256)
+    {
+        _withdrawTo(msg.sender, to, getWithdrawableEarnings(msg.sender), sendToMainnet);
+    }
+
+    /*
+        internal helper method. does NOT check access. 
+    */
+
+    function _withdrawTo(address from, address to, uint amount, bool sendToMainnet)
+        internal
+        returns (uint256)
+    {
+        if (amount == 0) return 0;
+        require(amount <= getWithdrawableEarnings(from), "insufficient_funds");
+        MemberInfo storage info = memberData[from];
+        info.withdrawnEarnings = info.withdrawnEarnings.add(amount);
+        totalEarningsWithdrawn = totalEarningsWithdrawn.add(amount);
         if (sendToMainnet)
             require(
                 token.transferAndCall(
                     token_mediator,
-                    withdrawable,
-                    toBytes(member)
+                    amount,
+                    toBytes(to)
                 ),
                 "transfer_failed"
             );
-        else require(token.transfer(member, withdrawable), "transfer_failed");
-        emit EarningsWithdrawn(member, withdrawable);
-        return withdrawable;
+        else require(token.transfer(to, amount), "transfer_failed");
+        emit EarningsWithdrawn(from, amount);
+        return amount;
     }
 
-    function withdrawAdminFees(bool sendToMainnet) public returns (uint256) {
+    function withdrawAdminFees(bool sendToMainnet) onlyOwner public returns (uint256) {
         uint256 withdrawable = totalAdminFees.sub(totalAdminFeesWithdrawn);
         if (withdrawable == 0) return 0;
         totalAdminFeesWithdrawn = totalAdminFeesWithdrawn.add(withdrawable);
@@ -335,5 +354,50 @@ contract DataUnionSidechain is Ownable {
         else require(token.transfer(owner, withdrawable), "transfer_failed");
         emit AdminFeesWithdrawn(owner, withdrawable);
         return withdrawable;
+    }
+
+    /**
+     * Check signature from a member authorizing withdrawing its earnings to another account.
+     * Throws if the signature is badly formatted or doesn't match the given signer and amount.
+     * Signature has parts the act as replay protection:
+     * 1) `address(this)`: signature can't be used for other contracts;
+     * 2) `withdrawn[signer]`: signature only works once (for unspecified amount), and can be "cancelled" by sending a withdraw tx.
+     * Generated in Javascript with: `web3.eth.accounts.sign(recipientAddress + amount.toString(16, 64) + contractAddress.slice(2) + withdrawnTokens.toString(16, 64), signerPrivateKey)`,
+     * or for unlimited amount: `web3.eth.accounts.sign(recipientAddress + "0".repeat(64) + contractAddress.slice(2) + withdrawnTokens.toString(16, 64), signerPrivateKey)`.
+     * @param signer whose earnings are being withdrawn
+     * @param recipient of the tokens
+     * @param amount how much is authorized for withdraw, or zero for unlimited (withdrawAll)
+     * @param signature byte array from `web3.eth.accounts.sign`
+     * @return isValid true iff signer of the authorization (member whose earnings are going to be withdrawn) matches the signature
+     */
+    function signatureIsValid(address signer, address recipient, uint amount, bytes memory signature) public view returns (bool isValid) {
+        require(signature.length == 65, "error_badSignatureLength");
+
+        bytes32 r; bytes32 s; uint8 v;
+        assembly {      // solium-disable-line security/no-inline-assembly
+            r := mload(add(signature, 32))
+            s := mload(add(signature, 64))
+            v := byte(0, mload(add(signature, 96)))
+        }
+        if (v < 27) {
+            v += 27;
+        }
+        require(v == 27 || v == 28, "error_badSignatureVersion");
+
+        // When changing the message, remember to double-check that message length is correct!
+        bytes32 messageHash = keccak256(abi.encodePacked(
+            "\x19Ethereum Signed Message:\n104", recipient, amount, address(this), getWithdrawn(signer)));
+        address calculatedSigner = ecrecover(messageHash, v, r, s);
+
+        return calculatedSigner == signer;
+    }
+    
+    function withdrawAllToSigned(address from_signer, address to, bool sendToMainnet, bytes memory signature) public {
+        return withdrawToSigned(from_signer, to, getWithdrawableEarnings(from_signer), sendToMainnet, signature);
+    }
+
+    function withdrawToSigned(address from_signer, address to, uint amount, bool sendToMainnet, bytes memory signature) public {
+        require(signatureIsValid(from_signer, to, amount, signature), "error_badSignature");
+        _withdrawTo(from_signer, to, amount, sendToMainnet);
     }
 }

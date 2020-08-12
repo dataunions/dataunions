@@ -113,17 +113,23 @@ contract("DataUnionSidechain", accounts => {
             assertEvent(await dataUnionSidechain.partMember(unused[0], {from: agents[0]}), "MemberParted")
         }),
         it("withdrawal works", async () => {
-            assertEvent(await dataUnionSidechain.withdraw(unused[0], false, {from: unused[1]}), "EarningsWithdrawn")
-            assertEvent(await dataUnionSidechain.withdraw(members[0], false, {from: unused[1]}), "EarningsWithdrawn")
-            assertEvent(await dataUnionSidechain.withdraw(members[1], false, {from: unused[1]}), "EarningsWithdrawn")
+            //no access
+            await assertFails(dataUnionSidechain.withdraw(unused[0], false, {from: unused[1]}))
+            
+            assertEvent(await dataUnionSidechain.withdraw(unused[0], false, {from: unused[0]}), "EarningsWithdrawn")
+            assertEvent(await dataUnionSidechain.withdraw(members[0], false, {from: members[0]}), "EarningsWithdrawn")
+            assertEvent(await dataUnionSidechain.withdraw(members[1], false, {from: members[1]}), "EarningsWithdrawn")
             assertEqual(+(await testToken.balanceOf(unused[0])), earn3)
             assertEqual(+(await testToken.balanceOf(members[1])), earn1.add(earn2).add(earn3))
             assertEqual(+(await testToken.balanceOf(members[0])), earn1.add(earn3))
 
             const ownerTokenBefore = await testToken.balanceOf(creator);
-            assertEvent(await dataUnionSidechain.withdrawAdminFees(false,{from: unused[1]}), "AdminFeesWithdrawn")
+            //no access
+            await assertFails(dataUnionSidechain.withdrawAdminFees(false, {from: unused[1]}))
+            
+            assertEvent(await dataUnionSidechain.withdrawAdminFees(false, {from: creator}), "AdminFeesWithdrawn")
             //should do nothing:
-            await dataUnionSidechain.withdrawAdminFees(false,{from: unused[1]})
+            await dataUnionSidechain.withdrawAdminFees(false,{from: creator})
             const ownerTokenAfter = await testToken.balanceOf(creator);
             assertEqual(ownerTokenAfter.sub(ownerTokenBefore), adminFeeWei.mul(new BN(3)))
         })
