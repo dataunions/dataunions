@@ -10,14 +10,19 @@ branches:
     - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 jobs:
   include:
-    - stage: lint
+    - stage: lint & unit-test
       script:
-        # - "npm run lint"  # this, once smart contracts have been cleaned (solhint accepts them)
         - "npm run lint-temporary"
-    - stage: test
+        #- "npm run lint"  # change above to this, once smart contracts have been cleaned (solhint accepts them)
+        #- "npm run unit-test" # enable this, once truffle tests work
+    - stage: integration / end-to-end test
       script:
-        # - "npm run test"  # this, once truffle tests work
-        - "npm run test-temporary"
+        - sudo /etc/init.d/mysql stop
+        - sudo ifconfig docker0 10.200.10.1/24
+        - git clone https://github.com/streamr-dev/streamr-docker-dev.git
+        - streamr-docker-dev/streamr-docker-dev/bin.sh start parity-sidechain-node0 parity-node0 bridge --wait
+        - docker ps
+        - npm run integration-test
       env:
         - DEBUG=*
-        - TEST_TIMEOUT=3600000
+        - TEST_TIMEOUT=600000

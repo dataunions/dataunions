@@ -8,8 +8,9 @@
     "deploy": "truffle migrate",
     "lint": "eslint . && solhint contracts/**/*.sol",
     "lint-temporary": "eslint . && echo skipping smart contract linting for now",
-    "test": "truffle test test/contracts && mocha test/e2e",
-    "test-temporary": "echo skipping smart contract tests for now && mocha test/e2e"
+    "unit-test": "truffle test test/contracts",
+    "integration-test": "mocha test/e2e",
+    "test": "npm run unit-test && npm run integration-test"
   },
   "author": "",
   "license": "ISC",
