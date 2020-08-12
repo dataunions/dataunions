@@ -20,4 +20,4 @@ jobs:
         - "npm run test-temporary"
       env:
         - DEBUG=*
-        - TEST_TIMEOUT=600000
+        - TEST_TIMEOUT=3600000

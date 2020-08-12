@@ -19,7 +19,7 @@ async function until(condition, timeOutMs = 10000, pollingIntervalMs = 100) {
     // Promise wrapped condition function works for normal functions just the same as Promises
     while (!await Promise.resolve().then(condition)) {
         if (timeout) {
-            throw new Error("timeout")
+            throw new Error(`Timeout after ${timeOutMs} milliseconds`)
         }
         await sleep(pollingIntervalMs)
     }
