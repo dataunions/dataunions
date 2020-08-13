@@ -291,24 +291,38 @@ contract DataUnionSidechain is Ownable {
     {
         uint256 withdrawn = 0;
         for (uint256 i = 0; i < members.length; i++) {
-            withdrawn.add(withdraw(members[i], sendToMainnet));
+            withdrawn.add(withdrawAll(members[i], sendToMainnet));
         }
         return withdrawn;
     }
     
-    function withdraw(address member, bool sendToMainnet)
+    function withdrawAll(address member, bool sendToMainnet)
+        public
+        returns (uint256)
+    {
+        return withdraw(member, getWithdrawableEarnings(member), sendToMainnet);
+    }
+
+    function withdraw(address member, uint amount, bool sendToMainnet)
         public
         returns (uint256)
     {
         require(msg.sender == member || msg.sender == owner, "permission_denied");
-        _withdrawTo(member, member, getWithdrawableEarnings(member), sendToMainnet);
+        _withdrawTo(member, member, amount, sendToMainnet);
     }
 
-    function withdrawTo(address to, bool sendToMainnet)
+    function withdrawAllTo(address to, bool sendToMainnet)
+        public
+        returns (uint256) 
+    {
+        withdrawTo(to, getWithdrawableEarnings(msg.sender), sendToMainnet);
+    }
+
+    function withdrawTo(address to, uint amount, bool sendToMainnet)
         public
         returns (uint256)
     {
-        _withdrawTo(msg.sender, to, getWithdrawableEarnings(msg.sender), sendToMainnet);
+        _withdrawTo(msg.sender, to, amount, sendToMainnet);
     }
 
     /*
@@ -392,12 +406,12 @@ contract DataUnionSidechain is Ownable {
         return calculatedSigner == signer;
     }
     
-    function withdrawAllToSigned(address from_signer, address to, bool sendToMainnet, bytes memory signature) public {
+    function withdrawAllToSigned(address from_signer, address to, bool sendToMainnet, bytes memory signature) public returns (uint withdrawn){
         return withdrawToSigned(from_signer, to, getWithdrawableEarnings(from_signer), sendToMainnet, signature);
     }
 
-    function withdrawToSigned(address from_signer, address to, uint amount, bool sendToMainnet, bytes memory signature) public {
+    function withdrawToSigned(address from_signer, address to, uint amount, bool sendToMainnet, bytes memory signature) public returns (uint withdrawn){
         require(signatureIsValid(from_signer, to, amount, signature), "error_badSignature");
-        _withdrawTo(from_signer, to, amount, sendToMainnet);
+        return _withdrawTo(from_signer, to, amount, sendToMainnet);
     }
 }
