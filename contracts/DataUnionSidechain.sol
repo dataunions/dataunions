@@ -1,23 +1,9 @@
 pragma solidity ^0.6.0;
 
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "./Ownable.sol";
-
-interface ERC677 is IERC20 {
-    event Transfer(
-        address indexed from,
-        address indexed to,
-        uint256 value,
-        bytes data
-    );
-
-    function transferAndCall(
-        address,
-        uint256,
-        bytes calldata
-    ) external returns (bool);
-}
+import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import "./IERC677.sol";
+import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
 
 contract DataUnionSidechain is Ownable {
     using SafeMath for uint256;
@@ -45,7 +31,7 @@ contract DataUnionSidechain is Ownable {
     //in-contract transfers
     event TransferWithinContract(address indexed from, address indexed to, uint amount);
     event TransferToAddressInContract(address indexed from, address indexed to, uint amount);
-    
+
 
     struct MemberInfo {
         ActiveStatus status;
@@ -54,14 +40,14 @@ contract DataUnionSidechain is Ownable {
         uint256 withdrawnEarnings;
     }
 
-    ERC677 public token;
+    IERC677 public token;
     uint256 public adminFeeFraction;
     address public token_mediator;
     address public mainchain_DU;
 
 /*
     totalEarnings includes:
-         member earnings (ie revenue - admin fees) 
+         member earnings (ie revenue - admin fees)
          tokens held for members via transferToMemberInContract()
 
     totalRevenue = totalEarnings + totalAdminFees;
@@ -99,10 +85,10 @@ contract DataUnionSidechain is Ownable {
         address _token_mediator,
         address _mainchain_DU
     ) public {
-        require(!isInitialized(),"init_once");
+        require(!isInitialized(), "init_once");
         //set owner at the end. caller needs admin to initialize()
         owner = msg.sender;
-        token = ERC677(token_address);
+        token = IERC677(token_address);
         setAdminFee(adminFeeFraction_);
         addJoinPartAgents(agents);
         token_mediator = _token_mediator;
@@ -188,10 +174,8 @@ contract DataUnionSidechain is Ownable {
     }
 
     function addRevenue() public returns (uint256) {
-        // a.sub(b) errors if b > a
-        uint256 amount = token.balanceOf(address(this)).sub(
-            totalWithdrawable()
-        );
+        uint256 balance = token.balanceOf(address(this));
+        uint256 amount = balance.sub(totalWithdrawable()); // a.sub(b) errors if b > a
         if (amount == 0) return 0;
         uint256 adminFee = amount.mul(adminFeeFraction).div(10**18);
         uint256 memberEarnings = amount.sub(adminFee);
@@ -268,10 +252,14 @@ contract DataUnionSidechain is Ownable {
         totalEarnings = totalEarnings.add(amount);
         emit TransferToAddressInContract(msg.sender, recipient,  amount);
     }
-    /*
-        transfer tokens from sender's in-contract balance to recipient's in-contract balance
-    */
 
+    /**
+     * Transfer tokens from sender's in-contract balance to recipient's in-contract balance
+     * This is done by "withdrawing" sender's earnings and crediting them to recipient's unwithdrawn earnings,
+     *   so withdrawnEarnings never decreases for anyone (within this function)
+     * @param recipient whose withdrawable earnings will increase
+     * @param amount how much withdrawable earnings is transferred
+     */
     function transferWithinContract(address recipient, uint amount) public {
         require(getWithdrawableEarnings(msg.sender) >= amount, "insufficient_balance");
         MemberInfo storage info = memberData[msg.sender];

@@ -2,7 +2,7 @@ pragma solidity ^0.6.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "./Ownable.sol";
+import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "./PurchaseListener.sol";
 import "./CloneLib.sol";
 
@@ -85,16 +85,13 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         return address(token) != address(0);
     }
 
-    
+
     function deployNewDUSidechain(uint256 adminFeeFraction, address[] memory agents) public {
         bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,uint256,address[])", owner, adminFeeFraction, agents);
         amb.requireToPassMessage(sidechain_DU_factory, data, sidechain_maxgas);
     }
 
-    function sidechainAddress()
-        public view
-        returns (address proxy)
-    {
+    function sidechainAddress() public view returns (address proxy) {
         return CloneLib.predictCloneAddressCreate2(sidechain_template_DU, sidechain_DU_factory, bytes32(uint256(address(this))));
     }
 
@@ -111,13 +108,8 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     }
     */
 
-    function onPurchase(
-        bytes32 productId,
-        address subscriber,
-        uint256 endTimestamp,
-        uint256 priceDatacoin,
-        uint256 feeDatacoin
-    ) external override returns (bool accepted) {
+    //function onPurchase(bytes32 productId, address subscriber, uint256 endTimestamp, uint256 priceDatacoin, uint256 feeDatacoin)
+    function onPurchase(bytes32, address, uint256, uint256, uint256) external override returns (bool accepted) {
         sendTokensToBridge();
         return true;
     }
@@ -132,7 +124,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         token_mediator.relayTokens(address(this), sidechainAddress(), bal);
         require(token.balanceOf(address(this)) == 0, "transfer_failed");
         token_sent_to_bridge = token_sent_to_bridge.add(bal);
-        
+
         bytes memory data = abi.encodeWithSignature("addRevenue()");
         amb.requireToPassMessage(sidechainAddress(), data, sidechain_maxgas);
 

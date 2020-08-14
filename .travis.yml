@@ -14,3 +14,14 @@ jobs:
       script:
         - "npm run lint"
         - "npm run unit-test"
+    - stage: integration / end-to-end test
+      script:
+        - sudo /etc/init.d/mysql stop
+        - sudo ifconfig docker0 10.200.10.1/24
+        - git clone https://github.com/streamr-dev/streamr-docker-dev.git
+        - streamr-docker-dev/streamr-docker-dev/bin.sh start parity-sidechain-node0 parity-node0 bridge --wait
+        - docker ps
+        - npm run integration-test
+      env:
+        - DEBUG=*
+        - TEST_TIMEOUT=600000
