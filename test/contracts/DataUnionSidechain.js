@@ -1,5 +1,5 @@
 const Web3 = require("web3")
-const { assertEqual, assertFails, assertEvent } = require("./utils/web3Assert")
+const { assertEqual, assertFails, assertEvent } = require("../utils/web3Assert")
 const BN = require('bn.js');
 const { Wallet } = require("ethers");
 const w3 = new Web3(web3.currentProvider)
@@ -49,7 +49,7 @@ contract("DataUnionSidechain", accounts => {
 */
     before(async () => {
         testToken = await ERC20Mintable.new("name","symbol",{ from: creator })
-        
+
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
         //last 2 args are dummy. doesnt talk to mainnet contract in test
         await dataUnionSidechain.initialize(creator, testToken.address, adminFeeFractionWei, agents,agents[0],agents[0], {from: creator})
@@ -77,7 +77,7 @@ contract("DataUnionSidechain", accounts => {
 
         it("add/remove joinPartAgents", async () => {
             //add agent
-            await assertFails(dataUnionSidechain.addMember(unused[1], {from: unused[0]}))          
+            await assertFails(dataUnionSidechain.addMember(unused[1], {from: unused[0]}))
             var jpCount = +(await dataUnionSidechain.join_part_agent_count());
             assertEqual(jpCount, agents.length)
             assertEvent(await dataUnionSidechain.addJoinPartAgent(unused[0], {from: creator}), "JoinPartAgentAdded")
@@ -88,13 +88,13 @@ contract("DataUnionSidechain", accounts => {
 
             //remove agent
             assertEvent(await dataUnionSidechain.removeJoinPartAgent(unused[0], {from: creator}), "JoinPartAgentRemoved")
-            await assertFails(dataUnionSidechain.addMember(unused[1], {from: unused[0]}))          
+            await assertFails(dataUnionSidechain.addMember(unused[1], {from: unused[0]}))
             jpCount = +(await dataUnionSidechain.join_part_agent_count());
             assertEqual(jpCount, agents.length)
-            
+
 
         }),
-        
+
         it("revenue correctly distrubted", async () => {
             //send revenue to members[]
             assert(await testToken.transfer(dataUnionSidechain.address, amtWei))
@@ -105,7 +105,7 @@ contract("DataUnionSidechain", accounts => {
             assertEqual(+(await dataUnionSidechain.totalAdminFees()), adminFeeWei)
             assertEqual(+(await dataUnionSidechain.totalRevenue()), amtWei)
             assertEqual(+(await dataUnionSidechain.getEarnings(members[0])), earn1)
- 
+
             //drop a member, send tokens, check accounting
             assertEvent(await dataUnionSidechain.partMember(members[0], {from: agents[0]}), "MemberParted")
             assertEqual(+(await dataUnionSidechain.getEarnings(members[0])), earn1)
@@ -115,7 +115,7 @@ contract("DataUnionSidechain", accounts => {
             assertEqual(+(await dataUnionSidechain.getEarnings(members[1])), earn1.add(earn2))
             assertEvent(await dataUnionSidechain.addMember(members[0], {from: agents[0]}), "MemberJoined")
 
-            //add a member, send tokens, check accounting 
+            //add a member, send tokens, check accounting
             assertEvent(await dataUnionSidechain.addMember(unused[0], {from: agents[0]}), "MemberJoined")
             assert(await testToken.transfer(dataUnionSidechain.address, amtWei))
             await dataUnionSidechain.addRevenue({from: unused[1]})
@@ -151,7 +151,7 @@ contract("DataUnionSidechain", accounts => {
             const ownerTokenBefore = await testToken.balanceOf(creator);
             //no access
             await assertFails(dataUnionSidechain.withdrawAdminFees(false, {from: unused[1]}))
-            
+
             assertEvent(await dataUnionSidechain.withdrawAdminFees(false, {from: creator}), "AdminFeesWithdrawn")
             //should do nothing:
             await dataUnionSidechain.withdrawAdminFees(false,{from: creator})
