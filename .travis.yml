@@ -1,8 +1,8 @@
 language: node_js
 node_js:
-  - "9.5.0"
+  - "10.19.0"
 before_install:
-  - "npm i -g npm@6.0.1"
+  - "npm i -g npm@6.13.4"
 branches:
   only:
     - master
@@ -10,6 +10,7 @@ branches:
     - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 jobs:
   include:
-    - script:
-        - "npm run test"
-      stage: "smart contract tests"
+    - stage: lint & unit-test
+      script:
+        - "npm run lint"
+        - "npm run unit-test"

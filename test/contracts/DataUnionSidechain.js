@@ -1,44 +1,44 @@
 const Web3 = require("web3")
 const { assertEqual, assertFails, assertEvent } = require("../utils/web3Assert")
-const BN = require('bn.js');
-const { Wallet } = require("ethers");
+const BN = require("bn.js")
 const w3 = new Web3(web3.currentProvider)
 const DataUnionSidechain = artifacts.require("./DataUnionSidechain.sol")
 const ERC20Mintable = artifacts.require("./ERC20Mintable.sol")
 
-const day = 86400
-
-/*
-in Solidity, the message is created by abi.encodePacked(), which represents addresses unpadded as 20bytes.
-
-web3.eth.encodeParameters() encodes addresses padded as 32bytes
-
-encodePacked() method from library would be preferable, but this works
-*/
-function withdrawMessage(to, amount, du_address, from_withdrawn){
+/**
+ * in Solidity, the message is created by abi.encodePacked(), which represents addresses unpadded as 20bytes.
+ * web3.eth.encodeParameters() encodes addresses padded as 32bytes, so it can't be used
+ * encodePacked() method from library would be preferable, but this works
+ *
+ * @param {EthereumAddress} to
+ * @param {number} amount tokens multiplied by 10^18
+ * @param {EthereumAddress} du_address
+ * @param {number} from_withdrawn amount of token-wei withdrawn previously
+ */
+function withdrawMessage(to, amount, du_address, from_withdrawn) {
     const message = to + amount.toString(16, 64) + du_address.slice(2) + from_withdrawn.toString(16, 64)
     return message
 }
 
 contract("DataUnionSidechain", accounts => {
     const creator = accounts[0]
-    const agents = accounts.slice(1, accounts.length/3)
-    const members = accounts.slice(accounts.length/3, 2*accounts.length/3)
-    const unused = accounts.slice(2*accounts.length/3)
-    let testToken, dataUnionSidechain;
+    const agents = accounts.slice(1, accounts.length / 3)
+    const members = accounts.slice(accounts.length / 3, 2 * accounts.length / 3)
+    const unused = accounts.slice(2 * accounts.length / 3)
+    let testToken, dataUnionSidechain
     const adminFeeFraction = 0.1
     const adminFeeFractionWei = w3.utils.toWei(adminFeeFraction.toString())
 
     const amtEth = 100
-    const adminFeeEth = Math.floor(amtEth*adminFeeFraction)
+    const adminFeeEth = Math.floor(amtEth * adminFeeFraction)
     const amtWei = new BN(w3.utils.toWei(amtEth.toString()), 10)
     const adminFeeWei = new BN(w3.utils.toWei(adminFeeEth.toString()), 10)
     //earnings from test transfers
     const earn1 = amtWei.sub(adminFeeWei).div(new BN(members.length))
-    const earn2 = amtWei.sub(adminFeeWei).div(new BN(members.length -1))
-    const earn3 = amtWei.sub(adminFeeWei).div(new BN(members.length +1))
+    const earn2 = amtWei.sub(adminFeeWei).div(new BN(members.length - 1))
+    const earn3 = amtWei.sub(adminFeeWei).div(new BN(members.length + 1))
 
-/*
+    /*
  function initialize(
         address token_address,
         uint256 adminFeeFraction_,
@@ -78,10 +78,10 @@ contract("DataUnionSidechain", accounts => {
         it("add/remove joinPartAgents", async () => {
             //add agent
             await assertFails(dataUnionSidechain.addMember(unused[1], {from: unused[0]}))
-            var jpCount = +(await dataUnionSidechain.join_part_agent_count());
+            var jpCount = +(await dataUnionSidechain.join_part_agent_count())
             assertEqual(jpCount, agents.length)
             assertEvent(await dataUnionSidechain.addJoinPartAgent(unused[0], {from: creator}), "JoinPartAgentAdded")
-            jpCount = +(await dataUnionSidechain.join_part_agent_count());
+            jpCount = +(await dataUnionSidechain.join_part_agent_count())
             assertEqual(jpCount, agents.length + 1)
             assertEvent(await dataUnionSidechain.addMember(unused[1], {from: agents[0]}), "MemberJoined")
             assertEvent(await dataUnionSidechain.partMember(unused[1], {from: agents[0]}), "MemberParted")
@@ -89,7 +89,7 @@ contract("DataUnionSidechain", accounts => {
             //remove agent
             assertEvent(await dataUnionSidechain.removeJoinPartAgent(unused[0], {from: creator}), "JoinPartAgentRemoved")
             await assertFails(dataUnionSidechain.addMember(unused[1], {from: unused[0]}))
-            jpCount = +(await dataUnionSidechain.join_part_agent_count());
+            jpCount = +(await dataUnionSidechain.join_part_agent_count())
             assertEqual(jpCount, agents.length)
 
 
@@ -137,7 +137,7 @@ contract("DataUnionSidechain", accounts => {
             //test signed withdraw
             const member1earnings = earn1.add(earn2).add(earn3)
             const member1withdrawn =  new BN(0)
-            const validWithdrawRequest = withdrawMessage(unused[2], member1earnings, dataUnionSidechain.address, member1withdrawn);
+            const validWithdrawRequest = withdrawMessage(unused[2], member1earnings, dataUnionSidechain.address, member1withdrawn)
             const sig = await w3.eth.sign(validWithdrawRequest, members[1])
             //console.log(`sig ${sig}   req ${validWithdrawRequest}`)
 
@@ -148,14 +148,14 @@ contract("DataUnionSidechain", accounts => {
             assertEqual(+(await testToken.balanceOf(unused[2])), member1earnings)
 
             // test admin fee withdraw
-            const ownerTokenBefore = await testToken.balanceOf(creator);
+            const ownerTokenBefore = await testToken.balanceOf(creator)
             //no access
             await assertFails(dataUnionSidechain.withdrawAdminFees(false, {from: unused[1]}))
 
             assertEvent(await dataUnionSidechain.withdrawAdminFees(false, {from: creator}), "AdminFeesWithdrawn")
             //should do nothing:
             await dataUnionSidechain.withdrawAdminFees(false,{from: creator})
-            const ownerTokenAfter = await testToken.balanceOf(creator);
+            const ownerTokenAfter = await testToken.balanceOf(creator)
             assertEqual(ownerTokenAfter.sub(ownerTokenBefore), adminFeeWei.mul(new BN(3)))
         })
     }),
