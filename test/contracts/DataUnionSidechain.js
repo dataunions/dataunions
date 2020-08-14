@@ -95,7 +95,7 @@ contract("DataUnionSidechain", accounts => {
 
         }),
 
-        it("revenue correctly distrubted", async () => {
+        it("distributes revenue correctly", async () => {
             //send revenue to members[]
             assert(await testToken.transfer(dataUnionSidechain.address, amtWei))
             await dataUnionSidechain.addRevenue({from: unused[1]})
