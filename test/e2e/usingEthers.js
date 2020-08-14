@@ -9,10 +9,6 @@ const {
     providers: { JsonRpcProvider },
 } = require("ethers")
 
-const ERC677BridgeToken = require("../../build/contracts/ERC677.json")
-const ERC20Mintable = require("../../build/contracts/ERC20Mintable.json")
-const DataUnionSidechain = require("../../build/contracts/DataUnionSidechain.json")
-
 const log = require("debug")("Streamr:du:test:e2e:usingEthers")
 //require("debug").log = console.log.bind(console)  // get logging into stdout so mocha won't hide it
 
@@ -35,8 +31,11 @@ const providerMainnet = new JsonRpcProvider({
 const walletSidechain = new Wallet(ORACLE_VALIDATOR_ADDRESS_PRIVATE_KEY, providerSidechain)
 const walletMainnet = new Wallet(ORACLE_VALIDATOR_ADDRESS_PRIVATE_KEY, providerMainnet)
 
-const erc677Sidechain = new Contract(erc677SidechainAddress, ERC677BridgeToken.abi, walletSidechain)
-const erc20Mainnet = new Contract(DATACOIN_ADDRESS, ERC20Mintable.abi, walletMainnet)
+const Token = require("../../build/contracts/IERC20.json")
+const erc677Sidechain = new Contract(erc677SidechainAddress, Token.abi, walletSidechain)
+const erc20Mainnet = new Contract(DATACOIN_ADDRESS, Token.abi, walletMainnet)
+
+const DataUnionSidechain = require("../../build/contracts/DataUnionSidechain.json")
 
 describe("Data Union tests using only ethers.js directly", () => {
     // for faster manual testing, use a factory from previous runs
@@ -66,16 +65,6 @@ describe("Data Union tests using only ethers.js directly", () => {
         )
         log(`working with DU named ${duname}, mainnet_address = ${duMainnet.address}, sidechain_address = ${sidechainAddress}`)
 
-        // log(`Deploying dataunion ${duname}`)
-        // const tx = await factoryMainnet.deployNewDataUnion(
-        //     walletMainnet.address,
-        //     0,
-        //     [walletMainnet.address],
-        //     duname
-        // )
-        // const tr = await tx.wait()
-        // log(`deploy tx receipt ${JSON.stringify(tr)}`)
-
         await printStats(duSidechain, member)
         await addMembers(duSidechain, [member])
         await printStats(duSidechain, member)
@@ -87,19 +76,19 @@ describe("Data Union tests using only ethers.js directly", () => {
 })
 
 async function testSend(duMainnet) {
-    let tx
     const bal = await erc20Mainnet.balanceOf(walletMainnet.address)
-    log(`bal ${bal}`)
-    let amt = "1000000000000000000"
+    log(`User wallet mainnet balance ${bal}`)
+    const amt = "1000000000000000000"
 
     //transfer ERC20 to mainet contract
-    tx = await erc20Mainnet.transfer(duMainnet.address, amt)
-    await tx.wait()
-    log(`transferred ${amt} to ${duMainnet.address}, sending to bridge`)
+    const tx1 = await erc20Mainnet.transfer(duMainnet.address, amt)
+    await tx1.wait()
+    log(`Transferred ${amt} to ${duMainnet.address}, sending to bridge`)
 
     //sends tokens to sidechain contract via bridge, calls sidechain.addRevenue()
-    tx = await duMainnet.sendTokensToBridge()
-    await tx.wait()
+    const tx2 = await duMainnet.sendTokensToBridge()
+    await tx2.wait()
+    log("Sent to bridge")
 }
 
 async function withdraw(duSidechain, member) {
