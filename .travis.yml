@@ -1,8 +1,8 @@
 language: node_js
 node_js:
-  - "9.5.0"
+  - "10.19.0"
 before_install:
-  - "npm i -g npm@6.0.1"
+  - "npm i -g npm@6.13.4"
 branches:
   only:
     - master
@@ -10,6 +10,18 @@ branches:
     - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 jobs:
   include:
-    - script:
-        - "npm run test"
-      stage: "smart contract tests"
+    - stage: lint & unit-test
+      script:
+        - "npm run lint"
+        - "npm run unit-test"
+    - stage: integration / end-to-end test
+      script:
+        - sudo /etc/init.d/mysql stop
+        - sudo ifconfig docker0 10.200.10.1/24
+        - git clone https://github.com/streamr-dev/streamr-docker-dev.git
+        - streamr-docker-dev/streamr-docker-dev/bin.sh start parity-sidechain-node0 parity-node0 bridge --wait
+        - docker ps
+        - npm run integration-test
+      env:
+        - DEBUG=*
+        - TEST_TIMEOUT=600000

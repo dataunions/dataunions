@@ -1,19 +1,22 @@
 pragma solidity ^0.6.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "openzeppelin-solidity/contracts/access/Ownable.sol";
 
-/*
-ERC20Mintable is missing from open-zeppelin 3.0
-https://forum.openzeppelin.com/t/where-is-erc20mintable-sol-in-openzeppelin-contracts-3-0/2283
-*/
-contract ERC20Mintable is ERC20 {
-    address private creator;
-    constructor(string memory name, string memory symbol) public ERC20(name, symbol) {
-        creator = msg.sender;
+/**
+ * ERC20Mintable that is missing from openzeppelin-contracts 3.x
+ */
+contract ERC20Mintable is ERC20, Ownable {
+    constructor (string memory name, string memory symbol) public ERC20(name, symbol) {
+        // solhint-disable-previous-line no-empty-blocks
     }
 
-    function mint(address receipient, uint amount) public {
-       require(msg.sender == creator, "only_creator");
-       _mint(receipient, amount);
+    /**
+     * Token contract owner can create tokens
+     * @param recipient address where new tokens are transferred (from 0x0)
+     * @param amount scaled so that 10^18 equals 1 token (multiply by 10^18)
+     */
+    function mint(address recipient, uint amount) external onlyOwner {
+        _mint(recipient, amount);
     }
 }

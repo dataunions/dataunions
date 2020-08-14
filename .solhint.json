@@ -1,0 +1,11 @@
+{
+    "extends": "solhint:recommended",
+    "plugins": ["prettier"],
+    "rules": {
+        "prettier/prettier": "warn",
+        "quotes": ["error", "double"],
+        "max-line-length": false,
+        "mark-callable-contracts": false,
+        "compiler-version": ["error", "^0.6.0"]
+    }
+}

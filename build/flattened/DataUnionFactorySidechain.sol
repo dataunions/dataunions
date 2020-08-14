@@ -1,6 +1,8 @@
 
 // File: openzeppelin-solidity/contracts/token/ERC20/IERC20.sol
 
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.6.0;
 
 /**
@@ -79,6 +81,8 @@ interface IERC20 {
 
 // File: openzeppelin-solidity/contracts/math/SafeMath.sol
 
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.6.0;
 
 /**
@@ -102,6 +106,7 @@ library SafeMath {
      * Counterpart to Solidity's `+` operator.
      *
      * Requirements:
+     *
      * - Addition cannot overflow.
      */
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -118,6 +123,7 @@ library SafeMath {
      * Counterpart to Solidity's `-` operator.
      *
      * Requirements:
+     *
      * - Subtraction cannot overflow.
      */
     function sub(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -131,6 +137,7 @@ library SafeMath {
      * Counterpart to Solidity's `-` operator.
      *
      * Requirements:
+     *
      * - Subtraction cannot overflow.
      */
     function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
@@ -147,6 +154,7 @@ library SafeMath {
      * Counterpart to Solidity's `*` operator.
      *
      * Requirements:
+     *
      * - Multiplication cannot overflow.
      */
     function mul(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -172,6 +180,7 @@ library SafeMath {
      * uses an invalid opcode to revert (consuming all remaining gas).
      *
      * Requirements:
+     *
      * - The divisor cannot be zero.
      */
     function div(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -187,10 +196,10 @@ library SafeMath {
      * uses an invalid opcode to revert (consuming all remaining gas).
      *
      * Requirements:
+     *
      * - The divisor cannot be zero.
      */
     function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
-        // Solidity only automatically asserts when dividing by 0
         require(b > 0, errorMessage);
         uint256 c = a / b;
         // assert(a == b * c + a % b); // There is no case in which this doesn't hold
@@ -207,6 +216,7 @@ library SafeMath {
      * invalid opcode to revert (consuming all remaining gas).
      *
      * Requirements:
+     *
      * - The divisor cannot be zero.
      */
     function mod(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -222,6 +232,7 @@ library SafeMath {
      * invalid opcode to revert (consuming all remaining gas).
      *
      * Requirements:
+     *
      * - The divisor cannot be zero.
      */
     function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
@@ -230,147 +241,88 @@ library SafeMath {
     }
 }
 
-// File: contracts/Ownable.sol
-
-pragma solidity ^0.6.0;
-/**
- * @title Ownable
- * @dev The Ownable contract has an owner address, and provides basic authorization control
- * functions, this simplifies the implementation of "user permissions".
- */
-contract Ownable {
-    address public owner;
-    address public pendingOwner;
-
-    event OwnershipTransferred(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
-
-    /**
-     * @dev The Ownable constructor sets the original `owner` of the contract to the sender
-     * account.
-     */
-    constructor(address owner_) public {
-        owner = owner_;
-    }
-
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
-    modifier onlyOwner() {
-        require(msg.sender == owner, "onlyOwner");
-        _;
-    }
-
-    /**
-     * @dev Allows the current owner to set the pendingOwner address.
-     * @param newOwner The address to transfer ownership to.
-     */
-    function transferOwnership(address newOwner) public onlyOwner {
-        pendingOwner = newOwner;
-    }
-
-    /**
-     * @dev Allows the pendingOwner address to finalize the transfer.
-     */
-    function claimOwnership() public {
-        require(msg.sender == pendingOwner, "onlyPendingOwner");
-        emit OwnershipTransferred(owner, pendingOwner);
-        owner = pendingOwner;
-        pendingOwner = address(0);
-    }
-}
-
 // File: contracts/CloneLib.sol
 
 pragma solidity ^0.6.0;
+//solhint-disable avoid-low-level-calls
+//solhint-disable no-inline-assembly
 
 library CloneLib {
-    /*
-        returns bytecode of a new contract that clones template
-    */
-    //https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-sdk/master/packages/lib/contracts/upgradeability/ProxyFactory.sol
-    function cloneBytecode(address template)
-        internal
-        pure
-        returns (bytes memory code)
-    {
-        // Adapted from https://github.com/optionality/clone-factory/blob/32782f82dfc5a00d103a7e61a17a5dedbd1e8e9d/contracts/CloneFactory.sol
+    /**
+     * Returns bytecode of a new contract that clones template
+     * Adapted from https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-sdk/master/packages/lib/contracts/upgradeability/ProxyFactory.sol
+     * Which in turn adapted it from https://github.com/optionality/clone-factory/blob/32782f82dfc5a00d103a7e61a17a5dedbd1e8e9d/contracts/CloneFactory.sol
+     */
+    function cloneBytecode(address template) internal pure returns (bytes memory code) {
         bytes20 targetBytes = bytes20(template);
         assembly {
             code := mload(0x40)
-            //code length is 0x37 plus 0x20 for bytes length field. update free memory pointer
-            mstore(0x40, add(code, 0x57))
-            //store length in first 32 bytes
-            mstore(code, 0x37)
-            //store data after first 32 bytes
-            mstore(
-                add(code, 0x20),
-                0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000
-            )
+            mstore(0x40, add(code, 0x57)) // code length is 0x37 plus 0x20 for bytes length field. update free memory pointer
+            mstore(code, 0x37) // store length in first 32 bytes
+
+            // store clone source address after first 32 bytes
+            mstore(add(code, 0x20), 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
             mstore(add(code, 0x34), targetBytes)
-            mstore(
-                add(code, 0x48),
-                0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000
-            )
+            mstore(add(code, 0x48), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)
         }
     }
 
+    /**
+     * Predict the CREATE2 address.
+     * See https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1014.md for calculation details
+     */
     function predictCloneAddressCreate2(
         address template,
         address deployer,
         bytes32 salt
     ) internal pure returns (address proxy) {
         bytes32 codehash = keccak256(cloneBytecode(template));
-        return
-            address(
-                uint160(
-                    uint256(
-                        keccak256(
-                            abi.encodePacked(
-                                bytes1(0xff),
-                                deployer,
-                                salt,
-                                codehash
-                            )
-                        )
-                    )
-                )
-            );
+        return address(uint160(uint256(keccak256(abi.encodePacked(
+            bytes1(0xff),
+            deployer,
+            salt,
+            codehash
+        )))));
     }
 
-    function deployCodeAndInitUsingCreate(
-        bytes memory code,
-        bytes memory init_data
-    ) internal returns (address proxy) {
-        uint256 len = code.length;
-        assembly {
-            proxy := create(0, add(code, 0x20), len)
-        }
-
-        if (init_data.length > 0) {
-            (bool success, ) = proxy.call(init_data);
-            require(success);
-        }
-    }
-/*
-    predictable address. see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1014.md
-*/
-
+    /**
+     * Deploy given bytecode using CREATE2, address can be known in advance, get it from predictCloneAddressCreate2
+     * Optional 2-step deployment first runs the constructor, then supplies an initialization function call.
+     * @param code EVM bytecode that would be used in a contract deploy transaction (to=null)
+     * @param initData if non-zero, send an initialization function call in the same tx with given tx input data (e.g. encoded Solidity function call)
+     */
     function deployCodeAndInitUsingCreate2(
         bytes memory code,
-        bytes memory init_data,
+        bytes memory initData,
         bytes32 salt
     ) internal returns (address proxy) {
         uint256 len = code.length;
         assembly {
             proxy := create2(0, add(code, 0x20), len, salt)
         }
+        if (initData.length > 0) {
+            (bool success, ) = proxy.call(initData);
+            require(success, "error_initialization");
+        }
+    }
 
-        if (init_data.length > 0) {
-            (bool success, ) = proxy.call(init_data);
-            require(success);
+    /**
+     * Deploy given bytecode using old-style CREATE, address is hash(sender, nonce)
+     * Optional 2-step deployment first runs the constructor, then supplies an initialization function call.
+     * @param code EVM bytecode that would be used in a contract deploy transaction (to=null)
+     * @param initData if non-zero, send an initialization function call in the same tx with given tx input data (e.g. encoded Solidity function call)
+     */
+    function deployCodeAndInitUsingCreate(
+        bytes memory code,
+        bytes memory initData
+    ) internal returns (address proxy) {
+        uint256 len = code.length;
+        assembly {
+            proxy := create(0, add(code, 0x20), len)
+        }
+        if (initData.length > 0) {
+            (bool success, ) = proxy.call(initData);
+            require(success, "error_initialization");
         }
     }
 }
@@ -378,7 +330,6 @@ library CloneLib {
 // File: contracts/DataUnionFactorySidechain.sol
 
 pragma solidity ^0.6.0;
-
 
 
 
