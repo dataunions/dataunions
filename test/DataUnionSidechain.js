@@ -8,6 +8,13 @@ const ERC20Mintable = artifacts.require("./ERC20Mintable.sol")
 
 const day = 86400
 
+/*
+in Solidity, the message is created by abi.encodePacked(), which represents addresses unpadded as 20bytes.
+
+web3.eth.encodeParameters() encodes addresses padded as 32bytes
+
+encodePacked() method from library would be preferable, but this works
+*/
 function withdrawMessage(to, amount, du_address, from_withdrawn){
     const message = to + amount.toString(16, 64) + du_address.slice(2) + from_withdrawn.toString(16, 64)
     return message
@@ -118,23 +125,21 @@ contract("DataUnionSidechain", accounts => {
             assertEvent(await dataUnionSidechain.partMember(unused[0], {from: agents[0]}), "MemberParted")
         }),
         it("withdrawal works", async () => {
-            //no access
+            //test withdaw to self
             await assertFails(dataUnionSidechain.withdrawAll(unused[0], false, {from: unused[1]}))
-            
             assertEvent(await dataUnionSidechain.withdrawAll(unused[0], false, {from: unused[0]}), "EarningsWithdrawn")
-            assertEvent(await dataUnionSidechain.withdrawAll(members[0], false, {from: members[0]}), "EarningsWithdrawn")
             assertEqual(+(await testToken.balanceOf(unused[0])), earn3)
-            assertEqual(+(await testToken.balanceOf(members[0])), earn1.add(earn3))
-            /*
-            bytes32 messageHash = keccak256(abi.encodePacked(
-            "\x19Ethereum Signed Message:\n104", recipient, amount, address(this), getWithdrawn(signer)));
-       
-            */
+
+            //test withdraw to other
+            assertEvent(await dataUnionSidechain.withdrawAllTo(unused[0], false, {from: members[0]}), "EarningsWithdrawn")
+            assertEqual(+(await testToken.balanceOf(unused[0])), earn3.add(earn1.add(earn3)))
+
+            //test signed withdraw
             const member1earnings = earn1.add(earn2).add(earn3)
             const member1withdrawn =  new BN(0)
             const validWithdrawRequest = withdrawMessage(unused[2], member1earnings, dataUnionSidechain.address, member1withdrawn);
             const sig = await w3.eth.sign(validWithdrawRequest, members[1])
-            console.log(`sig ${sig}   req ${validWithdrawRequest}`)
+            //console.log(`sig ${sig}   req ${validWithdrawRequest}`)
 
             assert(await dataUnionSidechain.signatureIsValid(members[1], unused[2], member1earnings, sig), "Contract says: bad signature")
             // signed for recipient unused[2] not unused[1]
@@ -142,6 +147,7 @@ contract("DataUnionSidechain", accounts => {
             assertEvent(await dataUnionSidechain.withdrawAllToSigned(members[1], unused[2], false, sig, {from: unused[2]}), "EarningsWithdrawn")
             assertEqual(+(await testToken.balanceOf(unused[2])), member1earnings)
 
+            // test admin fee withdraw
             const ownerTokenBefore = await testToken.balanceOf(creator);
             //no access
             await assertFails(dataUnionSidechain.withdrawAdminFees(false, {from: unused[1]}))

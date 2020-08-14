@@ -184,7 +184,7 @@ async function start() {
         const mainnet_address = await foreignDUFactory.mainnetAddress(wallet_foreign.address, duname)
         const sidechain_address = await foreignDUFactory.sidechainAddress(mainnet_address)
         console.log(`working with DU named ${duname}, mainnet_address = ${mainnet_address}, sidechain_address = ${sidechain_address}`)
-        await deployDU(duname)
+        //await deployDU(duname)
         //await addMembers(mainnet_address, [member])
         //await testSend(mainnet_address)
         //await withdraw(mainnet_address, member)        
