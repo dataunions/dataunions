@@ -1,6 +1,8 @@
 
 // File: openzeppelin-solidity/contracts/GSN/Context.sol
 
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.6.0;
 
 /*
@@ -13,11 +15,7 @@ pragma solidity ^0.6.0;
  *
  * This contract is only required for intermediate, library-like contracts.
  */
-contract Context {
-    // Empty internal constructor, to prevent people from mistakenly deploying
-    // an instance of this contract, which should be used via inheritance.
-    constructor () internal { }
-
+abstract contract Context {
     function _msgSender() internal view virtual returns (address payable) {
         return msg.sender;
     }
@@ -29,6 +27,8 @@ contract Context {
 }
 
 // File: openzeppelin-solidity/contracts/token/ERC20/IERC20.sol
+
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.0;
 
@@ -108,6 +108,8 @@ interface IERC20 {
 
 // File: openzeppelin-solidity/contracts/math/SafeMath.sol
 
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.6.0;
 
 /**
@@ -131,6 +133,7 @@ library SafeMath {
      * Counterpart to Solidity's `+` operator.
      *
      * Requirements:
+     *
      * - Addition cannot overflow.
      */
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -147,6 +150,7 @@ library SafeMath {
      * Counterpart to Solidity's `-` operator.
      *
      * Requirements:
+     *
      * - Subtraction cannot overflow.
      */
     function sub(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -160,6 +164,7 @@ library SafeMath {
      * Counterpart to Solidity's `-` operator.
      *
      * Requirements:
+     *
      * - Subtraction cannot overflow.
      */
     function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
@@ -176,6 +181,7 @@ library SafeMath {
      * Counterpart to Solidity's `*` operator.
      *
      * Requirements:
+     *
      * - Multiplication cannot overflow.
      */
     function mul(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -201,6 +207,7 @@ library SafeMath {
      * uses an invalid opcode to revert (consuming all remaining gas).
      *
      * Requirements:
+     *
      * - The divisor cannot be zero.
      */
     function div(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -216,10 +223,10 @@ library SafeMath {
      * uses an invalid opcode to revert (consuming all remaining gas).
      *
      * Requirements:
+     *
      * - The divisor cannot be zero.
      */
     function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
-        // Solidity only automatically asserts when dividing by 0
         require(b > 0, errorMessage);
         uint256 c = a / b;
         // assert(a == b * c + a % b); // There is no case in which this doesn't hold
@@ -236,6 +243,7 @@ library SafeMath {
      * invalid opcode to revert (consuming all remaining gas).
      *
      * Requirements:
+     *
      * - The divisor cannot be zero.
      */
     function mod(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -251,6 +259,7 @@ library SafeMath {
      * invalid opcode to revert (consuming all remaining gas).
      *
      * Requirements:
+     *
      * - The divisor cannot be zero.
      */
     function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
@@ -260,6 +269,8 @@ library SafeMath {
 }
 
 // File: openzeppelin-solidity/contracts/utils/Address.sol
+
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.2;
 
@@ -318,9 +329,92 @@ library Address {
         (bool success, ) = recipient.call{ value: amount }("");
         require(success, "Address: unable to send value, recipient may have reverted");
     }
+
+    /**
+     * @dev Performs a Solidity function call using a low level `call`. A
+     * plain`call` is an unsafe replacement for a function call: use this
+     * function instead.
+     *
+     * If `target` reverts with a revert reason, it is bubbled up by this
+     * function (like regular Solidity function calls).
+     *
+     * Returns the raw returned data. To convert to the expected return value,
+     * use https://solidity.readthedocs.io/en/latest/units-and-global-variables.html?highlight=abi.decode#abi-encoding-and-decoding-functions[`abi.decode`].
+     *
+     * Requirements:
+     *
+     * - `target` must be a contract.
+     * - calling `target` with `data` must not revert.
+     *
+     * _Available since v3.1._
+     */
+    function functionCall(address target, bytes memory data) internal returns (bytes memory) {
+      return functionCall(target, data, "Address: low-level call failed");
+    }
+
+    /**
+     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`], but with
+     * `errorMessage` as a fallback revert reason when `target` reverts.
+     *
+     * _Available since v3.1._
+     */
+    function functionCall(address target, bytes memory data, string memory errorMessage) internal returns (bytes memory) {
+        return _functionCallWithValue(target, data, 0, errorMessage);
+    }
+
+    /**
+     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
+     * but also transferring `value` wei to `target`.
+     *
+     * Requirements:
+     *
+     * - the calling contract must have an ETH balance of at least `value`.
+     * - the called Solidity function must be `payable`.
+     *
+     * _Available since v3.1._
+     */
+    function functionCallWithValue(address target, bytes memory data, uint256 value) internal returns (bytes memory) {
+        return functionCallWithValue(target, data, value, "Address: low-level call with value failed");
+    }
+
+    /**
+     * @dev Same as {xref-Address-functionCallWithValue-address-bytes-uint256-}[`functionCallWithValue`], but
+     * with `errorMessage` as a fallback revert reason when `target` reverts.
+     *
+     * _Available since v3.1._
+     */
+    function functionCallWithValue(address target, bytes memory data, uint256 value, string memory errorMessage) internal returns (bytes memory) {
+        require(address(this).balance >= value, "Address: insufficient balance for call");
+        return _functionCallWithValue(target, data, value, errorMessage);
+    }
+
+    function _functionCallWithValue(address target, bytes memory data, uint256 weiValue, string memory errorMessage) private returns (bytes memory) {
+        require(isContract(target), "Address: call to non-contract");
+
+        // solhint-disable-next-line avoid-low-level-calls
+        (bool success, bytes memory returndata) = target.call{ value: weiValue }(data);
+        if (success) {
+            return returndata;
+        } else {
+            // Look for revert reason and bubble it up if present
+            if (returndata.length > 0) {
+                // The easiest way to bubble the revert reason is using memory via assembly
+
+                // solhint-disable-next-line no-inline-assembly
+                assembly {
+                    let returndata_size := mload(returndata)
+                    revert(add(32, returndata), returndata_size)
+                }
+            } else {
+                revert(errorMessage);
+            }
+        }
+    }
 }
 
 // File: openzeppelin-solidity/contracts/token/ERC20/ERC20.sol
+
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.6.0;
 
@@ -333,7 +427,7 @@ pragma solidity ^0.6.0;
  *
  * This implementation is agnostic to the way tokens are created. This means
  * that a supply mechanism has to be added in a derived contract using {_mint}.
- * For a generic mechanism see {ERC20MinterPauser}.
+ * For a generic mechanism see {ERC20PresetMinterPauser}.
  *
  * TIP: For a detailed writeup see our guide
  * https://forum.zeppelin.solutions/t/how-to-implement-erc20-supply-mechanisms/226[How
@@ -700,92 +794,85 @@ interface PurchaseListener {
 // File: contracts/CloneLib.sol
 
 pragma solidity ^0.6.0;
+//solhint-disable avoid-low-level-calls
+//solhint-disable no-inline-assembly
 
 library CloneLib {
-    /*
-        returns bytecode of a new contract that clones template
-    */
-    //https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-sdk/master/packages/lib/contracts/upgradeability/ProxyFactory.sol
-    function cloneBytecode(address template)
-        internal
-        pure
-        returns (bytes memory code)
-    {
-        // Adapted from https://github.com/optionality/clone-factory/blob/32782f82dfc5a00d103a7e61a17a5dedbd1e8e9d/contracts/CloneFactory.sol
+    /**
+     * Returns bytecode of a new contract that clones template
+     * Adapted from https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-sdk/master/packages/lib/contracts/upgradeability/ProxyFactory.sol
+     * Which in turn adapted it from https://github.com/optionality/clone-factory/blob/32782f82dfc5a00d103a7e61a17a5dedbd1e8e9d/contracts/CloneFactory.sol
+     */
+    function cloneBytecode(address template) internal pure returns (bytes memory code) {
         bytes20 targetBytes = bytes20(template);
         assembly {
             code := mload(0x40)
-            //code length is 0x37 plus 0x20 for bytes length field. update free memory pointer
-            mstore(0x40, add(code, 0x57))
-            //store length in first 32 bytes
-            mstore(code, 0x37)
-            //store data after first 32 bytes
-            mstore(
-                add(code, 0x20),
-                0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000
-            )
+            mstore(0x40, add(code, 0x57)) // code length is 0x37 plus 0x20 for bytes length field. update free memory pointer
+            mstore(code, 0x37) // store length in first 32 bytes
+
+            // store clone source address after first 32 bytes
+            mstore(add(code, 0x20), 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
             mstore(add(code, 0x34), targetBytes)
-            mstore(
-                add(code, 0x48),
-                0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000
-            )
+            mstore(add(code, 0x48), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)
         }
     }
 
+    /**
+     * Predict the CREATE2 address.
+     * See https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1014.md for calculation details
+     */
     function predictCloneAddressCreate2(
         address template,
         address deployer,
         bytes32 salt
     ) internal pure returns (address proxy) {
         bytes32 codehash = keccak256(cloneBytecode(template));
-        return
-            address(
-                uint160(
-                    uint256(
-                        keccak256(
-                            abi.encodePacked(
-                                bytes1(0xff),
-                                deployer,
-                                salt,
-                                codehash
-                            )
-                        )
-                    )
-                )
-            );
+        return address(uint160(uint256(keccak256(abi.encodePacked(
+            bytes1(0xff),
+            deployer,
+            salt,
+            codehash
+        )))));
     }
 
-    function deployCodeAndInitUsingCreate(
-        bytes memory code,
-        bytes memory init_data
-    ) internal returns (address proxy) {
-        uint256 len = code.length;
-        assembly {
-            proxy := create(0, add(code, 0x20), len)
-        }
-
-        if (init_data.length > 0) {
-            (bool success, ) = proxy.call(init_data);
-            require(success);
-        }
-    }
-/*
-    predictable address. see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1014.md
-*/
-
+    /**
+     * Deploy given bytecode using CREATE2, address can be known in advance, get it from predictCloneAddressCreate2
+     * Optional 2-step deployment first runs the constructor, then supplies an initialization function call.
+     * @param code EVM bytecode that would be used in a contract deploy transaction (to=null)
+     * @param initData if non-zero, send an initialization function call in the same tx with given tx input data (e.g. encoded Solidity function call)
+     */
     function deployCodeAndInitUsingCreate2(
         bytes memory code,
-        bytes memory init_data,
+        bytes memory initData,
         bytes32 salt
     ) internal returns (address proxy) {
         uint256 len = code.length;
         assembly {
             proxy := create2(0, add(code, 0x20), len, salt)
         }
+        if (initData.length > 0) {
+            (bool success, ) = proxy.call(initData);
+            require(success, "error_initialization");
+        }
+    }
 
-        if (init_data.length > 0) {
-            (bool success, ) = proxy.call(init_data);
-            require(success);
+    /**
+     * Deploy given bytecode using old-style CREATE, address is hash(sender, nonce)
+     * Optional 2-step deployment first runs the constructor, then supplies an initialization function call.
+     * @param code EVM bytecode that would be used in a contract deploy transaction (to=null)
+     * @param initData if non-zero, send an initialization function call in the same tx with given tx input data (e.g. encoded Solidity function call)
+     */
+    function deployCodeAndInitUsingCreate(
+        bytes memory code,
+        bytes memory initData
+    ) internal returns (address proxy) {
+        uint256 len = code.length;
+        assembly {
+            proxy := create(0, add(code, 0x20), len)
+        }
+        if (initData.length > 0) {
+            (bool success, ) = proxy.call(initData);
+            require(success, "error_initialization");
         }
     }
 }
@@ -840,7 +927,7 @@ interface ITokenMediator {
     function relayTokens(address _from, address _receiver, uint256 _value) external;
 }
 
-contract DataUnionMainnet is Ownable{
+contract DataUnionMainnet is Ownable, PurchaseListener {
     using SafeMath for uint256;
 
     IAMB public amb;
@@ -878,16 +965,13 @@ contract DataUnionMainnet is Ownable{
         return address(token) != address(0);
     }
 
-    
+
     function deployNewDUSidechain(uint256 adminFeeFraction, address[] memory agents) public {
         bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,uint256,address[])", owner, adminFeeFraction, agents);
         amb.requireToPassMessage(sidechain_DU_factory, data, sidechain_maxgas);
     }
 
-    function sidechainAddress()
-        public view
-        returns (address proxy)
-    {
+    function sidechainAddress() public view returns (address proxy) {
         return CloneLib.predictCloneAddressCreate2(sidechain_template_DU, sidechain_DU_factory, bytes32(uint256(address(this))));
     }
 
@@ -904,13 +988,8 @@ contract DataUnionMainnet is Ownable{
     }
     */
 
-    function onPurchase(
-        bytes32 productId,
-        address subscriber,
-        uint256 endTimestamp,
-        uint256 priceDatacoin,
-        uint256 feeDatacoin
-    ) external returns (bool accepted) {
+    //function onPurchase(bytes32 productId, address subscriber, uint256 endTimestamp, uint256 priceDatacoin, uint256 feeDatacoin)
+    function onPurchase(bytes32, address, uint256, uint256, uint256) external override returns (bool accepted) {
         sendTokensToBridge();
         return true;
     }
@@ -925,7 +1004,7 @@ contract DataUnionMainnet is Ownable{
         token_mediator.relayTokens(address(this), sidechainAddress(), bal);
         require(token.balanceOf(address(this)) == 0, "transfer_failed");
         token_sent_to_bridge = token_sent_to_bridge.add(bal);
-        
+
         bytes memory data = abi.encodeWithSignature("addRevenue()");
         amb.requireToPassMessage(sidechainAddress(), data, sidechain_maxgas);
 
