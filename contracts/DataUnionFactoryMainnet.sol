@@ -2,7 +2,6 @@ pragma solidity ^0.6.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "./Ownable.sol";
 import "./CloneLib.sol";
 
 interface IAMB {
@@ -63,7 +62,7 @@ contract DataUnionFactoryMainnet {
     IAMB public amb;
     ITokenMediator public token_mediator;
 
-    constructor( address _token_mediator, 
+    constructor( address _token_mediator,
                 address _data_union_mainnet_template,
                 address _data_union_sidechain_template,
                 address _data_union_sidechain_factory,
@@ -86,7 +85,7 @@ contract DataUnionFactoryMainnet {
             bytes32(uint256(mainet_address)));
     }
     /*
-        
+
     */
     function mainnetAddress(address deployer, string memory name)
         public view
@@ -124,7 +123,7 @@ contract DataUnionFactoryMainnet {
             agents
         );
         address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_mainnet_template), data, salt);
-        require(du != address(0), "err_du_already_created");
+        require(du != address(0), "error_du_already_created");
         emit MainnetDUCreated(du, sidechainAddress(du), owner, data_union_mainnet_template);
         return du;
     }

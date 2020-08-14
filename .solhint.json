@@ -1,12 +1,11 @@
 {
     "extends": "solhint:recommended",
+    "plugins": ["prettier"],
     "rules": {
-        "indent": ["error", 4],
+        "prettier/prettier": "warn",
         "quotes": ["error", "double"],
         "max-line-length": false,
         "mark-callable-contracts": false,
-        "space-after-comma": "error",
-        "bracket-align": "error",
-        "statement-indent": "error"
+        "compiler-version": ["error", "^0.6.0"]
     }
 }

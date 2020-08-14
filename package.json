@@ -7,8 +7,7 @@
     "build": "truffle compile && ./flatten",
     "deploy": "truffle migrate",
     "lint": "eslint . && solhint contracts/**/*.sol",
-    "lint-temporary": "eslint . && echo skipping smart contract linting for now",
-    "unit-test": "truffle test test/contracts",
+    "unit-test": "truffle test test/contracts/*",
     "integration-test": "mocha test/e2e --exit",
     "test": "npm run unit-test && npm run integration-test"
   },
@@ -19,7 +18,9 @@
     "debug": "4.1.1",
     "dotenv": "^8.2.0",
     "eslint": "5.14.1",
-    "openzeppelin-solidity": "^3.0.0",
+    "openzeppelin-solidity": "3.1.0",
+    "prettier": "^2.0.5",
+    "prettier-plugin-solidity": "^1.0.0-alpha.56",
     "solhint": "^3.1.0",
     "truffle": "^5.1.23",
     "truffle-flattener": "^1.4.3",
@@ -28,6 +29,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^3.1.0",
     "@openzeppelin/upgrades": "^2.8.0",
-    "ethers": "^4.0.47"
+    "ethers": "^4.0.47",
+    "solhint-plugin-prettier": "0.0.4"
   }
 }
