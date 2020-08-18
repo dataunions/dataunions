@@ -11,11 +11,10 @@ const {
 } = require("ethers")
 
 const assert = require("assert")
-
-const sleep = require("../../util/sleep-promise")
+const until = require("../../util/await-until")
 
 const log = require("debug")("Streamr:du:test:e2e:plain")
-require("debug").log = console.log.bind(console)  // get logging into stdout so mocha won't hide it
+//require("debug").log = console.log.bind(console)  // get logging into stdout so mocha won't hide it
 
 const deployDU = require("../../util/deployDU")
 
@@ -41,7 +40,6 @@ const erc677Sidechain = new Contract(erc677SidechainAddress, Token.abi, walletSi
 const erc20Mainnet = new Contract(DATACOIN_ADDRESS, Token.abi, walletMainnet)
 
 const DataUnionSidechain = require("../../build/contracts/DataUnionSidechain.json")
-const until = require("../../util/await-until")
 
 describe("Data Union tests using only ethers.js directly", () => {
     // for faster manual testing, use a factory from previous runs
