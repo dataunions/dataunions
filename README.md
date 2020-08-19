@@ -2,18 +2,29 @@
 
 A Data Union (DU) is a collection of "members" that split token revenue sent to a single mainnet contract. This DU implementation uses the following components:
 
-1. A mainchain contract where revenue is sent.
-2. A sidechain contract that records joins and parts of group members, calculates earnings (in constant time), processes withdraw requests.
-3. A bridge system that connects the mainchain and sidechain. See POA Tokenbridge https://github.com/poanetwork/tokenbridge.
+1. A **mainchain** contract where revenue is sent.
+2. A **sidechain** contract that records joins and parts of group members, calculates earnings (in constant time), processes withdraw requests.
+3. A **bridge** system that connects the mainchain and sidechain. See POA Tokenbridge https://github.com/poanetwork/tokenbridge.
 
-The purpose of the sidechain is to facilitate cheap join and part operations. The basic workflow looks like this:
+The purpose of the sidechain is to **facilitate cheap join and part operations**. The basic workflow looks like this:
 
 0. Deploy factory contracts if needed. They are pre-baked into supplied docker images. See [Getting Started](#getting-started)
 1. create a [DataUnionMainnet](https://github.com/streamr-dev/data-union-solidity/blob/master/contracts/DataUnionMainnet.sol) using [mainnetFactory.deployNewDataUnion()](https://github.com/streamr-dev/data-union-solidity/blob/b703721ad0b4aff0bde297b88293365ea2d37022/contracts/DataUnionFactoryMainnet.sol#L114)
     1. this will automatically create [DataUnionSidechain](https://github.com/streamr-dev/data-union-solidity/blob/master/contracts/DataUnionSidechain.sol) via the bridge. The address of the sidechain contract is [predictable](#note-about-addresses). 
-    
+2. `addMembers()` on [DataUnionSidechain](https://github.com/streamr-dev/data-union-solidity/blob/master/contracts/DataUnionSidechain.sol)
+3. send tokens to DataUnionMainnet and call `sendTokensToBridge()`
+    1. this will "send" the tokens across the bridge the sidechain DataUnionSidechain using the token mediator contracts
+4. `withdraw()` members on DataUnionSidechain
+    1. this will "send" the tokens across the bridge to mainnet to the members' addresses 
 
-### Note About Addresses
+
+# Overview of Components
+
+## Factories
+
+The DataUnionFactoryMainnet and DataUnionFactorySidechain contract produce DataUnionMainnet and DataUnionSidechain instances using a cloned template.
+
+#### Note About Addresses
 The factory contracts make use of [CREATE2](https://eips.ethereum.org/EIPS/eip-1014), which creates a contract address at predictable address given by:
 `keccak256( 0xff ++ factory_address ++ salt ++ keccak256(contract_code))`
 
@@ -24,10 +35,6 @@ then DataUnionMainnet sends a message over the AMB to DataUnionFactorySidechain 
 `salt = mainnet_address`
 
 So you can always fetch the DataUnionSidechain address deterministically by calling DataUnionMainnet.sidechainAddress().
-
-# Overview of Components
-
-## Factories
 
 
 ## Mainchain Contract
