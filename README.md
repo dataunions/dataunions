@@ -68,6 +68,7 @@ The easiest way to get started running and testing Data Unions is to use the pre
 This will use parity images for mainchain and sidechain that are preloaded with the AMB, token mediators, and DU factory contracts. It will also spin up required oracle processes. In the test environment, there is only 1 oracle.
 
 mainchain RPC is localhost:8545 
+
 sidechain RPC is localhost:8546
 
 The private key `0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0` (address `0xa3d1F77ACfF0060F7213D7BF3c7fEC78df847De1`) is used for all contract admin functions and oracle.
@@ -75,5 +76,7 @@ The private key `0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887
 
 Alternatively, you can build this setup from scratch. See https://github.com/streamr-dev/smart-contracts-init for smart contract init, and https://github.com/streamr-dev/streamr-docker-dev for oracle init.
 
+# Code Samples
 
+There is an end-to-end [test](https://github.com/streamr-dev/data-union-solidity/blob/master/test/e2e/usingPlainEthers.js) that shows how to use all major features from factory creation to withdrawal. The test runs against the docker setup described above. 
 
