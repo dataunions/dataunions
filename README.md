@@ -38,14 +38,25 @@ So you can always fetch the DataUnionSidechain address deterministically by call
 
 
 ## Mainchain Contract
+DataUnionMainnet handles token passing and admin fees (TODO, in progress) only. DataUnionMainnet does not have membership information because that is managed on the sidechain. Thus the bulk of the accounting is down on DataUnionSidechain.
 
+## Sidechain Contract
+DataUnionSidechain records member joins and parts made by "agents". Agents are set at init, and can be added by the admin. 
+
+#### Accounting for Earning Split in Constant Time 
+DataUnionSidechain accounts for the earnings of a member, ie`SUM(earnings/active_members)` for all the time they were an active. We account for this in constant time by recording this monotonically increasing quantity:
+`LME [Lifetime Member Earnings] = SUM(earnings/active_members) for all time`
+
+Then for each active member we store `member_address -> LME(join_time)`. The earnings of an active member are then `LME(current) - LME(join_time)`.
 
 
 ## The Bridge
 The bridge has 3 main components:
 1. Arbitrary Message Bridge (AMB): smart contracts on main and side chains that pass arbitrary function calls between the chains.
-2. ERC677 token mediator: contracts that talk to the AMB in order to facilitate token transfers across the bridge. Mainnet tokens can be transferred to the mainnet mediator contract and "passed" to sidechain by minting a special ERC20. This sidenet ERC20 can be "passed" back to mainnet by transferring to the sidechain mediator.
+2. ERC677 token mediator: contracts that talk to the AMB in order to facilitate token transfers across the bridge. Mainnet tokens can be transferred to the mainnet mediator contract and "passed" to sidechain by minting [corresponding ERC677 tokens](https://github.com/poanetwork/tokenbridge-contracts/blob/master/contracts/upgradeable_contracts/amb_erc677_to_erc677/BasicStakeTokenMediator.sol). This sidenet ERC677 can be "passed" back to mainnet by transferring to the sidechain mediator.
 3. Oracles: Each oracle node runs a set of processes in Docker. The oracles attest to transactions submitted to the AMB and pass verified transactions across the bridge in both directions. A production setup includes multiple oracles and a majority of oracle votes is needed to verify a transaction. The rules for oracle voting can be setup in tokenbridge.
+
+[See Tokenbridge documentation](https://docs.tokenbridge.net/amb-bridge/about-amb-bridge) for detailed info about the bridge.
 
 # Getting Started
 The easiest way to get started running and testing Data Unions is to use the preloaded test images baked into https://github.com/streamr-dev/streamr-docker-dev:
@@ -56,14 +67,13 @@ The easiest way to get started running and testing Data Unions is to use the pre
 
 This will use parity images for mainchain and sidechain that are preloaded with the AMB, token mediators, and DU factory contracts. It will also spin up required oracle processes. In the test environment, there is only 1 oracle.
 
+mainchain RPC is localhost:8545 
+sidechain RPC is localhost:8546
+
+The private key `0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0` (address `0xa3d1F77ACfF0060F7213D7BF3c7fEC78df847De1`) is used for all contract admin functions and oracle.
+
+
 Alternatively, you can build this setup from scratch. See https://github.com/streamr-dev/smart-contracts-init for smart contract init, and https://github.com/streamr-dev/streamr-docker-dev for oracle init.
 
 
 
-
-the following curl command shows if contract exists:
-curl -X POST -H 'Content-Type: application/json' --data '{"jsonrpc":"2.0","method":"eth_getCode","params":["<address>"],"id":1}' $RPC
-
-where RPC in docker =
-localhost:8545 mainchain
-localhost:8546 sidechain
