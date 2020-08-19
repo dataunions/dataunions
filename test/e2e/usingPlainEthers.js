@@ -98,13 +98,13 @@ async function testSend(duMainnet, duSidechain, tokenWei) {
     log(`Transferred ${tokenWei} to ${duMainnet.address}, sending to bridge`)
 
     //sends tokens to sidechain contract via bridge, calls sidechain.addRevenue()
-    const duSideBalanceBefore = await erc677Sidechain.balanceOf(duSidechain.address)
+    const duSideBalanceBefore = await duSidechain.totalEarnings()
     const tx2 = await duMainnet.sendTokensToBridge()
     await tx2.wait()
 
     log(`Sent to bridge, waiting for the tokens to appear at ${duSidechain.address} in sidechain`)
-    await until(async () => !duSideBalanceBefore.eq(await erc677Sidechain.balanceOf(duSidechain.address)), 360000)
-    log(`Confirmed DU sidechain balance ${duSideBalanceBefore} -> ${await erc677Sidechain.balanceOf(duSidechain.address)}`)
+    await until(async () => !duSideBalanceBefore.eq(await duSidechain.totalEarnings()), 360000)
+    log(`Confirmed DU sidechain balance ${duSideBalanceBefore} -> ${await duSidechain.totalEarnings()}`)
 }
 
 // goes over bridge => extra wait
