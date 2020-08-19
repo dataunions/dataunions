@@ -103,7 +103,7 @@ async function testSend(duMainnet, duSidechain, tokenWei) {
     await tx2.wait()
 
     log(`Sent to bridge, waiting for the tokens to appear at ${duSidechain.address} in sidechain`)
-    await until(async () => !duSideBalanceBefore.eq(await erc677Sidechain.balanceOf(duSidechain.address)), 60000)
+    await until(async () => !duSideBalanceBefore.eq(await erc677Sidechain.balanceOf(duSidechain.address)), 360000)
     log(`Confirmed DU sidechain balance ${duSideBalanceBefore} -> ${await erc677Sidechain.balanceOf(duSidechain.address)}`)
 }
 
@@ -114,7 +114,7 @@ async function withdraw(duSidechain, member) {
     const tx = await duSidechain.withdrawAll(member, true)
     await tx.wait()
     log(`withdraw submitted for ${member}, waiting to receive the tokens on the mainnet side...`)
-    await until(async () => !balanceBefore.eq(await erc20Mainnet.balanceOf(member)), 60000)
+    await until(async () => !balanceBefore.eq(await erc20Mainnet.balanceOf(member)), 360000)
 }
 
 // "instant" in that it doesn't go over bridge
