@@ -15,16 +15,16 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"sidechainAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"proxy\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/DataUnionFactoryMainnet.sol\":\"IDataUnionMainnet\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/CloneLib.sol\":{\"keccak256\":\"0xbc7eacdc3e9c8e55cdc4446d9d15c31dba6e94359919d921061153d42dca2c83\",\"urls\":[\"bzz-raw://f1081e30c90f5ad03e2a91363944b77f9fa474c2180ee0d093315aabc0d45f66\",\"dweb:/ipfs/Qmd71cyiDi5n2PjxsiW1RENwVeipNpzDcfCGsttEqpjaZF\"]},\"/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/DataUnionFactoryMainnet.sol\":{\"keccak256\":\"0xa8e25997cd3537cd13e7ef7d3ede9dc754c1aae5ba9afd54fdebd06e16edfe10\",\"urls\":[\"bzz-raw://e46fa8db48d1d53f7ccb0138391c029b474f1a26b0eb8186e9414a20913cc697\",\"dweb:/ipfs/QmPUPza3FVaSSBK28B3UfhoJuptgVXQjg8iHoq2nennJkV\"]},\"openzeppelin-solidity/contracts/math/SafeMath.sol\":{\"keccak256\":\"0x9a9cf02622cd7a64261b10534fc3260449da25c98c9e96d1b4ae8110a20e5806\",\"urls\":[\"bzz-raw://2df142592d1dc267d9549049ee3317fa190d2f87eaa565f86ab05ec83f7ab8f5\",\"dweb:/ipfs/QmSkJtcfWo7c42KnL5hho6GFxK6HRNV91XABx1P7xDtfLV\"]},\"openzeppelin-solidity/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x5c26b39d26f7ed489e555d955dcd3e01872972e71fdd1528e93ec164e4f23385\",\"urls\":[\"bzz-raw://efdc632af6960cf865dbc113665ea1f5b90eab75cc40ec062b2f6ae6da582017\",\"dweb:/ipfs/QmfAZFDuG62vxmAN9DnXApv7e7PMzPqi4RkqqZHLMSQiY5\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"sidechainAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"proxy\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/heynow/streamr/data-union-solidity/contracts/DataUnionFactoryMainnet.sol\":\"IDataUnionMainnet\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/heynow/streamr/data-union-solidity/contracts/CloneLib.sol\":{\"keccak256\":\"0xbc7eacdc3e9c8e55cdc4446d9d15c31dba6e94359919d921061153d42dca2c83\",\"urls\":[\"bzz-raw://f1081e30c90f5ad03e2a91363944b77f9fa474c2180ee0d093315aabc0d45f66\",\"dweb:/ipfs/Qmd71cyiDi5n2PjxsiW1RENwVeipNpzDcfCGsttEqpjaZF\"]},\"/home/heynow/streamr/data-union-solidity/contracts/DataUnionFactoryMainnet.sol\":{\"keccak256\":\"0xa8e25997cd3537cd13e7ef7d3ede9dc754c1aae5ba9afd54fdebd06e16edfe10\",\"urls\":[\"bzz-raw://e46fa8db48d1d53f7ccb0138391c029b474f1a26b0eb8186e9414a20913cc697\",\"dweb:/ipfs/QmPUPza3FVaSSBK28B3UfhoJuptgVXQjg8iHoq2nennJkV\"]},\"openzeppelin-solidity/contracts/math/SafeMath.sol\":{\"keccak256\":\"0x04d34b3cd5677bea25f8dfceb6dec0eaa071d4d4b789a43f13fe0c415ba4c296\",\"urls\":[\"bzz-raw://e7e8b526a6839e5ba14f0d23a830387fec47f7043ce01d42c9f285b709a9d080\",\"dweb:/ipfs/QmXmhhFmX5gcAvVzNiDPAGA35iHMPNaYtQkACswRHBVTNw\"]},\"openzeppelin-solidity/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x6cc1cb934a3ac2137a7dcaed018af9e235392236ceecfd3687259702b9c767ad\",\"urls\":[\"bzz-raw://0055fa88138cd1c3c6440370f8580f85857f8fe9dec41c99af9eafbeb8d9c3ce\",\"dweb:/ipfs/QmX1xDh8vwGLLCH8ti45eXjQ7Wcxv1FEGTR3jkFnd5Nv6F\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity ^0.6.0;\n\nimport \"openzeppelin-solidity/contracts/token/ERC20/IERC20.sol\";\nimport \"openzeppelin-solidity/contracts/math/SafeMath.sol\";\nimport \"./CloneLib.sol\";\n\ninterface IAMB {\n    function messageSender() external view returns (address);\n\n    function maxGasPerTx() external view returns (uint256);\n\n    function transactionHash() external view returns (bytes32);\n\n    function messageId() external view returns (bytes32);\n\n    function messageSourceChainId() external view returns (bytes32);\n\n    function messageCallStatus(bytes32 _messageId) external view returns (bool);\n\n    function failedMessageDataHash(bytes32 _messageId)\n        external\n        view\n        returns (bytes32);\n\n    function failedMessageReceiver(bytes32 _messageId)\n        external\n        view\n        returns (address);\n\n    function failedMessageSender(bytes32 _messageId)\n        external\n        view\n        returns (address);\n\n    function requireToPassMessage(\n        address _contract,\n        bytes calldata _data,\n        uint256 _gas\n    ) external returns (bytes32);\n}\n\ninterface ITokenMediator {\n    function erc677token() external view returns (address);\n    function bridgeContract() external view returns (address);\n    function relayTokens(address _from, address _receiver, uint256 _value) external;\n}\n\ninterface IDataUnionMainnet {\n        function sidechainAddress() external view returns (address proxy);\n}\n\n\ncontract DataUnionFactoryMainnet {\n    event MainnetDUCreated(address indexed mainnet, address indexed sidechain, address indexed owner, address template);\n\n    address public data_union_mainnet_template;\n\n    //needed to calculate address of sidechain contract\n    address public data_union_sidechain_template;\n    address public data_union_sidechain_factory;\n    uint256 public sidechain_maxgas;\n    IAMB public amb;\n    ITokenMediator public token_mediator;\n\n    constructor( address _token_mediator,\n                address _data_union_mainnet_template,\n                address _data_union_sidechain_template,\n                address _data_union_sidechain_factory,\n                uint256 _sidechain_maxgas) public {\n        token_mediator = ITokenMediator(_token_mediator);\n        data_union_mainnet_template = _data_union_mainnet_template;\n        data_union_sidechain_template = _data_union_sidechain_template;\n        data_union_sidechain_factory = _data_union_sidechain_factory;\n        amb = IAMB(token_mediator.bridgeContract());\n        sidechain_maxgas = _sidechain_maxgas;\n    }\n\n    function sidechainAddress(address mainet_address)\n        public view\n        returns (address proxy)\n    {\n        return CloneLib.predictCloneAddressCreate2(\n            data_union_sidechain_template,\n            data_union_sidechain_factory,\n            bytes32(uint256(mainet_address)));\n    }\n    /*\n\n    */\n    function mainnetAddress(address deployer, string memory name)\n        public view\n        returns (address)\n    {\n        bytes32 salt = keccak256(abi.encodePacked(bytes(name), deployer));\n        return CloneLib.predictCloneAddressCreate2(\n            data_union_mainnet_template,\n            address(this),\n            salt);\n    }\n\n\n/*\n    function initialize(\n        address _token_mediator,\n        address _sidechain_DU_factory,\n        uint256 _sidechain_maxgas,\n        address _sidechain_template_DU,\n        address _owner,\n        uint256 adminFeeFraction,\n        address[] memory agents\n    )  public {\n    users can only deploy with salt = their key.\n*/\n    function deployNewDataUnion(address owner, uint256 adminFeeFraction, address[] memory agents, string memory name) public returns (address) {\n        bytes32 salt = keccak256(abi.encodePacked(bytes(name), msg.sender));\n        bytes memory data = abi.encodeWithSignature(\"initialize(address,address,uint256,address,address,uint256,address[])\",\n            token_mediator,\n            data_union_sidechain_factory,\n            sidechain_maxgas,\n            data_union_sidechain_template,\n            owner,\n            adminFeeFraction,\n            agents\n        );\n        address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_mainnet_template), data, salt);\n        require(du != address(0), \"error_du_already_created\");\n        emit MainnetDUCreated(du, sidechainAddress(du), owner, data_union_mainnet_template);\n        return du;\n    }\n}\n",
-  "sourcePath": "/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/DataUnionFactoryMainnet.sol",
+  "sourcePath": "/home/heynow/streamr/data-union-solidity/contracts/DataUnionFactoryMainnet.sol",
   "ast": {
-    "absolutePath": "/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/DataUnionFactoryMainnet.sol",
+    "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/DataUnionFactoryMainnet.sol",
     "exportedSymbols": {
       "DataUnionFactoryMainnet": [
         427
@@ -59,7 +59,7 @@
         "id": 137,
         "nodeType": "ImportDirective",
         "scope": 428,
-        "sourceUnit": 3576,
+        "sourceUnit": 3819,
         "src": "25:64:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -70,13 +70,13 @@
         "id": 138,
         "nodeType": "ImportDirective",
         "scope": 428,
-        "sourceUnit": 2935,
+        "sourceUnit": 3178,
         "src": "90:59:1",
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/CloneLib.sol",
+        "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/CloneLib.sol",
         "file": "./CloneLib.sol",
         "id": 139,
         "nodeType": "ImportDirective",
@@ -4058,7 +4058,7 @@
     "src": "0:4390:1"
   },
   "legacyAST": {
-    "absolutePath": "/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/DataUnionFactoryMainnet.sol",
+    "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/DataUnionFactoryMainnet.sol",
     "exportedSymbols": {
       "DataUnionFactoryMainnet": [
         427
@@ -4093,7 +4093,7 @@
         "id": 137,
         "nodeType": "ImportDirective",
         "scope": 428,
-        "sourceUnit": 3576,
+        "sourceUnit": 3819,
         "src": "25:64:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -4104,13 +4104,13 @@
         "id": 138,
         "nodeType": "ImportDirective",
         "scope": 428,
-        "sourceUnit": 2935,
+        "sourceUnit": 3178,
         "src": "90:59:1",
         "symbolAliases": [],
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/CloneLib.sol",
+        "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/CloneLib.sol",
         "file": "./CloneLib.sol",
         "id": 139,
         "nodeType": "ImportDirective",
@@ -8097,7 +8097,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-08-14T11:08:24.228Z",
+  "updatedAt": "2020-08-19T08:05:24.705Z",
   "devdoc": {
     "methods": {}
   },
