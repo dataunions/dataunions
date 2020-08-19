@@ -44,16 +44,16 @@ DataUnionMainnet handles token passing and admin fees (TODO, in progress) only. 
 DataUnionSidechain records member joins and parts made by "agents". Agents are set at init, and can be added by the admin. 
 
 #### Accounting for Earning Split in Constant Time 
-DataUnionSidechain accounts for the earnings of a member, ie`SUM(earnings/active_members)` for all the time they were an active. We account for this in constant time by recording this monotonically increasing quantity:
+DataUnionSidechain accounts for the earnings of a member, ie`SUM(earnings/active_members)` for all the time they were active. We account for this in constant time by recording this monotonically increasing quantity:
 `LME [Lifetime Member Earnings] = SUM(earnings/active_members) for all time`
 
-Then for each active member we store `member_address -> LME(join_time)`. The earnings of an active member are then `LME(current) - LME(join_time)`.
+For each active member we store `member_address -> LME(join_time)`. The earnings of an active member are then `LME(current) - LME(join_time)`.
 
 
 ## The Bridge
 The bridge has 3 main components:
 1. Arbitrary Message Bridge (AMB): smart contracts on main and side chains that pass arbitrary function calls between the chains.
-2. ERC677 token mediator: contracts that talk to the AMB in order to facilitate token transfers across the bridge. Mainnet tokens can be transferred to the mainnet mediator contract and "passed" to sidechain by minting [corresponding ERC677 tokens](https://github.com/poanetwork/tokenbridge-contracts/blob/master/contracts/upgradeable_contracts/amb_erc677_to_erc677/BasicStakeTokenMediator.sol). This sidenet ERC677 can be "passed" back to mainnet by transferring to the sidechain mediator.
+2. ERC677 token mediator: contracts that talk to the AMB in order to facilitate token transfers across the bridge. Mainnet tokens can be transferred to the mainnet mediator contract and "passed" to sidechain by minting [corresponding ERC677 tokens](https://github.com/poanetwork/tokenbridge-contracts/blob/master/contracts/upgradeable_contracts/amb_erc677_to_erc677/BasicStakeTokenMediator.sol). This sidenet ERC677 can be "passed" back to mainnet by transferring to the sidechain mediator, which burns sidechain tokens, triggering mainnet token transfer.
 3. Oracles: Each oracle node runs a set of processes in Docker. The oracles attest to transactions submitted to the AMB and pass verified transactions across the bridge in both directions. A production setup includes multiple oracles and a majority of oracle votes is needed to verify a transaction. The rules for oracle voting can be setup in tokenbridge.
 
 [See Tokenbridge documentation](https://docs.tokenbridge.net/amb-bridge/about-amb-bridge) for detailed info about the bridge.
