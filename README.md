@@ -6,8 +6,18 @@ A Data Union (DU) is a collection of "members" that split token revenue sent to 
 2. A sidechain contract that records joins and parts of group members, calculates earnings (in constant time), processes withdraw requests.
 3. A bridge system that connects the mainchain and sidechain. See POA Tokenbridge https://github.com/poanetwork/tokenbridge.
 
-The purpose of the sidechain is to facilitate cheap join and part operations.
+The purpose of the sidechain is to facilitate cheap join and part operations. The basic workflow looks like this:
+
+0. Deploy factory contracts if needed. They are pre-baked into supplied docker images. See [Getting Started](#getting-started)
+1. create a DU on the mainnet using [mainnetFactory.deployNewDataUnion()](https://github.com/streamr-dev/data-union-solidity/blob/b703721ad0b4aff0bde297b88293365ea2d37022/contracts/DataUnionFactoryMainnet.sol#L114)
+  a. this will automatically create the sidechain contract via the bridge. 
+
+
 # Overview of Components
+
+## Factories
+
+
 ## Mainchain Contract
 
 
