@@ -9,9 +9,21 @@ A Data Union (DU) is a collection of "members" that split token revenue sent to 
 The purpose of the sidechain is to facilitate cheap join and part operations. The basic workflow looks like this:
 
 0. Deploy factory contracts if needed. They are pre-baked into supplied docker images. See [Getting Started](#getting-started)
-1. create a DU on the mainnet using [mainnetFactory.deployNewDataUnion()](https://github.com/streamr-dev/data-union-solidity/blob/b703721ad0b4aff0bde297b88293365ea2d37022/contracts/DataUnionFactoryMainnet.sol#L114)
-  a. this will automatically create the sidechain contract via the bridge. 
+1. create a [DataUnionMainnet](https://github.com/streamr-dev/data-union-solidity/blob/master/contracts/DataUnionMainnet.sol) using [mainnetFactory.deployNewDataUnion()](https://github.com/streamr-dev/data-union-solidity/blob/b703721ad0b4aff0bde297b88293365ea2d37022/contracts/DataUnionFactoryMainnet.sol#L114)
+    1. this will automatically create [DataUnionSidechain](https://github.com/streamr-dev/data-union-solidity/blob/master/contracts/DataUnionSidechain.sol) via the bridge. The address of the sidechain contract is [predictable](#note-about-addresses). 
+    
 
+### Note About Addresses
+The factory contracts make use of [CREATE2](https://eips.ethereum.org/EIPS/eip-1014), which creates a contract address at predictable address given by:
+`keccak256( 0xff ++ factory_address ++ salt ++ keccak256(contract_code))`
+
+DataUnionFactoryMainnet creates DataUnionMainnet using 
+`salt = keccak256( some_string_name_as_bytes ++ deployer_address)`
+
+then DataUnionMainnet sends a message over the AMB to DataUnionFactorySidechain to create the sidenet contract. In that case:
+`salt = mainnet_address`
+
+So you can always fetch the DataUnionSidechain address deterministically by calling DataUnionMainnet.sidechainAddress().
 
 # Overview of Components
 
