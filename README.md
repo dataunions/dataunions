@@ -4,7 +4,7 @@ A Data Union (DU) is a collection of "members" that split token revenue sent to 
 
 1. A **mainchain** contract where revenue is sent.
 2. A **sidechain** contract that records joins and parts of group members, calculates earnings (in constant time), processes withdraw requests.
-3. A **bridge** system that connects the mainchain and sidechain. See POA Tokenbridge https://github.com/poanetwork/tokenbridge.
+3. A **bridge** system that connects the mainchain and sidechain. We use the POA TokenBridge https://github.com/poanetwork/tokenbridge in AMB (Arbitrary Message Bridge) mode.
 
 The purpose of the sidechain is to **facilitate cheap join and part operations**. The basic workflow looks like this:
 
@@ -13,9 +13,9 @@ The purpose of the sidechain is to **facilitate cheap join and part operations**
     1. this will automatically create [DataUnionSidechain](https://github.com/streamr-dev/data-union-solidity/blob/master/contracts/DataUnionSidechain.sol) via the bridge. The address of the sidechain contract is [predictable](#note-about-addresses). 
 2. `addMembers()` on [DataUnionSidechain](https://github.com/streamr-dev/data-union-solidity/blob/master/contracts/DataUnionSidechain.sol)
 3. send tokens to DataUnionMainnet and call `sendTokensToBridge()`
-    1. this will "send" the tokens across the bridge the sidechain DataUnionSidechain using the token mediator contracts
+    1. this will "send" the tokens across the bridge to the sidechain DataUnionSidechain using the token mediator contracts
 4. `withdraw()` members on DataUnionSidechain
-    1. this will "send" the tokens across the bridge to mainnet to the members' addresses 
+    1. this will "send" the tokens across the bridge to mainchain to the members' addresses 
 
 
 # Overview of Components
@@ -31,14 +31,14 @@ The factory contracts make use of [CREATE2](https://eips.ethereum.org/EIPS/eip-1
 DataUnionFactoryMainnet creates DataUnionMainnet using 
 `salt = keccak256( some_string_name_as_bytes ++ deployer_address)`
 
-then DataUnionMainnet sends a message over the AMB to DataUnionFactorySidechain to create the sidenet contract. In that case:
+then DataUnionMainnet sends a message over the bridge to DataUnionFactorySidechain to create the sidenet contract. In that case:
 `salt = mainnet_address`
 
 So you can always fetch the DataUnionSidechain address deterministically by calling `DataUnionMainnet.sidechainAddress()`.
 
 
 ## Mainchain Contract
-DataUnionMainnet handles token passing and admin fees (TODO, in progress) only. DataUnionMainnet does not have membership information because that is managed on the sidechain. Thus the bulk of the accounting is done on DataUnionSidechain.
+DataUnionMainnet handles token passing and admin fees only. DataUnionMainnet does not have membership information because that is managed on the sidechain. Thus the bulk of the accounting is done on DataUnionSidechain.
 
 ## Sidechain Contract
 DataUnionSidechain records member joins and parts made by "agents". Agents are set at init, and can be added by the admin. 
@@ -54,16 +54,16 @@ For each active member we store `member_address -> LME(join_time)`. The earnings
 The bridge has 3 main components:
 1. Arbitrary Message Bridge (AMB): smart contracts on main and side chains that pass arbitrary function calls between the chains.
 2. ERC677 token mediator: contracts that talk to the AMB in order to facilitate token transfers across the bridge. Mainnet tokens can be transferred to the mainnet mediator contract and "passed" to sidechain by minting [corresponding ERC677 tokens](https://github.com/poanetwork/tokenbridge-contracts/blob/master/contracts/upgradeable_contracts/amb_erc677_to_erc677/BasicStakeTokenMediator.sol). This sidenet ERC677 can be "passed" back to mainnet by transferring to the sidechain mediator, which burns sidechain tokens, triggering mainnet token transfer.
-3. Oracles: Each oracle node runs a set of processes in Docker. The oracles attest to transactions submitted to the AMB and pass verified transactions across the bridge in both directions. A production setup includes multiple oracles and a majority of oracle votes is needed to verify a transaction. The rules for oracle voting can be setup in tokenbridge.
+3. Oracles: Each oracle node runs a set of processes in Docker. The oracles attest to transactions submitted to the AMB and pass verified transactions across the bridge in both directions. A production setup includes multiple oracles and a majority of oracle votes is needed to verify a transaction. The rules for oracle voting can be setup in TokenBridge.
 
-[See Tokenbridge documentation](https://docs.tokenbridge.net/amb-bridge/about-amb-bridge) for detailed info about the bridge.
+[See TokenBridge documentation](https://docs.tokenbridge.net/amb-bridge/about-amb-bridge) for detailed info about the bridge.
 
 # Getting Started
 The easiest way to get started running and testing Data Unions is to use the preloaded test images baked into https://github.com/streamr-dev/streamr-docker-dev:
 
 0. cd streamr-docker-dev
 1. sudo ifconfig lo:0 10.200.10.1/24 [must link 10.200.10.1 to loopback so containers can communicate]
-2.  docker-compose up -d bridge parity-node0 parity-sidechain-node0
+2. docker-compose up -d bridge parity-node0 parity-sidechain-node0
 
 This will use parity images for mainchain and sidechain that are preloaded with the AMB, token mediators, and DU factory contracts. It will also spin up required oracle processes. In the test environment, there is only 1 oracle.
 
