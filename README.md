@@ -34,11 +34,11 @@ DataUnionFactoryMainnet creates DataUnionMainnet using
 then DataUnionMainnet sends a message over the AMB to DataUnionFactorySidechain to create the sidenet contract. In that case:
 `salt = mainnet_address`
 
-So you can always fetch the DataUnionSidechain address deterministically by calling DataUnionMainnet.sidechainAddress().
+So you can always fetch the DataUnionSidechain address deterministically by calling `DataUnionMainnet.sidechainAddress()`.
 
 
 ## Mainchain Contract
-DataUnionMainnet handles token passing and admin fees (TODO, in progress) only. DataUnionMainnet does not have membership information because that is managed on the sidechain. Thus the bulk of the accounting is down on DataUnionSidechain.
+DataUnionMainnet handles token passing and admin fees (TODO, in progress) only. DataUnionMainnet does not have membership information because that is managed on the sidechain. Thus the bulk of the accounting is done on DataUnionSidechain.
 
 ## Sidechain Contract
 DataUnionSidechain records member joins and parts made by "agents". Agents are set at init, and can be added by the admin. 
