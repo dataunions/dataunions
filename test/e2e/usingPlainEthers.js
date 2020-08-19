@@ -7,9 +7,13 @@ const {
     Contract,
     Wallet,
     providers: { JsonRpcProvider },
+    utils: { bigNumberify }
 } = require("ethers")
 
-const log = require("debug")("Streamr:du:test:e2e:usingEthers")
+const assert = require("assert")
+const until = require("../../util/await-until")
+
+const log = require("debug")("Streamr:du:test:e2e:plain")
 //require("debug").log = console.log.bind(console)  // get logging into stdout so mocha won't hide it
 
 const deployDU = require("../../util/deployDU")
@@ -54,7 +58,9 @@ describe("Data Union tests using only ethers.js directly", () => {
     it("can deploy, add members and withdraw", async function () {
         this.timeout(process.env.TEST_TIMEOUT || 300000)
         const member = "0x4178baBE9E5148c6D5fd431cD72884B07Ad855a0"
+        const member2 = "0x0101010101010101010010101010101001010101"
         const duname = "test0"
+        const sendAmount = "1000000000000000000"
 
         const duMainnet = await deployDU(duname, factoryMainnet, providerSidechain, process.env.TEST_TIMEOUT || 240000)
         const sidechainAddress = await factoryMainnet.sidechainAddress(duMainnet.address)
@@ -65,39 +71,53 @@ describe("Data Union tests using only ethers.js directly", () => {
         )
         log(`working with DU named ${duname}, mainnet_address = ${duMainnet.address}, sidechain_address = ${sidechainAddress}`)
 
+        const balanceBefore = await erc20Mainnet.balanceOf(member)
+
         await printStats(duSidechain, member)
-        await addMembers(duSidechain, [member])
+        await addMembers(duSidechain, [member, member2])
         await printStats(duSidechain, member)
-        await testSend(duMainnet)
+        await testSend(duMainnet, duSidechain, sendAmount)
         await printStats(duSidechain, member)
         await withdraw(duSidechain, member)
         await printStats(duSidechain, member)
+
+        const balanceAfter = await erc20Mainnet.balanceOf(member)
+        assert.equal(balanceAfter.sub(balanceBefore).toString(), bigNumberify(sendAmount).div("2").toString())
     })
 })
 
-async function testSend(duMainnet) {
+// goes over bridge => extra wait
+// duSidechain needed just for the wait!
+async function testSend(duMainnet, duSidechain, tokenWei) {
     const bal = await erc20Mainnet.balanceOf(walletMainnet.address)
     log(`User wallet mainnet balance ${bal}`)
-    const amt = "1000000000000000000"
 
     //transfer ERC20 to mainet contract
-    const tx1 = await erc20Mainnet.transfer(duMainnet.address, amt)
+    const tx1 = await erc20Mainnet.transfer(duMainnet.address, tokenWei)
     await tx1.wait()
-    log(`Transferred ${amt} to ${duMainnet.address}, sending to bridge`)
+    log(`Transferred ${tokenWei} to ${duMainnet.address}, sending to bridge`)
 
     //sends tokens to sidechain contract via bridge, calls sidechain.addRevenue()
+    const duSideBalanceBefore = await erc677Sidechain.balanceOf(duSidechain.address)
     const tx2 = await duMainnet.sendTokensToBridge()
     await tx2.wait()
-    log("Sent to bridge")
+
+    log(`Sent to bridge, waiting for the tokens to appear at ${duSidechain.address} in sidechain`)
+    await until(async () => !duSideBalanceBefore.eq(await erc677Sidechain.balanceOf(duSidechain.address)), 60000)
+    log(`Confirmed DU sidechain balance ${duSideBalanceBefore} -> ${await erc677Sidechain.balanceOf(duSidechain.address)}`)
 }
 
+// goes over bridge => extra wait
 async function withdraw(duSidechain, member) {
-    log(`withdraw for ${member}`)
-    const tx = await duSidechain.withdraw(member, true)
+    const balanceBefore = await erc20Mainnet.balanceOf(member)
+    log(`withdraw for ${member} (mainnet balance ${balanceBefore})`)
+    const tx = await duSidechain.withdrawAll(member, true)
     await tx.wait()
-    log(`withdraw submitted for ${member}`)
+    log(`withdraw submitted for ${member}, waiting to receive the tokens on the mainnet side...`)
+    await until(async () => !balanceBefore.eq(await erc20Mainnet.balanceOf(member)), 60000)
 }
 
+// "instant" in that it doesn't go over bridge
 async function addMembers(duSidechain, members) {
     const tx = await duSidechain.addMembers(members)
     await tx.wait()

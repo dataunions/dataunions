@@ -1,16 +1,16 @@
 {
   "contractName": "CloneLib",
   "abi": [],
-  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/CloneLib.sol\":\"CloneLib\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/CloneLib.sol\":{\"keccak256\":\"0xbc7eacdc3e9c8e55cdc4446d9d15c31dba6e94359919d921061153d42dca2c83\",\"urls\":[\"bzz-raw://f1081e30c90f5ad03e2a91363944b77f9fa474c2180ee0d093315aabc0d45f66\",\"dweb:/ipfs/Qmd71cyiDi5n2PjxsiW1RENwVeipNpzDcfCGsttEqpjaZF\"]}},\"version\":1}",
-  "bytecode": "0x60566023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220295688ead0851fe57078654f84c024bac327dd726352dc38ab1ded191f99a0ac64736f6c63430006060033",
-  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220295688ead0851fe57078654f84c024bac327dd726352dc38ab1ded191f99a0ac64736f6c63430006060033",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/heynow/streamr/data-union-solidity/contracts/CloneLib.sol\":\"CloneLib\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/heynow/streamr/data-union-solidity/contracts/CloneLib.sol\":{\"keccak256\":\"0xbc7eacdc3e9c8e55cdc4446d9d15c31dba6e94359919d921061153d42dca2c83\",\"urls\":[\"bzz-raw://f1081e30c90f5ad03e2a91363944b77f9fa474c2180ee0d093315aabc0d45f66\",\"dweb:/ipfs/Qmd71cyiDi5n2PjxsiW1RENwVeipNpzDcfCGsttEqpjaZF\"]}},\"version\":1}",
+  "bytecode": "0x60566023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220b24f749ff421f7c7c88c0c60756baf5d62e5d2b6405ebde2ffd5964db685661364736f6c63430006060033",
+  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220b24f749ff421f7c7c88c0c60756baf5d62e5d2b6405ebde2ffd5964db685661364736f6c63430006060033",
   "immutableReferences": {},
   "sourceMap": "102:3469:0:-:0;;132:2:-1;166:7;155:9;146:7;137:37;255:7;249:14;246:1;241:23;235:4;232:33;222:2;;269:9;222:2;293:9;290:1;283:20;323:4;314:7;306:22;347:7;338;331:24",
   "deployedSourceMap": "102:3469:0:-:0;;;;;;12:1:-1;9;2:12",
   "source": "pragma solidity ^0.6.0;\n//solhint-disable avoid-low-level-calls\n//solhint-disable no-inline-assembly\n\nlibrary CloneLib {\n    /**\n     * Returns bytecode of a new contract that clones template\n     * Adapted from https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-sdk/master/packages/lib/contracts/upgradeability/ProxyFactory.sol\n     * Which in turn adapted it from https://github.com/optionality/clone-factory/blob/32782f82dfc5a00d103a7e61a17a5dedbd1e8e9d/contracts/CloneFactory.sol\n     */\n    function cloneBytecode(address template) internal pure returns (bytes memory code) {\n        bytes20 targetBytes = bytes20(template);\n        assembly {\n            code := mload(0x40)\n            mstore(0x40, add(code, 0x57)) // code length is 0x37 plus 0x20 for bytes length field. update free memory pointer\n            mstore(code, 0x37) // store length in first 32 bytes\n\n            // store clone source address after first 32 bytes\n            mstore(add(code, 0x20), 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)\n            mstore(add(code, 0x34), targetBytes)\n            mstore(add(code, 0x48), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)\n        }\n    }\n\n    /**\n     * Predict the CREATE2 address.\n     * See https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1014.md for calculation details\n     */\n    function predictCloneAddressCreate2(\n        address template,\n        address deployer,\n        bytes32 salt\n    ) internal pure returns (address proxy) {\n        bytes32 codehash = keccak256(cloneBytecode(template));\n        return address(uint160(uint256(keccak256(abi.encodePacked(\n            bytes1(0xff),\n            deployer,\n            salt,\n            codehash\n        )))));\n    }\n\n    /**\n     * Deploy given bytecode using CREATE2, address can be known in advance, get it from predictCloneAddressCreate2\n     * Optional 2-step deployment first runs the constructor, then supplies an initialization function call.\n     * @param code EVM bytecode that would be used in a contract deploy transaction (to=null)\n     * @param initData if non-zero, send an initialization function call in the same tx with given tx input data (e.g. encoded Solidity function call)\n     */\n    function deployCodeAndInitUsingCreate2(\n        bytes memory code,\n        bytes memory initData,\n        bytes32 salt\n    ) internal returns (address proxy) {\n        uint256 len = code.length;\n        assembly {\n            proxy := create2(0, add(code, 0x20), len, salt)\n        }\n        if (initData.length > 0) {\n            (bool success, ) = proxy.call(initData);\n            require(success, \"error_initialization\");\n        }\n    }\n\n    /**\n     * Deploy given bytecode using old-style CREATE, address is hash(sender, nonce)\n     * Optional 2-step deployment first runs the constructor, then supplies an initialization function call.\n     * @param code EVM bytecode that would be used in a contract deploy transaction (to=null)\n     * @param initData if non-zero, send an initialization function call in the same tx with given tx input data (e.g. encoded Solidity function call)\n     */\n    function deployCodeAndInitUsingCreate(\n        bytes memory code,\n        bytes memory initData\n    ) internal returns (address proxy) {\n        uint256 len = code.length;\n        assembly {\n            proxy := create(0, add(code, 0x20), len)\n        }\n        if (initData.length > 0) {\n            (bool success, ) = proxy.call(initData);\n            require(success, \"error_initialization\");\n        }\n    }\n}\n",
-  "sourcePath": "/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/CloneLib.sol",
+  "sourcePath": "/home/heynow/streamr/data-union-solidity/contracts/CloneLib.sol",
   "ast": {
-    "absolutePath": "/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/CloneLib.sol",
+    "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/CloneLib.sol",
     "exportedSymbols": {
       "CloneLib": [
         134
@@ -2324,7 +2324,7 @@
     "src": "0:3572:0"
   },
   "legacyAST": {
-    "absolutePath": "/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/CloneLib.sol",
+    "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/CloneLib.sol",
     "exportedSymbols": {
       "CloneLib": [
         134
@@ -4643,7 +4643,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-08-14T11:08:24.213Z",
+  "updatedAt": "2020-08-19T08:05:24.687Z",
   "devdoc": {
     "methods": {}
   },

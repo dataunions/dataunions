@@ -1,8 +1,6 @@
 
 // File: openzeppelin-solidity/contracts/token/ERC20/IERC20.sol
 
-// SPDX-License-Identifier: MIT
-
 pragma solidity ^0.6.0;
 
 /**
@@ -81,8 +79,6 @@ interface IERC20 {
 
 // File: openzeppelin-solidity/contracts/math/SafeMath.sol
 
-// SPDX-License-Identifier: MIT
-
 pragma solidity ^0.6.0;
 
 /**
@@ -106,7 +102,6 @@ library SafeMath {
      * Counterpart to Solidity's `+` operator.
      *
      * Requirements:
-     *
      * - Addition cannot overflow.
      */
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -123,7 +118,6 @@ library SafeMath {
      * Counterpart to Solidity's `-` operator.
      *
      * Requirements:
-     *
      * - Subtraction cannot overflow.
      */
     function sub(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -137,7 +131,6 @@ library SafeMath {
      * Counterpart to Solidity's `-` operator.
      *
      * Requirements:
-     *
      * - Subtraction cannot overflow.
      */
     function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
@@ -154,7 +147,6 @@ library SafeMath {
      * Counterpart to Solidity's `*` operator.
      *
      * Requirements:
-     *
      * - Multiplication cannot overflow.
      */
     function mul(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -180,7 +172,6 @@ library SafeMath {
      * uses an invalid opcode to revert (consuming all remaining gas).
      *
      * Requirements:
-     *
      * - The divisor cannot be zero.
      */
     function div(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -196,10 +187,10 @@ library SafeMath {
      * uses an invalid opcode to revert (consuming all remaining gas).
      *
      * Requirements:
-     *
      * - The divisor cannot be zero.
      */
     function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+        // Solidity only automatically asserts when dividing by 0
         require(b > 0, errorMessage);
         uint256 c = a / b;
         // assert(a == b * c + a % b); // There is no case in which this doesn't hold
@@ -216,7 +207,6 @@ library SafeMath {
      * invalid opcode to revert (consuming all remaining gas).
      *
      * Requirements:
-     *
      * - The divisor cannot be zero.
      */
     function mod(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -232,7 +222,6 @@ library SafeMath {
      * invalid opcode to revert (consuming all remaining gas).
      *
      * Requirements:
-     *
      * - The divisor cannot be zero.
      */
     function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
