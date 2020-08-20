@@ -45,9 +45,7 @@ DataUnionSidechain records member joins and parts made by "agents". Agents are s
 
 #### Accounting for Equal Split in Constant Time
 
-DataUnionSidechain accounts for the earnings of a member, i.e. `SUM(earnings / active members)`, for all the time they were active.
-
-We account for this in constant time by recording the monotonically increasing quantity of Lifetime Member Earnings, or LME.
+DataUnionSidechain accounts for the earnings of a member, i.e. `SUM(earnings / active members)`, for all the time they were active. We account for this in constant time by recording the monotonically increasing quantity of Lifetime Member Earnings, or LME.
 
 Every time new earnings are added: `new LME = old LME + (new earnings / active members)`
 
@@ -65,9 +63,9 @@ The bridge has 3 main components:
 # Getting Started
 The easiest way to get started running and testing Data Unions is to use the preloaded test images baked into https://github.com/streamr-dev/streamr-docker-dev:
 
-0. cd streamr-docker-dev
-1. sudo ifconfig lo:0 10.200.10.1/24 [must link 10.200.10.1 to loopback so containers can communicate]
-2. docker-compose up -d bridge parity-node0 parity-sidechain-node0
+0. `cd streamr-docker-dev`
+1. `sudo ifconfig lo:0 10.200.10.1/24` (must link 10.200.10.1 to loopback so containers can communicate)
+2. `docker-compose up -d bridge parity-node0 parity-sidechain-node0`
 
 This will use parity images for mainchain and sidechain that are preloaded with the AMB, token mediators, and DU factory contracts. It will also spin up required oracle processes. In the test environment, there is only 1 oracle.
 
