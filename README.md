@@ -44,8 +44,9 @@ DataUnionMainnet handles token passing and admin fees only. DataUnionMainnet doe
 DataUnionSidechain records member joins and parts made by "agents". Agents are set at init, and can be added by the admin. 
 
 #### Accounting for Earning Split in Constant Time 
-DataUnionSidechain accounts for the earnings of a member, ie`SUM(earnings/active_members)` for all the time they were active. We account for this in constant time by recording this monotonically increasing quantity:
-`LME [Lifetime Member Earnings] = SUM(earnings/active_members) for all time`
+DataUnionSidechain accounts for the earnings of a member, ie`SUM(earnings/active_members)` for all the time they were active. We account for this in constant time by recording the monotonically increasing quantity of Lifetime Member Earnings, or LME.
+
+Every time new earnings are added: `new LME = old LME + (new earnings / active members)`
 
 For each active member we store `member_address -> LME(join_time)`. The earnings of an active member are then `LME(current) - LME(join_time)`.
 
