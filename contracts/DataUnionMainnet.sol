@@ -50,14 +50,33 @@ interface ITokenMediator {
 contract DataUnionMainnet is Ownable, PurchaseListener {
     using SafeMath for uint256;
 
+    event AdminFeeChanged(uint256 adminFee);
+    event AdminFeeCharged(uint256 amount);
+    event AdminFeesWithdrawn(address indexed admin, uint256 amount);
+
+    event RevenueReceived(uint256 amount);
+
     IAMB public amb;
     ITokenMediator public token_mediator;
     address public sidechain_DU_factory;
     uint256 public sidechain_maxgas;
-    uint256 public token_sent_to_bridge;
     ERC20 public token;
     // needed to compute sidechain address
     address public sidechain_template_DU;
+    uint256 public adminFeeFraction;
+    uint256 public totalMemberEarnings;
+    uint256 public totalAdminFees;
+    uint256 public totalAdminFeesWithdrawn;
+    bool public autoSendAdminFee = true;
+ /*
+    totalEarnings includes:
+         member earnings (ie revenue - admin fees)
+         tokens held for members via transferToMemberInContract()
+
+    totalRevenue = totalEarnings + totalAdminFees;
+*/
+    uint256 public totalEarnings;
+
 
     constructor() public Ownable(address(0)) {}
 
@@ -67,7 +86,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         uint256 _sidechain_maxgas,
         address _sidechain_template_DU,
         address _owner,
-        uint256 adminFeeFraction,
+        uint256 _adminFeeFraction,
         address[] memory agents
     )  public {
         require(!isInitialized(), "init_once");
@@ -78,16 +97,28 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         sidechain_maxgas = _sidechain_maxgas;
         sidechain_template_DU = _sidechain_template_DU;
         owner = _owner;
-        deployNewDUSidechain(adminFeeFraction, agents);
+        setAdminFee(_adminFeeFraction);
+        deployNewDUSidechain(agents);
     }
 
     function isInitialized() public view returns (bool) {
         return address(token) != address(0);
     }
 
+        /**
+     * Admin fee as a fraction of revenue.
+     * Smart contract doesn't use it, it's here just for storing purposes.
+     * @param newAdminFee fixed-point decimal in the same way as ether: 50% === 0.5 ether === "500000000000000000"
+     */
+    function setAdminFee(uint256 newAdminFee) public onlyOwner {
+        require(newAdminFee <= 1 ether, "error_adminFee");
+        adminFeeFraction = newAdminFee;
+        emit AdminFeeChanged(adminFeeFraction);
+    }
 
-    function deployNewDUSidechain(uint256 adminFeeFraction, address[] memory agents) public {
-        bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,uint256,address[])", owner, adminFeeFraction, agents);
+
+    function deployNewDUSidechain(address[] memory agents) public {
+        bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,address[])", owner, agents);
         amb.requireToPassMessage(sidechain_DU_factory, data, sidechain_maxgas);
     }
 
@@ -114,20 +145,47 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         return true;
     }
 
-    function sendTokensToBridge() public returns (uint256) {
-        uint256 bal = token.balanceOf(address(this));
-        if (bal == 0) return 0;
-        // approve 0 first?
-        require(token.approve(address(token_mediator), 0), "approve_failed");
-        require(token.approve(address(token_mediator), bal), "approve_failed");
+    function adminFeesWithdrawable() public view returns (uint256) {
+        return totalAdminFees.sub(totalAdminFeesWithdrawn);
+    }
 
-        token_mediator.relayTokens(address(this), sidechainAddress(), bal);
-        require(token.balanceOf(address(this)) == 0, "transfer_failed");
-        token_sent_to_bridge = token_sent_to_bridge.add(bal);
+    function unaccountedTokens() private view returns (uint256) {
+        return token.balanceOf(address(this)).sub(adminFeesWithdrawable());
+    }
+
+
+    function sendTokensToBridge() public returns (uint256) {
+        uint256 newTokens = unaccountedTokens();
+        if (newTokens == 0) return 0;
+
+        emit RevenueReceived(newTokens);
+
+        uint256 adminFee = newTokens.mul(adminFeeFraction).div(10**18);
+        uint256 memberEarnings = newTokens.sub(adminFee);
+
+        totalAdminFees.add(adminFee);
+        emit AdminFeeCharged(adminFee);
+        if(autoSendAdminFee) withdrawAdminFees();
+
+        // transfer memberEarnings
+        require(token.approve(address(token_mediator), 0), "approve_failed");
+        require(token.approve(address(token_mediator), memberEarnings), "approve_failed");
+        token_mediator.relayTokens(address(this), sidechainAddress(), memberEarnings);
+        //check that memberEarnings were sent
+        require(unaccountedTokens() == 0, "transfer_failed");
+        totalMemberEarnings = totalMemberEarnings.add(memberEarnings);
 
         bytes memory data = abi.encodeWithSignature("addRevenue()");
         amb.requireToPassMessage(sidechainAddress(), data, sidechain_maxgas);
+        return newTokens;
+    }
 
-        return bal;
+    function withdrawAdminFees() public returns (uint256) {
+        uint256 withdrawable = totalAdminFees.sub(totalAdminFeesWithdrawn);
+        if (withdrawable == 0) return 0;
+        totalAdminFeesWithdrawn = totalAdminFeesWithdrawn.add(withdrawable);
+        require(token.transfer(owner, withdrawable), "transfer_failed");
+        emit AdminFeesWithdrawn(owner, withdrawable);
+        return withdrawable;
     }
 }
