@@ -62,7 +62,7 @@ describe("Data Union tests using only ethers.js directly", () => {
         const duname = "test0"
         const sendAmount = "1000000000000000000"
 
-        const duMainnet = await deployDU(duname, factoryMainnet, providerSidechain, process.env.TEST_TIMEOUT || 240000)
+        const duMainnet = await deployDU(duname, 0, factoryMainnet, providerSidechain, process.env.TEST_TIMEOUT || 240000)
         const sidechainAddress = await factoryMainnet.sidechainAddress(duMainnet.address)
         const duSidechain = new Contract(
             sidechainAddress,

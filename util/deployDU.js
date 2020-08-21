@@ -16,12 +16,13 @@ const DataUnionMainnet = require("../build/contracts/DataUnionMainnet.json")
  * DU admin will be the mainnet wallet used for transaction, the wallet that dataUnionFactoryMainnet Contract object was created with
  * If DU already is deployed, just return it instead
  * @param {string} duname unique identifier for the DU
+ * @param {string|BigNumber} adminFee as a fraction scaled by 10^18, such that 100% === 10^18, no fee === 0
  * @param {Contract} dataUnionFactoryMainnet created with `new Contract(factoryAddress, adminWallet)`
  * @param {Provider} sidechainProvider for watching when the deployment has be registered in sidechain
  * @param {number} bridgeTimeoutMs time that it takes for bridge to cause sidechain community to be deployed
  * @returns {Contract} DataUnionMainnet contract
  */
-async function deployDataUnion(duname, dataUnionFactoryMainnet, sidechainProvider, bridgeTimeoutMs) {
+async function deployDataUnion(duname, adminFee, dataUnionFactoryMainnet, sidechainProvider, bridgeTimeoutMs) {
     const adminWallet = new Wallet(dataUnionFactoryMainnet.signer.privateKey, dataUnionFactoryMainnet.provider)
     const duMainnetAddress = await dataUnionFactoryMainnet.mainnetAddress(adminWallet.address, duname)
     const duSidechainAddress = await dataUnionFactoryMainnet.sidechainAddress(duMainnetAddress)
@@ -32,7 +33,7 @@ async function deployDataUnion(duname, dataUnionFactoryMainnet, sidechainProvide
     } else {
         const tx = await dataUnionFactoryMainnet.deployNewDataUnion(
             adminWallet.address,
-            0,
+            adminFee,
             [adminWallet.address],
             duname
         )
