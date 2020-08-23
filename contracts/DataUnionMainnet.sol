@@ -64,7 +64,6 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     // needed to compute sidechain address
     address public sidechain_template_DU;
     uint256 public adminFeeFraction;
-    uint256 public totalMemberEarnings;
     uint256 public totalAdminFees;
     uint256 public totalAdminFeesWithdrawn;
     bool public autoSendAdminFee = true;
@@ -116,6 +115,10 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         emit AdminFeeChanged(adminFeeFraction);
     }
 
+    function setAutoSendAdminFee(bool autoSend) public onlyOwner {
+        autoSendAdminFee = autoSend;
+    }
+
 
     function deployNewDUSidechain(address[] memory agents) public {
         bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,address[])", owner, agents);
@@ -149,7 +152,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         return totalAdminFees.sub(totalAdminFeesWithdrawn);
     }
 
-    function unaccountedTokens() private view returns (uint256) {
+    function unaccountedTokens() public view returns (uint256) {
         return token.balanceOf(address(this)).sub(adminFeesWithdrawable());
     }
 
@@ -163,7 +166,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         uint256 adminFee = newTokens.mul(adminFeeFraction).div(10**18);
         uint256 memberEarnings = newTokens.sub(adminFee);
 
-        totalAdminFees.add(adminFee);
+        totalAdminFees = totalAdminFees.add(adminFee);
         emit AdminFeeCharged(adminFee);
         if(autoSendAdminFee) withdrawAdminFees();
 
@@ -172,8 +175,8 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         require(token.approve(address(token_mediator), memberEarnings), "approve_failed");
         token_mediator.relayTokens(address(this), sidechainAddress(), memberEarnings);
         //check that memberEarnings were sent
-        require(unaccountedTokens() == 0, "transfer_failed");
-        totalMemberEarnings = totalMemberEarnings.add(memberEarnings);
+        require(unaccountedTokens() == 0, "not_transferred");
+        totalEarnings = totalEarnings.add(memberEarnings);
 
         bytes memory data = abi.encodeWithSignature("addRevenue()");
         amb.requireToPassMessage(sidechainAddress(), data, sidechain_maxgas);
@@ -181,7 +184,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     }
 
     function withdrawAdminFees() public returns (uint256) {
-        uint256 withdrawable = totalAdminFees.sub(totalAdminFeesWithdrawn);
+        uint256 withdrawable = adminFeesWithdrawable();
         if (withdrawable == 0) return 0;
         totalAdminFeesWithdrawn = totalAdminFeesWithdrawn.add(withdrawable);
         require(token.transfer(owner, withdrawable), "transfer_failed");

@@ -1,6 +1,48 @@
 {
-  "contractName": "ITokenMediator",
+  "contractName": "MockTokenMediator",
   "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_amb",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "amb",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "token",
+      "outputs": [
+        {
+          "internalType": "contract ERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
     {
       "inputs": [],
       "name": "erc677token",
@@ -51,12 +93,12 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"bridgeContract\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"erc677token\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_receiver\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"relayTokens\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/heynow/streamr/data-union-solidity/contracts/MockTokenMediator.sol\":\"ITokenMediator\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/heynow/streamr/data-union-solidity/contracts/MockTokenMediator.sol\":{\"keccak256\":\"0x790104835985261927f5a6cdc5a4588f5fb29765887cc7c95346d64bec77fea9\",\"urls\":[\"bzz-raw://c3631286226c7ab570e36c976bfbb3fd9a14856470e06a84cbbf329112b70e99\",\"dweb:/ipfs/QmUYUymKSxibYxfLs8qKQhUPaTcJDXMFhRLyNWLrN8mgSd\"]},\"openzeppelin-solidity/contracts/GSN/Context.sol\":{\"keccak256\":\"0x0de74dfa6b37943c1b834cbd8fb7a8d052e5ff80c7adb33692102dd6cd2985e9\",\"urls\":[\"bzz-raw://9d2d827fcf4a838f5821732c0acd6a40d21c2a5a2cfe2563feec91465f47bb60\",\"dweb:/ipfs/Qmex3wMKf5Sghbfvr288RUg1kP2uAyTMf11w83WbMbpQQc\"]},\"openzeppelin-solidity/contracts/math/SafeMath.sol\":{\"keccak256\":\"0x04d34b3cd5677bea25f8dfceb6dec0eaa071d4d4b789a43f13fe0c415ba4c296\",\"urls\":[\"bzz-raw://e7e8b526a6839e5ba14f0d23a830387fec47f7043ce01d42c9f285b709a9d080\",\"dweb:/ipfs/QmXmhhFmX5gcAvVzNiDPAGA35iHMPNaYtQkACswRHBVTNw\"]},\"openzeppelin-solidity/contracts/token/ERC20/ERC20.sol\":{\"keccak256\":\"0x3211de52f707a62a356a34fdea9d6a7bed46402d5ce45f1891a16fe2132fbb47\",\"urls\":[\"bzz-raw://45dfe794ad43a3674fab38a378c57eb6ed3353949f6529ccad4a4cbc91d45fc5\",\"dweb:/ipfs/QmReFGciE9fgsb6Nas1Fx593pzKWMjaDa1VQg4CEJQaD6U\"]},\"openzeppelin-solidity/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x6cc1cb934a3ac2137a7dcaed018af9e235392236ceecfd3687259702b9c767ad\",\"urls\":[\"bzz-raw://0055fa88138cd1c3c6440370f8580f85857f8fe9dec41c99af9eafbeb8d9c3ce\",\"dweb:/ipfs/QmX1xDh8vwGLLCH8ti45eXjQ7Wcxv1FEGTR3jkFnd5Nv6F\"]},\"openzeppelin-solidity/contracts/utils/Address.sol\":{\"keccak256\":\"0x5f7da58ee3d9faa9b8999a93d49c8ff978f1afc88ae9bcfc6f9cbb44da011c2b\",\"urls\":[\"bzz-raw://4f089d954b3ecaa26949412fe63e9a184b056562c6c13dd4a0529a5d9a2e685a\",\"dweb:/ipfs/QmVK5iCNAMcEJQxT59bsC5E53JQASDQPU6khHox3d5ZXCn\"]}},\"version\":1}",
-  "bytecode": "0x",
-  "deployedBytecode": "0x",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_amb\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"amb\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"bridgeContract\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"erc677token\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_receiver\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"relayTokens\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"token\",\"outputs\":[{\"internalType\":\"contract ERC20\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/heynow/streamr/data-union-solidity/contracts/MockTokenMediator.sol\":\"MockTokenMediator\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/heynow/streamr/data-union-solidity/contracts/MockTokenMediator.sol\":{\"keccak256\":\"0x790104835985261927f5a6cdc5a4588f5fb29765887cc7c95346d64bec77fea9\",\"urls\":[\"bzz-raw://c3631286226c7ab570e36c976bfbb3fd9a14856470e06a84cbbf329112b70e99\",\"dweb:/ipfs/QmUYUymKSxibYxfLs8qKQhUPaTcJDXMFhRLyNWLrN8mgSd\"]},\"openzeppelin-solidity/contracts/GSN/Context.sol\":{\"keccak256\":\"0x0de74dfa6b37943c1b834cbd8fb7a8d052e5ff80c7adb33692102dd6cd2985e9\",\"urls\":[\"bzz-raw://9d2d827fcf4a838f5821732c0acd6a40d21c2a5a2cfe2563feec91465f47bb60\",\"dweb:/ipfs/Qmex3wMKf5Sghbfvr288RUg1kP2uAyTMf11w83WbMbpQQc\"]},\"openzeppelin-solidity/contracts/math/SafeMath.sol\":{\"keccak256\":\"0x04d34b3cd5677bea25f8dfceb6dec0eaa071d4d4b789a43f13fe0c415ba4c296\",\"urls\":[\"bzz-raw://e7e8b526a6839e5ba14f0d23a830387fec47f7043ce01d42c9f285b709a9d080\",\"dweb:/ipfs/QmXmhhFmX5gcAvVzNiDPAGA35iHMPNaYtQkACswRHBVTNw\"]},\"openzeppelin-solidity/contracts/token/ERC20/ERC20.sol\":{\"keccak256\":\"0x3211de52f707a62a356a34fdea9d6a7bed46402d5ce45f1891a16fe2132fbb47\",\"urls\":[\"bzz-raw://45dfe794ad43a3674fab38a378c57eb6ed3353949f6529ccad4a4cbc91d45fc5\",\"dweb:/ipfs/QmReFGciE9fgsb6Nas1Fx593pzKWMjaDa1VQg4CEJQaD6U\"]},\"openzeppelin-solidity/contracts/token/ERC20/IERC20.sol\":{\"keccak256\":\"0x6cc1cb934a3ac2137a7dcaed018af9e235392236ceecfd3687259702b9c767ad\",\"urls\":[\"bzz-raw://0055fa88138cd1c3c6440370f8580f85857f8fe9dec41c99af9eafbeb8d9c3ce\",\"dweb:/ipfs/QmX1xDh8vwGLLCH8ti45eXjQ7Wcxv1FEGTR3jkFnd5Nv6F\"]},\"openzeppelin-solidity/contracts/utils/Address.sol\":{\"keccak256\":\"0x5f7da58ee3d9faa9b8999a93d49c8ff978f1afc88ae9bcfc6f9cbb44da011c2b\",\"urls\":[\"bzz-raw://4f089d954b3ecaa26949412fe63e9a184b056562c6c13dd4a0529a5d9a2e685a\",\"dweb:/ipfs/QmVK5iCNAMcEJQxT59bsC5E53JQASDQPU6khHox3d5ZXCn\"]}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b506040516102913803806102918339818101604052604081101561003357600080fd5b508051602090910151600080546001600160a01b039384166001600160a01b031991821617909155600180549390921692169190911790556102178061007a6000396000f3fe608060405234801561001057600080fd5b50600436106100575760003560e01c80631062b39a1461005c57806318d8f9c914610080578063ad58bdd114610088578063cd596583146100c0578063fc0c546a146100c8575b600080fd5b6100646100d0565b604080516001600160a01b039092168252519081900360200190f35b6100646100df565b6100be6004803603606081101561009e57600080fd5b506001600160a01b038135811691602081013590911690604001356100ee565b005b6100646101c3565b6100646101d2565b6001546001600160a01b031681565b6000546001600160a01b031690565b60008054604080516323b872dd60e01b81526001600160a01b038781166004830152868116602483015260448201869052915191909216926323b872dd92606480820193602093909283900390910190829087803b15801561014f57600080fd5b505af1158015610163573d6000803e3d6000fd5b505050506040513d602081101561017957600080fd5b50516101be576040805162461bcd60e51b815260206004820152600f60248201526e1d1c985b9cd9995c97d9985a5b1959608a1b604482015290519081900360640190fd5b505050565b6001546001600160a01b031690565b6000546001600160a01b03168156fea26469706673582212209974a994424f2429fa766ead03005429705a9160e4f31504f9d9c104126c3f2964736f6c63430006060033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100575760003560e01c80631062b39a1461005c57806318d8f9c914610080578063ad58bdd114610088578063cd596583146100c0578063fc0c546a146100c8575b600080fd5b6100646100d0565b604080516001600160a01b039092168252519081900360200190f35b6100646100df565b6100be6004803603606081101561009e57600080fd5b506001600160a01b038135811691602081013590911690604001356100ee565b005b6100646101c3565b6100646101d2565b6001546001600160a01b031681565b6000546001600160a01b031690565b60008054604080516323b872dd60e01b81526001600160a01b038781166004830152868116602483015260448201869052915191909216926323b872dd92606480820193602093909283900390910190829087803b15801561014f57600080fd5b505af1158015610163573d6000803e3d6000fd5b505050506040513d602081101561017957600080fd5b50516101be576040805162461bcd60e51b815260206004820152600f60248201526e1d1c985b9cd9995c97d9985a5b1959608a1b604482015290519081900360640190fd5b505050565b6001546001600160a01b031690565b6000546001600160a01b03168156fea26469706673582212209974a994424f2429fa766ead03005429705a9160e4f31504f9d9c104126c3f2964736f6c63430006060033",
   "immutableReferences": {},
-  "sourceMap": "",
-  "deployedSourceMap": "",
+  "sourceMap": "327:656:8:-:0;;;426:107;5:9:-1;2:2;;;27:1;24;17:12;2:2;426:107:8;;;;;;;;;;;;;;;15:2:-1;10:3;7:11;4:2;;;31:1;28;21:12;4:2;-1:-1;426:107:8;;;;;;;485:5;:21;;-1:-1:-1;;;;;485:21:8;;;-1:-1:-1;;;;;;485:21:8;;;;;;;;516:10;;;;;;;;;;;;;;327:656;;;;;;",
+  "deployedSourceMap": "327:656:8:-:0;;;;5:9:-1;2:2;;;27:1;24;17:12;2:2;327:656:8;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;12:1:-1;9;2:12;402:18:8;;;:::i;:::-;;;;-1:-1:-1;;;;;402:18:8;;;;;;;;;;;;;;539:100;;;:::i;804:176::-;;;;;;15:2:-1;10:3;7:11;4:2;;;31:1;28;21:12;4:2;-1:-1;;;;;;804:176:8;;;;;;;;;;;;;;;;;:::i;:::-;;645:92;;;:::i;378:18::-;;;:::i;402:::-;;;-1:-1:-1;;;;;402:18:8;;:::o;539:100::-;592:7;626:5;-1:-1:-1;;;;;626:5:8;539:100;:::o;804:176::-;909:5;;;:44;;;-1:-1:-1;;;909:44:8;;-1:-1:-1;;;;;909:44:8;;;;;;;;;;;;;;;;;;;;;;:5;;;;;:18;;:44;;;;;;;;;;;;;;;;;;:5;:44;;;2:2:-1;;;;27:1;24;17:12;2:2;909:44:8;;;;8:9:-1;5:2;;;45:16;42:1;39;24:38;77:16;74:1;67:27;5:2;909:44:8;;;;;;;15:2:-1;10:3;7:11;4:2;;;31:1;28;21:12;4:2;-1:-1;909:44:8;901:72;;;;;-1:-1:-1;;;901:72:8;;;;;;;;;;;;-1:-1:-1;;;901:72:8;;;;;;;;;;;;;;;804:176;;;:::o;645:92::-;727:3;;-1:-1:-1;;;;;727:3:8;645:92;:::o;378:18::-;;;-1:-1:-1;;;;;378:18:8;;:::o",
   "source": "pragma solidity ^0.6.0;\nimport \"openzeppelin-solidity/contracts/token/ERC20/ERC20.sol\";\n\ninterface ITokenMediator {\n    function erc677token() external view returns (address);\n    function bridgeContract() external view returns (address);\n    function relayTokens(address _from, address _receiver, uint256 _value) external;\n}\n\ncontract MockTokenMediator is ITokenMediator {\n    ERC20 public token;\n    address public amb;\n    constructor(address _token, address _amb) public {\n        token = ERC20(_token);\n        amb = _amb;\n    }\n\n    function erc677token() override public view returns (address) {\n        return address(token);\n    }\n\n    function bridgeContract() override public view returns (address) {\n        return amb;\n    } \n\n    /*\n        transfers to address on local network\n    */\n    function relayTokens(address _from, address _receiver, uint256 _value) override public {\n        require(token.transferFrom(_from, _receiver, _value), \"transfer_failed\");\n    }\n\n}\n",
   "sourcePath": "/home/heynow/streamr/data-union-solidity/contracts/MockTokenMediator.sol",
   "ast": {
@@ -2349,7 +2391,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-08-22T11:20:56.404Z",
+  "updatedAt": "2020-08-22T11:20:56.406Z",
   "devdoc": {
     "methods": {}
   },

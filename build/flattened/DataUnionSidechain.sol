@@ -324,7 +324,7 @@ contract DataUnionSidechain is Ownable {
 
 
     //emitted when revenue received
-    event RevenueReceived(uint256 amount);
+    event EarningsReceived(uint256 amount);
     event MemberEarn(uint256 per_member_earn, uint256 active_members);
 
     //emitted by withdrawal
@@ -462,7 +462,7 @@ contract DataUnionSidechain is Ownable {
         );
         totalEarnings = totalEarnings.add(memberEarnings);
 
-        emit RevenueReceived(memberEarnings);
+        emit EarningsReceived(memberEarnings);
         emit MemberEarn(per_member_earn, active_members);
         return memberEarnings;
     }

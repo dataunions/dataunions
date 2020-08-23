@@ -147,6 +147,10 @@ contract DataUnionSidechain is Ownable {
         return getEarnings(member).sub(getWithdrawn(member));
     }
 
+    /**
+        process unaccounted tokens
+    */
+
     function addRevenue() public returns (uint256) {
         uint256 balance = token.balanceOf(address(this));
         uint256 memberEarnings = balance.sub(totalWithdrawable()); // a.sub(b) errors if b > a
