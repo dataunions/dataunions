@@ -16,13 +16,13 @@ const until = require("../../util/await-until")
 const log = require("debug")("Streamr:du:test:e2e:plain")
 //require("debug").log = console.log.bind(console)  // get logging into stdout so mocha won't hide it
 
-const deployDU = require("../../util/deployDU")
 
 const {
+    deployDataUnion,
     deployDataUnionFactorySidechain,
     deployDataUnionFactoryMainnet,
     getTemplateSidechain,
-} = require("../utils/deployDUFactories")
+} = require("../../util/libDU")
 
 const providerSidechain = new JsonRpcProvider({
     url: "http://10.200.10.1:8546",
@@ -59,10 +59,9 @@ describe("Data Union tests using only ethers.js directly", () => {
         this.timeout(process.env.TEST_TIMEOUT || 300000)
         const member = "0x4178baBE9E5148c6D5fd431cD72884B07Ad855a0"
         const member2 = "0x0101010101010101010010101010101001010101"
-        const duname = "test0"
+        const duname = "test"+(Date.now())
         const sendAmount = "1000000000000000000"
-
-        const duMainnet = await deployDU(duname, factoryMainnet, providerSidechain, process.env.TEST_TIMEOUT || 240000)
+        const duMainnet = await deployDataUnion(duname, 0, factoryMainnet, providerSidechain, process.env.TEST_TIMEOUT || 240000)
         const sidechainAddress = await factoryMainnet.sidechainAddress(duMainnet.address)
         const duSidechain = new Contract(
             sidechainAddress,
@@ -83,6 +82,7 @@ describe("Data Union tests using only ethers.js directly", () => {
 
         const balanceAfter = await erc20Mainnet.balanceOf(member)
         assert.equal(balanceAfter.sub(balanceBefore).toString(), bigNumberify(sendAmount).div("2").toString())
+
     })
 })
 

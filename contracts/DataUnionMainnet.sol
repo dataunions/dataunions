@@ -89,14 +89,18 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         address[] memory agents
     )  public {
         require(!isInitialized(), "init_once");
+        //during setup, msg.sender is admin
+        owner = msg.sender;
+
         token_mediator = ITokenMediator(_token_mediator);
         amb = IAMB(token_mediator.bridgeContract());
         token = ERC20(token_mediator.erc677token());
         sidechain_DU_factory = _sidechain_DU_factory;
         sidechain_maxgas = _sidechain_maxgas;
         sidechain_template_DU = _sidechain_template_DU;
-        owner = _owner;
         setAdminFee(_adminFeeFraction);
+        //transfer to real admin
+        owner = _owner;
         deployNewDUSidechain(agents);
     }
 

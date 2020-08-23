@@ -1,5 +1,5 @@
 {
-  "contractName": "IAMB",
+  "contractName": "MockAMB",
   "abi": [
     {
       "inputs": [
@@ -31,12 +31,12 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_contract\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"_gas\",\"type\":\"uint256\"}],\"name\":\"requireToPassMessage\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/heynow/streamr/data-union-solidity/contracts/MockAMB.sol\":\"IAMB\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/heynow/streamr/data-union-solidity/contracts/MockAMB.sol\":{\"keccak256\":\"0x84899e1307de6f257140a7ddc6dab5028808cded0c6221dc8127ca99398a5c37\",\"urls\":[\"bzz-raw://127442a9bc9ac5a1e0e3b129a68b6079251061144b3f5268d428fe660b0d0700\",\"dweb:/ipfs/QmReyNTEkHM9sZ6tv1QkTv1JNCMRtcc2TcJDbdeUssgVnW\"]}},\"version\":1}",
-  "bytecode": "0x",
-  "deployedBytecode": "0x",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_contract\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"_gas\",\"type\":\"uint256\"}],\"name\":\"requireToPassMessage\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/heynow/streamr/data-union-solidity/contracts/MockAMB.sol\":\"MockAMB\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/heynow/streamr/data-union-solidity/contracts/MockAMB.sol\":{\"keccak256\":\"0x84899e1307de6f257140a7ddc6dab5028808cded0c6221dc8127ca99398a5c37\",\"urls\":[\"bzz-raw://127442a9bc9ac5a1e0e3b129a68b6079251061144b3f5268d428fe660b0d0700\",\"dweb:/ipfs/QmReyNTEkHM9sZ6tv1QkTv1JNCMRtcc2TcJDbdeUssgVnW\"]}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b50610147806100206000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c8063dc8601b314610030575b600080fd5b6100e86004803603606081101561004657600080fd5b6001600160a01b03823516919081019060408101602082013564010000000081111561007157600080fd5b82018360208201111561008357600080fd5b803590602001918460018302840111640100000000831117156100a557600080fd5b91908080601f01602080910402602001604051908101604052809392919081815260200183838082843760009201919091525092955050913592506100fa915050565b60408051918252519081900360200190f35b505060601b6bffffffffffffffffffffffff19169056fea26469706673582212200daa88ac55ecd48682f59ca2417659180320d5ea85894afd8e68575fcb644efa64736f6c63430006060033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061002b5760003560e01c8063dc8601b314610030575b600080fd5b6100e86004803603606081101561004657600080fd5b6001600160a01b03823516919081019060408101602082013564010000000081111561007157600080fd5b82018360208201111561008357600080fd5b803590602001918460018302840111640100000000831117156100a557600080fd5b91908080601f01602080910402602001604051908101604052809392919081815260200183838082843760009201919091525092955050913592506100fa915050565b60408051918252519081900360200190f35b505060601b6bffffffffffffffffffffffff19169056fea26469706673582212200daa88ac55ecd48682f59ca2417659180320d5ea85894afd8e68575fcb644efa64736f6c63430006060033",
   "immutableReferences": {},
-  "sourceMap": "",
-  "deployedSourceMap": "",
+  "sourceMap": "192:231:8:-:0;;;;5:9:-1;2:2;;;27:1;24;17:12;2:2;192:231:8;;;;;;;",
+  "deployedSourceMap": "192:231:8:-:0;;;;5:9:-1;2:2;;;27:1;24;17:12;2:2;192:231:8;;;;;;;;;;;;;;;;12:1:-1;9;2:12;223:198:8;;;;;;15:2:-1;10:3;7:11;4:2;;;31:1;28;21:12;4:2;-1:-1;;;;;223:198:8;;;;;;;;;;;;;;;27:11:-1;11:28;;8:2;;;52:1;49;42:12;8:2;223:198:8;;41:9:-1;34:4;18:14;14:25;11:40;8:2;;;64:1;61;54:12;8:2;223:198:8;;;;;;100:9:-1;95:1;81:12;77:20;67:8;63:35;60:50;39:11;25:12;22:29;11:107;8:2;;;131:1;128;121:12;8:2;223:198:8;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;30:3:-1;22:6;14;1:33;99:1;81:16;;74:27;;;;-1:-1;223:198:8;;-1:-1:-1;;223:198:8;;;-1:-1:-1;223:198:8;;-1:-1:-1;;223:198:8:i;:::-;;;;;;;;;;;;;;;;;-1:-1:-1;;395:18:8;;-1:-1:-1;;387:27:8;;223:198::o",
   "source": "pragma solidity ^0.6.0;\n\ninterface IAMB {\n    function requireToPassMessage(\n        address _contract,\n        bytes calldata _data,\n        uint256 _gas\n    ) external returns (bytes32);\n}\n\ncontract MockAMB is IAMB {\n    function requireToPassMessage(\n        address _contract,\n        bytes memory _data,\n        uint256 _gas\n    ) override public returns (bytes32) {\n        return bytes32(bytes20(_contract));\n    }\n}\n",
   "sourcePath": "/home/heynow/streamr/data-union-solidity/contracts/MockAMB.sol",
   "ast": {
@@ -1049,7 +1049,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.3",
-  "updatedAt": "2020-08-23T15:19:00.595Z",
+  "updatedAt": "2020-08-23T15:19:01.144Z",
   "devdoc": {
     "methods": {}
   },

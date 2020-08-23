@@ -12,7 +12,7 @@ const ERC20Mintable = artifacts.require("./ERC20Mintable.sol")
 contract("DataUnionMainnet", accounts => {
     const creator = accounts[0]
     const sender = accounts[1]
-    let testToken, dataUnionSidechain
+    let testToken, dataUnionMainnet, mockAMB, mockTokenMediator
     const adminFeeFraction = 0.1
     const adminFeeFractionWei = w3.utils.toWei(adminFeeFraction.toString())
 
@@ -20,7 +20,7 @@ contract("DataUnionMainnet", accounts => {
     const adminFeeEth = Math.floor(amtEth * adminFeeFraction)
     const amtWei = new BN(w3.utils.toWei(amtEth.toString()), 10)
     const adminFeeWei = new BN(w3.utils.toWei(adminFeeEth.toString()), 10)
-/*
+    /*
     function initialize(
         address _token_mediator,
         address _sidechain_DU_factory,
@@ -57,36 +57,45 @@ contract("DataUnionMainnet", accounts => {
         }),
 
         it("splits revenue correctly", async () => {
-            
-            //send revenue to members[]
+            //send revenue
             assert(await testToken.transfer(dataUnionMainnet.address, amtWei, {from: sender}))
             assertEqual(+(await dataUnionMainnet.unaccountedTokens()), amtWei)
+            assertEvent(await dataUnionMainnet.sendTokensToBridge({from: creator}), "AdminFeeCharged")
+            assertEqual(+(await dataUnionMainnet.unaccountedTokens()), new BN(0))
+            //should do nothing
+            await dataUnionMainnet.sendTokensToBridge({from: creator})
+            assertEqual(+(await dataUnionMainnet.totalAdminFees()), adminFeeWei)
+            assertEqual(+(await dataUnionMainnet.adminFeesWithdrawable()), new BN(0))
+            assertEqual(+(await dataUnionMainnet.totalEarnings()), amtWei.sub(adminFeeWei))
+            assertEqual(+(await testToken.balanceOf(creator)), adminFeeWei)
+
+            //try same with autoSendAdminFee off:
+
+            await assertFails(dataUnionMainnet.setAutoSendAdminFee(false, {from: sender}))
+            dataUnionMainnet.setAutoSendAdminFee(false, {from: creator})
+
+            //send revenue
             assert(await testToken.transfer(dataUnionMainnet.address, amtWei, {from: sender}))
-            assertEqual(+(await dataUnionMainnet.unaccountedTokens()), amtWei.mul(new BN(2)))
+            assertEqual(+(await dataUnionMainnet.unaccountedTokens()), amtWei)
             assertEvent(await dataUnionMainnet.sendTokensToBridge({from: creator}), "AdminFeeCharged")
             assertEqual(+(await dataUnionMainnet.unaccountedTokens()), new BN(0))
             //should do nothing
             await dataUnionMainnet.sendTokensToBridge({from: creator})
             assertEqual(+(await dataUnionMainnet.totalAdminFees()), adminFeeWei.mul(new BN(2)))
-            assertEqual(+(await dataUnionMainnet.adminFeesWithdrawable()), new BN(0))
+            assertEqual(+(await dataUnionMainnet.adminFeesWithdrawable()), adminFeeWei)
             assertEqual(+(await dataUnionMainnet.totalEarnings()), amtWei.sub(adminFeeWei).mul(new BN(2)))
+            assertEqual(+(await testToken.balanceOf(creator)), adminFeeWei)
+            await dataUnionMainnet.withdrawAdminFees({from: sender})
             assertEqual(+(await testToken.balanceOf(creator)), adminFeeWei.mul(new BN(2)))
             
-            
-        }),
-        it("adminFee withdrawal works", async () => {
-            /*
-            // test admin fee withdraw
-            const ownerTokenBefore = await testToken.balanceOf(creator)
-            //no access
-            await assertFails(dataUnionSidechain.withdrawAdminFees(false, {from: unused[1]}))
 
-            assertEvent(await dataUnionSidechain.withdrawAdminFees(false, {from: creator}), "AdminFeesWithdrawn")
-            //should do nothing:
-            await dataUnionSidechain.withdrawAdminFees(false,{from: creator})
-            const ownerTokenAfter = await testToken.balanceOf(creator)
-            assertEqual(ownerTokenAfter.sub(ownerTokenBefore), adminFeeWei.mul(new BN(3)))
-            */
+
+
+
+
+            assert(await testToken.transfer(dataUnionMainnet.address, amtWei, {from: sender}))
+
+            
         })
     })
 })

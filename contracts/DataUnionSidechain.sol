@@ -70,12 +70,13 @@ contract DataUnionSidechain is Ownable {
         address _mainchain_DU
     ) public {
         require(!isInitialized(), "init_once");
-        //set owner at the end. caller needs admin to initialize()
+        //during setup, msg.sender is admin
         owner = msg.sender;
         token = IERC677(token_address);
         addJoinPartAgents(agents);
         token_mediator = _token_mediator;
         mainchain_DU = _mainchain_DU;
+        //transfer to real admin
         owner = _owner;
     }
 
