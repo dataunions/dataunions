@@ -59,7 +59,7 @@ describe("Data Union tests using only ethers.js directly", () => {
         this.timeout(process.env.TEST_TIMEOUT || 300000)
         const member = "0x4178baBE9E5148c6D5fd431cD72884B07Ad855a0"
         const member2 = "0x0101010101010101010010101010101001010101"
-        const duname = "test"+(Date.now())
+        const duname = "test" + Date.now()
         const sendAmount = "1000000000000000000"
         const duMainnet = await deployDataUnion(duname, 0, factoryMainnet, providerSidechain, process.env.TEST_TIMEOUT || 240000)
         const sidechainAddress = await factoryMainnet.sidechainAddress(duMainnet.address)
