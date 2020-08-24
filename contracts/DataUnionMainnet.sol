@@ -5,41 +5,7 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "./PurchaseListener.sol";
 import "./CloneLib.sol";
-
-interface IAMB {
-    function messageSender() external view returns (address);
-
-    function maxGasPerTx() external view returns (uint256);
-
-    function transactionHash() external view returns (bytes32);
-
-    function messageId() external view returns (bytes32);
-
-    function messageSourceChainId() external view returns (bytes32);
-
-    function messageCallStatus(bytes32 _messageId) external view returns (bool);
-
-    function failedMessageDataHash(bytes32 _messageId)
-        external
-        view
-        returns (bytes32);
-
-    function failedMessageReceiver(bytes32 _messageId)
-        external
-        view
-        returns (address);
-
-    function failedMessageSender(bytes32 _messageId)
-        external
-        view
-        returns (address);
-
-    function requireToPassMessage(
-        address _contract,
-        bytes calldata _data,
-        uint256 _gas
-    ) external returns (bytes32);
-}
+import "./IAMB.sol";
 
 interface ITokenMediator {
     function erc677token() external view returns (address);

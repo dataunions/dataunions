@@ -3,42 +3,7 @@ pragma solidity ^0.6.0;
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./CloneLib.sol";
-
-//Tokenbridge Arbitrary Message Bridge
-interface IAMB {
-    function messageSender() external view returns (address);
-
-    function maxGasPerTx() external view returns (uint256);
-
-    function transactionHash() external view returns (bytes32);
-
-    function messageId() external view returns (bytes32);
-
-    function messageSourceChainId() external view returns (bytes32);
-
-    function messageCallStatus(bytes32 _messageId) external view returns (bool);
-
-    function failedMessageDataHash(bytes32 _messageId)
-        external
-        view
-        returns (bytes32);
-
-    function failedMessageReceiver(bytes32 _messageId)
-        external
-        view
-        returns (address);
-
-    function failedMessageSender(bytes32 _messageId)
-        external
-        view
-        returns (address);
-
-    function requireToPassMessage(
-        address _contract,
-        bytes calldata _data,
-        uint256 _gas
-    ) external returns (bytes32);
-}
+import "./IAMB.sol";
 
 interface ITokenMediator {
     function erc677token() external view returns (address);
