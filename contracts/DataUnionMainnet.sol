@@ -61,6 +61,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     address public sidechain_DU_factory;
     uint256 public sidechain_maxgas;
     ERC20 public token;
+
     // needed to compute sidechain address
     address public sidechain_template_DU;
     uint256 public adminFeeFraction;

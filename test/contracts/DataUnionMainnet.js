@@ -87,15 +87,7 @@ contract("DataUnionMainnet", accounts => {
             assertEqual(+(await testToken.balanceOf(creator)), adminFeeWei)
             await dataUnionMainnet.withdrawAdminFees({from: sender})
             assertEqual(+(await testToken.balanceOf(creator)), adminFeeWei.mul(new BN(2)))
-            
-
-
-
-
-
             assert(await testToken.transfer(dataUnionMainnet.address, amtWei, {from: sender}))
-
-            
         })
     })
 })
