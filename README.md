@@ -81,18 +81,18 @@ Alternatively, you can build this setup from scratch. See https://github.com/str
 # Code Samples
 
 Use [libDU](https://github.com/streamr-dev/data-union-solidity/blob/DU-12-move-adminfee-mainnet/util/libDU.js) to deploy DU components:
-  - deployDataUnionFactorySidechain
-  - deployDataUnionFactoryMainnet
-  - getTemplateSidechain
-  - deployDataUnion
-  - getContracts(mainet_address)
+  - `deployDataUnionFactorySidechain`
+  - `deployDataUnionFactoryMainnet`
+  - `getTemplateSidechain`
+  - `deployDataUnion`
+  - `getContracts(mainet_address)`
  
-To deploy fatories: 
-1. deployDataUnionFactorySidechain
-2. deployDataUnionFactoryMainnet, passing deployDataUnionFactorySidechain.address and template from getTemplateSidechain()
+To deploy factories: 
+1. `deployDataUnionFactorySidechain`
+2. `deployDataUnionFactoryMainnet`, passing deployDataUnionFactorySidechain.address and template from `getTemplateSidechain()`
 
 To deploy DU:
-deployDataUnion, passing deployDataUnionFactoryMainnet.address
+`deployDataUnion`, passing deployDataUnionFactoryMainnet.address
 
 Interact with DataUnionMainnet and DataUnionSidechain contracts using Solidity calls once they are deployed.
 
