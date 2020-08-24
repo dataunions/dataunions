@@ -26,22 +26,17 @@ contract("DataUnionSidechain", accounts => {
     const members = accounts.slice(accounts.length / 3, 2 * accounts.length / 3)
     const unused = accounts.slice(2 * accounts.length / 3)
     let testToken, dataUnionSidechain
-    const adminFeeFraction = 0.1
-    const adminFeeFractionWei = w3.utils.toWei(adminFeeFraction.toString())
 
     const amtEth = 100
-    const adminFeeEth = Math.floor(amtEth * adminFeeFraction)
     const amtWei = new BN(w3.utils.toWei(amtEth.toString()), 10)
-    const adminFeeWei = new BN(w3.utils.toWei(adminFeeEth.toString()), 10)
     //earnings from test transfers
-    const earn1 = amtWei.sub(adminFeeWei).div(new BN(members.length))
-    const earn2 = amtWei.sub(adminFeeWei).div(new BN(members.length - 1))
-    const earn3 = amtWei.sub(adminFeeWei).div(new BN(members.length + 1))
+    const earn1 = amtWei.div(new BN(members.length))
+    const earn2 = amtWei.div(new BN(members.length - 1))
+    const earn3 = amtWei.div(new BN(members.length + 1))
 
     /*
  function initialize(
         address token_address,
-        uint256 adminFeeFraction_,
         address[] memory agents,
         address _token_mediator,
         address _mainchain_DU
@@ -52,13 +47,15 @@ contract("DataUnionSidechain", accounts => {
 
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
         //last 2 args are dummy. doesnt talk to mainnet contract in test
-        await dataUnionSidechain.initialize(creator, testToken.address, adminFeeFractionWei, agents,agents[0],agents[0], {from: creator})
+        await dataUnionSidechain.initialize(creator, testToken.address, agents,agents[0],agents[0], {from: creator})
         await testToken.mint(creator, w3.utils.toWei("10000"), { from: creator })
         await dataUnionSidechain.addMembers(members, {from: agents[1]})
+        /*
         console.log(`creator: ${creator}`)
         console.log(`agents: ${JSON.stringify(agents)}`)
         console.log(`members: ${JSON.stringify(members)}`)
         console.log(`unused: ${JSON.stringify(unused)}`)
+        */
     }),
     describe("Basic Functions", () => {
         it("add/remove members", async () => {
@@ -95,15 +92,14 @@ contract("DataUnionSidechain", accounts => {
 
         }),
 
-        it("distributes revenue correctly", async () => {
+        it("distributes earnings correctly", async () => {
             //send revenue to members[]
             assert(await testToken.transfer(dataUnionSidechain.address, amtWei))
             await dataUnionSidechain.addRevenue({from: unused[1]})
             //should do nothing:
             await dataUnionSidechain.addRevenue({from: unused[1]})
 
-            assertEqual(+(await dataUnionSidechain.totalAdminFees()), adminFeeWei)
-            assertEqual(+(await dataUnionSidechain.totalRevenue()), amtWei)
+            assertEqual(+(await dataUnionSidechain.totalEarnings()), amtWei)
             assertEqual(+(await dataUnionSidechain.getEarnings(members[0])), earn1)
 
             //drop a member, send tokens, check accounting
@@ -147,16 +143,6 @@ contract("DataUnionSidechain", accounts => {
             assertEvent(await dataUnionSidechain.withdrawAllToSigned(members[1], unused[2], false, sig, {from: unused[2]}), "EarningsWithdrawn")
             assertEqual(+(await testToken.balanceOf(unused[2])), member1earnings)
 
-            // test admin fee withdraw
-            const ownerTokenBefore = await testToken.balanceOf(creator)
-            //no access
-            await assertFails(dataUnionSidechain.withdrawAdminFees(false, {from: unused[1]}))
-
-            assertEvent(await dataUnionSidechain.withdrawAdminFees(false, {from: creator}), "AdminFeesWithdrawn")
-            //should do nothing:
-            await dataUnionSidechain.withdrawAdminFees(false,{from: creator})
-            const ownerTokenAfter = await testToken.balanceOf(creator)
-            assertEqual(ownerTokenAfter.sub(ownerTokenBefore), adminFeeWei.mul(new BN(3)))
         })
     }),
     describe("In-Contract Transfers", () => {
