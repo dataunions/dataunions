@@ -1,3 +1,5 @@
+pragma solidity ^0.6.0;
+
 // Tokenbridge Arbitrary Message Bridge
 interface IAMB {
     function messageSender() external view returns (address);
