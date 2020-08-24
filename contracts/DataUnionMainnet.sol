@@ -108,9 +108,8 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         return address(token) != address(0);
     }
 
-        /**
+    /**
      * Admin fee as a fraction of revenue.
-     * Smart contract doesn't use it, it's here just for storing purposes.
      * @param newAdminFee fixed-point decimal in the same way as ether: 50% === 0.5 ether === "500000000000000000"
      */
     function setAdminFee(uint256 newAdminFee) public onlyOwner {
