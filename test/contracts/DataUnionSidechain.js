@@ -59,26 +59,26 @@ contract("DataUnionSidechain", accounts => {
     }),
     describe("Basic Functions", () => {
         it("add/remove members", async () => {
-            const initial_member_count  = +(await dataUnionSidechain.active_members())
+            const initial_member_count  = +(await dataUnionSidechain.activeMemberCount())
             assertEqual(initial_member_count, members.length)
             await assertFails(dataUnionSidechain.addMembers(unused, {from: creator}))
 
             assertEvent(await dataUnionSidechain.addMembers(unused, {from: agents[0]}), "MemberJoined")
-            var member_count = await dataUnionSidechain.active_members()
+            var member_count = await dataUnionSidechain.activeMemberCount()
             assertEqual(initial_member_count + unused.length, member_count)
 
             assertEvent(await dataUnionSidechain.partMembers(unused, {from: agents[0]}), "MemberParted")
-            member_count = await dataUnionSidechain.active_members()
+            member_count = await dataUnionSidechain.activeMemberCount()
             assertEqual(initial_member_count, member_count)
         }),
 
         it("add/remove joinPartAgents", async () => {
             //add agent
             await assertFails(dataUnionSidechain.addMember(unused[1], {from: unused[0]}))
-            var jpCount = +(await dataUnionSidechain.join_part_agent_count())
+            var jpCount = +(await dataUnionSidechain.joinPartAgentCount())
             assertEqual(jpCount, agents.length)
             assertEvent(await dataUnionSidechain.addJoinPartAgent(unused[0], {from: creator}), "JoinPartAgentAdded")
-            jpCount = +(await dataUnionSidechain.join_part_agent_count())
+            jpCount = +(await dataUnionSidechain.joinPartAgentCount())
             assertEqual(jpCount, agents.length + 1)
             assertEvent(await dataUnionSidechain.addMember(unused[1], {from: agents[0]}), "MemberJoined")
             assertEvent(await dataUnionSidechain.partMember(unused[1], {from: agents[0]}), "MemberParted")
@@ -86,7 +86,7 @@ contract("DataUnionSidechain", accounts => {
             //remove agent
             assertEvent(await dataUnionSidechain.removeJoinPartAgent(unused[0], {from: creator}), "JoinPartAgentRemoved")
             await assertFails(dataUnionSidechain.addMember(unused[1], {from: unused[0]}))
-            jpCount = +(await dataUnionSidechain.join_part_agent_count())
+            jpCount = +(await dataUnionSidechain.joinPartAgentCount())
             assertEqual(jpCount, agents.length)
 
 
