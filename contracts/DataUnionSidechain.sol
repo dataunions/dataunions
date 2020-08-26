@@ -17,16 +17,12 @@ contract DataUnionSidechain is Ownable {
     event JoinPartAgentAdded(address indexed);
     event JoinPartAgentRemoved(address indexed);
 
-    event AdminFeeChanged(uint256 adminFee);
-
     //emitted when revenue received
     event RevenueReceived(uint256 amount);
     event NewEarnings(uint256 earningsPerMember, uint256 activeMemberCount);
-    event AdminFeeCharged(uint256 amount);
 
     //emitted by withdrawal
     event EarningsWithdrawn(address indexed member, uint256 amount);
-    event AdminFeesWithdrawn(address indexed admin, uint256 amount);
 
     //in-contract transfers
     event TransferWithinContract(address indexed from, address indexed to, uint amount);
@@ -41,23 +37,11 @@ contract DataUnionSidechain is Ownable {
     }
 
     IERC677 public token;
-    uint256 public adminFeeFraction;
     address public tokenMediator;
     address public dataUnionMainnet;
 
-/*
-    totalEarnings includes:
-         member earnings (ie revenue - admin fees)
-         tokens held for members via transferToMemberInContract()
-
-    totalRevenue = totalEarnings + totalAdminFees;
-*/
     uint256 public totalEarnings;
     uint256 public totalEarningsWithdrawn;
-
-    //only adminFee
-    uint256 public totalAdminFees;
-    uint256 public totalAdminFeesWithdrawn;
 
     uint256 public activeMemberCount;
     uint256 public lifetimeMemberEarnings;
@@ -77,7 +61,6 @@ contract DataUnionSidechain is Ownable {
     function initialize(
         address initialOwner,
         address tokenAddress,
-        uint256 initialAdminFeeFraction,
         address[] memory initialJoinPartAgents,
         address tokenMediatorAddress,
         address mainnetDataUnionAddress
@@ -85,7 +68,6 @@ contract DataUnionSidechain is Ownable {
         require(!isInitialized(), "error_alreadyInitialized");
         owner = msg.sender; // set real owner at the end. During initialize, addJoinPartAgents can be called by owner only
         token = IERC677(tokenAddress);
-        setAdminFee(initialAdminFeeFraction);
         addJoinPartAgents(initialJoinPartAgents);
         tokenMediator = tokenMediatorAddress;
         dataUnionMainnet = mainnetDataUnionAddress;
@@ -109,16 +91,7 @@ contract DataUnionSidechain is Ownable {
         }
     }
 
-    /**
-     * Admin fee as a fraction of revenue.
-     * Smart contract doesn't use it, it's here just for storing purposes.
-     * @param newAdminFee fixed-point decimal in the same way as ether: 50% === 0.5 ether === "500000000000000000"
-     */
-    function setAdminFee(uint256 newAdminFee) public onlyOwner {
-        require(newAdminFee <= 1 ether, "error_adminFee");
-        adminFeeFraction = newAdminFee;
-        emit AdminFeeChanged(adminFeeFraction);
-    }
+
 
     function addJoinPartAgents(address[] memory agents) public onlyOwner {
         for (uint256 i = 0; i < agents.length; i++) {
@@ -162,21 +135,20 @@ contract DataUnionSidechain is Ownable {
         return getEarnings(member).sub(getWithdrawn(member));
     }
 
+    /**
+     * Process unaccounted tokens that have been sent previously
+     * Called by AMB (see DataUnionMainnet:sendTokensToBridge)
+     */
     function addRevenue() public returns (uint256) {
         uint256 balance = token.balanceOf(address(this));
-        uint256 amount = balance.sub(totalWithdrawable()); // a.sub(b) errors if b > a
-        if (amount == 0) return 0;
-        uint256 adminFee = amount.mul(adminFeeFraction).div(10**18);
-        uint256 memberEarnings = amount.sub(adminFee);
-        uint256 earningsPerMember = memberEarnings.div(activeMemberCount);
+        uint256 revenue = balance.sub(totalWithdrawable()); // a.sub(b) errors if b > a
+        if (revenue == 0) return 0;
+        uint256 earningsPerMember = revenue.div(activeMemberCount);
         lifetimeMemberEarnings = lifetimeMemberEarnings.add(earningsPerMember);
-        totalEarnings = totalEarnings.add(memberEarnings);
-        totalAdminFees = totalAdminFees.add(adminFee);
-
-        emit RevenueReceived(amount);
+        totalEarnings = totalEarnings.add(revenue);
+        emit RevenueReceived(revenue);
         emit NewEarnings(earningsPerMember, activeMemberCount);
-        emit AdminFeeCharged(adminFee);
-        return amount;
+        return revenue;
     }
 
     function addMember(address member) public onlyJoinPartAgent {
@@ -211,15 +183,10 @@ contract DataUnionSidechain is Ownable {
         }
     }
 
-    function totalRevenue() public view returns (uint256) {
-        return totalEarnings.add(totalAdminFees);
-    }
 
     function totalWithdrawable() public view returns (uint256) {
         return
-            totalRevenue().sub(totalEarningsWithdrawn).sub(
-                totalAdminFeesWithdrawn
-            );
+            totalEarnings.sub(totalEarningsWithdrawn);
     }
 
     /*
@@ -321,24 +288,6 @@ contract DataUnionSidechain is Ownable {
         else require(token.transfer(to, amount), "transfer_failed");
         emit EarningsWithdrawn(from, amount);
         return amount;
-    }
-
-    function withdrawAdminFees(bool sendToMainnet) onlyOwner public returns (uint256) {
-        uint256 withdrawable = totalAdminFees.sub(totalAdminFeesWithdrawn);
-        if (withdrawable == 0) return 0;
-        totalAdminFeesWithdrawn = totalAdminFeesWithdrawn.add(withdrawable);
-        if (sendToMainnet)
-            require(
-                token.transferAndCall(
-                    tokenMediator,
-                    withdrawable,
-                    toBytes(owner)
-                ),
-                "transfer_failed"
-            );
-        else require(token.transfer(owner, withdrawable), "transfer_failed");
-        emit AdminFeesWithdrawn(owner, withdrawable);
-        return withdrawable;
     }
 
     /**

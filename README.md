@@ -80,5 +80,20 @@ Alternatively, you can build this setup from scratch. See https://github.com/str
 
 # Code Samples
 
-There is an end-to-end [test](https://github.com/streamr-dev/data-union-solidity/blob/master/test/e2e/usingPlainEthers.js) that shows how to use all major features from factory creation to withdrawal. The test runs against the docker setup described above. 
+Use [libDU](https://github.com/streamr-dev/data-union-solidity/blob/DU-12-move-adminfee-mainnet/util/libDU.js) to deploy DU components:
+  - `deployDataUnionFactorySidechain`
+  - `deployDataUnionFactoryMainnet`
+  - `getTemplateSidechain`
+  - `deployDataUnion`
+  - `getContracts(mainet_address)`
+ 
+To deploy factories: 
+1. `deployDataUnionFactorySidechain`
+2. `deployDataUnionFactoryMainnet`, passing deployDataUnionFactorySidechain.address and template from `getTemplateSidechain()`
 
+To deploy DU:
+`deployDataUnion`, passing deployDataUnionFactoryMainnet.address
+
+Interact with DataUnionMainnet and DataUnionSidechain contracts using Solidity calls once they are deployed.
+
+See the [end-to-end test](https://github.com/streamr-dev/data-union-solidity/blob/master/test/e2e/usingPlainEthers.js) that shows how to use all major features from factory creation to withdrawal. The test runs against the docker setup described above.

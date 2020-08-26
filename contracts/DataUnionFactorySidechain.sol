@@ -35,7 +35,6 @@ contract DataUnionFactorySidechain {
 /*
     initialize(address _owner,
         address token_address,
-        uint256 adminFeeFraction_,
         address[] memory agents,
         address _token_mediator,
         address _mainchain_DU)
@@ -43,14 +42,13 @@ contract DataUnionFactorySidechain {
 
     users can only deploy with salt = their key.
 */
-    function deployNewDUSidechain(address owner, uint256 adminFeeFraction, address[] memory agents) public returns (address) {
+    function deployNewDUSidechain(address owner, address[] memory agents) public returns (address) {
         //if the request didnt come from AMB, use the sender's address as the corresponding "mainnet" address
         address du_mainnet = msg.sender == address(amb) ? amb.messageSender() : msg.sender;
         bytes32 salt = bytes32(uint256(du_mainnet));
-        bytes memory data = abi.encodeWithSignature("initialize(address,address,uint256,address[],address,address)",
+        bytes memory data = abi.encodeWithSignature("initialize(address,address,address[],address,address)",
             owner,
             token_mediator.erc677token(),
-            adminFeeFraction,
             agents,
             address(token_mediator),
             du_mainnet

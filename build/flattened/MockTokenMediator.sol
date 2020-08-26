@@ -721,96 +721,38 @@ contract ERC20 is Context, IERC20 {
     function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual { }
 }
 
-// File: openzeppelin-solidity/contracts/access/Ownable.sol
-
-// SPDX-License-Identifier: MIT
+// File: contracts/MockTokenMediator.sol
 
 pragma solidity ^0.6.0;
 
-/**
- * @dev Contract module which provides a basic access control mechanism, where
- * there is an account (an owner) that can be granted exclusive access to
- * specific functions.
- *
- * By default, the owner account will be the one that deploys the contract. This
- * can later be changed with {transferOwnership}.
- *
- * This module is used through inheritance. It will make available the modifier
- * `onlyOwner`, which can be applied to your functions to restrict their use to
- * the owner.
- */
-contract Ownable is Context {
-    address private _owner;
 
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    /**
-     * @dev Initializes the contract setting the deployer as the initial owner.
-     */
-    constructor () internal {
-        address msgSender = _msgSender();
-        _owner = msgSender;
-        emit OwnershipTransferred(address(0), msgSender);
-    }
-
-    /**
-     * @dev Returns the address of the current owner.
-     */
-    function owner() public view returns (address) {
-        return _owner;
-    }
-
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
-    modifier onlyOwner() {
-        require(_owner == _msgSender(), "Ownable: caller is not the owner");
-        _;
-    }
-
-    /**
-     * @dev Leaves the contract without owner. It will not be possible to call
-     * `onlyOwner` functions anymore. Can only be called by the current owner.
-     *
-     * NOTE: Renouncing ownership will leave the contract without an owner,
-     * thereby removing any functionality that is only available to the owner.
-     */
-    function renounceOwnership() public virtual onlyOwner {
-        emit OwnershipTransferred(_owner, address(0));
-        _owner = address(0);
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Can only be called by the current owner.
-     */
-    function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
-        emit OwnershipTransferred(_owner, newOwner);
-        _owner = newOwner;
-    }
+interface ITokenMediator {
+    function erc677token() external view returns (address);
+    function bridgeContract() external view returns (address);
+    function relayTokens(address _from, address _receiver, uint256 _value) external;
 }
 
-// File: contracts/ERC20Mintable.sol
-
-pragma solidity ^0.6.0;
-
-
-
-/**
- * ERC20Mintable that is missing from openzeppelin-contracts 3.x
- */
-contract ERC20Mintable is ERC20, Ownable {
-    constructor (string memory name, string memory symbol) public ERC20(name, symbol) {
-        // solhint-disable-previous-line no-empty-blocks
+contract MockTokenMediator is ITokenMediator {
+    ERC20 public token;
+    address public amb;
+    constructor(address _token, address _amb) public {
+        token = ERC20(_token);
+        amb = _amb;
     }
 
-    /**
-     * Token contract owner can create tokens
-     * @param recipient address where new tokens are transferred (from 0x0)
-     * @param amount scaled so that 10^18 equals 1 token (multiply by 10^18)
-     */
-    function mint(address recipient, uint amount) external onlyOwner {
-        _mint(recipient, amount);
+    function erc677token() override public view returns (address) {
+        return address(token);
     }
+
+    function bridgeContract() override public view returns (address) {
+        return amb;
+    } 
+
+    /*
+        transfers to address on local network
+    */
+    function relayTokens(address _from, address _receiver, uint256 _value) override public {
+        require(token.transferFrom(_from, _receiver, _value), "transfer_failed2");
+    }
+
 }
