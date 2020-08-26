@@ -28,7 +28,6 @@ contract DataUnionSidechain is Ownable {
     event TransferWithinContract(address indexed from, address indexed to, uint amount);
     event TransferToAddressInContract(address indexed from, address indexed to, uint amount);
 
-
     struct MemberInfo {
         ActiveStatus status;
         uint256 earningsBeforeLastJoin;
@@ -183,10 +182,8 @@ contract DataUnionSidechain is Ownable {
         }
     }
 
-
     function totalWithdrawable() public view returns (uint256) {
-        return
-            totalEarnings.sub(totalEarningsWithdrawn);
+        return totalEarnings.sub(totalEarningsWithdrawn);
     }
 
     /*
@@ -263,10 +260,10 @@ contract DataUnionSidechain is Ownable {
         _withdrawTo(msg.sender, to, amount, sendToMainnet);
     }
 
-    /*
-        internal helper method. does NOT check access.
-    */
-
+    /**
+     * Internal function common to all withdraw methods.
+     * Does NOT check proper access, so all callers must do that first.
+     */
     function _withdrawTo(address from, address to, uint amount, bool sendToMainnet)
         internal
         returns (uint256)
@@ -326,11 +323,22 @@ contract DataUnionSidechain is Ownable {
         return calculatedSigner == signer;
     }
 
-    function withdrawAllToSigned(address fromSigner, address to, bool sendToMainnet, bytes memory signature) public returns (uint withdrawn){
+    function withdrawAllToSigned(
+        address fromSigner,
+        address to,
+        bool sendToMainnet,
+        bytes memory signature
+    ) public returns (uint withdrawn) {
         return withdrawToSigned(fromSigner, to, getWithdrawableEarnings(fromSigner), sendToMainnet, signature);
     }
 
-    function withdrawToSigned(address fromSigner, address to, uint amount, bool sendToMainnet, bytes memory signature) public returns (uint withdrawn){
+    function withdrawToSigned(
+        address fromSigner,
+        address to,
+        uint amount,
+        bool sendToMainnet,
+        bytes memory signature
+    ) public returns (uint withdrawn) {
         require(signatureIsValid(fromSigner, to, amount, signature), "error_badSignature");
         return _withdrawTo(fromSigner, to, amount, sendToMainnet);
     }
