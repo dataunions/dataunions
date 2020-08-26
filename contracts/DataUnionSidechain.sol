@@ -17,10 +17,9 @@ contract DataUnionSidechain is Ownable {
     event JoinPartAgentAdded(address indexed);
     event JoinPartAgentRemoved(address indexed);
 
-
     //emitted when revenue received
-    event EarningsReceived(uint256 amount);
-    event MemberEarn(uint256 per_member_earn, uint256 active_members);
+    event RevenueReceived(uint256 amount);
+    event NewEarnings(uint256 earningsPerMember, uint256 activeMemberCount);
 
     //emitted by withdrawal
     event EarningsWithdrawn(address indexed member, uint256 amount);
@@ -32,52 +31,47 @@ contract DataUnionSidechain is Ownable {
 
     struct MemberInfo {
         ActiveStatus status;
-        uint256 earnings_before_last_join;
-        uint256 lme_at_join;
+        uint256 earningsBeforeLastJoin;
+        uint256 lmeAtJoin;
         uint256 withdrawnEarnings;
     }
 
     IERC677 public token;
-    address public token_mediator;
-    address public mainchain_DU;
+    address public tokenMediator;
+    address public dataUnionMainnet;
 
     uint256 public totalEarnings;
     uint256 public totalEarningsWithdrawn;
 
-    uint256 public active_members;
-    uint256 public lifetime_member_earnings;
+    uint256 public activeMemberCount;
+    uint256 public lifetimeMemberEarnings;
 
-    uint256 public join_part_agent_count;
+    uint256 public joinPartAgentCount;
     mapping(address => MemberInfo) public memberData;
     mapping(address => ActiveStatus) public joinPartAgents;
 
     modifier onlyJoinPartAgent() {
-        require(
-            joinPartAgents[msg.sender] == ActiveStatus.Active,
-            "onlyJoinPartAgent"
-        );
+        require(joinPartAgents[msg.sender] == ActiveStatus.Active, "error_onlyJoinPartAgent");
         _;
     }
 
-    //owner set by initialize()
+    // owner will be set by initialize()
     constructor() public Ownable(address(0)) {}
 
     function initialize(
-        address _owner,
-        address token_address,
-        address[] memory agents,
-        address _token_mediator,
-        address _mainchain_DU
+        address initialOwner,
+        address tokenAddress,
+        address[] memory initialJoinPartAgents,
+        address tokenMediatorAddress,
+        address mainnetDataUnionAddress
     ) public {
-        require(!isInitialized(), "init_once");
-        //during setup, msg.sender is admin
-        owner = msg.sender;
-        token = IERC677(token_address);
-        addJoinPartAgents(agents);
-        token_mediator = _token_mediator;
-        mainchain_DU = _mainchain_DU;
-        //transfer to real admin
-        owner = _owner;
+        require(!isInitialized(), "error_alreadyInitialized");
+        owner = msg.sender; // set real owner at the end. During initialize, addJoinPartAgents can be called by owner only
+        token = IERC677(tokenAddress);
+        addJoinPartAgents(initialJoinPartAgents);
+        tokenMediator = tokenMediatorAddress;
+        dataUnionMainnet = mainnetDataUnionAddress;
+        owner = initialOwner;
     }
 
     function isInitialized() public view returns (bool){
@@ -106,87 +100,73 @@ contract DataUnionSidechain is Ownable {
     }
 
     function addJoinPartAgent(address agent) public onlyOwner {
-        require(joinPartAgents[agent] != ActiveStatus.Active, "jpagent_active");
+        require(joinPartAgents[agent] != ActiveStatus.Active, "error_alreadyActiveAgent");
         joinPartAgents[agent] = ActiveStatus.Active;
         emit JoinPartAgentAdded(agent);
-        join_part_agent_count = join_part_agent_count.add(1);
+        joinPartAgentCount = joinPartAgentCount.add(1);
     }
 
     function removeJoinPartAgent(address agent) public onlyOwner {
-        require(
-            joinPartAgents[agent] == ActiveStatus.Active,
-            "jpagent_not_active"
-        );
+        require(joinPartAgents[agent] == ActiveStatus.Active, "error_notActiveAgent");
         joinPartAgents[agent] = ActiveStatus.Inactive;
         emit JoinPartAgentRemoved(agent);
-        join_part_agent_count = join_part_agent_count.sub(1);
+        joinPartAgentCount = joinPartAgentCount.sub(1);
     }
 
     function getEarnings(address member) public view returns (uint256) {
         MemberInfo storage info = memberData[member];
-        require(info.status != ActiveStatus.None, "member_unknown");
+        require(info.status != ActiveStatus.None, "error_notMember");
         return
-            info.earnings_before_last_join +
+            info.earningsBeforeLastJoin +
             (
                 info.status == ActiveStatus.Active
-                    ? lifetime_member_earnings.sub(info.lme_at_join)
+                    ? lifetimeMemberEarnings.sub(info.lmeAtJoin)
                     : 0
             );
     }
 
     function getWithdrawn(address member) public view returns (uint256) {
         MemberInfo storage info = memberData[member];
-        require(info.status != ActiveStatus.None, "member_unknown");
+        require(info.status != ActiveStatus.None, "error_notMember");
         return info.withdrawnEarnings;
     }
 
-    function getWithdrawableEarnings(address member)
-        public
-        view
-        returns (uint256)
-    {
+    function getWithdrawableEarnings(address member) public view returns (uint256) {
         return getEarnings(member).sub(getWithdrawn(member));
     }
 
     /**
-        process unaccounted tokens
-    */
-
+     * Process unaccounted tokens that have been sent previously
+     * Called by AMB (see DataUnionMainnet:sendTokensToBridge)
+     */
     function addRevenue() public returns (uint256) {
         uint256 balance = token.balanceOf(address(this));
-        uint256 memberEarnings = balance.sub(totalWithdrawable()); // a.sub(b) errors if b > a
-        if (memberEarnings == 0) return 0;
-        uint256 per_member_earn = memberEarnings.div(active_members);
-        lifetime_member_earnings = lifetime_member_earnings.add(
-            per_member_earn
-        );
-        totalEarnings = totalEarnings.add(memberEarnings);
-
-        emit EarningsReceived(memberEarnings);
-        emit MemberEarn(per_member_earn, active_members);
-        return memberEarnings;
+        uint256 revenue = balance.sub(totalWithdrawable()); // a.sub(b) errors if b > a
+        if (revenue == 0) return 0;
+        uint256 earningsPerMember = revenue.div(activeMemberCount);
+        lifetimeMemberEarnings = lifetimeMemberEarnings.add(earningsPerMember);
+        totalEarnings = totalEarnings.add(revenue);
+        emit RevenueReceived(revenue);
+        emit NewEarnings(earningsPerMember, activeMemberCount);
+        return revenue;
     }
 
     function addMember(address member) public onlyJoinPartAgent {
         MemberInfo storage info = memberData[member];
-        require(info.status != ActiveStatus.Active, "member_already_active");
+        require(info.status != ActiveStatus.Active, "error_alreadyMember");
         info.status = ActiveStatus.Active;
-        info.lme_at_join = lifetime_member_earnings;
-        active_members = active_members.add(1);
+        info.lmeAtJoin = lifetimeMemberEarnings;
+        activeMemberCount = activeMemberCount.add(1);
         emit MemberJoined(member);
     }
 
     function partMember(address member) public {
-        require(
-            msg.sender == member ||
-                joinPartAgents[msg.sender] == ActiveStatus.Active,
-            "access_denied"
-        );
+        require(msg.sender == member || joinPartAgents[msg.sender] == ActiveStatus.Active, "error_notPermitted");
         MemberInfo storage info = memberData[member];
-        require(info.status == ActiveStatus.Active, "member_not_active");
-        info.earnings_before_last_join = getEarnings(member);
+        require(info.status == ActiveStatus.Active, "error_notActiveMember");
+        info.earningsBeforeLastJoin = getEarnings(member);
         info.status = ActiveStatus.Inactive;
-        active_members = active_members.sub(1);
+        activeMemberCount = activeMemberCount.sub(1);
         emit MemberParted(member);
     }
 
@@ -240,7 +220,7 @@ contract DataUnionSidechain is Ownable {
 
     function _increaseBalance(address member, uint amount) internal {
         MemberInfo storage info = memberData[member];
-        info.earnings_before_last_join = info.earnings_before_last_join.add(amount);
+        info.earningsBeforeLastJoin = info.earningsBeforeLastJoin.add(amount);
     }
 
     function withdrawMembers(address[] memory members, bool sendToMainnet)
@@ -253,7 +233,7 @@ contract DataUnionSidechain is Ownable {
         }
         return withdrawn;
     }
-    
+
     function withdrawAll(address member, bool sendToMainnet)
         public
         returns (uint256)
@@ -271,7 +251,7 @@ contract DataUnionSidechain is Ownable {
 
     function withdrawAllTo(address to, bool sendToMainnet)
         public
-        returns (uint256) 
+        returns (uint256)
     {
         withdrawTo(to, getWithdrawableEarnings(msg.sender), sendToMainnet);
     }
@@ -284,7 +264,7 @@ contract DataUnionSidechain is Ownable {
     }
 
     /*
-        internal helper method. does NOT check access. 
+        internal helper method. does NOT check access.
     */
 
     function _withdrawTo(address from, address to, uint amount, bool sendToMainnet)
@@ -299,7 +279,7 @@ contract DataUnionSidechain is Ownable {
         if (sendToMainnet)
             require(
                 token.transferAndCall(
-                    token_mediator,
+                    tokenMediator,
                     amount,
                     toBytes(to)
                 ),
@@ -309,7 +289,6 @@ contract DataUnionSidechain is Ownable {
         emit EarningsWithdrawn(from, amount);
         return amount;
     }
-
 
     /**
      * Check signature from a member authorizing withdrawing its earnings to another account.
@@ -346,13 +325,13 @@ contract DataUnionSidechain is Ownable {
 
         return calculatedSigner == signer;
     }
-    
-    function withdrawAllToSigned(address from_signer, address to, bool sendToMainnet, bytes memory signature) public returns (uint withdrawn){
-        return withdrawToSigned(from_signer, to, getWithdrawableEarnings(from_signer), sendToMainnet, signature);
+
+    function withdrawAllToSigned(address fromSigner, address to, bool sendToMainnet, bytes memory signature) public returns (uint withdrawn){
+        return withdrawToSigned(fromSigner, to, getWithdrawableEarnings(fromSigner), sendToMainnet, signature);
     }
 
-    function withdrawToSigned(address from_signer, address to, uint amount, bool sendToMainnet, bytes memory signature) public returns (uint withdrawn){
-        require(signatureIsValid(from_signer, to, amount, signature), "error_badSignature");
-        return _withdrawTo(from_signer, to, amount, sendToMainnet);
+    function withdrawToSigned(address fromSigner, address to, uint amount, bool sendToMainnet, bytes memory signature) public returns (uint withdrawn){
+        require(signatureIsValid(fromSigner, to, amount, signature), "error_badSignature");
+        return _withdrawTo(fromSigner, to, amount, sendToMainnet);
     }
 }
