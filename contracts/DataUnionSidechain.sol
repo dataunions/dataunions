@@ -28,7 +28,6 @@ contract DataUnionSidechain is Ownable {
     event TransferWithinContract(address indexed from, address indexed to, uint amount);
     event TransferToAddressInContract(address indexed from, address indexed to, uint amount);
 
-
     struct MemberInfo {
         ActiveStatus status;
         uint256 earningsBeforeLastJoin;
@@ -183,10 +182,8 @@ contract DataUnionSidechain is Ownable {
         }
     }
 
-
     function totalWithdrawable() public view returns (uint256) {
-        return
-            totalEarnings.sub(totalEarningsWithdrawn);
+        return totalEarnings.sub(totalEarningsWithdrawn);
     }
 
     /*
@@ -195,9 +192,9 @@ contract DataUnionSidechain is Ownable {
 
     function transferToMemberInContract(address recipient, uint amount) public {
         uint bal_before = token.balanceOf(address(this));
-        require(token.transferFrom(msg.sender, address(this), amount), "transfer_failed");
+        require(token.transferFrom(msg.sender, address(this), amount), "error_transfer");
         uint bal_after = token.balanceOf(address(this));
-        require(bal_after.sub(bal_before) >= amount, "transfer_failed");
+        require(bal_after.sub(bal_before) >= amount, "error_transfer");
         _increaseBalance(recipient,  amount);
         totalEarnings = totalEarnings.add(amount);
         emit TransferToAddressInContract(msg.sender, recipient,  amount);
@@ -211,7 +208,7 @@ contract DataUnionSidechain is Ownable {
      * @param amount how much withdrawable earnings is transferred
      */
     function transferWithinContract(address recipient, uint amount) public {
-        require(getWithdrawableEarnings(msg.sender) >= amount, "insufficient_balance");
+        require(getWithdrawableEarnings(msg.sender) >= amount, "error_insufficientBalance");
         MemberInfo storage info = memberData[msg.sender];
         info.withdrawnEarnings = info.withdrawnEarnings.add(amount);
         _increaseBalance(recipient,  amount);
@@ -245,7 +242,7 @@ contract DataUnionSidechain is Ownable {
         public
         returns (uint256)
     {
-        require(msg.sender == member || msg.sender == owner, "permission_denied");
+        require(msg.sender == member || msg.sender == owner, "error_notPermitted");
         _withdrawTo(member, member, amount, sendToMainnet);
     }
 
@@ -263,16 +260,16 @@ contract DataUnionSidechain is Ownable {
         _withdrawTo(msg.sender, to, amount, sendToMainnet);
     }
 
-    /*
-        internal helper method. does NOT check access.
-    */
-
+    /**
+     * Internal function common to all withdraw methods.
+     * Does NOT check proper access, so all callers must do that first.
+     */
     function _withdrawTo(address from, address to, uint amount, bool sendToMainnet)
         internal
         returns (uint256)
     {
         if (amount == 0) return 0;
-        require(amount <= getWithdrawableEarnings(from), "insufficient_funds");
+        require(amount <= getWithdrawableEarnings(from), "error_insufficientBalance");
         MemberInfo storage info = memberData[from];
         info.withdrawnEarnings = info.withdrawnEarnings.add(amount);
         totalEarningsWithdrawn = totalEarningsWithdrawn.add(amount);
@@ -283,9 +280,9 @@ contract DataUnionSidechain is Ownable {
                     amount,
                     toBytes(to)
                 ),
-                "transfer_failed"
+                "error_transfer"
             );
-        else require(token.transfer(to, amount), "transfer_failed");
+        else require(token.transfer(to, amount), "error_transfer");
         emit EarningsWithdrawn(from, amount);
         return amount;
     }
@@ -326,11 +323,50 @@ contract DataUnionSidechain is Ownable {
         return calculatedSigner == signer;
     }
 
-    function withdrawAllToSigned(address fromSigner, address to, bool sendToMainnet, bytes memory signature) public returns (uint withdrawn){
-        return withdrawToSigned(fromSigner, to, getWithdrawableEarnings(fromSigner), sendToMainnet, signature);
+    /**
+     * Do an "unlimited donate withdraw" on behalf of someone else, to an address they've specified.
+     * Sponsored withdraw is paid by admin, but target account could be whatever the member specifies.
+     * The signature gives a "blank cheque" for admin to withdraw all tokens to `recipient` in the future,
+     *   and it's valid until next withdraw (and so can be nullified by withdrawing any amount).
+     * A new signature needs to be obtained for each subsequent future withdraw.
+     * @param fromSigner whose earnings are being withdrawn
+     * @param to the address the tokens will be sent to (instead of `msg.sender`)
+     * @param sendToMainnet if the tokens should be sent to mainnet or only withdrawn into sidechain address
+     * @param signature from the member, see `signatureIsValid` how signature generated for unlimited amount
+     */
+    function withdrawAllToSigned(
+        address fromSigner,
+        address to,
+        bool sendToMainnet,
+        bytes memory signature
+    )
+        public
+        returns (uint withdrawn)
+    {
+        require(signatureIsValid(fromSigner, to, 0, signature), "error_badSignature");
+        return _withdrawTo(fromSigner, to, getWithdrawableEarnings(fromSigner), sendToMainnet);
     }
 
-    function withdrawToSigned(address fromSigner, address to, uint amount, bool sendToMainnet, bytes memory signature) public returns (uint withdrawn){
+    /**
+     * Do a "donate withdraw" on behalf of someone else, to an address they've specified.
+     * Sponsored withdraw is paid by admin, but target account could be whatever the member specifies.
+     * The signature is valid only for given amount of tokens that may be different from maximum withdrawable tokens.
+     * @param fromSigner whose earnings are being withdrawn
+     * @param to the address the tokens will be sent to (instead of `msg.sender`)
+     * @param amount of tokens to withdraw
+     * @param sendToMainnet if the tokens should be sent to mainnet or only withdrawn into sidechain address
+     * @param signature from the member, see `signatureIsValid` how signature generated for unlimited amount
+     */
+    function withdrawToSigned(
+        address fromSigner,
+        address to,
+        uint amount,
+        bool sendToMainnet,
+        bytes memory signature
+    )
+        public
+        returns (uint withdrawn)
+    {
         require(signatureIsValid(fromSigner, to, amount, signature), "error_badSignature");
         return _withdrawTo(fromSigner, to, amount, sendToMainnet);
     }
