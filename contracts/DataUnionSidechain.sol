@@ -47,6 +47,9 @@ contract DataUnionSidechain is Ownable {
     uint256 public lifetimeMemberEarnings;
 
     uint256 public joinPartAgentCount;
+
+    uint public newMemberEth;
+
     mapping(address => MemberInfo) public memberData;
     mapping(address => ActiveStatus) public joinPartAgents;
 
@@ -57,6 +60,9 @@ contract DataUnionSidechain is Ownable {
 
     // owner will be set by initialize()
     constructor() public Ownable(address(0)) {}
+
+    //contract is payable
+    receive() external payable {}
 
     function initialize(
         address initialOwner,
@@ -91,7 +97,9 @@ contract DataUnionSidechain is Ownable {
         }
     }
 
-
+    function setNewMemberEth(uint val) public onlyOwner {
+        newMemberEth = val;
+    }
 
     function addJoinPartAgents(address[] memory agents) public onlyOwner {
         for (uint256 i = 0; i < agents.length; i++) {
@@ -151,13 +159,17 @@ contract DataUnionSidechain is Ownable {
         return revenue;
     }
 
-    function addMember(address member) public onlyJoinPartAgent {
+    function addMember(address payable member) public onlyJoinPartAgent {
         MemberInfo storage info = memberData[member];
         require(info.status != ActiveStatus.Active, "error_alreadyMember");
+        bool sendEth = info.status == ActiveStatus.None && newMemberEth > 0 && address(this).balance >= newMemberEth;
         info.status = ActiveStatus.Active;
         info.lmeAtJoin = lifetimeMemberEarnings;
         activeMemberCount = activeMemberCount.add(1);
         emit MemberJoined(member);
+        //give new members ETH. continue even if transfer fails
+        if(sendEth)
+            member.send(newMemberEth);
     }
 
     function partMember(address member) public {
@@ -170,7 +182,7 @@ contract DataUnionSidechain is Ownable {
         emit MemberParted(member);
     }
 
-    function addMembers(address[] memory members) public onlyJoinPartAgent {
+    function addMembers(address payable[] memory members) public onlyJoinPartAgent {
         for (uint256 i = 0; i < members.length; i++) {
             addMember(members[i]);
         }

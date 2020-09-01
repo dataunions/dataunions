@@ -4,12 +4,7 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
-
-interface ITokenMediator {
-    function erc677token() external view returns (address);
-    function bridgeContract() external view returns (address);
-    function relayTokens(address _from, address _receiver, uint256 _value) external;
-}
+import "./ITokenMediator.sol";
 
 interface IDataUnionMainnet {
     function sidechainAddress() external view returns (address proxy);

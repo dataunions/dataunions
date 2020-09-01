@@ -845,7 +845,7 @@ library CloneLib {
         bytes memory code,
         bytes memory initData,
         bytes32 salt
-    ) internal returns (address proxy) {
+    ) internal returns (address payable proxy) {
         uint256 len = code.length;
         assembly {
             proxy := create2(0, add(code, 0x20), len, salt)
@@ -865,7 +865,7 @@ library CloneLib {
     function deployCodeAndInitUsingCreate(
         bytes memory code,
         bytes memory initData
-    ) internal returns (address proxy) {
+    ) internal returns (address payable proxy) {
         uint256 len = code.length;
         assembly {
             proxy := create(0, add(code, 0x20), len)
@@ -877,15 +877,11 @@ library CloneLib {
     }
 }
 
-// File: contracts/DataUnionMainnet.sol
+// File: contracts/IAMB.sol
 
 pragma solidity ^0.6.0;
 
-
-
-
-
-
+// Tokenbridge Arbitrary Message Bridge
 interface IAMB {
     function messageSender() external view returns (address);
 
@@ -921,6 +917,16 @@ interface IAMB {
     ) external returns (bytes32);
 }
 
+// File: contracts/DataUnionMainnet.sol
+
+pragma solidity ^0.6.0;
+
+
+
+
+
+
+
 interface ITokenMediator {
     function erc677token() external view returns (address);
     function bridgeContract() external view returns (address);
@@ -941,6 +947,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     address public sidechain_DU_factory;
     uint256 public sidechain_maxgas;
     ERC20 public token;
+
     // needed to compute sidechain address
     address public sidechain_template_DU;
     uint256 public adminFeeFraction;
@@ -988,9 +995,8 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         return address(token) != address(0);
     }
 
-        /**
+    /**
      * Admin fee as a fraction of revenue.
-     * Smart contract doesn't use it, it's here just for storing purposes.
      * @param newAdminFee fixed-point decimal in the same way as ether: 50% === 0.5 ether === "500000000000000000"
      */
     function setAdminFee(uint256 newAdminFee) public onlyOwner {

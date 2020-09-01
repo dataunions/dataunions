@@ -4,6 +4,8 @@ const BN = require("bn.js")
 const w3 = new Web3(web3.currentProvider)
 const DataUnionSidechain = artifacts.require("./DataUnionSidechain.sol")
 const ERC20Mintable = artifacts.require("./ERC20Mintable.sol")
+const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
+const MockAMB = artifacts.require("./MockAMB.sol")
 
 /**
  * in Solidity, the message is created by abi.encodePacked(), which represents addresses unpadded as 20bytes.
@@ -25,7 +27,7 @@ contract("DataUnionSidechain", accounts => {
     const agents = accounts.slice(1, accounts.length / 3)
     const members = accounts.slice(accounts.length / 3, 2 * accounts.length / 3)
     const unused = accounts.slice(2 * accounts.length / 3)
-    let testToken, dataUnionSidechain
+    let testToken, dataUnionSidechain, mockAMB, mockTokenMediator
 
     const amtEth = 100
     const amtWei = new BN(w3.utils.toWei(amtEth.toString()), 10)
@@ -44,10 +46,11 @@ contract("DataUnionSidechain", accounts => {
 */
     before(async () => {
         testToken = await ERC20Mintable.new("name","symbol",{ from: creator })
-
+        mockAMB = await MockAMB.new({from: creator})
+        mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
-        //last 2 args are dummy. doesnt talk to mainnet contract in test
-        await dataUnionSidechain.initialize(creator, testToken.address, agents,agents[0],agents[0], {from: creator})
+        //last arg (mainnet contract) is dummy
+        await dataUnionSidechain.initialize(creator, testToken.address, agents, mockTokenMediator.address, agents[0], {from: creator})
         await testToken.mint(creator, w3.utils.toWei("10000"), { from: creator })
         await dataUnionSidechain.addMembers(members, {from: agents[1]})
         /*

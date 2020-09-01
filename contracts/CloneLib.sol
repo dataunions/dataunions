@@ -50,7 +50,7 @@ library CloneLib {
         bytes memory code,
         bytes memory initData,
         bytes32 salt
-    ) internal returns (address proxy) {
+    ) internal returns (address payable proxy) {
         uint256 len = code.length;
         assembly {
             proxy := create2(0, add(code, 0x20), len, salt)
@@ -70,7 +70,7 @@ library CloneLib {
     function deployCodeAndInitUsingCreate(
         bytes memory code,
         bytes memory initData
-    ) internal returns (address proxy) {
+    ) internal returns (address payable proxy) {
         uint256 len = code.length;
         assembly {
             proxy := create(0, add(code, 0x20), len)

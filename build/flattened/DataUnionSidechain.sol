@@ -363,6 +363,9 @@ contract DataUnionSidechain is Ownable {
     uint256 public lifetimeMemberEarnings;
 
     uint256 public joinPartAgentCount;
+
+    uint public newMemberEth;
+
     mapping(address => MemberInfo) public memberData;
     mapping(address => ActiveStatus) public joinPartAgents;
 
@@ -373,6 +376,9 @@ contract DataUnionSidechain is Ownable {
 
     // owner will be set by initialize()
     constructor() public Ownable(address(0)) {}
+
+    //contract is payable
+    receive() external payable {}
 
     function initialize(
         address initialOwner,
@@ -467,9 +473,12 @@ contract DataUnionSidechain is Ownable {
         return revenue;
     }
 
-    function addMember(address member) public onlyJoinPartAgent {
+    function addMember(address payable member) public onlyJoinPartAgent {
         MemberInfo storage info = memberData[member];
         require(info.status != ActiveStatus.Active, "error_alreadyMember");
+        //give new members ETH. continue even in transfer fails
+        if(info.status == ActiveStatus.None && newMemberEth > 0 && address(this).balance >= newMemberEth)
+            member.send(newMemberEth);
         info.status = ActiveStatus.Active;
         info.lmeAtJoin = lifetimeMemberEarnings;
         activeMemberCount = activeMemberCount.add(1);
@@ -486,7 +495,7 @@ contract DataUnionSidechain is Ownable {
         emit MemberParted(member);
     }
 
-    function addMembers(address[] memory members) public onlyJoinPartAgent {
+    function addMembers(address payable[] memory members) public onlyJoinPartAgent {
         for (uint256 i = 0; i < members.length; i++) {
             addMember(members[i]);
         }
