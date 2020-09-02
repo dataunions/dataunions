@@ -77,24 +77,18 @@ contract DataUnionSidechain is Ownable {
         return address(token) != address(0);
     }
 
-    function addJoinPartAgents(address[] memory agents) public onlyOwner {
-        for (uint256 i = 0; i < agents.length; i++) {
-            addJoinPartAgent(agents[i]);
-        }
-    }
-
-    function addJoinPartAgent(address agent) public onlyOwner {
-        require(joinPartAgents[agent] != ActiveStatus.Active, "error_alreadyActiveAgent");
-        joinPartAgents[agent] = ActiveStatus.Active;
-        emit JoinPartAgentAdded(agent);
-        joinPartAgentCount = joinPartAgentCount.add(1);
-    }
-
-    function removeJoinPartAgent(address agent) public onlyOwner {
-        require(joinPartAgents[agent] == ActiveStatus.Active, "error_notActiveAgent");
-        joinPartAgents[agent] = ActiveStatus.Inactive;
-        emit JoinPartAgentRemoved(agent);
-        joinPartAgentCount = joinPartAgentCount.sub(1);
+    /**
+     * Atomic getter to get all state variables in one call
+     * This alleviates the fact that JSON RPC batch requests aren't available in ethers.js
+     */
+    function getStats() public view returns (uint256[5] memory) {
+        return [
+            totalEarnings,
+            totalEarningsWithdrawn,
+            activeMemberCount,
+            lifetimeMemberEarnings,
+            joinPartAgentCount
+        ];
     }
 
     function getEarnings(address member) public view returns (uint256) {
@@ -117,6 +111,30 @@ contract DataUnionSidechain is Ownable {
 
     function getWithdrawableEarnings(address member) public view returns (uint256) {
         return getEarnings(member).sub(getWithdrawn(member));
+    }
+
+    function totalWithdrawable() public view returns (uint256) {
+        return totalEarnings.sub(totalEarningsWithdrawn);
+    }
+
+    function addJoinPartAgents(address[] memory agents) public onlyOwner {
+        for (uint256 i = 0; i < agents.length; i++) {
+            addJoinPartAgent(agents[i]);
+        }
+    }
+
+    function addJoinPartAgent(address agent) public onlyOwner {
+        require(joinPartAgents[agent] != ActiveStatus.Active, "error_alreadyActiveAgent");
+        joinPartAgents[agent] = ActiveStatus.Active;
+        emit JoinPartAgentAdded(agent);
+        joinPartAgentCount = joinPartAgentCount.add(1);
+    }
+
+    function removeJoinPartAgent(address agent) public onlyOwner {
+        require(joinPartAgents[agent] == ActiveStatus.Active, "error_notActiveAgent");
+        joinPartAgents[agent] = ActiveStatus.Inactive;
+        emit JoinPartAgentRemoved(agent);
+        joinPartAgentCount = joinPartAgentCount.sub(1);
     }
 
     /**
@@ -165,10 +183,6 @@ contract DataUnionSidechain is Ownable {
         for (uint256 i = 0; i < members.length; i++) {
             partMember(members[i]);
         }
-    }
-
-    function totalWithdrawable() public view returns (uint256) {
-        return totalEarnings.sub(totalEarningsWithdrawn);
     }
 
     /**

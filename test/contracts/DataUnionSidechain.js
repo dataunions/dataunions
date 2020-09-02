@@ -180,6 +180,24 @@ contract("DataUnionSidechain", accounts => {
         assertEqual(await dataUnionSidechain.getWithdrawableEarnings(others[1]), 100)
     })
 
+    it("getStats", async () => {
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
+        await dataUnionSidechain.withdraw(members[0], "500", false, {from: members[0]})
+        const [
+            totalEarnings,
+            totalEarningsWithdrawn,
+            activeMemberCount,
+            lifetimeMemberEarnings,
+            joinPartAgentCount
+        ] = await dataUnionSidechain.getStats()
+        assertEqual(totalEarnings, 3000)
+        assertEqual(totalEarningsWithdrawn, 500)
+        assertEqual(activeMemberCount, 3)
+        assertEqual(lifetimeMemberEarnings, 1000)
+        assertEqual(joinPartAgentCount, 2)
+    })
+
     it("distributes earnings correctly", async () => {
         const randomOutsider = others[1]
         const newMember = others[0]
