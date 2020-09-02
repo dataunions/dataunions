@@ -31,10 +31,6 @@ contract("DataUnionSidechain", accounts => {
 
     let testToken, dataUnionSidechain
 
-    before(async () => {
-        testToken = await ERC20Mintable.new("name", "symbol", { from: creator })
-    })
-
     beforeEach(async () => {
         // Last 2 initialize args are dummy. Doesn't talk to mainnet contract in test
         // function initialize(
@@ -44,6 +40,7 @@ contract("DataUnionSidechain", accounts => {
         //   address tokenMediatorAddress,
         //   address mainnetDataUnionAddress
         // )
+        testToken = await ERC20Mintable.new("name", "symbol", { from: creator })
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
         await dataUnionSidechain.initialize(creator, testToken.address, agents, agents[0], agents[0], {from: creator})
         await testToken.mint(creator, toWei("10000"), { from: creator })
@@ -93,17 +90,24 @@ contract("DataUnionSidechain", accounts => {
         await assertFails(dataUnionSidechain.addMember(newMember, {from: newAgent}), "error_onlyJoinPartAgent")
     })
 
+    it("withdrawMembers: batch withdraw many members", async () => {
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
+        assertEvent(await dataUnionSidechain.withdrawMembers(members, false, {from: creator}), "EarningsWithdrawn")
+        assertEqual(await testToken.balanceOf(members[0]), 1000)
+        assertEqual(await testToken.balanceOf(members[1]), 1000)
+        assertEqual(await testToken.balanceOf(members[2]), 1000)
+    })
+
     it("withdrawAll", async () => {
         await testToken.transfer(dataUnionSidechain.address, "3000")
         await dataUnionSidechain.addRevenue({from: creator})
-
-        const before = await testToken.balanceOf(members[0])
         await assertFails(dataUnionSidechain.withdrawAll(members[0], false, {from: others[0]}), "error_notPermitted")
         assertEvent(await dataUnionSidechain.withdrawAll(members[0], false, {from: members[0]}), "EarningsWithdrawn")
-        const after = await testToken.balanceOf(members[0])
-
-        const diff = after.sub(before)
-        assertEqual(diff, 1000)
+        assertEvent(await dataUnionSidechain.withdrawAll(members[1], false, {from: creator}), "EarningsWithdrawn")
+        assertEqual(await testToken.balanceOf(members[0]), 1000)
+        assertEqual(await testToken.balanceOf(members[1]), 1000)
+        assertEqual(await testToken.balanceOf(members[2]), 0)
     })
 
     it("withdrawAllTo", async () => {
@@ -128,15 +132,12 @@ contract("DataUnionSidechain", accounts => {
         const sig = await w3.eth.sign(msg, members[1])
         assert(await dataUnionSidechain.signatureIsValid(members[1], recipient, "100", sig), "Contract says: bad signature")
 
-        const before = await testToken.balanceOf(recipient)
         await assertFails(dataUnionSidechain.withdrawToSigned(members[1], others[1], "100", false, sig, {from: recipient}), "error_badSignature")
         await assertFails(dataUnionSidechain.withdrawToSigned(members[1], recipient, "1000", false, sig, {from: recipient}), "error_badSignature")
         await assertFails(dataUnionSidechain.withdrawToSigned(members[0], recipient, "100", false, sig, {from: recipient}), "error_badSignature")
         assertEvent(await dataUnionSidechain.withdrawToSigned(members[1], recipient, "100", false, sig, {from: recipient}), "EarningsWithdrawn")
-        const after = await testToken.balanceOf(recipient)
 
-        const diff = after.sub(before)
-        assertEqual(diff, 100)
+        assertEqual(await testToken.balanceOf(recipient), 100)
     })
 
     it("withdrawAllToSigned", async () => {
@@ -149,14 +150,11 @@ contract("DataUnionSidechain", accounts => {
         // function signatureIsValid(address signer, address recipient, uint amount, bytes memory signature)
         assert(await dataUnionSidechain.signatureIsValid(members[1], recipient, "0", sig), "Contract says: bad signature")
 
-        const before = await testToken.balanceOf(recipient)
         await assertFails(dataUnionSidechain.withdrawAllToSigned(members[1], others[1], false, sig, {from: recipient}), "error_badSignature")
         await assertFails(dataUnionSidechain.withdrawAllToSigned(members[0], recipient, false, sig, {from: recipient}), "error_badSignature")
         assertEvent(await dataUnionSidechain.withdrawAllToSigned(members[1], recipient, false, sig, {from: recipient}), "EarningsWithdrawn")
-        const after = await testToken.balanceOf(recipient)
 
-        const diff = after.sub(before)
-        assertEqual(diff, 1000)
+        assertEqual(await testToken.balanceOf(recipient), 1000)
     })
 
     it("transferToMemberInContract", async () => {

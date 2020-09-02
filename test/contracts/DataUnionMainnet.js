@@ -7,8 +7,6 @@ const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const MockAMB = artifacts.require("./MockAMB.sol")
 const ERC20Mintable = artifacts.require("./ERC20Mintable.sol")
 
-
-
 contract("DataUnionMainnet", accounts => {
     const creator = accounts[0]
     const sender = accounts[1]

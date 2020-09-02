@@ -7,7 +7,7 @@
     "build": "truffle compile && ./flatten",
     "deploy": "truffle migrate",
     "lint": "eslint . && solhint contracts/**/*.sol",
-    "coverage": "truffle run coverage --testfiles=test/contracts/*.js",
+    "coverage": "truffle run coverage --file=test/contracts/*.js",
     "unit-test": "truffle test test/contracts/*",
     "integration-test": "mocha test/e2e --exit",
     "test": "npm run unit-test && npm run integration-test"
