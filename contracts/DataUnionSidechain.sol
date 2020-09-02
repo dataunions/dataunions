@@ -9,7 +9,7 @@ contract DataUnionSidechain is Ownable {
     using SafeMath for uint256;
 
     //used to describe members and join part agents
-    enum ActiveStatus {None, Active, Inactive, Blocked}
+    enum ActiveStatus {None, Active, Inactive}  // TODO: implement "Blocked" status
 
     //emitted by joins/parts
     event MemberJoined(address indexed);
@@ -76,21 +76,6 @@ contract DataUnionSidechain is Ownable {
     function isInitialized() public view returns (bool){
         return address(token) != address(0);
     }
-
-    function toBytes(address a) public pure returns (bytes memory b) {
-        assembly {
-            let m := mload(0x40)
-            a := and(a, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-            mstore(
-                add(m, 20),
-                xor(0x140000000000000000000000000000000000000000, a)
-            )
-            mstore(0x40, add(m, 52))
-            b := m
-        }
-    }
-
-
 
     function addJoinPartAgents(address[] memory agents) public onlyOwner {
         for (uint256 i = 0; i < agents.length; i++) {
@@ -186,16 +171,16 @@ contract DataUnionSidechain is Ownable {
         return totalEarnings.sub(totalEarningsWithdrawn);
     }
 
-    /*
-        transfer tokens from outside contract, add to recipient's in-contract balance
-    */
-
+    /**
+     * Transfer tokens from outside contract, add to a recipient's in-contract balance
+     */
     function transferToMemberInContract(address recipient, uint amount) public {
         uint bal_before = token.balanceOf(address(this));
         require(token.transferFrom(msg.sender, address(this), amount), "error_transfer");
         uint bal_after = token.balanceOf(address(this));
         require(bal_after.sub(bal_before) >= amount, "error_transfer");
-        _increaseBalance(recipient,  amount);
+
+        _increaseBalance(recipient, amount);
         totalEarnings = totalEarnings.add(amount);
         emit TransferToAddressInContract(msg.sender, recipient,  amount);
     }
@@ -208,16 +193,24 @@ contract DataUnionSidechain is Ownable {
      * @param amount how much withdrawable earnings is transferred
      */
     function transferWithinContract(address recipient, uint amount) public {
-        require(getWithdrawableEarnings(msg.sender) >= amount, "error_insufficientBalance");
+        require(getWithdrawableEarnings(msg.sender) >= amount, "error_insufficientBalance");    // reverts with "error_notMember" msg.sender not member
         MemberInfo storage info = memberData[msg.sender];
         info.withdrawnEarnings = info.withdrawnEarnings.add(amount);
-        _increaseBalance(recipient,  amount);
+        _increaseBalance(recipient, amount);
         emit TransferWithinContract(msg.sender, recipient, amount);
-     }
+    }
 
+    /**
+     * Hack to add to single member's balance without affecting lmeAtJoin
+     */
     function _increaseBalance(address member, uint amount) internal {
         MemberInfo storage info = memberData[member];
         info.earningsBeforeLastJoin = info.earningsBeforeLastJoin.add(amount);
+
+        // allow seeing and withdrawing earnings
+        if (info.status == ActiveStatus.None) {
+            info.status = ActiveStatus.Inactive;
+        }
     }
 
     function withdrawMembers(address[] memory members, bool sendToMainnet)
@@ -243,7 +236,7 @@ contract DataUnionSidechain is Ownable {
         returns (uint256)
     {
         require(msg.sender == member || msg.sender == owner, "error_notPermitted");
-        _withdrawTo(member, member, amount, sendToMainnet);
+        _withdraw(member, member, amount, sendToMainnet);
     }
 
     function withdrawAllTo(address to, bool sendToMainnet)
@@ -257,34 +250,7 @@ contract DataUnionSidechain is Ownable {
         public
         returns (uint256)
     {
-        _withdrawTo(msg.sender, to, amount, sendToMainnet);
-    }
-
-    /**
-     * Internal function common to all withdraw methods.
-     * Does NOT check proper access, so all callers must do that first.
-     */
-    function _withdrawTo(address from, address to, uint amount, bool sendToMainnet)
-        internal
-        returns (uint256)
-    {
-        if (amount == 0) return 0;
-        require(amount <= getWithdrawableEarnings(from), "error_insufficientBalance");
-        MemberInfo storage info = memberData[from];
-        info.withdrawnEarnings = info.withdrawnEarnings.add(amount);
-        totalEarningsWithdrawn = totalEarningsWithdrawn.add(amount);
-        if (sendToMainnet)
-            require(
-                token.transferAndCall(
-                    tokenMediator,
-                    amount,
-                    toBytes(to)
-                ),
-                "error_transfer"
-            );
-        else require(token.transfer(to, amount), "error_transfer");
-        emit EarningsWithdrawn(from, amount);
-        return amount;
+        _withdraw(msg.sender, to, amount, sendToMainnet);
     }
 
     /**
@@ -344,7 +310,7 @@ contract DataUnionSidechain is Ownable {
         returns (uint withdrawn)
     {
         require(signatureIsValid(fromSigner, to, 0, signature), "error_badSignature");
-        return _withdrawTo(fromSigner, to, getWithdrawableEarnings(fromSigner), sendToMainnet);
+        return _withdraw(fromSigner, to, getWithdrawableEarnings(fromSigner), sendToMainnet);
     }
 
     /**
@@ -368,6 +334,46 @@ contract DataUnionSidechain is Ownable {
         returns (uint withdrawn)
     {
         require(signatureIsValid(fromSigner, to, amount, signature), "error_badSignature");
-        return _withdrawTo(fromSigner, to, amount, sendToMainnet);
+        return _withdraw(fromSigner, to, amount, sendToMainnet);
+    }
+
+    function toBytes(address a) public pure returns (bytes memory b) {
+        assembly {
+            let m := mload(0x40)
+            a := and(a, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            mstore(
+                add(m, 20),
+                xor(0x140000000000000000000000000000000000000000, a)
+            )
+            mstore(0x40, add(m, 52))
+            b := m
+        }
+    }
+
+    /**
+     * Internal function common to all withdraw methods.
+     * Does NOT check proper access, so all callers must do that first.
+     */
+    function _withdraw(address from, address to, uint amount, bool sendToMainnet)
+        internal
+        returns (uint256)
+    {
+        if (amount == 0) return 0;
+        require(amount <= getWithdrawableEarnings(from), "error_insufficientBalance");
+        MemberInfo storage info = memberData[from];
+        info.withdrawnEarnings = info.withdrawnEarnings.add(amount);
+        totalEarningsWithdrawn = totalEarningsWithdrawn.add(amount);
+        if (sendToMainnet)
+            require(
+                token.transferAndCall(
+                    tokenMediator,
+                    amount,
+                    toBytes(to)
+                ),
+                "error_transfer"
+            );
+        else require(token.transfer(to, amount), "error_transfer");
+        emit EarningsWithdrawn(from, amount);
+        return amount;
     }
 }
