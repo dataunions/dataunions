@@ -73,8 +73,10 @@ contract("DataUnionSidechain", accounts => {
 
             await w3.eth.sendTransaction({from:unused[0], to:factory.address, value:w3.utils.toWei("2")})
 
+            //this should fail because deployNewDUSidechain must be called by AMB
+            await assertFails(factory.deployNewDUSidechain(creator, agents, {from: unused[0]}))
+
             let balBefore = +(await w3.eth.getBalance(creator))
-            //const deploy = await factory.deployNewDUSidechain(creator, agents, {from: creator}).encode
             const deploy = await factory.contract.methods.deployNewDUSidechain(creator, agents).encodeABI()
             //console.log(`deply: ${deploy}`)
             await mockAMB.requireToPassMessage(factory.address, deploy, 2000000, {from: unused[0]})
