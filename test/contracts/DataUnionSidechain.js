@@ -3,7 +3,7 @@ const w3 = new Web3(web3.currentProvider)
 const { BN, toWei } = w3.utils
 const { assertEqual, assertFails, assertEvent } = require("../utils/web3Assert")
 const DataUnionSidechain = artifacts.require("./DataUnionSidechain.sol")
-const ERC20Mintable = artifacts.require("./ERC20Mintable.sol")
+const TestToken = artifacts.require("./TestToken.sol")
 
 const log = require("debug")("Streamr:du:test:DataUnionSidechain")
 //const log = console.log  // for debugging?
@@ -40,7 +40,7 @@ contract("DataUnionSidechain", accounts => {
         //   address tokenMediatorAddress,
         //   address mainnetDataUnionAddress
         // )
-        testToken = await ERC20Mintable.new("name", "symbol", { from: creator })
+        testToken = await TestToken.new("name", "symbol", { from: creator })
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
         await dataUnionSidechain.initialize(creator, testToken.address, agents, agents[0], agents[0], {from: creator})
         await testToken.mint(creator, toWei("10000"), { from: creator })
@@ -105,6 +105,7 @@ contract("DataUnionSidechain", accounts => {
         await assertFails(dataUnionSidechain.withdrawAll(members[0], false, {from: others[0]}), "error_notPermitted")
         assertEvent(await dataUnionSidechain.withdrawAll(members[0], false, {from: members[0]}), "EarningsWithdrawn")
         assertEvent(await dataUnionSidechain.withdrawAll(members[1], false, {from: creator}), "EarningsWithdrawn")
+        await dataUnionSidechain.withdrawAll(members[1], false, {from: creator})    // this should do nothing, also not revert
         assertEqual(await testToken.balanceOf(members[0]), 1000)
         assertEqual(await testToken.balanceOf(members[1]), 1000)
         assertEqual(await testToken.balanceOf(members[2]), 0)
@@ -231,5 +232,16 @@ contract("DataUnionSidechain", accounts => {
         assertEqual(await dataUnionSidechain.getEarnings(members[1]), 3000)
         assertEqual(await dataUnionSidechain.getEarnings(members[2]), 3000)
         assertEvent(await dataUnionSidechain.partMember(newMember, {from: agents[0]}), "MemberParted")
+    })
+
+    // Of course there is no "withdraw to mainnet" in test.
+    // Instead what happens in DataUnionSidechain is a call to TokenMediator
+    it("withdraw to mainnet", async () => {
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
+        assertEvent(await dataUnionSidechain.withdraw(members[0], "100", true, {from: members[0]}), "EarningsWithdrawn")
+
+        // TestToken blocks transfer with this magic amount
+        await assertFails(dataUnionSidechain.withdraw(members[0], "666", true, {from: members[0]}), "error_transfer")
     })
 })
