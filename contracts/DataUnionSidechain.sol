@@ -281,7 +281,15 @@ contract DataUnionSidechain is Ownable {
      * @param signature byte array from `web3.eth.accounts.sign`
      * @return isValid true iff signer of the authorization (member whose earnings are going to be withdrawn) matches the signature
      */
-    function signatureIsValid(address signer, address recipient, uint amount, bytes memory signature) public view returns (bool isValid) {
+    function signatureIsValid(
+        address signer,
+        address recipient,
+        uint amount,
+        bytes memory signature
+    )
+        public view
+        returns (bool isValid)
+    {
         require(signature.length == 65, "error_badSignatureLength");
 
         bytes32 r; bytes32 s; uint8 v;

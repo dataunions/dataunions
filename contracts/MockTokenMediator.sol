@@ -21,13 +21,13 @@ contract MockTokenMediator is ITokenMediator {
 
     function bridgeContract() override public view returns (address) {
         return amb;
-    } 
+    }
 
-    /*
-        transfers to address on local network
-    */
+    /**
+     * Transfers to address on local network
+     */
     function relayTokens(address _from, address _receiver, uint256 _value) override public {
-        require(token.transferFrom(_from, _receiver, _value), "transfer_failed2");
+        require(token.transferFrom(_from, _receiver, _value), "transfer_rejected_in_mock");
     }
 
 }
