@@ -60,11 +60,13 @@ contract("DataUnionSidechain", accounts => {
         // add all "others" to data union
         await assertFails(dataUnionSidechain.addMembers(others, {from: creator}), "error_onlyJoinPartAgent")
         assertEvent(await dataUnionSidechain.addMembers(others, {from: agents[0]}), "MemberJoined")
+        await assertFails(dataUnionSidechain.addMembers(others, {from: agents[0]}), "error_alreadyMember")
         const memberCountAfterJoinBN = await dataUnionSidechain.activeMemberCount()
         assertEqual(+memberCountBeforeBN + others.length, memberCountAfterJoinBN)
 
         // part all "others" from data union
         assertEvent(await dataUnionSidechain.partMembers(others, {from: agents[0]}), "MemberParted")
+        await assertFails(dataUnionSidechain.partMembers(others, {from: agents[0]}), "error_notActiveMember")
         const memberCountAfterPartBN = await dataUnionSidechain.activeMemberCount()
         assertEqual(memberCountBeforeBN, memberCountAfterPartBN)
     })
@@ -78,6 +80,7 @@ contract("DataUnionSidechain", accounts => {
         // add new agent
         await assertFails(dataUnionSidechain.addMember(newMember, {from: newAgent}), "error_onlyJoinPartAgent")
         assertEvent(await dataUnionSidechain.addJoinPartAgent(newAgent, {from: creator}), "JoinPartAgentAdded")
+        await assertFails(dataUnionSidechain.addJoinPartAgent(newAgent, {from: creator}), "error_alreadyActiveAgent")
         const agentCountAfterAddBN = await dataUnionSidechain.joinPartAgentCount()
         assertEqual(agentCountAfterAddBN, agents.length + 1)
         assertEvent(await dataUnionSidechain.addMember(newMember, {from: agents[0]}), "MemberJoined")
@@ -85,6 +88,7 @@ contract("DataUnionSidechain", accounts => {
 
         // remove the new agent
         assertEvent(await dataUnionSidechain.removeJoinPartAgent(newAgent, {from: creator}), "JoinPartAgentRemoved")
+        await assertFails(dataUnionSidechain.removeJoinPartAgent(newAgent, {from: creator}), "error_notActiveAgent")
         const agentCountAfterRemoveBN = await dataUnionSidechain.joinPartAgentCount()
         assertEqual(agentCountAfterRemoveBN, agents.length)
         await assertFails(dataUnionSidechain.addMember(newMember, {from: newAgent}), "error_onlyJoinPartAgent")
@@ -164,6 +168,12 @@ contract("DataUnionSidechain", accounts => {
         await dataUnionSidechain.transferToMemberInContract(members[0], "1000", {from: creator})
         assertEqual(await dataUnionSidechain.getWithdrawableEarnings(others[0]), 1000)
         assertEqual(await dataUnionSidechain.getWithdrawableEarnings(members[0]), 1000)
+
+        // TestToken blocks transfers with this magic amount
+        await assertFails(dataUnionSidechain.transferToMemberInContract(members[0], "666", {from: creator}), "error_transfer")
+
+        // TestToken sabotages transfers with this magic amount
+        await assertFails(dataUnionSidechain.transferToMemberInContract(members[0], "777", {from: creator}), "error_transfer")
     })
 
     it("transferWithinContract", async () => {
@@ -195,6 +205,18 @@ contract("DataUnionSidechain", accounts => {
         assertEqual(activeMemberCount, 3)
         assertEqual(lifetimeMemberEarnings, 1000)
         assertEqual(joinPartAgentCount, 2)
+    })
+
+    it("getEarnings", async () => {
+        await assertFails(dataUnionSidechain.getEarnings(others[0]), "error_notMember")
+        await assertFails(dataUnionSidechain.getEarnings(agents[0]), "error_notMember")
+        await assertFails(dataUnionSidechain.getEarnings(creator), "error_notMember")
+        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 0)
+
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
+
+        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 1000)
     })
 
     it("distributes earnings correctly", async () => {
@@ -241,7 +263,11 @@ contract("DataUnionSidechain", accounts => {
         await dataUnionSidechain.addRevenue({from: creator})
         assertEvent(await dataUnionSidechain.withdraw(members[0], "100", true, {from: members[0]}), "EarningsWithdrawn")
 
-        // TestToken blocks transfer with this magic amount
+        // TestToken blocks transfers with this magic amount
         await assertFails(dataUnionSidechain.withdraw(members[0], "666", true, {from: members[0]}), "error_transfer")
+    })
+
+    it("fails to initialize twice", async () => {
+        await assertFails(dataUnionSidechain.initialize(creator, testToken.address, agents, agents[0], agents[0], {from: creator}))
     })
 })

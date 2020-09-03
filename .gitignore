@@ -1,3 +1,4 @@
 node_modules
 coverage
 .coverage_contracts
+.coverage_artifacts

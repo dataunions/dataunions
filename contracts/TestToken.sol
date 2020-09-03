@@ -6,6 +6,7 @@ import "./IERC677.sol";
 
 /**
  * Mintable TestToken for contract tests
+ * Transfers of 666 are rejected with return value false
  */
 contract TestToken is ERC20, Ownable, IERC677 {
     constructor (string memory name, string memory symbol) public ERC20(name, symbol) {
@@ -21,12 +22,14 @@ contract TestToken is ERC20, Ownable, IERC677 {
         _mint(recipient, amount);
     }
 
-    // event Transfer(
-    //     address indexed from,
-    //     address indexed to,
-    //     uint256 value,
-    //     bytes data
-    // );
+    function transfer(address to, uint256 amount) public override(IERC20, ERC20) returns (bool) {
+        return amount == 666 ? false : super.transfer(to, amount);
+    }
+
+    function transferFrom(address from, address to, uint256 amount) public override(IERC20, ERC20) returns (bool) {
+        return amount == 666 ? false :
+               amount == 777 ? true : super.transferFrom(from, to, amount);
+    }
 
     // This is needed to check how sending to mainnet works
     // Must trigger both branches of
