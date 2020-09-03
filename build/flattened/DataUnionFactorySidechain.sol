@@ -377,6 +377,58 @@ interface ITokenMediator {
     function relayTokens(address _from, address _receiver, uint256 _value) external;
 }
 
+// File: contracts/Ownable.sol
+
+pragma solidity ^0.6.0;
+/**
+ * @title Ownable
+ * @dev The Ownable contract has an owner address, and provides basic authorization control
+ * functions, this simplifies the implementation of "user permissions".
+ */
+contract Ownable {
+    address public owner;
+    address public pendingOwner;
+
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
+
+    /**
+     * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+     * account.
+     */
+    constructor(address owner_) public {
+        owner = owner_;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(msg.sender == owner, "onlyOwner");
+        _;
+    }
+
+    /**
+     * @dev Allows the current owner to set the pendingOwner address.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address newOwner) public onlyOwner {
+        pendingOwner = newOwner;
+    }
+
+    /**
+     * @dev Allows the pendingOwner address to finalize the transfer.
+     */
+    function claimOwnership() public {
+        require(msg.sender == pendingOwner, "onlyPendingOwner");
+        emit OwnershipTransferred(owner, pendingOwner);
+        owner = pendingOwner;
+        pendingOwner = address(0);
+    }
+}
+
 // File: contracts/DataUnionFactorySidechain.sol
 
 pragma solidity ^0.6.0;
@@ -386,8 +438,12 @@ pragma solidity ^0.6.0;
 
 
 
-contract DataUnionFactorySidechain {
+
+contract DataUnionFactorySidechain is Ownable{
     event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
+    event UpdateNewDUInitialEth(uint amount);
+    event UpdateNewDUOwnerInitialEth(uint amount);
+    
 
     address public data_union_sidechain_template;
     IAMB public amb;
@@ -395,10 +451,23 @@ contract DataUnionFactorySidechain {
     uint public newDUInitialEth;
     uint public newDUOwnerInitialEth;
 
-    constructor( address _token_mediator, address _data_union_sidechain_template) public {
+    constructor(address _token_mediator, address _data_union_sidechain_template) public Ownable(msg.sender) {
         token_mediator = ITokenMediator(_token_mediator);
         data_union_sidechain_template = _data_union_sidechain_template;
         amb = IAMB(token_mediator.bridgeContract());
+    }
+
+    //contract is payable
+    receive() external payable {}
+
+    function setNewDUInitialEth(uint val) public onlyOwner {
+        newDUInitialEth = val;
+        emit UpdateNewDUInitialEth(val);
+    }
+
+    function setNewDUOwnerInitialEth(uint val) public onlyOwner {
+        newDUOwnerInitialEth = val;
+        emit UpdateNewDUOwnerInitialEth(val);
     }
 
     function sidechainAddress(address mainet_address)

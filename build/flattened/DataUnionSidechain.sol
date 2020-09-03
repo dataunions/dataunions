@@ -413,7 +413,9 @@ contract DataUnionSidechain is Ownable {
         }
     }
 
-
+    function setNewMemberEth(uint val) public onlyOwner {
+        newMemberEth = val;
+    }
 
     function addJoinPartAgents(address[] memory agents) public onlyOwner {
         for (uint256 i = 0; i < agents.length; i++) {
@@ -476,13 +478,14 @@ contract DataUnionSidechain is Ownable {
     function addMember(address payable member) public onlyJoinPartAgent {
         MemberInfo storage info = memberData[member];
         require(info.status != ActiveStatus.Active, "error_alreadyMember");
-        //give new members ETH. continue even in transfer fails
-        if(info.status == ActiveStatus.None && newMemberEth > 0 && address(this).balance >= newMemberEth)
-            member.send(newMemberEth);
+        bool sendEth = info.status == ActiveStatus.None && newMemberEth > 0 && address(this).balance >= newMemberEth;
         info.status = ActiveStatus.Active;
         info.lmeAtJoin = lifetimeMemberEarnings;
         activeMemberCount = activeMemberCount.add(1);
         emit MemberJoined(member);
+        //give new members ETH. continue even if transfer fails
+        if(sendEth)
+            member.send(newMemberEth);
     }
 
     function partMember(address member) public {

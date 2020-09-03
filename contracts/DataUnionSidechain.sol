@@ -28,6 +28,8 @@ contract DataUnionSidechain is Ownable {
     event TransferWithinContract(address indexed from, address indexed to, uint amount);
     event TransferToAddressInContract(address indexed from, address indexed to, uint amount);
 
+    //new member eth
+    event UpdateNewMemberEth(uint value);
 
     struct MemberInfo {
         ActiveStatus status;
@@ -48,7 +50,7 @@ contract DataUnionSidechain is Ownable {
 
     uint256 public joinPartAgentCount;
 
-    uint public newMemberEth;
+    uint256 public newMemberEth;
 
     mapping(address => MemberInfo) public memberData;
     mapping(address => ActiveStatus) public joinPartAgents;
@@ -69,7 +71,8 @@ contract DataUnionSidechain is Ownable {
         address tokenAddress,
         address[] memory initialJoinPartAgents,
         address tokenMediatorAddress,
-        address mainnetDataUnionAddress
+        address mainnetDataUnionAddress,
+        uint256 defaultNewMemberEth
     ) public {
         require(!isInitialized(), "error_alreadyInitialized");
         owner = msg.sender; // set real owner at the end. During initialize, addJoinPartAgents can be called by owner only
@@ -77,6 +80,7 @@ contract DataUnionSidechain is Ownable {
         addJoinPartAgents(initialJoinPartAgents);
         tokenMediator = tokenMediatorAddress;
         dataUnionMainnet = mainnetDataUnionAddress;
+        setNewMemberEth(defaultNewMemberEth);
         owner = initialOwner;
     }
 
@@ -98,7 +102,9 @@ contract DataUnionSidechain is Ownable {
     }
 
     function setNewMemberEth(uint val) public onlyOwner {
+        if(val == newMemberEth) return;
         newMemberEth = val;
+        emit UpdateNewMemberEth(val);
     }
 
     function addJoinPartAgents(address[] memory agents) public onlyOwner {

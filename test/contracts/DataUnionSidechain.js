@@ -3,6 +3,7 @@ const { assertEqual, assertFails, assertEvent } = require("../utils/web3Assert")
 const BN = require("bn.js")
 const w3 = new Web3(web3.currentProvider)
 const DataUnionSidechain = artifacts.require("./DataUnionSidechain.sol")
+const DataUnionFactorySidechain = artifacts.require("./DataUnionFactorySidechain.sol")
 const ERC20Mintable = artifacts.require("./ERC20Mintable.sol")
 const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const MockAMB = artifacts.require("./MockAMB.sol")
@@ -27,7 +28,7 @@ contract("DataUnionSidechain", accounts => {
     const agents = accounts.slice(1, accounts.length / 3)
     const members = accounts.slice(accounts.length / 3, 2 * accounts.length / 3)
     const unused = accounts.slice(2 * accounts.length / 3)
-    let testToken, dataUnionSidechain, mockAMB, mockTokenMediator
+    let testToken, dataUnionSidechain, mockAMB, mockTokenMediator, factory
 
     const amtEth = 100
     const amtWei = new BN(w3.utils.toWei(amtEth.toString()), 10)
@@ -36,23 +37,20 @@ contract("DataUnionSidechain", accounts => {
     const earn2 = amtWei.div(new BN(members.length - 1))
     const earn3 = amtWei.div(new BN(members.length + 1))
 
-    /*
- function initialize(
-        address token_address,
-        address[] memory agents,
-        address _token_mediator,
-        address _mainchain_DU
-    )
-*/
+    const newMemberEth = w3.utils.toWei("0.1")
+
     before(async () => {
         testToken = await ERC20Mintable.new("name","symbol",{ from: creator })
         mockAMB = await MockAMB.new({from: creator})
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
+        factory = await DataUnionFactorySidechain.new(mockTokenMediator.address, dataUnionSidechain.address, {from: creator})
+    
         //last arg (mainnet contract) is dummy
-        await dataUnionSidechain.initialize(creator, testToken.address, agents, mockTokenMediator.address, agents[0], {from: creator})
+        await dataUnionSidechain.initialize(creator, testToken.address, agents, mockTokenMediator.address, agents[0], newMemberEth, {from: creator})
         await testToken.mint(creator, w3.utils.toWei("10000"), { from: creator })
         await dataUnionSidechain.addMembers(members, {from: agents[1]})
+       
         /*
         console.log(`creator: ${creator}`)
         console.log(`agents: ${JSON.stringify(agents)}`)
@@ -61,12 +59,60 @@ contract("DataUnionSidechain", accounts => {
         */
     }),
     describe("Basic Functions", () => {
+        it("sidechain ETH flow", async () => {
+            const ownerEth = w3.utils.toWei("0.01")
+            const newDUEth = w3.utils.toWei("1")
+
+            await assertFails(factory.setNewDUInitialEth(newMemberEth, {from: unused[0]}))
+            await assertFails(factory.setNewDUOwnerInitialEth(newMemberEth, {from: unused[0]}))
+            await assertFails(factory.setNewMemberInitialEth(newMemberEth, {from: unused[0]}))
+            assertEvent(await factory.setNewDUInitialEth(newDUEth, {from: creator}), "UpdateNewDUInitialEth")
+            assertEvent(await factory.setNewDUOwnerInitialEth(ownerEth, {from: creator}), "UpdateNewDUOwnerInitialEth")
+            assertEvent(await factory.setNewMemberInitialEth(newMemberEth, {from: creator}), "UpdateDefaultNewMemberInitialEth")
+
+
+            await w3.eth.sendTransaction({from:unused[0], to:factory.address, value:w3.utils.toWei("2")})
+
+            let balBefore = +(await w3.eth.getBalance(creator))
+            //const deploy = await factory.deployNewDUSidechain(creator, agents, {from: creator}).encode
+            const deploy = await factory.contract.methods.deployNewDUSidechain(creator, agents).encodeABI()
+            //console.log(`deply: ${deploy}`)
+            await mockAMB.requireToPassMessage(factory.address, deploy, 2000000, {from: unused[0]})
+            const newdu_address = await factory.sidechainAddress(unused[0])
+            const newdu = await DataUnionSidechain.at(newdu_address)
+
+            //check created DU Eth
+            assertEqual(+(await w3.eth.getBalance(newdu_address)), newDUEth)
+
+            //check owner eth
+            let balAfter = +(await w3.eth.getBalance(creator))
+            //console.log(`newdu_address: ${JSON.stringify(newdu_address)}   ${balBefore}  ${balAfter}`)
+            assertEqual(balAfter - balBefore, ownerEth)
+           
+            //check member eth
+            balBefore = +(await w3.eth.getBalance(members[0]))
+            assertEvent(await newdu.addMembers(members, {from: agents[0]}), "MemberJoined")
+            //first added member should have been given newMemberEth
+            balAfter = +(await w3.eth.getBalance(members[0]))
+            assertEqual(balAfter - balBefore, newMemberEth)
+
+            //change the setting from within DU. check member Eth
+            const newEth = w3.utils.toWei("0.2")
+            await assertFails(newdu.setNewMemberEth(newEth, {from: unused[0]}))
+            assertEvent(await newdu.setNewMemberEth(newEth, {from: creator}), "UpdateNewMemberEth")
+            balBefore = +(await w3.eth.getBalance(unused[0]))
+            assertEvent(await newdu.addMembers(unused.slice(0,1), {from: agents[0]}), "MemberJoined")
+            //first added member should have been given newMemberEth
+            balAfter = +(await w3.eth.getBalance(unused[0]))
+            assertEqual(balAfter - balBefore, newEth)
+        }),
         it("add/remove members", async () => {
             const initial_member_count  = +(await dataUnionSidechain.activeMemberCount())
             assertEqual(initial_member_count, members.length)
             await assertFails(dataUnionSidechain.addMembers(unused, {from: creator}))
 
             assertEvent(await dataUnionSidechain.addMembers(unused, {from: agents[0]}), "MemberJoined")
+
             var member_count = await dataUnionSidechain.activeMemberCount()
             assertEqual(initial_member_count + unused.length, member_count)
 
