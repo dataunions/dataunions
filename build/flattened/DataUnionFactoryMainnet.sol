@@ -295,7 +295,7 @@ library CloneLib {
         bytes memory code,
         bytes memory initData,
         bytes32 salt
-    ) internal returns (address proxy) {
+    ) internal returns (address payable proxy) {
         uint256 len = code.length;
         assembly {
             proxy := create2(0, add(code, 0x20), len, salt)
@@ -315,7 +315,7 @@ library CloneLib {
     function deployCodeAndInitUsingCreate(
         bytes memory code,
         bytes memory initData
-    ) internal returns (address proxy) {
+    ) internal returns (address payable proxy) {
         uint256 len = code.length;
         assembly {
             proxy := create(0, add(code, 0x20), len)
@@ -327,13 +327,11 @@ library CloneLib {
     }
 }
 
-// File: contracts/DataUnionFactoryMainnet.sol
+// File: contracts/IAMB.sol
 
 pragma solidity ^0.6.0;
 
-
-
-
+// Tokenbridge Arbitrary Message Bridge
 interface IAMB {
     function messageSender() external view returns (address);
 
@@ -369,14 +367,27 @@ interface IAMB {
     ) external returns (bytes32);
 }
 
+// File: contracts/ITokenMediator.sol
+
+pragma solidity ^0.6.0;
+
 interface ITokenMediator {
     function erc677token() external view returns (address);
     function bridgeContract() external view returns (address);
     function relayTokens(address _from, address _receiver, uint256 _value) external;
 }
 
+// File: contracts/DataUnionFactoryMainnet.sol
+
+pragma solidity ^0.6.0;
+
+
+
+
+
+
 interface IDataUnionMainnet {
-        function sidechainAddress() external view returns (address proxy);
+    function sidechainAddress() external view returns (address proxy);
 }
 
 
@@ -385,18 +396,20 @@ contract DataUnionFactoryMainnet {
 
     address public data_union_mainnet_template;
 
-    //needed to calculate address of sidechain contract
+    // needed to calculate address of sidechain contract
     address public data_union_sidechain_template;
     address public data_union_sidechain_factory;
     uint256 public sidechain_maxgas;
     IAMB public amb;
     ITokenMediator public token_mediator;
 
-    constructor( address _token_mediator,
+    constructor(address _token_mediator,
                 address _data_union_mainnet_template,
                 address _data_union_sidechain_template,
                 address _data_union_sidechain_factory,
-                uint256 _sidechain_maxgas) public {
+                uint256 _sidechain_maxgas)
+        public
+    {
         token_mediator = ITokenMediator(_token_mediator);
         data_union_mainnet_template = _data_union_mainnet_template;
         data_union_sidechain_template = _data_union_sidechain_template;
@@ -412,7 +425,8 @@ contract DataUnionFactoryMainnet {
         return CloneLib.predictCloneAddressCreate2(
             data_union_sidechain_template,
             data_union_sidechain_factory,
-            bytes32(uint256(mainet_address)));
+            bytes32(uint256(mainet_address))
+        );
     }
     /*
 
@@ -425,7 +439,8 @@ contract DataUnionFactoryMainnet {
         return CloneLib.predictCloneAddressCreate2(
             data_union_mainnet_template,
             address(this),
-            salt);
+            salt
+        );
     }
 
 
@@ -441,7 +456,10 @@ contract DataUnionFactoryMainnet {
     )  public {
     users can only deploy with salt = their key.
 */
-    function deployNewDataUnion(address owner, uint256 adminFeeFraction, address[] memory agents, string memory name) public returns (address) {
+    function deployNewDataUnion(address owner, uint256 adminFeeFraction, address[] memory agents, string memory name)
+        public
+        returns (address)
+    {
         bytes32 salt = keccak256(abi.encodePacked(bytes(name), msg.sender));
         bytes memory data = abi.encodeWithSignature("initialize(address,address,uint256,address,address,uint256,address[])",
             token_mediator,
