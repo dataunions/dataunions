@@ -9,18 +9,24 @@ const log = require("debug")("Streamr:du:test:DataUnionSidechain")
 //const log = console.log  // for debugging?
 
 /**
- * in Solidity, the message is created by abi.encodePacked(), which represents addresses unpadded as 20bytes.
+* Member can sign off to "donate" all earnings to another address such that someone else
+ *   can submit the transaction (and pay for the gas)
+ *
+ * In Solidity, the message is created by abi.encodePacked(), which represents addresses unpadded as 20bytes.
  * web3.eth.encodeParameters() encodes addresses padded as 32bytes, so it can't be used
  * encodePacked() method from library would be preferable, but this works
  *
- * @param {EthereumAddress} to
+ * @param {EthereumAddress} signer who authorizes withdraw
+ * @param {EthereumAddress} to who gets the tokens
  * @param {number} amount tokens multiplied by 10^18, or zero for unlimited (withdrawAllToSigned)
- * @param {EthereumAddress} du_address
- * @param {number} from_withdrawn amount of token-wei withdrawn previously
+ * @param {Contract} duContract DataUnionSidechain contract object
+ * @param {number} previouslyWithdrawn (optional) amount of token-wei withdrawn at the moment this signature is used
  */
-function withdrawMessage(to, amount, du_address, from_withdrawn) {
-    const message = to + amount.toString(16, 64) + du_address.slice(2) + from_withdrawn.toString(16, 64)
-    return message
+async function getWithdrawSignature(signer, to, amount, duContract, previouslyWithdrawn) {
+    const withdrawn = previouslyWithdrawn || await duContract.getWithdrawn(signer)
+    const duAddress = duContract.address
+    const message = to + amount.toString(16, 64) + duAddress.slice(2) + withdrawn.toString(16, 64)
+    return w3.eth.sign(message, signer)
 }
 
 contract("DataUnionSidechain", accounts => {
@@ -65,6 +71,7 @@ contract("DataUnionSidechain", accounts => {
         assertEqual(+memberCountBeforeBN + others.length, memberCountAfterJoinBN)
 
         // part all "others" from data union
+        await assertFails(dataUnionSidechain.partMembers(others, {from: creator}), "error_notPermitted")
         assertEvent(await dataUnionSidechain.partMembers(others, {from: agents[0]}), "MemberParted")
         await assertFails(dataUnionSidechain.partMembers(others, {from: agents[0]}), "error_notActiveMember")
         const memberCountAfterPartBN = await dataUnionSidechain.activeMemberCount()
@@ -133,14 +140,13 @@ contract("DataUnionSidechain", accounts => {
         await dataUnionSidechain.addRevenue({from: creator})
 
         // function signatureIsValid(address signer, address recipient, uint amount, bytes memory signature)
-        const msg = withdrawMessage(recipient, new BN("100"), dataUnionSidechain.address, new BN("0"))
-        const sig = await w3.eth.sign(msg, members[1])
-        assert(await dataUnionSidechain.signatureIsValid(members[1], recipient, "100", sig), "Contract says: bad signature")
+        const signature = await getWithdrawSignature(members[1], recipient, new BN("100"), dataUnionSidechain)
+        assert(await dataUnionSidechain.signatureIsValid(members[1], recipient, "100", signature), "Contract says: bad signature")
 
-        await assertFails(dataUnionSidechain.withdrawToSigned(members[1], others[1], "100", false, sig, {from: recipient}), "error_badSignature")
-        await assertFails(dataUnionSidechain.withdrawToSigned(members[1], recipient, "1000", false, sig, {from: recipient}), "error_badSignature")
-        await assertFails(dataUnionSidechain.withdrawToSigned(members[0], recipient, "100", false, sig, {from: recipient}), "error_badSignature")
-        assertEvent(await dataUnionSidechain.withdrawToSigned(members[1], recipient, "100", false, sig, {from: recipient}), "EarningsWithdrawn")
+        await assertFails(dataUnionSidechain.withdrawToSigned(members[1], others[1], "100", false, signature, {from: recipient}), "error_badSignature")
+        await assertFails(dataUnionSidechain.withdrawToSigned(members[1], recipient, "1000", false, signature, {from: recipient}), "error_badSignature")
+        await assertFails(dataUnionSidechain.withdrawToSigned(members[0], recipient, "100", false, signature, {from: recipient}), "error_badSignature")
+        assertEvent(await dataUnionSidechain.withdrawToSigned(members[1], recipient, "100", false, signature, {from: recipient}), "EarningsWithdrawn")
 
         assertEqual(await testToken.balanceOf(recipient), 100)
     })
@@ -150,14 +156,13 @@ contract("DataUnionSidechain", accounts => {
         await testToken.transfer(dataUnionSidechain.address, "3000")
         await dataUnionSidechain.addRevenue({from: creator})
 
-        const msg = withdrawMessage(recipient, new BN("0"), dataUnionSidechain.address, new BN("0"))
-        const sig = await w3.eth.sign(msg, members[1])
+        const signature = await getWithdrawSignature(members[1], recipient, new BN("0"), dataUnionSidechain)
         // function signatureIsValid(address signer, address recipient, uint amount, bytes memory signature)
-        assert(await dataUnionSidechain.signatureIsValid(members[1], recipient, "0", sig), "Contract says: bad signature")
+        assert(await dataUnionSidechain.signatureIsValid(members[1], recipient, "0", signature), "Contract says: bad signature")
 
-        await assertFails(dataUnionSidechain.withdrawAllToSigned(members[1], others[1], false, sig, {from: recipient}), "error_badSignature")
-        await assertFails(dataUnionSidechain.withdrawAllToSigned(members[0], recipient, false, sig, {from: recipient}), "error_badSignature")
-        assertEvent(await dataUnionSidechain.withdrawAllToSigned(members[1], recipient, false, sig, {from: recipient}), "EarningsWithdrawn")
+        await assertFails(dataUnionSidechain.withdrawAllToSigned(members[1], others[1], false, signature, {from: recipient}), "error_badSignature")
+        await assertFails(dataUnionSidechain.withdrawAllToSigned(members[0], recipient, false, signature, {from: recipient}), "error_badSignature")
+        assertEvent(await dataUnionSidechain.withdrawAllToSigned(members[1], recipient, false, signature, {from: recipient}), "EarningsWithdrawn")
 
         assertEqual(await testToken.balanceOf(recipient), 1000)
     })
@@ -267,7 +272,34 @@ contract("DataUnionSidechain", accounts => {
         await assertFails(dataUnionSidechain.withdraw(members[0], "666", true, {from: members[0]}), "error_transfer")
     })
 
+    it("fails to withdraw more than earnings", async () => {
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
+        await assertFails(dataUnionSidechain.withdraw(members[0], "4000", false, {from: members[0]}), "error_insufficientBalance")
+
+        // TestToken blocks transfers with this magic amount
+        await assertFails(dataUnionSidechain.withdraw(members[0], "666", false, {from: members[0]}), "error_transfer")
+    })
+
     it("fails to initialize twice", async () => {
         await assertFails(dataUnionSidechain.initialize(creator, testToken.address, agents, agents[0], agents[0], {from: creator}))
+    })
+
+    it("fails for badly formed signatures", async () => {
+        const recipient = others[2]
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
+
+        const signature = await getWithdrawSignature(members[1], recipient, new BN("100"), dataUnionSidechain)
+        const truncatedSig = signature.slice(0, -10)
+        const badVersionSig = signature.slice(0, -2) + "30"
+
+        await assertFails(dataUnionSidechain.withdrawToSigned(members[1], recipient, "100", false, truncatedSig, {from: creator}), "error_badSignatureLength")
+        await assertFails(dataUnionSidechain.withdrawToSigned(members[1], recipient, "100", false, badVersionSig, {from: creator}), "error_badSignatureVersion")
+        await assertFails(dataUnionSidechain.withdrawToSigned(members[1], recipient, "200", false, signature, {from: creator}), "error_badSignature")
+
+        await assertFails(dataUnionSidechain.signatureIsValid(members[1], recipient, "100", truncatedSig), "error_badSignatureLength")
+        await assertFails(dataUnionSidechain.signatureIsValid(members[1], recipient, "100", badVersionSig), "error_badSignatureVersion")
+        assert(!await dataUnionSidechain.signatureIsValid(members[1], recipient, "200", signature), "Bad signature was accepted as valid :(")
     })
 })
