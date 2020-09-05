@@ -76,7 +76,6 @@ contract DataUnionFactorySidechain is Ownable{
             defaultNewMemberEth
         );
         address payable du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_sidechain_template), data, salt);
-        require(du != address(0), "error_du_already_created");
         emit SidechainDUCreated(duMainnet, du, owner, data_union_sidechain_template);
         //continue wheter or not send succeeds
         if(newDUInitialEth > 0 && address(this).balance >= newDUInitialEth)
