@@ -87,7 +87,7 @@ contract DataUnionFactorySidechain is Ownable{
             }
         }
         if (newDUOwnerInitialEth > 0 && address(this).balance >= newDUOwnerInitialEth) {
-            if (initialOwner.send(newDUOwnerInitialEth)) {
+            if (owner.send(newDUOwnerInitialEth)) {
                 OwnerInitialEthSent(newDUOwnerInitialEth);
             }
         }
