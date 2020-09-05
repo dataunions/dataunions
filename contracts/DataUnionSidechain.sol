@@ -2,8 +2,8 @@ pragma solidity ^0.6.0;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "./IERC677.sol";
-import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
 
 contract DataUnionSidechain is Ownable {
     using SafeMath for uint256;
@@ -62,7 +62,7 @@ contract DataUnionSidechain is Ownable {
     }
 
     // owner will be set by initialize()
-    constructor() public Ownable(address(0)) {}
+    constructor() public {}
 
     //contract is payable
     receive() external payable {}
@@ -76,14 +76,19 @@ contract DataUnionSidechain is Ownable {
         uint256 defaultNewMemberEth
     ) public {
         require(!isInitialized(), "error_alreadyInitialized");
-        owner = msg.sender; // set real owner at the end. During initialize, addJoinPartAgents can be called by owner only
         token = IERC677(tokenAddress);
         addJoinPartAgents(initialJoinPartAgents);
         tokenMediator = tokenMediatorAddress;
         dataUnionMainnet = mainnetDataUnionAddress;
         setNewMemberEth(defaultNewMemberEth);
-        owner = initialOwner;
+        transferOwnership(initialOwner);  // until now, msg.sender was owner, to make addJoinPartAgents work
     }
+
+    function renounceOwnership() public override {
+        // silly openzeppelin Ownable feature that we don't want
+        revert("error_notImplemented");
+    }
+
 
     function isInitialized() public view returns (bool){
         return address(token) != address(0);
@@ -268,7 +273,7 @@ contract DataUnionSidechain is Ownable {
         public
         returns (uint256)
     {
-        require(msg.sender == member || msg.sender == owner, "permission_denied");
+        require(msg.sender == member || msg.sender == owner(), "permission_denied");
         _withdrawTo(member, member, amount, sendToMainnet);
     }
 
