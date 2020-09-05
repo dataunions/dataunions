@@ -2,7 +2,7 @@ pragma solidity ^0.6.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "./PurchaseListener.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
@@ -44,7 +44,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     uint256 public totalEarnings;
 
 
-    constructor() public Ownable(address(0)) {}
+    constructor() public {}
 
     function initialize(
         address _token_mediator,
@@ -56,8 +56,6 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         address[] memory agents
     )  public {
         require(!isInitialized(), "init_once");
-        //during setup, msg.sender is admin
-        owner = msg.sender;
 
         token_mediator = ITokenMediator(_token_mediator);
         amb = IAMB(token_mediator.bridgeContract());
@@ -66,9 +64,14 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         sidechain_maxgas = _sidechain_maxgas;
         sidechain_template_DU = _sidechain_template_DU;
         setAdminFee(_adminFeeFraction);
-        //transfer to real admin
-        owner = _owner;
+
+        transferOwnership(_owner);  // until now, msg.sender was owner, to make setAdminFee work
         deployNewDUSidechain(agents);
+    }
+
+    function renounceOwnership() public override {
+        // silly openzeppelin Ownable feature that we don't want
+        revert("error_notImplemented");
     }
 
     function isInitialized() public view returns (bool) {
@@ -91,7 +94,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
 
     function deployNewDUSidechain(address[] memory agents) public {
-        bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,address[])", owner, agents);
+        bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,address[])", owner(), agents);
         amb.requireToPassMessage(sidechain_DU_factory, data, sidechain_maxgas);
     }
 
@@ -157,8 +160,8 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         uint256 withdrawable = adminFeesWithdrawable();
         if (withdrawable == 0) return 0;
         totalAdminFeesWithdrawn = totalAdminFeesWithdrawn.add(withdrawable);
-        require(token.transfer(owner, withdrawable), "transfer_failed");
-        emit AdminFeesWithdrawn(owner, withdrawable);
+        require(token.transfer(owner(), withdrawable), "transfer_failed");
+        emit AdminFeesWithdrawn(owner(), withdrawable);
         return withdrawable;
     }
 }

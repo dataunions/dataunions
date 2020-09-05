@@ -2,12 +2,12 @@ pragma solidity ^0.6.0;
 
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
 import "./ITokenMediator.sol";
-import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
 
-contract DataUnionFactorySidechain is Ownable{
+contract DataUnionFactorySidechain is Ownable {
     event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
     event UpdateNewDUInitialEth(uint amount);
     event UpdateNewDUOwnerInitialEth(uint amount);
@@ -18,13 +18,13 @@ contract DataUnionFactorySidechain is Ownable{
     address public data_union_sidechain_template;
     IAMB public amb;
     ITokenMediator public token_mediator;
-    
+
     // when sidechain DU is created, the factory sends a bit of sETH to the DU and the owner
     uint public newDUInitialEth;
     uint public newDUOwnerInitialEth;
     uint public defaultNewMemberEth;
 
-    constructor(address _token_mediator, address _data_union_sidechain_template) public Ownable(msg.sender) {
+    constructor(address _token_mediator, address _data_union_sidechain_template) public {
         token_mediator = ITokenMediator(_token_mediator);
         data_union_sidechain_template = _data_union_sidechain_template;
         amb = IAMB(token_mediator.bridgeContract());
@@ -63,21 +63,21 @@ contract DataUnionFactorySidechain is Ownable{
     Must be called by AMB. Use MockAMB for testing.
     salt = mainnet_address.
     */
-    
-    function deployNewDUSidechain(address payable owner, address[] memory agents) public returns (address) {
+
+    function deployNewDUSidechain(address payable initialOwner, address[] memory initialAgents) public returns (address) {
         require(msg.sender == address(amb), "only_AMB");
         address duMainnet = amb.messageSender();
         bytes32 salt = bytes32(uint256(duMainnet));
         bytes memory data = abi.encodeWithSignature("initialize(address,address,address[],address,address,uint256)",
-            owner,
+            initialOwner,
             token_mediator.erc677token(),
-            agents,
+            initialAgents,
             address(token_mediator),
             duMainnet,
             defaultNewMemberEth
         );
         address payable du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_sidechain_template), data, salt);
-        emit SidechainDUCreated(duMainnet, du, owner, data_union_sidechain_template);
+        emit SidechainDUCreated(duMainnet, du, initialOwner, data_union_sidechain_template);
 
         // continue whether or not send succeeds
         if (newDUInitialEth > 0 && address(this).balance >= newDUInitialEth) {
@@ -86,7 +86,7 @@ contract DataUnionFactorySidechain is Ownable{
             }
         }
         if (newDUOwnerInitialEth > 0 && address(this).balance >= newDUOwnerInitialEth) {
-            if (owner.send(newDUOwnerInitialEth)) {
+            if (initialOwner.send(newDUOwnerInitialEth)) {
                 OwnerInitialEthSent(newDUOwnerInitialEth);
             }
         }
