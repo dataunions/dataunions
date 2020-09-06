@@ -12,7 +12,8 @@ contract DataUnionFactorySidechain is Ownable{
     event UpdateNewDUInitialEth(uint amount);
     event UpdateNewDUOwnerInitialEth(uint amount);
     event UpdateDefaultNewMemberInitialEth(uint amount);
-    
+    event DUInitialEthSent(uint amountWei);
+    event OwnerInitialEthSent(uint amountWei);
 
     address public data_union_sidechain_template;
     IAMB public amb;
@@ -78,11 +79,18 @@ contract DataUnionFactorySidechain is Ownable{
         address payable du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_sidechain_template), data, salt);
         require(du != address(0), "error_du_already_created");
         emit SidechainDUCreated(duMainnet, du, owner, data_union_sidechain_template);
-        //continue wheter or not send succeeds
-        if(newDUInitialEth > 0 && address(this).balance >= newDUInitialEth)
-            du.send(newDUInitialEth);
-        if(newDUOwnerInitialEth > 0 && address(this).balance >= newDUOwnerInitialEth)
-            owner.send(newDUOwnerInitialEth);
+
+        // continue whether or not send succeeds
+        if (newDUInitialEth > 0 && address(this).balance >= newDUInitialEth) {
+            if (du.send(newDUInitialEth)) {
+                DUInitialEthSent(newDUInitialEth);
+            }
+        }
+        if (newDUOwnerInitialEth > 0 && address(this).balance >= newDUOwnerInitialEth) {
+            if (owner.send(newDUOwnerInitialEth)) {
+                OwnerInitialEthSent(newDUOwnerInitialEth);
+            }
+        }
         return du;
     }
 }

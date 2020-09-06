@@ -30,6 +30,7 @@ contract DataUnionSidechain is Ownable {
 
     //new member eth
     event UpdateNewMemberEth(uint value);
+    event NewMemberEthSent(uint amountWei);
 
     struct MemberInfo {
         ActiveStatus status;
@@ -173,9 +174,13 @@ contract DataUnionSidechain is Ownable {
         info.lmeAtJoin = lifetimeMemberEarnings;
         activeMemberCount = activeMemberCount.add(1);
         emit MemberJoined(member);
-        //give new members ETH. continue even if transfer fails
-        if(sendEth)
-            member.send(newMemberEth);
+
+        // give new members ETH. continue even if transfer fails
+        if (sendEth) {
+            if (member.send(newMemberEth)) {
+                NewMemberEthSent(newMemberEth);
+            }
+        }
     }
 
     function partMember(address member) public {
