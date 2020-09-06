@@ -76,6 +76,7 @@ library CloneLib {
         assembly {
             proxy := create(0, add(code, 0x20), len)
         }
+        require(proxy != address(0), "error_create");
         if (initData.length > 0) {
             (bool success, ) = proxy.call(initData);
             require(success, "error_initialization");
