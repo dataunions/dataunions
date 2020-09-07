@@ -59,14 +59,16 @@ function assertEventBySignature(truffleResponse, sig) {
     assert(log, `Event ${sig} expected, hash: ${hash.slice(0, 8)}, got: ${allEventHashes}`)
 }
 
-async function assertFails(promise, reason) {
+async function assertFails(promise, expectedReason) {
     let failed = false
     try {
         await promise
     } catch (e) {
         failed = true
-        if (reason) {
-            assert.strictEqual(e.reason, reason)
+        if (expectedReason) {
+            // truffle 5.1.39 doesn't fill in the reason for non-transaction calls
+            const reason = e.reason || e.hijackedStack.match(/.*revert (.*)/)[1]
+            assert.strictEqual(reason, expectedReason)
         }
     }
     if (!failed) {

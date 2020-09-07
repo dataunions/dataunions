@@ -1,164 +1,305 @@
 const Web3 = require("web3")
-const { assertEqual, assertFails, assertEvent } = require("../utils/web3Assert")
-const BN = require("bn.js")
 const w3 = new Web3(web3.currentProvider)
+const { BN, toWei } = w3.utils
+const { assertEqual, assertFails, assertEvent } = require("../utils/web3Assert")
 const DataUnionSidechain = artifacts.require("./DataUnionSidechain.sol")
-const ERC20Mintable = artifacts.require("./ERC20Mintable.sol")
+const TestToken = artifacts.require("./TestToken.sol")
+
+const log = require("debug")("Streamr:du:test:DataUnionSidechain")
+//const log = console.log  // for debugging?
 
 /**
- * in Solidity, the message is created by abi.encodePacked(), which represents addresses unpadded as 20bytes.
+* Member can sign off to "donate" all earnings to another address such that someone else
+ *   can submit the transaction (and pay for the gas)
+ *
+ * In Solidity, the message is created by abi.encodePacked(), which represents addresses unpadded as 20bytes.
  * web3.eth.encodeParameters() encodes addresses padded as 32bytes, so it can't be used
  * encodePacked() method from library would be preferable, but this works
  *
- * @param {EthereumAddress} to
- * @param {number} amount tokens multiplied by 10^18
- * @param {EthereumAddress} du_address
- * @param {number} from_withdrawn amount of token-wei withdrawn previously
+ * @param {EthereumAddress} signer who authorizes withdraw
+ * @param {EthereumAddress} to who gets the tokens
+ * @param {number} amount tokens multiplied by 10^18, or zero for unlimited (withdrawAllToSigned)
+ * @param {Contract} duContract DataUnionSidechain contract object
+ * @param {number} previouslyWithdrawn (optional) amount of token-wei withdrawn at the moment this signature is used
  */
-function withdrawMessage(to, amount, du_address, from_withdrawn) {
-    const message = to + amount.toString(16, 64) + du_address.slice(2) + from_withdrawn.toString(16, 64)
-    return message
+async function getWithdrawSignature(signer, to, amount, duContract, previouslyWithdrawn) {
+    const withdrawn = previouslyWithdrawn || await duContract.getWithdrawn(signer)
+    const duAddress = duContract.address
+    const message = to + amount.toString(16, 64) + duAddress.slice(2) + withdrawn.toString(16, 64)
+    return w3.eth.sign(message, signer)
 }
 
 contract("DataUnionSidechain", accounts => {
     const creator = accounts[0]
-    const agents = accounts.slice(1, accounts.length / 3)
-    const members = accounts.slice(accounts.length / 3, 2 * accounts.length / 3)
-    const unused = accounts.slice(2 * accounts.length / 3)
+    const agents = accounts.slice(1, 3)
+    const members = accounts.slice(3, 6)
+    const others = accounts.slice(6)
+
     let testToken, dataUnionSidechain
 
-    const amtEth = 100
-    const amtWei = new BN(w3.utils.toWei(amtEth.toString()), 10)
-    //earnings from test transfers
-    const earn1 = amtWei.div(new BN(members.length))
-    const earn2 = amtWei.div(new BN(members.length - 1))
-    const earn3 = amtWei.div(new BN(members.length + 1))
-
-    /*
- function initialize(
-        address token_address,
-        address[] memory agents,
-        address _token_mediator,
-        address _mainchain_DU
-    )
-*/
-    before(async () => {
-        testToken = await ERC20Mintable.new("name","symbol",{ from: creator })
-
+    beforeEach(async () => {
+        // Last 2 initialize args are dummy. Doesn't talk to mainnet contract in test
+        // function initialize(
+        //   address initialOwner,
+        //   address tokenAddress,
+        //   address[] memory initialJoinPartAgents,
+        //   address tokenMediatorAddress,
+        //   address mainnetDataUnionAddress
+        // )
+        testToken = await TestToken.new("name", "symbol", { from: creator })
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
-        //last 2 args are dummy. doesnt talk to mainnet contract in test
-        await dataUnionSidechain.initialize(creator, testToken.address, agents,agents[0],agents[0], "1", {from: creator}) // defaultNewMemberEth added as last argument
-        await testToken.mint(creator, w3.utils.toWei("10000"), { from: creator })
+        await dataUnionSidechain.initialize(creator, testToken.address, agents, agents[0], agents[0], "1", {from: creator})
+        await testToken.mint(creator, toWei("10000"), { from: creator })
         await dataUnionSidechain.addMembers(members, {from: agents[1]})
-        /*
-        console.log(`creator: ${creator}`)
-        console.log(`agents: ${JSON.stringify(agents)}`)
-        console.log(`members: ${JSON.stringify(members)}`)
-        console.log(`unused: ${JSON.stringify(unused)}`)
-        */
-    }),
-    describe("Basic Functions", () => {
-        it("add/remove members", async () => {
-            const initial_member_count  = +(await dataUnionSidechain.activeMemberCount())
-            assertEqual(initial_member_count, members.length)
-            await assertFails(dataUnionSidechain.addMembers(unused, {from: creator}))
 
-            assertEvent(await dataUnionSidechain.addMembers(unused, {from: agents[0]}), "MemberJoined")
-            var member_count = await dataUnionSidechain.activeMemberCount()
-            assertEqual(initial_member_count + unused.length, member_count)
+        log(`DataUnionSidechain initialized at ${dataUnionSidechain.address}`)
+        log(`  creator: ${creator}`)
+        log(`  agents: ${JSON.stringify(agents)}`)
+        log(`  members: ${JSON.stringify(members)}`)
+        log(`  outsider addresses used in tests: ${JSON.stringify(others)}`)
+    })
 
-            assertEvent(await dataUnionSidechain.partMembers(unused, {from: agents[0]}), "MemberParted")
-            member_count = await dataUnionSidechain.activeMemberCount()
-            assertEqual(initial_member_count, member_count)
-        }),
+    it("addMembers partMembers", async () => {
+        const memberCountBeforeBN = await dataUnionSidechain.activeMemberCount()
+        assertEqual(memberCountBeforeBN, members.length)
 
-        it("add/remove joinPartAgents", async () => {
-            //add agent
-            await assertFails(dataUnionSidechain.addMember(unused[1], {from: unused[0]}))
-            var jpCount = +(await dataUnionSidechain.joinPartAgentCount())
-            assertEqual(jpCount, agents.length)
-            assertEvent(await dataUnionSidechain.addJoinPartAgent(unused[0], {from: creator}), "JoinPartAgentAdded")
-            jpCount = +(await dataUnionSidechain.joinPartAgentCount())
-            assertEqual(jpCount, agents.length + 1)
-            assertEvent(await dataUnionSidechain.addMember(unused[1], {from: agents[0]}), "MemberJoined")
-            assertEvent(await dataUnionSidechain.partMember(unused[1], {from: agents[0]}), "MemberParted")
+        // add all "others" to data union
+        await assertFails(dataUnionSidechain.addMembers(others, {from: creator}), "error_onlyJoinPartAgent")
+        assertEvent(await dataUnionSidechain.addMembers(others, {from: agents[0]}), "MemberJoined")
+        await assertFails(dataUnionSidechain.addMembers(others, {from: agents[0]}), "error_alreadyMember")
+        const memberCountAfterJoinBN = await dataUnionSidechain.activeMemberCount()
+        assertEqual(+memberCountBeforeBN + others.length, memberCountAfterJoinBN)
 
-            //remove agent
-            assertEvent(await dataUnionSidechain.removeJoinPartAgent(unused[0], {from: creator}), "JoinPartAgentRemoved")
-            await assertFails(dataUnionSidechain.addMember(unused[1], {from: unused[0]}))
-            jpCount = +(await dataUnionSidechain.joinPartAgentCount())
-            assertEqual(jpCount, agents.length)
+        // part all "others" from data union
+        await assertFails(dataUnionSidechain.partMembers(others, {from: creator}), "error_notPermitted")
+        assertEvent(await dataUnionSidechain.partMembers(others, {from: agents[0]}), "MemberParted")
+        await assertFails(dataUnionSidechain.partMembers(others, {from: agents[0]}), "error_notActiveMember")
+        const memberCountAfterPartBN = await dataUnionSidechain.activeMemberCount()
+        assertEqual(memberCountBeforeBN, memberCountAfterPartBN)
+    })
 
+    it("addJoinPartAgent removeJoinPartAgent", async () => {
+        const newAgent = others[0]
+        const newMember = others[1]
+        const agentCountBeforeBN = await dataUnionSidechain.joinPartAgentCount()
+        assertEqual(agentCountBeforeBN, agents.length)
 
-        }),
+        // add new agent
+        await assertFails(dataUnionSidechain.addMember(newMember, {from: newAgent}), "error_onlyJoinPartAgent")
+        assertEvent(await dataUnionSidechain.addJoinPartAgent(newAgent, {from: creator}), "JoinPartAgentAdded")
+        await assertFails(dataUnionSidechain.addJoinPartAgent(newAgent, {from: creator}), "error_alreadyActiveAgent")
+        const agentCountAfterAddBN = await dataUnionSidechain.joinPartAgentCount()
+        assertEqual(agentCountAfterAddBN, agents.length + 1)
+        assertEvent(await dataUnionSidechain.addMember(newMember, {from: agents[0]}), "MemberJoined")
+        assertEvent(await dataUnionSidechain.partMember(newMember, {from: agents[0]}), "MemberParted")
 
-        it("distributes earnings correctly", async () => {
-            //send revenue to members[]
-            assert(await testToken.transfer(dataUnionSidechain.address, amtWei))
-            await dataUnionSidechain.addRevenue({from: unused[1]})
-            //should do nothing:
-            await dataUnionSidechain.addRevenue({from: unused[1]})
+        // remove the new agent
+        assertEvent(await dataUnionSidechain.removeJoinPartAgent(newAgent, {from: creator}), "JoinPartAgentRemoved")
+        await assertFails(dataUnionSidechain.removeJoinPartAgent(newAgent, {from: creator}), "error_notActiveAgent")
+        const agentCountAfterRemoveBN = await dataUnionSidechain.joinPartAgentCount()
+        assertEqual(agentCountAfterRemoveBN, agents.length)
+        await assertFails(dataUnionSidechain.addMember(newMember, {from: newAgent}), "error_onlyJoinPartAgent")
+    })
 
-            assertEqual(+(await dataUnionSidechain.totalEarnings()), amtWei)
-            assertEqual(+(await dataUnionSidechain.getEarnings(members[0])), earn1)
+    it("withdrawMembers: batch withdraw many members", async () => {
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
+        assertEvent(await dataUnionSidechain.withdrawMembers(members, false, {from: creator}), "EarningsWithdrawn")
+        assertEqual(await testToken.balanceOf(members[0]), 1000)
+        assertEqual(await testToken.balanceOf(members[1]), 1000)
+        assertEqual(await testToken.balanceOf(members[2]), 1000)
+    })
 
-            //drop a member, send tokens, check accounting
-            assertEvent(await dataUnionSidechain.partMember(members[0], {from: agents[0]}), "MemberParted")
-            assertEqual(+(await dataUnionSidechain.getEarnings(members[0])), earn1)
-            assert(await testToken.transfer(dataUnionSidechain.address,amtWei))
-            await dataUnionSidechain.addRevenue({from: unused[1]})
-            assertEqual(+(await dataUnionSidechain.getEarnings(members[0])), earn1)
-            assertEqual(+(await dataUnionSidechain.getEarnings(members[1])), earn1.add(earn2))
-            assertEvent(await dataUnionSidechain.addMember(members[0], {from: agents[0]}), "MemberJoined")
+    it("withdrawAll", async () => {
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
+        await assertFails(dataUnionSidechain.withdrawAll(members[0], false, {from: others[0]}), "error_notPermitted")
+        assertEvent(await dataUnionSidechain.withdrawAll(members[0], false, {from: members[0]}), "EarningsWithdrawn")
+        assertEvent(await dataUnionSidechain.withdrawAll(members[1], false, {from: creator}), "EarningsWithdrawn")
+        await dataUnionSidechain.withdrawAll(members[1], false, {from: creator})    // this should do nothing, also not revert
+        assertEqual(await testToken.balanceOf(members[0]), 1000)
+        assertEqual(await testToken.balanceOf(members[1]), 1000)
+        assertEqual(await testToken.balanceOf(members[2]), 0)
+    })
 
-            //add a member, send tokens, check accounting
-            assertEvent(await dataUnionSidechain.addMember(unused[0], {from: agents[0]}), "MemberJoined")
-            assert(await testToken.transfer(dataUnionSidechain.address, amtWei))
-            await dataUnionSidechain.addRevenue({from: unused[1]})
-            assertEqual(+(await dataUnionSidechain.getEarnings(unused[0])), earn3)
-            assertEqual(+(await dataUnionSidechain.getEarnings(members[1])), earn1.add(earn2).add(earn3))
-            assertEqual(+(await dataUnionSidechain.getEarnings(members[0])), earn1.add(earn3))
-            assertEvent(await dataUnionSidechain.partMember(unused[0], {from: agents[0]}), "MemberParted")
-        }),
-        it("withdrawal works", async () => {
-            //test withdaw to self
-            await assertFails(dataUnionSidechain.withdrawAll(unused[0], false, {from: unused[1]}))
-            assertEvent(await dataUnionSidechain.withdrawAll(unused[0], false, {from: unused[0]}), "EarningsWithdrawn")
-            assertEqual(+(await testToken.balanceOf(unused[0])), earn3)
+    it("withdrawAllTo", async () => {
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
 
-            //test withdraw to other
-            assertEvent(await dataUnionSidechain.withdrawAllTo(unused[0], false, {from: members[0]}), "EarningsWithdrawn")
-            assertEqual(+(await testToken.balanceOf(unused[0])), earn3.add(earn1.add(earn3)))
+        const before = await testToken.balanceOf(others[0])
+        assertEvent(await dataUnionSidechain.withdrawAllTo(others[0], false, {from: members[0]}), "EarningsWithdrawn")
+        const after = await testToken.balanceOf(others[0])
 
-            //test signed withdraw
-            const member1earnings = earn1.add(earn2).add(earn3)
-            const member1withdrawn =  new BN(0)
-            const validWithdrawRequest = withdrawMessage(unused[2], member1earnings, dataUnionSidechain.address, member1withdrawn)
-            const sig = await w3.eth.sign(validWithdrawRequest, members[1])
-            //console.log(`sig ${sig}   req ${validWithdrawRequest}`)
+        const diff = after.sub(before)
+        assertEqual(diff, 1000)
+    })
 
-            assert(await dataUnionSidechain.signatureIsValid(members[1], unused[2], member1earnings, sig), "Contract says: bad signature")
-            // signed for recipient unused[2] not unused[1]
-            await assertFails(dataUnionSidechain.withdrawAllToSigned(members[1], unused[1], false, sig, {from: unused[2]}), "error_badSignature")
-            assertEvent(await dataUnionSidechain.withdrawAllToSigned(members[1], unused[2], false, sig, {from: unused[2]}), "EarningsWithdrawn")
-            assertEqual(+(await testToken.balanceOf(unused[2])), member1earnings)
+    it("withdrawToSigned", async () => {
+        const recipient = others[2]
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
 
-        })
-    }),
-    describe("In-Contract Transfers", () => {
-        it("can transfer tokens to member in-contract", async () => {
-            await testToken.approve(dataUnionSidechain.address, amtWei, {from: creator})
-            await dataUnionSidechain.transferToMemberInContract(unused[0], amtWei, {from: creator})
-            let bal = await dataUnionSidechain.getWithdrawableEarnings(unused[0])
-            assertEqual(bal, amtWei)
-        }),
-        it("members can send intra-contract", async () => {
-            assert(await testToken.transfer(dataUnionSidechain.address, amtWei))
-            await dataUnionSidechain.addRevenue({from: unused[1]})
-            const amt = new BN(w3.utils.toWei("1"), 10)
-            await dataUnionSidechain.transferWithinContract(unused[1], amt, {from: members[0]})
-            let bal = await dataUnionSidechain.getWithdrawableEarnings(unused[1])
-            assertEqual(bal, amt)
-        })
+        // function signatureIsValid(address signer, address recipient, uint amount, bytes memory signature)
+        const signature = await getWithdrawSignature(members[1], recipient, new BN("100"), dataUnionSidechain)
+        assert(await dataUnionSidechain.signatureIsValid(members[1], recipient, "100", signature), "Contract says: bad signature")
+
+        await assertFails(dataUnionSidechain.withdrawToSigned(members[1], others[1], "100", false, signature, {from: recipient}), "error_badSignature")
+        await assertFails(dataUnionSidechain.withdrawToSigned(members[1], recipient, "1000", false, signature, {from: recipient}), "error_badSignature")
+        await assertFails(dataUnionSidechain.withdrawToSigned(members[0], recipient, "100", false, signature, {from: recipient}), "error_badSignature")
+        assertEvent(await dataUnionSidechain.withdrawToSigned(members[1], recipient, "100", false, signature, {from: recipient}), "EarningsWithdrawn")
+
+        assertEqual(await testToken.balanceOf(recipient), 100)
+    })
+
+    it("withdrawAllToSigned", async () => {
+        const recipient = others[2]
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
+
+        const signature = await getWithdrawSignature(members[1], recipient, new BN("0"), dataUnionSidechain)
+        // function signatureIsValid(address signer, address recipient, uint amount, bytes memory signature)
+        assert(await dataUnionSidechain.signatureIsValid(members[1], recipient, "0", signature), "Contract says: bad signature")
+
+        await assertFails(dataUnionSidechain.withdrawAllToSigned(members[1], others[1], false, signature, {from: recipient}), "error_badSignature")
+        await assertFails(dataUnionSidechain.withdrawAllToSigned(members[0], recipient, false, signature, {from: recipient}), "error_badSignature")
+        assertEvent(await dataUnionSidechain.withdrawAllToSigned(members[1], recipient, false, signature, {from: recipient}), "EarningsWithdrawn")
+
+        assertEqual(await testToken.balanceOf(recipient), 1000)
+    })
+
+    it("transferToMemberInContract", async () => {
+        await testToken.approve(dataUnionSidechain.address, "2000", {from: creator})
+        await dataUnionSidechain.transferToMemberInContract(others[0], "1000", {from: creator})
+        await dataUnionSidechain.transferToMemberInContract(members[0], "1000", {from: creator})
+        assertEqual(await dataUnionSidechain.getWithdrawableEarnings(others[0]), 1000)
+        assertEqual(await dataUnionSidechain.getWithdrawableEarnings(members[0]), 1000)
+
+        // TestToken blocks transfers with this magic amount
+        await assertFails(dataUnionSidechain.transferToMemberInContract(members[0], "666", {from: creator}), "error_transfer")
+
+        // TestToken sabotages transfers with this magic amount
+        await assertFails(dataUnionSidechain.transferToMemberInContract(members[0], "777", {from: creator}), "error_transfer")
+    })
+
+    it("transferWithinContract", async () => {
+        assert(await testToken.transfer(dataUnionSidechain.address, "3000"))
+        await dataUnionSidechain.addRevenue({from: others[1]})
+        await assertFails(dataUnionSidechain.transferWithinContract(members[1], "100", {from: others[0]}), "error_notMember")
+        await assertFails(dataUnionSidechain.transferWithinContract(members[1], "100", {from: creator}), "error_notMember")
+        assertEvent(await dataUnionSidechain.transferWithinContract(members[1], "100", {from: members[0]}), "TransferWithinContract")
+        assertEvent(await dataUnionSidechain.transferWithinContract(others[1], "100", {from: members[0]}), "TransferWithinContract")
+        assertEqual(await dataUnionSidechain.getWithdrawableEarnings(members[0]), 800)
+        assertEqual(await dataUnionSidechain.getWithdrawableEarnings(members[1]), 1100)
+        assertEqual(await dataUnionSidechain.getWithdrawableEarnings(members[2]), 1000)
+        assertEqual(await dataUnionSidechain.getWithdrawableEarnings(others[1]), 100)
+    })
+
+    it("getStats", async () => {
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
+        await dataUnionSidechain.withdraw(members[0], "500", false, {from: members[0]})
+        const [
+            totalEarnings,
+            totalEarningsWithdrawn,
+            activeMemberCount,
+            lifetimeMemberEarnings,
+            joinPartAgentCount
+        ] = await dataUnionSidechain.getStats()
+        assertEqual(totalEarnings, 3000)
+        assertEqual(totalEarningsWithdrawn, 500)
+        assertEqual(activeMemberCount, 3)
+        assertEqual(lifetimeMemberEarnings, 1000)
+        assertEqual(joinPartAgentCount, 2)
+    })
+
+    it("getEarnings", async () => {
+        await assertFails(dataUnionSidechain.getEarnings(others[0]), "error_notMember")
+        await assertFails(dataUnionSidechain.getEarnings(agents[0]), "error_notMember")
+        await assertFails(dataUnionSidechain.getEarnings(creator), "error_notMember")
+        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 0)
+
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
+
+        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 1000)
+    })
+
+    it("distributes earnings correctly", async () => {
+        const randomOutsider = others[1]
+        const newMember = others[0]
+
+        // send and distribute a batch of revenue to members
+        assertEvent(await testToken.transfer(dataUnionSidechain.address, "3000"), "Transfer")
+        assertEvent(await dataUnionSidechain.addRevenue({from: randomOutsider}), "RevenueReceived")
+
+        // repeating it should do nothing (also not throw)
+        await dataUnionSidechain.addRevenue({from: randomOutsider})
+
+        assertEqual(await dataUnionSidechain.totalEarnings(), 3000)
+        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 1000)
+        assertEqual(await dataUnionSidechain.getEarnings(members[1]), 1000)
+        assertEqual(await dataUnionSidechain.getEarnings(members[2]), 1000)
+
+        // drop a member, send more tokens, check accounting
+        assertEvent(await dataUnionSidechain.partMember(members[0], {from: agents[0]}), "MemberParted")
+        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 1000)
+        await testToken.transfer(dataUnionSidechain.address, "2000")
+        await dataUnionSidechain.addRevenue({from: randomOutsider})
+        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 1000)
+        assertEqual(await dataUnionSidechain.getEarnings(members[1]), 2000)
+        assertEqual(await dataUnionSidechain.getEarnings(members[2]), 2000)
+        assertEvent(await dataUnionSidechain.addMember(members[0], {from: agents[0]}), "MemberJoined")
+
+        // add a member, send tokens, check accounting
+        assertEvent(await dataUnionSidechain.addMember(newMember, {from: agents[0]}), "MemberJoined")
+        await testToken.transfer(dataUnionSidechain.address, "4000")
+        await dataUnionSidechain.addRevenue({from: randomOutsider})
+        assertEqual(await dataUnionSidechain.getEarnings(newMember), 1000)
+        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 2000)
+        assertEqual(await dataUnionSidechain.getEarnings(members[1]), 3000)
+        assertEqual(await dataUnionSidechain.getEarnings(members[2]), 3000)
+        assertEvent(await dataUnionSidechain.partMember(newMember, {from: agents[0]}), "MemberParted")
+    })
+
+    // Of course there is no "withdraw to mainnet" in test.
+    // Instead what happens in DataUnionSidechain is a call to TokenMediator
+    it("withdraw to mainnet", async () => {
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
+        assertEvent(await dataUnionSidechain.withdraw(members[0], "100", true, {from: members[0]}), "EarningsWithdrawn")
+
+        // TestToken blocks transfers with this magic amount
+        await assertFails(dataUnionSidechain.withdraw(members[0], "666", true, {from: members[0]}), "error_transfer")
+    })
+
+    it("fails to withdraw more than earnings", async () => {
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
+        await assertFails(dataUnionSidechain.withdraw(members[0], "4000", false, {from: members[0]}), "error_insufficientBalance")
+
+        // TestToken blocks transfers with this magic amount
+        await assertFails(dataUnionSidechain.withdraw(members[0], "666", false, {from: members[0]}), "error_transfer")
+    })
+
+    it("fails to initialize twice", async () => {
+        await assertFails(dataUnionSidechain.initialize(creator, testToken.address, agents, agents[0], agents[0], {from: creator}))
+    })
+
+    it("fails for badly formed signatures", async () => {
+        const recipient = others[2]
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.addRevenue({from: creator})
+
+        const signature = await getWithdrawSignature(members[1], recipient, new BN("100"), dataUnionSidechain)
+        const truncatedSig = signature.slice(0, -10)
+        const badVersionSig = signature.slice(0, -2) + "30"
+
+        await assertFails(dataUnionSidechain.withdrawToSigned(members[1], recipient, "100", false, truncatedSig, {from: creator}), "error_badSignatureLength")
+        await assertFails(dataUnionSidechain.withdrawToSigned(members[1], recipient, "100", false, badVersionSig, {from: creator}), "error_badSignatureVersion")
+        await assertFails(dataUnionSidechain.withdrawToSigned(members[1], recipient, "200", false, signature, {from: creator}), "error_badSignature")
+
+        await assertFails(dataUnionSidechain.signatureIsValid(members[1], recipient, "100", truncatedSig), "error_badSignatureLength")
+        await assertFails(dataUnionSidechain.signatureIsValid(members[1], recipient, "100", badVersionSig), "error_badSignatureVersion")
+        assert(!await dataUnionSidechain.signatureIsValid(members[1], recipient, "200", signature), "Bad signature was accepted as valid :(")
     })
 })
