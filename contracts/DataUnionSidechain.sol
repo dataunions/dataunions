@@ -28,6 +28,10 @@ contract DataUnionSidechain is Ownable {
     event TransferWithinContract(address indexed from, address indexed to, uint amount);
     event TransferToAddressInContract(address indexed from, address indexed to, uint amount);
 
+    //new member eth
+    event UpdateNewMemberEth(uint value);
+    event NewMemberEthSent(uint amountWei);
+
     struct MemberInfo {
         ActiveStatus status;
         uint256 earningsBeforeLastJoin;
@@ -46,6 +50,9 @@ contract DataUnionSidechain is Ownable {
     uint256 public lifetimeMemberEarnings;
 
     uint256 public joinPartAgentCount;
+
+    uint256 public newMemberEth;
+
     mapping(address => MemberInfo) public memberData;
     mapping(address => ActiveStatus) public joinPartAgents;
 
@@ -57,12 +64,15 @@ contract DataUnionSidechain is Ownable {
     // owner will be set by initialize()
     constructor() public Ownable(address(0)) {}
 
+    receive() external payable {}
+
     function initialize(
         address initialOwner,
         address tokenAddress,
         address[] memory initialJoinPartAgents,
         address tokenMediatorAddress,
-        address mainnetDataUnionAddress
+        address mainnetDataUnionAddress,
+        uint256 defaultNewMemberEth
     ) public {
         require(!isInitialized(), "error_alreadyInitialized");
         owner = msg.sender; // set real owner at the end. During initialize, addJoinPartAgents can be called by owner only
@@ -70,6 +80,7 @@ contract DataUnionSidechain is Ownable {
         addJoinPartAgents(initialJoinPartAgents);
         tokenMediator = tokenMediatorAddress;
         dataUnionMainnet = mainnetDataUnionAddress;
+        setNewMemberEth(defaultNewMemberEth);
         owner = initialOwner;
     }
 
@@ -89,6 +100,12 @@ contract DataUnionSidechain is Ownable {
             lifetimeMemberEarnings,
             joinPartAgentCount
         ];
+    }
+
+    function setNewMemberEth(uint val) public onlyOwner {
+        if(val == newMemberEth) return;
+        newMemberEth = val;
+        emit UpdateNewMemberEth(val);
     }
 
     function getEarnings(address member) public view returns (uint256) {
@@ -153,13 +170,21 @@ contract DataUnionSidechain is Ownable {
         return revenue;
     }
 
-    function addMember(address member) public onlyJoinPartAgent {
+    function addMember(address payable member) public onlyJoinPartAgent {
         MemberInfo storage info = memberData[member];
         require(info.status != ActiveStatus.Active, "error_alreadyMember");
+        bool sendEth = info.status == ActiveStatus.None && newMemberEth > 0 && address(this).balance >= newMemberEth;
         info.status = ActiveStatus.Active;
         info.lmeAtJoin = lifetimeMemberEarnings;
         activeMemberCount = activeMemberCount.add(1);
         emit MemberJoined(member);
+
+        // give new members ETH. continue even if transfer fails
+        if (sendEth) {
+            if (member.send(newMemberEth)) {
+                NewMemberEthSent(newMemberEth);
+            }
+        }
     }
 
     function partMember(address member) public {
@@ -172,7 +197,7 @@ contract DataUnionSidechain is Ownable {
         emit MemberParted(member);
     }
 
-    function addMembers(address[] memory members) public onlyJoinPartAgent {
+    function addMembers(address payable[] memory members) public onlyJoinPartAgent {
         for (uint256 i = 0; i < members.length; i++) {
             addMember(members[i]);
         }

@@ -1,11 +1,6 @@
 pragma solidity ^0.6.0;
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-
-interface ITokenMediator {
-    function erc677token() external view returns (address);
-    function bridgeContract() external view returns (address);
-    function relayTokens(address _from, address _receiver, uint256 _value) external;
-}
+import "./ITokenMediator.sol";
 
 contract MockTokenMediator is ITokenMediator {
     ERC20 public token;

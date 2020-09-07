@@ -295,7 +295,7 @@ library CloneLib {
         bytes memory code,
         bytes memory initData,
         bytes32 salt
-    ) internal returns (address proxy) {
+    ) internal returns (address payable proxy) {
         uint256 len = code.length;
         assembly {
             proxy := create2(0, add(code, 0x20), len, salt)
@@ -315,7 +315,7 @@ library CloneLib {
     function deployCodeAndInitUsingCreate(
         bytes memory code,
         bytes memory initData
-    ) internal returns (address proxy) {
+    ) internal returns (address payable proxy) {
         uint256 len = code.length;
         assembly {
             proxy := create(0, add(code, 0x20), len)
@@ -327,14 +327,11 @@ library CloneLib {
     }
 }
 
-// File: contracts/DataUnionFactorySidechain.sol
+// File: contracts/IAMB.sol
 
 pragma solidity ^0.6.0;
 
-
-
-
-//Tokenbridge Arbitrary Message Bridge
+// Tokenbridge Arbitrary Message Bridge
 interface IAMB {
     function messageSender() external view returns (address);
 
@@ -370,24 +367,107 @@ interface IAMB {
     ) external returns (bytes32);
 }
 
+// File: contracts/ITokenMediator.sol
+
+pragma solidity ^0.6.0;
+
 interface ITokenMediator {
     function erc677token() external view returns (address);
     function bridgeContract() external view returns (address);
     function relayTokens(address _from, address _receiver, uint256 _value) external;
 }
 
+// File: contracts/Ownable.sol
 
-contract DataUnionFactorySidechain {
+pragma solidity ^0.6.0;
+/**
+ * @title Ownable
+ * @dev The Ownable contract has an owner address, and provides basic authorization control
+ * functions, this simplifies the implementation of "user permissions".
+ */
+contract Ownable {
+    address public owner;
+    address public pendingOwner;
+
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
+
+    /**
+     * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+     * account.
+     */
+    constructor(address owner_) public {
+        owner = owner_;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(msg.sender == owner, "onlyOwner");
+        _;
+    }
+
+    /**
+     * @dev Allows the current owner to set the pendingOwner address.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address newOwner) public onlyOwner {
+        pendingOwner = newOwner;
+    }
+
+    /**
+     * @dev Allows the pendingOwner address to finalize the transfer.
+     */
+    function claimOwnership() public {
+        require(msg.sender == pendingOwner, "onlyPendingOwner");
+        emit OwnershipTransferred(owner, pendingOwner);
+        owner = pendingOwner;
+        pendingOwner = address(0);
+    }
+}
+
+// File: contracts/DataUnionFactorySidechain.sol
+
+pragma solidity ^0.6.0;
+
+
+
+
+
+
+
+contract DataUnionFactorySidechain is Ownable{
     event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
+    event UpdateNewDUInitialEth(uint amount);
+    event UpdateNewDUOwnerInitialEth(uint amount);
+    
 
     address public data_union_sidechain_template;
     IAMB public amb;
     ITokenMediator public token_mediator;
+    uint public newDUInitialEth;
+    uint public newDUOwnerInitialEth;
 
-    constructor( address _token_mediator, address _data_union_sidechain_template) public {
+    constructor(address _token_mediator, address _data_union_sidechain_template) public Ownable(msg.sender) {
         token_mediator = ITokenMediator(_token_mediator);
         data_union_sidechain_template = _data_union_sidechain_template;
         amb = IAMB(token_mediator.bridgeContract());
+    }
+
+    //contract is payable
+    receive() external payable {}
+
+    function setNewDUInitialEth(uint val) public onlyOwner {
+        newDUInitialEth = val;
+        emit UpdateNewDUInitialEth(val);
+    }
+
+    function setNewDUOwnerInitialEth(uint val) public onlyOwner {
+        newDUOwnerInitialEth = val;
+        emit UpdateNewDUOwnerInitialEth(val);
     }
 
     function sidechainAddress(address mainet_address)
@@ -407,19 +487,34 @@ contract DataUnionFactorySidechain {
 
     users can only deploy with salt = their key.
 */
-    function deployNewDUSidechain(address owner, address[] memory agents) public returns (address) {
-        //if the request didnt come from AMB, use the sender's address as the corresponding "mainnet" address
-        address du_mainnet = msg.sender == address(amb) ? amb.messageSender() : msg.sender;
-        bytes32 salt = bytes32(uint256(du_mainnet));
+    function deployNewDUSidechain(address payable owner, address[] memory agents) public returns (address) {
+        address duMainnet;
+        bool sendEth = false;
+        if(msg.sender == address(amb)) {
+            duMainnet = amb.messageSender();
+            sendEth = true;
+        } else {
+            //if the request didnt come from AMB, use the sender's address as the corresponding "mainnet" address
+            duMainnet = msg.sender;
+        }
+        bytes32 salt = bytes32(uint256(duMainnet));
         bytes memory data = abi.encodeWithSignature("initialize(address,address,address[],address,address)",
             owner,
             token_mediator.erc677token(),
             agents,
             address(token_mediator),
-            du_mainnet
+            duMainnet
         );
-        address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_sidechain_template), data, salt);
-        emit SidechainDUCreated(du_mainnet, du, owner, data_union_sidechain_template);
+        address payable du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_sidechain_template), data, salt);
+        require(du != address(0), "error_du_already_created");
+        emit SidechainDUCreated(duMainnet, du, owner, data_union_sidechain_template);
+        if(sendEth){
+            //continue wheter or not send succeeds
+            if(newDUInitialEth > 0 && address(this).balance >= newDUInitialEth)
+                du.send(newDUInitialEth);
+            if(newDUOwnerInitialEth > 0 && address(this).balance >= newDUOwnerInitialEth)
+                owner.send(newDUOwnerInitialEth);
+        }
         return du;
     }
 }

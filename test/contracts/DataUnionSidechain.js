@@ -48,7 +48,7 @@ contract("DataUnionSidechain", accounts => {
         // )
         testToken = await TestToken.new("name", "symbol", { from: creator })
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
-        await dataUnionSidechain.initialize(creator, testToken.address, agents, agents[0], agents[0], {from: creator})
+        await dataUnionSidechain.initialize(creator, testToken.address, agents, agents[0], agents[0], "1", {from: creator})
         await testToken.mint(creator, toWei("10000"), { from: creator })
         await dataUnionSidechain.addMembers(members, {from: agents[1]})
 

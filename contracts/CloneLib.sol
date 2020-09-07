@@ -50,11 +50,12 @@ library CloneLib {
         bytes memory code,
         bytes memory initData,
         bytes32 salt
-    ) internal returns (address proxy) {
+    ) internal returns (address payable proxy) {
         uint256 len = code.length;
         assembly {
             proxy := create2(0, add(code, 0x20), len, salt)
         }
+        require(proxy != address(0), "error_alreadyCreated");
         if (initData.length > 0) {
             (bool success, ) = proxy.call(initData);
             require(success, "error_initialization");
@@ -70,11 +71,12 @@ library CloneLib {
     function deployCodeAndInitUsingCreate(
         bytes memory code,
         bytes memory initData
-    ) internal returns (address proxy) {
+    ) internal returns (address payable proxy) {
         uint256 len = code.length;
         assembly {
             proxy := create(0, add(code, 0x20), len)
         }
+        require(proxy != address(0), "error_create");
         if (initData.length > 0) {
             (bool success, ) = proxy.call(initData);
             require(success, "error_initialization");

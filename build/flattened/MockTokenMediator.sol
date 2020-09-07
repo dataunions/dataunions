@@ -721,16 +721,21 @@ contract ERC20 is Context, IERC20 {
     function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual { }
 }
 
-// File: contracts/MockTokenMediator.sol
+// File: contracts/ITokenMediator.sol
 
 pragma solidity ^0.6.0;
-
 
 interface ITokenMediator {
     function erc677token() external view returns (address);
     function bridgeContract() external view returns (address);
     function relayTokens(address _from, address _receiver, uint256 _value) external;
 }
+
+// File: contracts/MockTokenMediator.sol
+
+pragma solidity ^0.6.0;
+
+
 
 contract MockTokenMediator is ITokenMediator {
     ERC20 public token;
