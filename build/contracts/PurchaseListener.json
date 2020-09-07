@@ -41,26 +41,26 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"subscriber\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"endTimestamp\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"priceDatacoin\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"feeDatacoin\",\"type\":\"uint256\"}],\"name\":\"onPurchase\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"accepted\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{\"onPurchase(bytes32,address,uint256,uint256,uint256)\":{\"notice\":\"Similarly to ETH transfer, returning false will decline the transaction  (declining should probably cause revert, but that's up to the caller) IMPORTANT: include onlyMarketplace modifier to your implementations!\"}}}},\"settings\":{\"compilationTarget\":{\"/home/heynow/streamr/data-union-solidity/contracts/PurchaseListener.sol\":\"PurchaseListener\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/heynow/streamr/data-union-solidity/contracts/PurchaseListener.sol\":{\"keccak256\":\"0xe5977a456effb190cd6a54613f02ff6f9224f46cdc8343e5106f6e29bcf06bb3\",\"urls\":[\"bzz-raw://f3946c6b77e23647848fe635841535b1188129658893dcc6c6a53a50efbe2997\",\"dweb:/ipfs/QmVeoBbmHoAtTKkr6P874QyVKLcT1r32Sb8CdLWuE7JnAW\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"productId\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"subscriber\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"endTimestamp\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"priceDatacoin\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"feeDatacoin\",\"type\":\"uint256\"}],\"name\":\"onPurchase\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"accepted\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{\"onPurchase(bytes32,address,uint256,uint256,uint256)\":{\"notice\":\"Similarly to ETH transfer, returning false will decline the transaction  (declining should probably cause revert, but that's up to the caller) IMPORTANT: include onlyMarketplace modifier to your implementations!\"}}}},\"settings\":{\"compilationTarget\":{\"/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/PurchaseListener.sol\":\"PurchaseListener\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/PurchaseListener.sol\":{\"keccak256\":\"0xe5977a456effb190cd6a54613f02ff6f9224f46cdc8343e5106f6e29bcf06bb3\",\"urls\":[\"bzz-raw://f3946c6b77e23647848fe635841535b1188129658893dcc6c6a53a50efbe2997\",\"dweb:/ipfs/QmVeoBbmHoAtTKkr6P874QyVKLcT1r32Sb8CdLWuE7JnAW\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity ^0.6.0;\n\ninterface PurchaseListener {\n    // TODO: find out about how to best detect who implements an interface\n    //   see at least https://github.com/ethereum/EIPs/blob/master/EIPS/eip-165.md\n    // function isPurchaseListener() external returns (bool);\n\n    /**\n     * Similarly to ETH transfer, returning false will decline the transaction\n     *   (declining should probably cause revert, but that's up to the caller)\n     * IMPORTANT: include onlyMarketplace modifier to your implementations!\n     */\n    function onPurchase(bytes32 productId, address subscriber, uint endTimestamp, uint priceDatacoin, uint feeDatacoin)\n        external returns (bool accepted);\n}\n",
-  "sourcePath": "/home/heynow/streamr/data-union-solidity/contracts/PurchaseListener.sol",
+  "sourcePath": "/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/PurchaseListener.sol",
   "ast": {
-    "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/PurchaseListener.sol",
+    "absolutePath": "/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/PurchaseListener.sol",
     "exportedSymbols": {
       "PurchaseListener": [
-        2845
+        3109
       ]
     },
-    "id": 2846,
+    "id": 3110,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 2828,
+        "id": 3092,
         "literals": [
           "solidity",
           "^",
@@ -68,7 +68,7 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:23:9"
+        "src": "0:23:13"
       },
       {
         "abstract": false,
@@ -77,9 +77,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 2845,
+        "id": 3109,
         "linearizedBaseContracts": [
-          2845
+          3109
         ],
         "name": "PurchaseListener",
         "nodeType": "ContractDefinition",
@@ -87,13 +87,13 @@
           {
             "body": null,
             "documentation": {
-              "id": 2829,
+              "id": 3093,
               "nodeType": "StructuredDocumentation",
-              "src": "279:245:9",
+              "src": "279:245:13",
               "text": "Similarly to ETH transfer, returning false will decline the transaction\n  (declining should probably cause revert, but that's up to the caller)\nIMPORTANT: include onlyMarketplace modifier to your implementations!"
             },
             "functionSelector": "4a439cc0",
-            "id": 2844,
+            "id": 3108,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -101,18 +101,18 @@
             "nodeType": "FunctionDefinition",
             "overrides": null,
             "parameters": {
-              "id": 2840,
+              "id": 3104,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2831,
+                  "id": 3095,
                   "mutability": "mutable",
                   "name": "productId",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2844,
-                  "src": "549:17:9",
+                  "scope": 3108,
+                  "src": "549:17:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -120,10 +120,10 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 2830,
+                    "id": 3094,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
-                    "src": "549:7:9",
+                    "src": "549:7:13",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
                       "typeString": "bytes32"
@@ -134,13 +134,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 2833,
+                  "id": 3097,
                   "mutability": "mutable",
                   "name": "subscriber",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2844,
-                  "src": "568:18:9",
+                  "scope": 3108,
+                  "src": "568:18:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -148,10 +148,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2832,
+                    "id": 3096,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "568:7:9",
+                    "src": "568:7:13",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -163,13 +163,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 2835,
+                  "id": 3099,
                   "mutability": "mutable",
                   "name": "endTimestamp",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2844,
-                  "src": "588:17:9",
+                  "scope": 3108,
+                  "src": "588:17:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -177,10 +177,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 2834,
+                    "id": 3098,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
-                    "src": "588:4:9",
+                    "src": "588:4:13",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -191,13 +191,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 2837,
+                  "id": 3101,
                   "mutability": "mutable",
                   "name": "priceDatacoin",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2844,
-                  "src": "607:18:9",
+                  "scope": 3108,
+                  "src": "607:18:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -205,10 +205,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 2836,
+                    "id": 3100,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
-                    "src": "607:4:9",
+                    "src": "607:4:13",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -219,13 +219,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 2839,
+                  "id": 3103,
                   "mutability": "mutable",
                   "name": "feeDatacoin",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2844,
-                  "src": "627:16:9",
+                  "scope": 3108,
+                  "src": "627:16:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -233,10 +233,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 2838,
+                    "id": 3102,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
-                    "src": "627:4:9",
+                    "src": "627:4:13",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -246,21 +246,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "548:96:9"
+              "src": "548:96:13"
             },
             "returnParameters": {
-              "id": 2843,
+              "id": 3107,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2842,
+                  "id": 3106,
                   "mutability": "mutable",
                   "name": "accepted",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2844,
-                  "src": "671:13:9",
+                  "scope": 3108,
+                  "src": "671:13:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -268,10 +268,10 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 2841,
+                    "id": 3105,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
-                    "src": "671:4:9",
+                    "src": "671:4:13",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
                       "typeString": "bool"
@@ -281,33 +281,33 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "670:15:9"
+              "src": "670:15:13"
             },
-            "scope": 2845,
-            "src": "529:157:9",
+            "scope": 3109,
+            "src": "529:157:13",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 2846,
-        "src": "25:663:9"
+        "scope": 3110,
+        "src": "25:663:13"
       }
     ],
-    "src": "0:689:9"
+    "src": "0:689:13"
   },
   "legacyAST": {
-    "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/PurchaseListener.sol",
+    "absolutePath": "/Users/jtakalai/Documents/workspace/data-union-solidity/contracts/PurchaseListener.sol",
     "exportedSymbols": {
       "PurchaseListener": [
-        2845
+        3109
       ]
     },
-    "id": 2846,
+    "id": 3110,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 2828,
+        "id": 3092,
         "literals": [
           "solidity",
           "^",
@@ -315,7 +315,7 @@
           ".0"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:23:9"
+        "src": "0:23:13"
       },
       {
         "abstract": false,
@@ -324,9 +324,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 2845,
+        "id": 3109,
         "linearizedBaseContracts": [
-          2845
+          3109
         ],
         "name": "PurchaseListener",
         "nodeType": "ContractDefinition",
@@ -334,13 +334,13 @@
           {
             "body": null,
             "documentation": {
-              "id": 2829,
+              "id": 3093,
               "nodeType": "StructuredDocumentation",
-              "src": "279:245:9",
+              "src": "279:245:13",
               "text": "Similarly to ETH transfer, returning false will decline the transaction\n  (declining should probably cause revert, but that's up to the caller)\nIMPORTANT: include onlyMarketplace modifier to your implementations!"
             },
             "functionSelector": "4a439cc0",
-            "id": 2844,
+            "id": 3108,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -348,18 +348,18 @@
             "nodeType": "FunctionDefinition",
             "overrides": null,
             "parameters": {
-              "id": 2840,
+              "id": 3104,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2831,
+                  "id": 3095,
                   "mutability": "mutable",
                   "name": "productId",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2844,
-                  "src": "549:17:9",
+                  "scope": 3108,
+                  "src": "549:17:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -367,10 +367,10 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 2830,
+                    "id": 3094,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
-                    "src": "549:7:9",
+                    "src": "549:7:13",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
                       "typeString": "bytes32"
@@ -381,13 +381,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 2833,
+                  "id": 3097,
                   "mutability": "mutable",
                   "name": "subscriber",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2844,
-                  "src": "568:18:9",
+                  "scope": 3108,
+                  "src": "568:18:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -395,10 +395,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 2832,
+                    "id": 3096,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "568:7:9",
+                    "src": "568:7:13",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -410,13 +410,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 2835,
+                  "id": 3099,
                   "mutability": "mutable",
                   "name": "endTimestamp",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2844,
-                  "src": "588:17:9",
+                  "scope": 3108,
+                  "src": "588:17:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -424,10 +424,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 2834,
+                    "id": 3098,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
-                    "src": "588:4:9",
+                    "src": "588:4:13",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -438,13 +438,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 2837,
+                  "id": 3101,
                   "mutability": "mutable",
                   "name": "priceDatacoin",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2844,
-                  "src": "607:18:9",
+                  "scope": 3108,
+                  "src": "607:18:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -452,10 +452,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 2836,
+                    "id": 3100,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
-                    "src": "607:4:9",
+                    "src": "607:4:13",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -466,13 +466,13 @@
                 },
                 {
                   "constant": false,
-                  "id": 2839,
+                  "id": 3103,
                   "mutability": "mutable",
                   "name": "feeDatacoin",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2844,
-                  "src": "627:16:9",
+                  "scope": 3108,
+                  "src": "627:16:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -480,10 +480,10 @@
                     "typeString": "uint256"
                   },
                   "typeName": {
-                    "id": 2838,
+                    "id": 3102,
                     "name": "uint",
                     "nodeType": "ElementaryTypeName",
-                    "src": "627:4:9",
+                    "src": "627:4:13",
                     "typeDescriptions": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
@@ -493,21 +493,21 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "548:96:9"
+              "src": "548:96:13"
             },
             "returnParameters": {
-              "id": 2843,
+              "id": 3107,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 2842,
+                  "id": 3106,
                   "mutability": "mutable",
                   "name": "accepted",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 2844,
-                  "src": "671:13:9",
+                  "scope": 3108,
+                  "src": "671:13:13",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -515,10 +515,10 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 2841,
+                    "id": 3105,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
-                    "src": "671:4:9",
+                    "src": "671:4:13",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bool",
                       "typeString": "bool"
@@ -528,28 +528,28 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "670:15:9"
+              "src": "670:15:13"
             },
-            "scope": 2845,
-            "src": "529:157:9",
+            "scope": 3109,
+            "src": "529:157:13",
             "stateMutability": "nonpayable",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 2846,
-        "src": "25:663:9"
+        "scope": 3110,
+        "src": "25:663:13"
       }
     ],
-    "src": "0:689:9"
+    "src": "0:689:13"
   },
   "compiler": {
     "name": "solc",
     "version": "0.6.6+commit.6c089d02.Emscripten.clang"
   },
   "networks": {},
-  "schemaVersion": "3.2.0",
-  "updatedAt": "2020-08-19T08:05:24.777Z",
+  "schemaVersion": "3.2.3",
+  "updatedAt": "2020-09-07T08:39:05.139Z",
   "devdoc": {
     "methods": {}
   },
