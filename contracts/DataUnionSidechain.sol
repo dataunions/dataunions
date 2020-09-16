@@ -61,10 +61,15 @@ contract DataUnionSidechain is Ownable {
         _;
     }
 
-    // owner will be set by initialize()
-    constructor() public Ownable(address(0)) {}
-
-    receive() external payable {}
+    /**
+     * This contract is only usable after calling the initialize function below
+     * Two-step construction pattern is used because DataUnionSidechain is meant to be created using DataUnionFactorySidechain.
+     * It is not possible to call initialize() within constructor() in this factory clone pattern.
+     * The constructor must take 0 args, otherwise the template code would contain initialization data, and it would complicate the cloning process.
+     *
+     * TODO: after changing to use openzeppelin-solidity's Ownable, msg.sender is the default owner
+     */
+    constructor() public Ownable(msg.sender) {}
 
     function initialize(
         address initialOwner,
@@ -73,9 +78,11 @@ contract DataUnionSidechain is Ownable {
         address tokenMediatorAddress,
         address mainnetDataUnionAddress,
         uint256 defaultNewMemberEth
-    ) public {
+    )
+        public
+        onlyOwner
+    {
         require(!isInitialized(), "error_alreadyInitialized");
-        owner = msg.sender; // set real owner at the end. During initialize, addJoinPartAgents can be called by owner only
         token = IERC677(tokenAddress);
         addJoinPartAgents(initialJoinPartAgents);
         tokenMediator = tokenMediatorAddress;
@@ -87,6 +94,9 @@ contract DataUnionSidechain is Ownable {
     function isInitialized() public view returns (bool){
         return address(token) != address(0);
     }
+
+    // accept sidechain-ETH from DataUnionFactorySidechain
+    receive() external payable {}
 
     /**
      * Atomic getter to get all state variables in one call
@@ -103,7 +113,7 @@ contract DataUnionSidechain is Ownable {
     }
 
     function setNewMemberEth(uint val) public onlyOwner {
-        if(val == newMemberEth) return;
+        if (val == newMemberEth) return;
         newMemberEth = val;
         emit UpdateNewMemberEth(val);
     }
