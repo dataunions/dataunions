@@ -574,7 +574,7 @@ contract DataUnionSidechain is Ownable {
     {
         uint256 withdrawn = 0;
         for (uint256 i = 0; i < members.length; i++) {
-            withdrawn.add(withdrawAll(members[i], sendToMainnet));
+            withdrawn = withdrawn.add(withdrawAll(members[i], sendToMainnet));
         }
         return withdrawn;
     }
@@ -591,21 +591,21 @@ contract DataUnionSidechain is Ownable {
         returns (uint256)
     {
         require(msg.sender == member || msg.sender == owner, "error_notPermitted");
-        _withdraw(member, member, amount, sendToMainnet);
+        return _withdraw(member, member, amount, sendToMainnet);
     }
 
     function withdrawAllTo(address to, bool sendToMainnet)
         public
         returns (uint256)
     {
-        withdrawTo(to, getWithdrawableEarnings(msg.sender), sendToMainnet);
+        return withdrawTo(to, getWithdrawableEarnings(msg.sender), sendToMainnet);
     }
 
     function withdrawTo(address to, uint amount, bool sendToMainnet)
         public
         returns (uint256)
     {
-        _withdraw(msg.sender, to, amount, sendToMainnet);
+        return _withdraw(msg.sender, to, amount, sendToMainnet);
     }
 
     /**
