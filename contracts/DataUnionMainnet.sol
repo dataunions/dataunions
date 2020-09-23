@@ -6,7 +6,7 @@ import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/acce
 import "./PurchaseListener.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
-import "./ITokenMediator.sol"
+import "./ITokenMediator.sol";
 
 contract DataUnionMainnet is Ownable, PurchaseListener {
     using SafeMath for uint256;

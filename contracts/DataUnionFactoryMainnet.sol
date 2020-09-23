@@ -40,7 +40,7 @@ contract DataUnionFactoryMainnet {
 
     function sidechainAddress(address mainet_address)
         public view
-        returns (address proxy)
+        returns (address)
     {
         return CloneLib.predictCloneAddressCreate2(
             data_union_sidechain_template,
@@ -55,7 +55,7 @@ contract DataUnionFactoryMainnet {
         public view
         returns (address)
     {
-        bytes32 salt = keccak256(abi.encodePacked(bytes(name), deployer));
+        bytes32 salt = keccak256(abi.encode(bytes(name), deployer));
         return CloneLib.predictCloneAddressCreate2(
             data_union_mainnet_template,
             address(this),
@@ -80,7 +80,7 @@ contract DataUnionFactoryMainnet {
         public
         returns (address)
     {
-        bytes32 salt = keccak256(abi.encodePacked(bytes(name), msg.sender));
+        bytes32 salt = keccak256(abi.encode(bytes(name), msg.sender));
         bytes memory data = abi.encodeWithSignature("initialize(address,address,uint256,address,address,uint256,address[])",
             token_mediator,
             data_union_sidechain_factory,
