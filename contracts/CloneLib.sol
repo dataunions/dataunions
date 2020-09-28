@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 //solhint-disable avoid-low-level-calls
 //solhint-disable no-inline-assembly
 
