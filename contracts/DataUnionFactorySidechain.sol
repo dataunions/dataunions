@@ -80,12 +80,12 @@ contract DataUnionFactorySidechain is Ownable{
         emit SidechainDUCreated(duMainnet, du, owner, data_union_sidechain_template);
 
         // continue whether or not send succeeds
-        if (newDUInitialEth > 0 && address(this).balance >= newDUInitialEth) {
+        if (newDUInitialEth != 0 && address(this).balance >= newDUInitialEth) {
             if (du.send(newDUInitialEth)) {
                 emit DUInitialEthSent(newDUInitialEth);
             }
         }
-        if (newDUOwnerInitialEth > 0 && address(this).balance >= newDUOwnerInitialEth) {
+        if (newDUOwnerInitialEth != 0 && address(this).balance >= newDUOwnerInitialEth) {
             if (owner.send(newDUOwnerInitialEth)) {
                 emit OwnerInitialEthSent(newDUOwnerInitialEth);
             }

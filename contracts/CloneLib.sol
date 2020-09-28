@@ -56,7 +56,7 @@ library CloneLib {
             proxy := create2(0, add(code, 0x20), len, salt)
         }
         require(proxy != address(0), "error_alreadyCreated");
-        if (initData.length > 0) {
+        if (initData.length != 0) {
             (bool success, ) = proxy.call(initData);
             require(success, "error_initialization");
         }
@@ -77,7 +77,7 @@ library CloneLib {
             proxy := create(0, add(code, 0x20), len)
         }
         require(proxy != address(0), "error_create");
-        if (initData.length > 0) {
+        if (initData.length != 0) {
             (bool success, ) = proxy.call(initData);
             require(success, "error_initialization");
         }
