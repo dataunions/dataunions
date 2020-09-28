@@ -793,7 +793,7 @@ contract Ownable is Context {
 
 // File: contracts/IERC677.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 
 interface IERC677 is IERC20 {
@@ -813,7 +813,7 @@ interface IERC677 is IERC20 {
 
 // File: contracts/TestToken.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 
 

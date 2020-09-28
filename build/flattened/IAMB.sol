@@ -1,7 +1,7 @@
 
 // File: contracts/IAMB.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 // Tokenbridge Arbitrary Message Bridge
 interface IAMB {

@@ -1,7 +1,7 @@
 
 // File: contracts/PurchaseListener.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 interface PurchaseListener {
     // TODO: find out about how to best detect who implements an interface
