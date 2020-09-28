@@ -6,12 +6,7 @@ import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/acce
 import "./PurchaseListener.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
-
-interface ITokenMediator {
-    function erc677token() external view returns (address);
-    function bridgeContract() external view returns (address);
-    function relayTokens(address _from, address _receiver, uint256 _value) external;
-}
+import "./ITokenMediator.sol";
 
 contract DataUnionMainnet is Ownable, PurchaseListener {
     using SafeMath for uint256;
@@ -95,7 +90,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         amb.requireToPassMessage(sidechain_DU_factory, data, sidechain_maxgas);
     }
 
-    function sidechainAddress() public view returns (address proxy) {
+    function sidechainAddress() public view returns (address) {
         return CloneLib.predictCloneAddressCreate2(sidechain_template_DU, sidechain_DU_factory, bytes32(uint256(address(this))));
     }
 
@@ -113,7 +108,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     */
 
     //function onPurchase(bytes32 productId, address subscriber, uint256 endTimestamp, uint256 priceDatacoin, uint256 feeDatacoin)
-    function onPurchase(bytes32, address, uint256, uint256, uint256) external override returns (bool accepted) {
+    function onPurchase(bytes32, address, uint256, uint256, uint256) external override returns (bool) {
         sendTokensToBridge();
         return true;
     }
