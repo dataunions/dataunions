@@ -9,7 +9,7 @@ contract DataUnionSidechain is Ownable {
     using SafeMath for uint256;
 
     //used to describe members and join part agents
-    enum ActiveStatus {None, Active, Inactive}  // TODO: implement "Blocked" status
+    enum ActiveStatus {None, Active, Inactive}
 
     //emitted by joins/parts
     event MemberJoined(address indexed);
