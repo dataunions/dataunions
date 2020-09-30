@@ -793,7 +793,7 @@ contract Ownable is Context {
 
 // File: contracts/ERC20Mintable.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 
 

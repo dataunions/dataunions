@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
@@ -173,7 +173,7 @@ contract DataUnionSidechain is Ownable {
     function addMember(address payable member) public onlyJoinPartAgent {
         MemberInfo storage info = memberData[member];
         require(info.status != ActiveStatus.Active, "error_alreadyMember");
-        bool sendEth = info.status == ActiveStatus.None && newMemberEth > 0 && address(this).balance >= newMemberEth;
+        bool sendEth = info.status == ActiveStatus.None && newMemberEth != 0 && address(this).balance >= newMemberEth;
         info.status = ActiveStatus.Active;
         info.lmeAtJoin = lifetimeMemberEarnings;
         activeMemberCount = activeMemberCount.add(1);

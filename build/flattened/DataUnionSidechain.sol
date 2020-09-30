@@ -243,7 +243,7 @@ interface IERC20 {
 
 // File: contracts/IERC677.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 
 interface IERC677 is IERC20 {
@@ -263,7 +263,7 @@ interface IERC677 is IERC20 {
 
 // File: contracts/Ownable.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 /**
  * @title Ownable
  * @dev The Ownable contract has an owner address, and provides basic authorization control
@@ -315,7 +315,7 @@ contract Ownable {
 
 // File: contracts/DataUnionSidechain.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 
 
@@ -489,7 +489,7 @@ contract DataUnionSidechain is Ownable {
     function addMember(address payable member) public onlyJoinPartAgent {
         MemberInfo storage info = memberData[member];
         require(info.status != ActiveStatus.Active, "error_alreadyMember");
-        bool sendEth = info.status == ActiveStatus.None && newMemberEth > 0 && address(this).balance >= newMemberEth;
+        bool sendEth = info.status == ActiveStatus.None && newMemberEth != 0 && address(this).balance >= newMemberEth;
         info.status = ActiveStatus.Active;
         info.lmeAtJoin = lifetimeMemberEarnings;
         activeMemberCount = activeMemberCount.add(1);

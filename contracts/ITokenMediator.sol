@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 interface ITokenMediator {
     function erc677token() external view returns (address);

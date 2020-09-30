@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
@@ -80,12 +80,12 @@ contract DataUnionFactorySidechain is Ownable{
         emit SidechainDUCreated(duMainnet, du, owner, data_union_sidechain_template);
 
         // continue whether or not send succeeds
-        if (newDUInitialEth > 0 && address(this).balance >= newDUInitialEth) {
+        if (newDUInitialEth != 0 && address(this).balance >= newDUInitialEth) {
             if (du.send(newDUInitialEth)) {
                 emit DUInitialEthSent(newDUInitialEth);
             }
         }
-        if (newDUOwnerInitialEth > 0 && address(this).balance >= newDUOwnerInitialEth) {
+        if (newDUOwnerInitialEth != 0 && address(this).balance >= newDUOwnerInitialEth) {
             if (owner.send(newDUOwnerInitialEth)) {
                 emit OwnerInitialEthSent(newDUOwnerInitialEth);
             }

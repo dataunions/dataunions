@@ -835,7 +835,7 @@ contract Ownable is Context {
 
 // File: contracts/ERC20Mintable.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 
 
@@ -859,7 +859,7 @@ contract ERC20Mintable is ERC20, Ownable {
 
 // File: contracts/IERC677.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 
 interface IERC677 is IERC20 {
@@ -879,7 +879,7 @@ interface IERC677 is IERC20 {
 
 // File: contracts/ERC677BridgeToken.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 
 
