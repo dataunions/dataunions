@@ -325,7 +325,7 @@ contract DataUnionSidechain is Ownable {
     using SafeMath for uint256;
 
     //used to describe members and join part agents
-    enum ActiveStatus {None, Active, Inactive}  // TODO: implement "Blocked" status
+    enum ActiveStatus {None, Active, Inactive}
 
     //emitted by joins/parts
     event MemberJoined(address indexed);
@@ -477,7 +477,7 @@ contract DataUnionSidechain is Ownable {
     function addRevenue() public returns (uint256) {
         uint256 balance = token.balanceOf(address(this));
         uint256 revenue = balance.sub(totalWithdrawable()); // a.sub(b) errors if b > a
-        if (revenue == 0) return 0;
+        if (revenue == 0 || activeMemberCount == 0) return 0;
         uint256 earningsPerMember = revenue.div(activeMemberCount);
         lifetimeMemberEarnings = lifetimeMemberEarnings.add(earningsPerMember);
         totalEarnings = totalEarnings.add(revenue);

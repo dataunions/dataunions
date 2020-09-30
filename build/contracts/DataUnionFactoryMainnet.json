@@ -256,7 +256,7 @@
         "id": 157,
         "nodeType": "ImportDirective",
         "scope": 355,
-        "sourceUnit": 4175,
+        "sourceUnit": 4179,
         "src": "24:64:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -267,7 +267,7 @@
         "id": 158,
         "nodeType": "ImportDirective",
         "scope": 355,
-        "sourceUnit": 3534,
+        "sourceUnit": 3538,
         "src": "89:59:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -289,7 +289,7 @@
         "id": 160,
         "nodeType": "ImportDirective",
         "scope": 355,
-        "sourceUnit": 2823,
+        "sourceUnit": 2827,
         "src": "174:20:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -300,7 +300,7 @@
         "id": 161,
         "nodeType": "ImportDirective",
         "scope": 355,
-        "sourceUnit": 2872,
+        "sourceUnit": 2876,
         "src": "195:30:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -663,7 +663,7 @@
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IAMB_$2822",
+              "typeIdentifier": "t_contract$_IAMB_$2826",
               "typeString": "contract IAMB"
             },
             "typeName": {
@@ -671,10 +671,10 @@
               "id": 186,
               "name": "IAMB",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 2822,
+              "referencedDeclaration": 2826,
               "src": "735:4:1",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IAMB_$2822",
+                "typeIdentifier": "t_contract$_IAMB_$2826",
                 "typeString": "contract IAMB"
               }
             },
@@ -694,7 +694,7 @@
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+              "typeIdentifier": "t_contract$_ITokenMediator_$2875",
               "typeString": "contract ITokenMediator"
             },
             "typeName": {
@@ -702,10 +702,10 @@
               "id": 188,
               "name": "ITokenMediator",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 2871,
+              "referencedDeclaration": 2875,
               "src": "756:14:1",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+                "typeIdentifier": "t_contract$_ITokenMediator_$2875",
                 "typeString": "contract ITokenMediator"
               }
             },
@@ -735,7 +735,7 @@
                       "referencedDeclaration": 189,
                       "src": "1073:14:1",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+                        "typeIdentifier": "t_contract$_ITokenMediator_$2875",
                         "typeString": "contract ITokenMediator"
                       }
                     },
@@ -769,10 +769,10 @@
                         "name": "ITokenMediator",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 2871,
+                        "referencedDeclaration": 2875,
                         "src": "1090:14:1",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_type$_t_contract$_ITokenMediator_$2871_$",
+                          "typeIdentifier": "t_type$_t_contract$_ITokenMediator_$2875_$",
                           "typeString": "type(contract ITokenMediator)"
                         }
                       },
@@ -787,13 +787,13 @@
                       "src": "1090:31:1",
                       "tryCall": false,
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+                        "typeIdentifier": "t_contract$_ITokenMediator_$2875",
                         "typeString": "contract ITokenMediator"
                       }
                     },
                     "src": "1073:48:1",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+                      "typeIdentifier": "t_contract$_ITokenMediator_$2875",
                       "typeString": "contract ITokenMediator"
                     }
                   },
@@ -956,7 +956,7 @@
                       "referencedDeclaration": 187,
                       "src": "1341:3:1",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IAMB_$2822",
+                        "typeIdentifier": "t_contract$_IAMB_$2826",
                         "typeString": "contract IAMB"
                       }
                     },
@@ -979,7 +979,7 @@
                               "referencedDeclaration": 189,
                               "src": "1352:14:1",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+                                "typeIdentifier": "t_contract$_ITokenMediator_$2875",
                                 "typeString": "contract ITokenMediator"
                               }
                             },
@@ -990,7 +990,7 @@
                             "lValueRequested": false,
                             "memberName": "bridgeContract",
                             "nodeType": "MemberAccess",
-                            "referencedDeclaration": 2861,
+                            "referencedDeclaration": 2865,
                             "src": "1352:29:1",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_external_view$__$returns$_t_address_$",
@@ -1024,10 +1024,10 @@
                         "name": "IAMB",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 2822,
+                        "referencedDeclaration": 2826,
                         "src": "1347:4:1",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_type$_t_contract$_IAMB_$2822_$",
+                          "typeIdentifier": "t_type$_t_contract$_IAMB_$2826_$",
                           "typeString": "type(contract IAMB)"
                         }
                       },
@@ -1042,13 +1042,13 @@
                       "src": "1347:37:1",
                       "tryCall": false,
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IAMB_$2822",
+                        "typeIdentifier": "t_contract$_IAMB_$2826",
                         "typeString": "contract IAMB"
                       }
                     },
                     "src": "1341:43:1",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IAMB_$2822",
+                      "typeIdentifier": "t_contract$_IAMB_$2826",
                       "typeString": "contract IAMB"
                     }
                   },
@@ -2348,7 +2348,7 @@
                         "referencedDeclaration": 189,
                         "src": "2808:14:1",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+                          "typeIdentifier": "t_contract$_ITokenMediator_$2875",
                           "typeString": "contract ITokenMediator"
                         }
                       },
@@ -2438,7 +2438,7 @@
                           "typeString": "literal_string \"initialize(address,address,uint256,address,address,uint256,address[])\""
                         },
                         {
-                          "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+                          "typeIdentifier": "t_contract$_ITokenMediator_$2875",
                           "typeString": "contract ITokenMediator"
                         },
                         {
@@ -3085,7 +3085,7 @@
         "id": 157,
         "nodeType": "ImportDirective",
         "scope": 355,
-        "sourceUnit": 4175,
+        "sourceUnit": 4179,
         "src": "24:64:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -3096,7 +3096,7 @@
         "id": 158,
         "nodeType": "ImportDirective",
         "scope": 355,
-        "sourceUnit": 3534,
+        "sourceUnit": 3538,
         "src": "89:59:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -3118,7 +3118,7 @@
         "id": 160,
         "nodeType": "ImportDirective",
         "scope": 355,
-        "sourceUnit": 2823,
+        "sourceUnit": 2827,
         "src": "174:20:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -3129,7 +3129,7 @@
         "id": 161,
         "nodeType": "ImportDirective",
         "scope": 355,
-        "sourceUnit": 2872,
+        "sourceUnit": 2876,
         "src": "195:30:1",
         "symbolAliases": [],
         "unitAlias": ""
@@ -3492,7 +3492,7 @@
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IAMB_$2822",
+              "typeIdentifier": "t_contract$_IAMB_$2826",
               "typeString": "contract IAMB"
             },
             "typeName": {
@@ -3500,10 +3500,10 @@
               "id": 186,
               "name": "IAMB",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 2822,
+              "referencedDeclaration": 2826,
               "src": "735:4:1",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IAMB_$2822",
+                "typeIdentifier": "t_contract$_IAMB_$2826",
                 "typeString": "contract IAMB"
               }
             },
@@ -3523,7 +3523,7 @@
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+              "typeIdentifier": "t_contract$_ITokenMediator_$2875",
               "typeString": "contract ITokenMediator"
             },
             "typeName": {
@@ -3531,10 +3531,10 @@
               "id": 188,
               "name": "ITokenMediator",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 2871,
+              "referencedDeclaration": 2875,
               "src": "756:14:1",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+                "typeIdentifier": "t_contract$_ITokenMediator_$2875",
                 "typeString": "contract ITokenMediator"
               }
             },
@@ -3564,7 +3564,7 @@
                       "referencedDeclaration": 189,
                       "src": "1073:14:1",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+                        "typeIdentifier": "t_contract$_ITokenMediator_$2875",
                         "typeString": "contract ITokenMediator"
                       }
                     },
@@ -3598,10 +3598,10 @@
                         "name": "ITokenMediator",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 2871,
+                        "referencedDeclaration": 2875,
                         "src": "1090:14:1",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_type$_t_contract$_ITokenMediator_$2871_$",
+                          "typeIdentifier": "t_type$_t_contract$_ITokenMediator_$2875_$",
                           "typeString": "type(contract ITokenMediator)"
                         }
                       },
@@ -3616,13 +3616,13 @@
                       "src": "1090:31:1",
                       "tryCall": false,
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+                        "typeIdentifier": "t_contract$_ITokenMediator_$2875",
                         "typeString": "contract ITokenMediator"
                       }
                     },
                     "src": "1073:48:1",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+                      "typeIdentifier": "t_contract$_ITokenMediator_$2875",
                       "typeString": "contract ITokenMediator"
                     }
                   },
@@ -3785,7 +3785,7 @@
                       "referencedDeclaration": 187,
                       "src": "1341:3:1",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IAMB_$2822",
+                        "typeIdentifier": "t_contract$_IAMB_$2826",
                         "typeString": "contract IAMB"
                       }
                     },
@@ -3808,7 +3808,7 @@
                               "referencedDeclaration": 189,
                               "src": "1352:14:1",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+                                "typeIdentifier": "t_contract$_ITokenMediator_$2875",
                                 "typeString": "contract ITokenMediator"
                               }
                             },
@@ -3819,7 +3819,7 @@
                             "lValueRequested": false,
                             "memberName": "bridgeContract",
                             "nodeType": "MemberAccess",
-                            "referencedDeclaration": 2861,
+                            "referencedDeclaration": 2865,
                             "src": "1352:29:1",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_external_view$__$returns$_t_address_$",
@@ -3853,10 +3853,10 @@
                         "name": "IAMB",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 2822,
+                        "referencedDeclaration": 2826,
                         "src": "1347:4:1",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_type$_t_contract$_IAMB_$2822_$",
+                          "typeIdentifier": "t_type$_t_contract$_IAMB_$2826_$",
                           "typeString": "type(contract IAMB)"
                         }
                       },
@@ -3871,13 +3871,13 @@
                       "src": "1347:37:1",
                       "tryCall": false,
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IAMB_$2822",
+                        "typeIdentifier": "t_contract$_IAMB_$2826",
                         "typeString": "contract IAMB"
                       }
                     },
                     "src": "1341:43:1",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IAMB_$2822",
+                      "typeIdentifier": "t_contract$_IAMB_$2826",
                       "typeString": "contract IAMB"
                     }
                   },
@@ -5177,7 +5177,7 @@
                         "referencedDeclaration": 189,
                         "src": "2808:14:1",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+                          "typeIdentifier": "t_contract$_ITokenMediator_$2875",
                           "typeString": "contract ITokenMediator"
                         }
                       },
@@ -5267,7 +5267,7 @@
                           "typeString": "literal_string \"initialize(address,address,uint256,address,address,uint256,address[])\""
                         },
                         {
-                          "typeIdentifier": "t_contract$_ITokenMediator_$2871",
+                          "typeIdentifier": "t_contract$_ITokenMediator_$2875",
                           "typeString": "contract ITokenMediator"
                         },
                         {
@@ -5891,7 +5891,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.3",
-  "updatedAt": "2020-09-28T12:54:44.333Z",
+  "updatedAt": "2020-09-30T12:37:08.148Z",
   "devdoc": {
     "methods": {}
   },
