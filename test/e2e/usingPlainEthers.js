@@ -1,7 +1,7 @@
 // TODO: these must be synced with streamr-docker-dev/oracles.env
 const ORACLE_VALIDATOR_ADDRESS_PRIVATE_KEY = "5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0"
 const DATACOIN_ADDRESS = "0xbAA81A0179015bE47Ad439566374F2Bae098686F"
-const erc677SidechainAddress = "0x3b11D489411BF11e843Cb28f8824dedBfcB75Df3"
+const erc677SidechainAddress = "0x73Be21733CC5D08e1a14Ea9a399fb27DB3BEf8fF"
 
 const {
     Contract,

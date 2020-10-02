@@ -14,8 +14,8 @@ const DataUnionFactorySidechain = require("../build/contracts/DataUnionFactorySi
 const DataUnionFactoryMainnet = require("../build/contracts/DataUnionFactoryMainnet.json")
 
 //defaults are the addresses from docker setup
-const home_erc_mediator = process.env.HOME_ERC677_MEDIATOR || "0x6cCdd5d866ea766f6DF5965aA98DeCCD629ff222"
-const foreign_erc_mediator = process.env.FOREIGN_ERC677_MEDIATOR || "0x3AE0ad89b0e094fD09428589849C161f0F7f4E6A"
+const home_erc_mediator = process.env.HOME_ERC677_MEDIATOR || "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F"
+const foreign_erc_mediator = process.env.FOREIGN_ERC677_MEDIATOR || "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F"
 let templateSidechain
 
 /**
