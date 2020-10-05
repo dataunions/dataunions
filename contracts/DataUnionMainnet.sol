@@ -29,6 +29,9 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     uint256 public totalAdminFees;
     uint256 public totalAdminFeesWithdrawn;
     bool public autoSendAdminFee = true;
+
+    uint public version = 2;
+
  /*
     totalEarnings includes:
          member earnings (ie revenue - admin fees)
