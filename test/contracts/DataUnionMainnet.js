@@ -52,6 +52,8 @@ contract("DataUnionMainnet", accounts => {
             //invalid, over 1:
             await assertFails(dataUnionMainnet.setAdminFee(w3.utils.toWei("1.1"), {from: creator}))
             assertEvent(await dataUnionMainnet.setAdminFee(adminFeeFractionWei, {from: creator}), "AdminFeeChanged")
+            const feeFracion = await dataUnionMainnet.adminFeeFraction()
+            assertEqual(+feeFracion, adminFeeFractionWei)            
         }),
 
         it("splits revenue correctly", async () => {
