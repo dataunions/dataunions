@@ -35,8 +35,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     uint256 public totalAdminFeesWithdrawn;
     bool public autoSendAdminFee;
 
-    //this applies only to template contract. must set in initialize():
-    uint public version = 2;
+    function version() public pure returns (uint256) { return 2; }
 
  /*
     totalEarnings includes:
@@ -61,7 +60,6 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     )  public {
         require(!isInitialized(), "init_once");
         // must set default values here so that there are in clone state
-        version = 2;
         autoSendAdminFee = true;
 
         //during setup, msg.sender is admin
