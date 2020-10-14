@@ -68,8 +68,10 @@ describe("Data Union tests using only ethers.js directly", () => {
             DataUnionSidechain.abi,
             walletSidechain
         )
-        log(`working with DU named ${duname}, mainnet_address = ${duMainnet.address}, sidechain_address = ${sidechainAddress}`)
 
+        const version = await duMainnet.version()
+        log(`working with DU named ${duname}, mainnet_address = ${duMainnet.address}, sidechain_address = ${sidechainAddress}`)
+        log(`version = ${version}`)
         const balanceBefore = await erc20Mainnet.balanceOf(member)
 
         await printStats(duSidechain, member)
