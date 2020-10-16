@@ -13065,7 +13065,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.3",
-  "updatedAt": "2020-10-13T11:13:46.892Z",
+  "updatedAt": "2020-10-16T11:54:13.898Z",
   "devdoc": {
     "methods": {
       "claimOwnership()": {

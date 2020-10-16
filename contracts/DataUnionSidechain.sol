@@ -14,8 +14,8 @@ contract DataUnionSidechain is Ownable {
     //emitted by joins/parts
     event MemberJoined(address indexed member);
     event MemberParted(address indexed member);
-    event JoinPartAgentAdded(address indexed member);
-    event JoinPartAgentRemoved(address indexed member);
+    event JoinPartAgentAdded(address indexed agent);
+    event JoinPartAgentRemoved(address indexed agent);
 
     //emitted when revenue received
     event RevenueReceived(uint256 amount);
