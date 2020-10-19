@@ -47,6 +47,10 @@ contract("DataUnionMainnet", accounts => {
         )
     }),
     describe("Basic Functions", () => {
+        it("version check", async () => {
+            const version = await dataUnionMainnet.version()
+            assertEqual(version, 2)
+        }),
         it("admin fee permissions", async () => {
             await assertFails(dataUnionMainnet.setAdminFee(w3.utils.toWei("0.1"), {from: sender}))
             //invalid, over 1:

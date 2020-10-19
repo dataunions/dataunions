@@ -23,14 +23,19 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     uint256 public sidechain_maxgas;
     ERC20 public token;
 
+/*
+    NOTE: any variables set below will NOT be visible in clones
+    clones must set variables in initialize()
+*/
+
     // needed to compute sidechain address
     address public sidechain_template_DU;
     uint256 public adminFeeFraction;
     uint256 public totalAdminFees;
     uint256 public totalAdminFeesWithdrawn;
-    bool public autoSendAdminFee = true;
+    bool public autoSendAdminFee;
 
-    uint public version = 2;
+    function version() public pure returns (uint256) { return 2; }
 
  /*
     totalEarnings includes:
@@ -54,6 +59,9 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         address[] memory agents
     )  public {
         require(!isInitialized(), "init_once");
+        // must set default values here so that there are in clone state
+        autoSendAdminFee = true;
+
         //during setup, msg.sender is admin
         owner = msg.sender;
 
