@@ -12,10 +12,10 @@ contract DataUnionSidechain is Ownable {
     enum ActiveStatus {None, Active, Inactive}
 
     //emitted by joins/parts
-    event MemberJoined(address indexed);
-    event MemberParted(address indexed);
-    event JoinPartAgentAdded(address indexed);
-    event JoinPartAgentRemoved(address indexed);
+    event MemberJoined(address indexed member);
+    event MemberParted(address indexed member);
+    event JoinPartAgentAdded(address indexed agent);
+    event JoinPartAgentRemoved(address indexed agent);
 
     //emitted when revenue received
     event RevenueReceived(uint256 amount);
