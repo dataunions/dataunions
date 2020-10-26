@@ -420,6 +420,10 @@ contract DataUnionFactoryMainnet {
         sidechain_maxgas = _sidechain_maxgas;
     }
 
+    function token() public view returns (address) {
+        return token_mediator.erc677token();
+    }
+
     function sidechainAddress(address mainet_address)
         public view
         returns (address)
