@@ -467,6 +467,10 @@ contract DataUnionFactorySidechain is Ownable{
     //contract is payable
     receive() external payable {}
 
+    function token() public view returns (address) {
+        return token_mediator.erc677token();
+    }
+
     function setNewDUInitialEth(uint val) public onlyOwner {
         if(val == newDUInitialEth) return;
         newDUInitialEth = val;
