@@ -31,6 +31,8 @@ The factory contracts make use of [CREATE2](https://eips.ethereum.org/EIPS/eip-1
 DataUnionFactoryMainnet creates DataUnionMainnet using 
 `salt = keccak256( some_string_name_as_bytes ++ deployer_address)`
 
+Because the DU address is a function of (name, deployer), you cannot use the same name twice with the same deployer address. Use a **different name** each time.
+
 then DataUnionMainnet sends a message over the bridge to DataUnionFactorySidechain to create the sidenet contract. In that case:
 `salt = mainnet_address`
 
