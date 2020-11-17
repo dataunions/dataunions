@@ -69,13 +69,14 @@ contract("DataUnionSidechain", accounts => {
         await assertFails(dataUnionSidechain.addMembers(others, {from: agents[0]}), "error_alreadyMember")
         const memberCountAfterJoinBN = await dataUnionSidechain.activeMemberCount()
         assertEqual(+memberCountBeforeBN + others.length, memberCountAfterJoinBN)
-
+        assertEqual(await dataUnionSidechain.inactiveMemberCount(), new BN(0))
         // part all "others" from data union
         await assertFails(dataUnionSidechain.partMembers(others, {from: creator}), "error_notPermitted")
         assertEvent(await dataUnionSidechain.partMembers(others, {from: agents[0]}), "MemberParted")
         await assertFails(dataUnionSidechain.partMembers(others, {from: agents[0]}), "error_notActiveMember")
         const memberCountAfterPartBN = await dataUnionSidechain.activeMemberCount()
         assertEqual(memberCountBeforeBN, memberCountAfterPartBN)
+        assertEqual(await dataUnionSidechain.inactiveMemberCount(), new BN(others.length))
     })
 
     it("addJoinPartAgent removeJoinPartAgent", async () => {
