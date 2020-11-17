@@ -47,6 +47,7 @@ contract DataUnionSidechain is Ownable {
     uint256 public totalEarningsWithdrawn;
 
     uint256 public activeMemberCount;
+    uint256 public inactiveMemberCount;
     uint256 public lifetimeMemberEarnings;
 
     uint256 public joinPartAgentCount;
@@ -173,6 +174,9 @@ contract DataUnionSidechain is Ownable {
     function addMember(address payable member) public onlyJoinPartAgent {
         MemberInfo storage info = memberData[member];
         require(info.status != ActiveStatus.Active, "error_alreadyMember");
+        if(info.status == ActiveStatus.Inactive){
+            inactiveMemberCount = inactiveMemberCount.sub(1);
+        }
         bool sendEth = info.status == ActiveStatus.None && newMemberEth != 0 && address(this).balance >= newMemberEth;
         info.status = ActiveStatus.Active;
         info.lmeAtJoin = lifetimeMemberEarnings;
@@ -194,6 +198,7 @@ contract DataUnionSidechain is Ownable {
         info.earningsBeforeLastJoin = getEarnings(member);
         info.status = ActiveStatus.Inactive;
         activeMemberCount = activeMemberCount.sub(1);
+        inactiveMemberCount = inactiveMemberCount.add(1);
         emit MemberParted(member);
     }
 
