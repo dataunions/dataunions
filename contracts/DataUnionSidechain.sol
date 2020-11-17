@@ -254,6 +254,7 @@ contract DataUnionSidechain is Ownable {
         // allow seeing and withdrawing earnings
         if (info.status == ActiveStatus.None) {
             info.status = ActiveStatus.Inactive;
+            inactiveMemberCount = inactiveMemberCount.add(1);
         }
     }
 
