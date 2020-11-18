@@ -93,11 +93,12 @@ contract DataUnionSidechain is Ownable {
      * Atomic getter to get all state variables in one call
      * This alleviates the fact that JSON RPC batch requests aren't available in ethers.js
      */
-    function getStats() public view returns (uint256[5] memory) {
+    function getStats() public view returns (uint256[6] memory) {
         return [
             totalEarnings,
             totalEarningsWithdrawn,
             activeMemberCount,
+            inactiveMemberCount,
             lifetimeMemberEarnings,
             joinPartAgentCount
         ];

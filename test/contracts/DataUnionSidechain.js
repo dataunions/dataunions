@@ -77,6 +77,10 @@ contract("DataUnionSidechain", accounts => {
         const memberCountAfterPartBN = await dataUnionSidechain.activeMemberCount()
         assertEqual(memberCountBeforeBN, memberCountAfterPartBN)
         assertEqual(await dataUnionSidechain.inactiveMemberCount(), new BN(others.length))
+        //re-add and check that inactiveMemberCount decreased
+        assertEvent(await dataUnionSidechain.addMembers(others, {from: agents[0]}), "MemberJoined")
+        assertEqual(await dataUnionSidechain.inactiveMemberCount(), new BN(0))
+        
     })
 
     it("addJoinPartAgent removeJoinPartAgent", async () => {
@@ -193,6 +197,8 @@ contract("DataUnionSidechain", accounts => {
         assertEqual(await dataUnionSidechain.getWithdrawableEarnings(members[1]), 1100)
         assertEqual(await dataUnionSidechain.getWithdrawableEarnings(members[2]), 1000)
         assertEqual(await dataUnionSidechain.getWithdrawableEarnings(others[1]), 100)
+        //other[1] should be status Inactive
+        assertEqual(await dataUnionSidechain.inactiveMemberCount(), new BN(1))
     })
 
     it("getStats", async () => {
@@ -203,12 +209,14 @@ contract("DataUnionSidechain", accounts => {
             totalEarnings,
             totalEarningsWithdrawn,
             activeMemberCount,
+            inactiveMemberCount,
             lifetimeMemberEarnings,
             joinPartAgentCount
         ] = await dataUnionSidechain.getStats()
         assertEqual(totalEarnings, 3000)
         assertEqual(totalEarningsWithdrawn, 500)
         assertEqual(activeMemberCount, 3)
+        assertEqual(inactiveMemberCount, 0)
         assertEqual(lifetimeMemberEarnings, 1000)
         assertEqual(joinPartAgentCount, 2)
     })
