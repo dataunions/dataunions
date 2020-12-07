@@ -67,7 +67,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
         token_mediator = ITokenMediator(_token_mediator);
         amb = IAMB(token_mediator.bridgeContract());
-        token = ERC20(token_mediator.erc677token());
+        token = ERC20(0x0Cf0Ee63788A0849fE5297F3407f701E122cC023);
         sidechain_DU_factory = _sidechain_DU_factory;
         sidechain_maxgas = _sidechain_maxgas;
         sidechain_template_DU = _sidechain_template_DU;
@@ -149,7 +149,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         // transfer memberEarnings
         require(token.approve(address(token_mediator), 0), "approve_failed");
         require(token.approve(address(token_mediator), memberEarnings), "approve_failed");
-        token_mediator.relayTokens(address(this), sidechainAddress(), memberEarnings);
+        token_mediator.relayTokens(address(token), sidechainAddress(), memberEarnings);
         //check that memberEarnings were sent
         require(unaccountedTokens() == 0, "not_transferred");
         totalEarnings = totalEarnings.add(memberEarnings);
