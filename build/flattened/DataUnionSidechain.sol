@@ -476,7 +476,7 @@ contract DataUnionSidechain is Ownable {
      * Process unaccounted tokens that have been sent previously
      * Called by AMB (see DataUnionMainnet:sendTokensToBridge)
      */
-    function addRevenue() public returns (uint256) {
+    function refreshRevenue() public returns (uint256) {
         uint256 balance = token.balanceOf(address(this));
         uint256 revenue = balance.sub(totalWithdrawable()); // a.sub(b) errors if b > a
         if (revenue == 0 || activeMemberCount == 0) return 0;

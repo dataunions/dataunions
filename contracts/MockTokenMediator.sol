@@ -10,19 +10,27 @@ contract MockTokenMediator is ITokenMediator {
         amb = _amb;
     }
 
-    function erc677token() override public view returns (address) {
-        return address(token);
-    }
-
     function bridgeContract() override public view returns (address) {
         return amb;
     }
 
+    //MultiAMB 0xb1516c26 == bytes4(keccak256(abi.encodePacked("multi-erc-to-erc-amb")))
+    //Single token AMB 0x76595b56 ==  bytes4(keccak256(abi.encodePacked("erc-to-erc-amb")))
+    function getBridgeMode() override public pure returns (bytes4 _data) {
+        return 0x76595b56;
+    }
+
+
     /**
      * Transfers to address on local network
      */
-    function relayTokens(address _from, address _receiver, uint256 _value) override public {
-        require(token.transferFrom(_from, _receiver, _value), "transfer_rejected_in_mock");
+    function relayTokens(address _receiver, uint256 _value) override public {
+        require(token.transferFrom(msg.sender, _receiver, _value), "transfer_rejected_in_mock");
+    }
+
+    //not implemented in single token mediator
+    function relayTokens(address, address, uint256) override public {
+        revert("not_implemented");
     }
 
 }

@@ -108,7 +108,7 @@ contract("DataUnionSidechain", accounts => {
 
     it("withdrawMembers: batch withdraw many members", async () => {
         await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.addRevenue({from: creator})
+        await dataUnionSidechain.refreshRevenue({from: creator})
         assertEvent(await dataUnionSidechain.withdrawMembers(members, false, {from: creator}), "EarningsWithdrawn")
         assertEqual(await testToken.balanceOf(members[0]), 1000)
         assertEqual(await testToken.balanceOf(members[1]), 1000)
@@ -117,7 +117,7 @@ contract("DataUnionSidechain", accounts => {
 
     it("withdrawAll", async () => {
         await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.addRevenue({from: creator})
+        await dataUnionSidechain.refreshRevenue({from: creator})
         await assertFails(dataUnionSidechain.withdrawAll(members[0], false, {from: others[0]}), "error_notPermitted")
         assertEvent(await dataUnionSidechain.withdrawAll(members[0], false, {from: members[0]}), "EarningsWithdrawn")
         assertEvent(await dataUnionSidechain.withdrawAll(members[1], false, {from: creator}), "EarningsWithdrawn")
@@ -129,7 +129,7 @@ contract("DataUnionSidechain", accounts => {
 
     it("withdrawAllTo", async () => {
         await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.addRevenue({from: creator})
+        await dataUnionSidechain.refreshRevenue({from: creator})
 
         const before = await testToken.balanceOf(others[0])
         assertEvent(await dataUnionSidechain.withdrawAllTo(others[0], false, {from: members[0]}), "EarningsWithdrawn")
@@ -142,7 +142,7 @@ contract("DataUnionSidechain", accounts => {
     it("withdrawToSigned", async () => {
         const recipient = others[2]
         await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.addRevenue({from: creator})
+        await dataUnionSidechain.refreshRevenue({from: creator})
 
         // function signatureIsValid(address signer, address recipient, uint amount, bytes memory signature)
         const signature = await getWithdrawSignature(members[1], recipient, new BN("100"), dataUnionSidechain)
@@ -159,7 +159,7 @@ contract("DataUnionSidechain", accounts => {
     it("withdrawAllToSigned", async () => {
         const recipient = others[2]
         await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.addRevenue({from: creator})
+        await dataUnionSidechain.refreshRevenue({from: creator})
 
         const signature = await getWithdrawSignature(members[1], recipient, new BN("0"), dataUnionSidechain)
         // function signatureIsValid(address signer, address recipient, uint amount, bytes memory signature)
@@ -188,7 +188,7 @@ contract("DataUnionSidechain", accounts => {
 
     it("transferWithinContract", async () => {
         assert(await testToken.transfer(dataUnionSidechain.address, "3000"))
-        await dataUnionSidechain.addRevenue({from: others[1]})
+        await dataUnionSidechain.refreshRevenue({from: others[1]})
         await assertFails(dataUnionSidechain.transferWithinContract(members[1], "100", {from: others[0]}), "error_notMember")
         await assertFails(dataUnionSidechain.transferWithinContract(members[1], "100", {from: creator}), "error_notMember")
         assertEvent(await dataUnionSidechain.transferWithinContract(members[1], "100", {from: members[0]}), "TransferWithinContract")
@@ -203,7 +203,7 @@ contract("DataUnionSidechain", accounts => {
 
     it("getStats", async () => {
         await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.addRevenue({from: creator})
+        await dataUnionSidechain.refreshRevenue({from: creator})
         await dataUnionSidechain.withdraw(members[0], "500", false, {from: members[0]})
         const [
             totalEarnings,
@@ -228,7 +228,7 @@ contract("DataUnionSidechain", accounts => {
         assertEqual(await dataUnionSidechain.getEarnings(members[0]), 0)
 
         await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.addRevenue({from: creator})
+        await dataUnionSidechain.refreshRevenue({from: creator})
 
         assertEqual(await dataUnionSidechain.getEarnings(members[0]), 1000)
     })
@@ -239,10 +239,10 @@ contract("DataUnionSidechain", accounts => {
 
         // send and distribute a batch of revenue to members
         assertEvent(await testToken.transfer(dataUnionSidechain.address, "3000"), "Transfer")
-        assertEvent(await dataUnionSidechain.addRevenue({from: randomOutsider}), "RevenueReceived")
+        assertEvent(await dataUnionSidechain.refreshRevenue({from: randomOutsider}), "RevenueReceived")
 
         // repeating it should do nothing (also not throw)
-        await dataUnionSidechain.addRevenue({from: randomOutsider})
+        await dataUnionSidechain.refreshRevenue({from: randomOutsider})
 
         assertEqual(await dataUnionSidechain.totalEarnings(), 3000)
         assertEqual(await dataUnionSidechain.getEarnings(members[0]), 1000)
@@ -253,7 +253,7 @@ contract("DataUnionSidechain", accounts => {
         assertEvent(await dataUnionSidechain.partMember(members[0], {from: agents[0]}), "MemberParted")
         assertEqual(await dataUnionSidechain.getEarnings(members[0]), 1000)
         await testToken.transfer(dataUnionSidechain.address, "2000")
-        await dataUnionSidechain.addRevenue({from: randomOutsider})
+        await dataUnionSidechain.refreshRevenue({from: randomOutsider})
         assertEqual(await dataUnionSidechain.getEarnings(members[0]), 1000)
         assertEqual(await dataUnionSidechain.getEarnings(members[1]), 2000)
         assertEqual(await dataUnionSidechain.getEarnings(members[2]), 2000)
@@ -262,7 +262,7 @@ contract("DataUnionSidechain", accounts => {
         // add a member, send tokens, check accounting
         assertEvent(await dataUnionSidechain.addMember(newMember, {from: agents[0]}), "MemberJoined")
         await testToken.transfer(dataUnionSidechain.address, "4000")
-        await dataUnionSidechain.addRevenue({from: randomOutsider})
+        await dataUnionSidechain.refreshRevenue({from: randomOutsider})
         assertEqual(await dataUnionSidechain.getEarnings(newMember), 1000)
         assertEqual(await dataUnionSidechain.getEarnings(members[0]), 2000)
         assertEqual(await dataUnionSidechain.getEarnings(members[1]), 3000)
@@ -274,7 +274,7 @@ contract("DataUnionSidechain", accounts => {
     // Instead what happens in DataUnionSidechain is a call to TokenMediator
     it("withdraw to mainnet", async () => {
         await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.addRevenue({from: creator})
+        await dataUnionSidechain.refreshRevenue({from: creator})
         assertEvent(await dataUnionSidechain.withdraw(members[0], "100", true, {from: members[0]}), "EarningsWithdrawn")
 
         // TestToken blocks transfers with this magic amount
@@ -283,7 +283,7 @@ contract("DataUnionSidechain", accounts => {
 
     it("fails to withdraw more than earnings", async () => {
         await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.addRevenue({from: creator})
+        await dataUnionSidechain.refreshRevenue({from: creator})
         await assertFails(dataUnionSidechain.withdraw(members[0], "4000", false, {from: members[0]}), "error_insufficientBalance")
 
         // TestToken blocks transfers with this magic amount
@@ -297,7 +297,7 @@ contract("DataUnionSidechain", accounts => {
     it("fails for badly formed signatures", async () => {
         const recipient = others[2]
         await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.addRevenue({from: creator})
+        await dataUnionSidechain.refreshRevenue({from: creator})
 
         const signature = await getWithdrawSignature(members[1], recipient, new BN("100"), dataUnionSidechain)
         const truncatedSig = signature.slice(0, -10)
