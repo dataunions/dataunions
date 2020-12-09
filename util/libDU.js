@@ -16,6 +16,8 @@ const DataUnionFactoryMainnet = require("../build/contracts/DataUnionFactoryMain
 //defaults are the addresses from docker setup
 const home_erc_mediator = process.env.HOME_ERC677_MEDIATOR || "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F"
 const foreign_erc_mediator = process.env.FOREIGN_ERC677_MEDIATOR || "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F"
+const foreign_erc20 = process.env.FOREIGN_ERC20 || "0xbAA81A0179015bE47Ad439566374F2Bae098686F"
+const home_erc677 = process.env.HOME_ERC677 || "0x73Be21733CC5D08e1a14Ea9a399fb27DB3BEf8fF"
 let templateSidechain
 
 /**
@@ -34,6 +36,7 @@ async function deployDataUnionFactorySidechain(wallet) {
     log(`Deploying sidechain DU factory contract from ${wallet.address}`)
     const factoryDeployer = new ContractFactory(DataUnionFactorySidechain.abi, DataUnionFactorySidechain.bytecode, wallet)
     const factoryTx = await factoryDeployer.deploy(
+        home_erc677,
         home_erc_mediator,
         templateSidechain.address,
         { gasLimit: 6000000 }
@@ -67,6 +70,7 @@ async function deployDataUnionFactoryMainnet(wallet, sidechainTemplateAddress, s
         wallet
     )
     const factoryTx = await factoryDeployer.deploy(
+        foreign_erc20,
         foreign_erc_mediator,
         templateDU.address,
         sidechainTemplateAddress,

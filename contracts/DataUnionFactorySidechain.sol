@@ -23,8 +23,9 @@ contract DataUnionFactorySidechain is Ownable{
     uint public newDUInitialEth;
     uint public newDUOwnerInitialEth;
     uint public defaultNewMemberEth;
-
-    constructor(address _token_mediator, address _data_union_sidechain_template) public Ownable(msg.sender) {
+    address public token;
+    constructor(address _token, address _token_mediator, address _data_union_sidechain_template) public Ownable(msg.sender) {
+        token = _token;
         token_mediator = ITokenMediator(_token_mediator);
         data_union_sidechain_template = _data_union_sidechain_template;
         amb = IAMB(token_mediator.bridgeContract());
@@ -32,10 +33,6 @@ contract DataUnionFactorySidechain is Ownable{
 
     //contract is payable
     receive() external payable {}
-
-    function token() public view returns (address) {
-        return token_mediator.erc677token();
-    }
 
     function setNewDUInitialEth(uint val) public onlyOwner {
         if(val == newDUInitialEth) return;
@@ -74,7 +71,7 @@ contract DataUnionFactorySidechain is Ownable{
         bytes32 salt = bytes32(uint256(duMainnet));
         bytes memory data = abi.encodeWithSignature("initialize(address,address,address[],address,address,uint256)",
             owner,
-            token_mediator.erc677token(),
+            token,
             agents,
             address(token_mediator),
             duMainnet,

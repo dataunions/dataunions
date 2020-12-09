@@ -50,6 +50,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     constructor() public Ownable(address(0)) {}
 
     function initialize(
+        address _token,
         address _token_mediator,
         address _sidechain_DU_factory,
         uint256 _sidechain_maxgas,
@@ -67,7 +68,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
         token_mediator = ITokenMediator(_token_mediator);
         amb = IAMB(token_mediator.bridgeContract());
-        token = ERC20(token_mediator.erc677token());
+        token = ERC20(_token);
         sidechain_DU_factory = _sidechain_DU_factory;
         sidechain_maxgas = _sidechain_maxgas;
         sidechain_template_DU = _sidechain_template_DU;
@@ -149,12 +150,24 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         // transfer memberEarnings
         require(token.approve(address(token_mediator), 0), "approve_failed");
         require(token.approve(address(token_mediator), memberEarnings), "approve_failed");
-        token_mediator.relayTokens(address(this), sidechainAddress(), memberEarnings);
+        bytes4 bridgeMode = token_mediator.getBridgeMode();
+        //MultiAMB 0xb1516c26 == bytes4(keccak256(abi.encodePacked("multi-erc-to-erc-amb")))
+        //Single token AMB 0x76595b56 ==  bytes4(keccak256(abi.encodePacked("erc-to-erc-amb")))
+        if(bridgeMode == 0xb1516c26) {
+            token_mediator.relayTokens(address(token), sidechainAddress(), memberEarnings);
+        }
+        else if(bridgeMode == 0x76595b56){
+            token_mediator.relayTokens(sidechainAddress(), memberEarnings);
+        }
+        else{
+            revert("unknown_bridge_mode");
+        }
+
         //check that memberEarnings were sent
         require(unaccountedTokens() == 0, "not_transferred");
         totalEarnings = totalEarnings.add(memberEarnings);
 
-        bytes memory data = abi.encodeWithSignature("addRevenue()");
+        bytes memory data = abi.encodeWithSignature("refreshRevenue()");
         amb.requireToPassMessage(sidechainAddress(), data, sidechain_maxgas);
         return newTokens;
     }

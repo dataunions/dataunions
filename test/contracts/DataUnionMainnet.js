@@ -37,7 +37,8 @@ contract("DataUnionMainnet", accounts => {
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
         dataUnionMainnet = await DataUnionMainnet.new({from: creator})
 
-        await dataUnionMainnet.initialize(mockTokenMediator.address,
+        await dataUnionMainnet.initialize(testToken.address,
+            mockTokenMediator.address,
             dummy,
             2000000,
             dummy,

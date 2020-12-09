@@ -374,9 +374,19 @@ interface IAMB {
 pragma solidity 0.6.6;
 
 interface ITokenMediator {
-    function erc677token() external view returns (address);
     function bridgeContract() external view returns (address);
-    function relayTokens(address _from, address _receiver, uint256 _value) external;
+
+    // The new mediator contracts relayTokens() have no from arg and always relay from msg.sender
+    // multi-token mediator uses this method
+    function relayTokens(address erc20, address _receiver, uint256 _value) external;
+    // single-token mediator uses this method
+    function relayTokens(address _receiver, uint256 _value) external;
+    
+    //returns:
+    //Multi-token mediator: 0xb1516c26 == bytes4(keccak256(abi.encodePacked("multi-erc-to-erc-amb")))
+    //Single-token mediator: 0x76595b56 ==  bytes4(keccak256(abi.encodePacked("erc-to-erc-amb")))
+    function getBridgeMode() external pure returns (bytes4 _data);
+
 }
 
 // File: contracts/Ownable.sol
@@ -457,8 +467,9 @@ contract DataUnionFactorySidechain is Ownable{
     uint public newDUInitialEth;
     uint public newDUOwnerInitialEth;
     uint public defaultNewMemberEth;
-
-    constructor(address _token_mediator, address _data_union_sidechain_template) public Ownable(msg.sender) {
+    address public token;
+    constructor(address _token, address _token_mediator, address _data_union_sidechain_template) public Ownable(msg.sender) {
+        token = _token;
         token_mediator = ITokenMediator(_token_mediator);
         data_union_sidechain_template = _data_union_sidechain_template;
         amb = IAMB(token_mediator.bridgeContract());
@@ -466,10 +477,6 @@ contract DataUnionFactorySidechain is Ownable{
 
     //contract is payable
     receive() external payable {}
-
-    function token() public view returns (address) {
-        return token_mediator.erc677token();
-    }
 
     function setNewDUInitialEth(uint val) public onlyOwner {
         if(val == newDUInitialEth) return;
@@ -508,7 +515,7 @@ contract DataUnionFactorySidechain is Ownable{
         bytes32 salt = bytes32(uint256(duMainnet));
         bytes memory data = abi.encodeWithSignature("initialize(address,address,address[],address,address,uint256)",
             owner,
-            token_mediator.erc677token(),
+            token,
             agents,
             address(token_mediator),
             duMainnet,

@@ -21,8 +21,7 @@ contract("DataUnionFactorySidechain", async accounts => {
         mockAMB = await MockAMB.new({from: creator})
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
-        factory = await DataUnionFactorySidechain.new(mockTokenMediator.address, dataUnionSidechain.address, {from: creator})
-
+        factory = await DataUnionFactorySidechain.new(testToken.address, mockTokenMediator.address, dataUnionSidechain.address, {from: creator})
     })
     it("sidechain ETH flow", async () => {
         const ownerEth = toWei("0.01")

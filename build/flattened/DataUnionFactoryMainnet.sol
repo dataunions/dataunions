@@ -374,9 +374,19 @@ interface IAMB {
 pragma solidity 0.6.6;
 
 interface ITokenMediator {
-    function erc677token() external view returns (address);
     function bridgeContract() external view returns (address);
-    function relayTokens(address _from, address _receiver, uint256 _value) external;
+
+    // The new mediator contracts relayTokens() have no from arg and always relay from msg.sender
+    // multi-token mediator uses this method
+    function relayTokens(address erc20, address _receiver, uint256 _value) external;
+    // single-token mediator uses this method
+    function relayTokens(address _receiver, uint256 _value) external;
+    
+    //returns:
+    //Multi-token mediator: 0xb1516c26 == bytes4(keccak256(abi.encodePacked("multi-erc-to-erc-amb")))
+    //Single-token mediator: 0x76595b56 ==  bytes4(keccak256(abi.encodePacked("erc-to-erc-amb")))
+    function getBridgeMode() external pure returns (bytes4 _data);
+
 }
 
 // File: contracts/DataUnionFactoryMainnet.sol
@@ -404,14 +414,17 @@ contract DataUnionFactoryMainnet {
     uint256 public sidechain_maxgas;
     IAMB public amb;
     ITokenMediator public token_mediator;
+    address public token;
 
-    constructor(address _token_mediator,
+    constructor(address _token,
+                address _token_mediator,
                 address _data_union_mainnet_template,
                 address _data_union_sidechain_template,
                 address _data_union_sidechain_factory,
                 uint256 _sidechain_maxgas)
         public
     {
+        token = _token;
         token_mediator = ITokenMediator(_token_mediator);
         data_union_mainnet_template = _data_union_mainnet_template;
         data_union_sidechain_template = _data_union_sidechain_template;
@@ -420,9 +433,6 @@ contract DataUnionFactoryMainnet {
         sidechain_maxgas = _sidechain_maxgas;
     }
 
-    function token() public view returns (address) {
-        return token_mediator.erc677token();
-    }
 
     function sidechainAddress(address mainet_address)
         public view
@@ -452,6 +462,7 @@ contract DataUnionFactoryMainnet {
 
 /*
     function initialize(
+        address _token,
         address _token_mediator,
         address _sidechain_DU_factory,
         uint256 _sidechain_maxgas,
@@ -467,7 +478,8 @@ contract DataUnionFactoryMainnet {
         returns (address)
     {
         bytes32 salt = keccak256(abi.encode(bytes(name), msg.sender));
-        bytes memory data = abi.encodeWithSignature("initialize(address,address,uint256,address,address,uint256,address[])",
+        bytes memory data = abi.encodeWithSignature("initialize(address,address,address,uint256,address,address,uint256,address[])",
+            token,
             token_mediator,
             data_union_sidechain_factory,
             sidechain_maxgas,
