@@ -406,6 +406,15 @@ contract DataUnionSidechain is Ownable {
     }
 
     /**
+    ERC677 callback function
+    see https://github.com/ethereum/EIPs/issues/677
+    */
+    function onTokenTransfer(address, uint256, bytes calldata) external returns (bool success) {
+        refreshRevenue();
+        return true;
+    }
+
+    /**
      * Atomic getter to get all state variables in one call
      * This alleviates the fact that JSON RPC batch requests aren't available in ethers.js
      */
