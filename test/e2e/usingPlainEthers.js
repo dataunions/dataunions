@@ -111,8 +111,8 @@ async function testSend(duMainnet, duSidechain, tokenWei) {
         const tx = await duSidechain.refreshRevenue();
         await tx.wait();
         return !duSideBalanceBefore.eq(await duSidechain.totalEarnings());
-        }, 360000)
-        
+    }, 360000)
+
     log(`Confirmed DU sidechain balance ${duSideBalanceBefore} -> ${await duSidechain.totalEarnings()}`)
 }
 
