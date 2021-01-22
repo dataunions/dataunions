@@ -410,6 +410,9 @@ contract DataUnionSidechain is Ownable {
     see https://github.com/ethereum/EIPs/issues/677
     */
     function onTokenTransfer(address, uint256, bytes calldata) external returns (bool success) {
+        if(msg.sender != address(token)){
+            return false;
+        }
         refreshRevenue();
         return true;
     }

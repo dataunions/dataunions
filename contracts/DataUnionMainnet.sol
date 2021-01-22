@@ -106,6 +106,18 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         return CloneLib.predictCloneAddressCreate2(sidechain_template_DU, sidechain_DU_factory, bytes32(uint256(address(this))));
     }
 
+    /**
+    ERC677 callback function
+    see https://github.com/ethereum/EIPs/issues/677
+    */
+    function onTokenTransfer(address, uint256, bytes calldata) external returns (bool success) {
+        if(msg.sender != address(token)){
+            return false;
+        }
+        sendTokensToBridge();
+        return true;
+    }
+
 /*
 2 way doesnt work atm
     //calls withdraw(member) on home network
