@@ -38,11 +38,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     function version() public pure returns (uint256) { return 2; }
 
  /*
-    totalEarnings includes:
-         member earnings (ie revenue - admin fees)
-         tokens held for members via transferToMemberInContract()
-
-    totalRevenue = totalEarnings + totalAdminFees;
+    totalEarnings = tokensSentToBridge
 */
     uint256 public totalEarnings;
 
