@@ -106,7 +106,13 @@ async function testSend(duMainnet, duSidechain, tokenWei) {
 
 
     log(`Sent to bridge, waiting for the tokens to appear at ${duSidechain.address} in sidechain`)
-    await until(async () => { await duSidechain.refreshRevenue() ; !duSideBalanceBefore.eq(await duSidechain.totalEarnings()) }, 360000)
+    
+    await until(async () => { 
+        const tx = await duSidechain.refreshRevenue();
+        await tx.wait();
+        return !duSideBalanceBefore.eq(await duSidechain.totalEarnings());
+        }, 360000)
+        
     log(`Confirmed DU sidechain balance ${duSideBalanceBefore} -> ${await duSidechain.totalEarnings()}`)
 }
 
