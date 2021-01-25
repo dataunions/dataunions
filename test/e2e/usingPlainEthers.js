@@ -6,16 +6,21 @@ const erc677SidechainAddress = "0x73Be21733CC5D08e1a14Ea9a399fb27DB3BEf8fF"
 const {
     Contract,
     Wallet,
+    keccak256,
     providers: { JsonRpcProvider },
     utils: { bigNumberify }
 } = require("ethers")
 
 const assert = require("assert")
 const until = require("../../util/await-until")
+const {
+    getMainnetAmb,
+    requiredSignaturesHaveBeenCollected,
+    transportSignatures,
+} = require("../utils/transportSignatures")
 
 const log = require("debug")("Streamr:du:test:e2e:plain")
-//require("debug").log = console.log.bind(console)  // get logging into stdout so mocha won't hide it
-
+// require("debug").log = console.log.bind(console)  // get logging into stdout so mocha won't hide it
 
 const {
     deployDataUnion,
@@ -43,8 +48,8 @@ const DataUnionSidechain = require("../../build/contracts/DataUnionSidechain.jso
 
 describe("Data Union tests using only ethers.js directly", () => {
     // for faster manual testing, use a factory from previous runs
-    //const DataUnionFactoryMainnet = require("../../build/contracts/DataUnionFactoryMainnet.json")
-    //const factoryMainnet = new Contract("0xD5beE21175494389A10aFDA8FeBC8465A3A35DE0", DataUnionFactoryMainnet.abi, walletMainnet)
+    // const DataUnionFactoryMainnet = require("../../build/contracts/DataUnionFactoryMainnet.json")
+    // const factoryMainnet = new Contract("0xEcB44c01B8D17E07C289533e6674b24c3C913183", DataUnionFactoryMainnet.abi, walletMainnet)
 
     let factoryMainnet
     before(async function () {
@@ -99,29 +104,66 @@ async function testSend(duMainnet, duSidechain, tokenWei) {
     await tx1.wait()
     log(`Transferred ${tokenWei} to ${duMainnet.address}, sending to bridge`)
 
-    //sends tokens to sidechain contract via bridge, calls sidechain.addRevenue()
+    //sends tokens to sidechain contract via bridge, calls sidechain.refreshRevenue()
     const duSideBalanceBefore = await duSidechain.totalEarnings()
     const tx2 = await duMainnet.sendTokensToBridge()
     await tx2.wait()
 
 
     log(`Sent to bridge, waiting for the tokens to appear at ${duSidechain.address} in sidechain`)
-    
-    await until(async () => { 
-        const tx = await duSidechain.refreshRevenue();
-        await tx.wait();
-        return !duSideBalanceBefore.eq(await duSidechain.totalEarnings());
+
+    await until(async () => {
+        const tx = await duSidechain.refreshRevenue()
+        await tx.wait()
+        return !duSideBalanceBefore.eq(await duSidechain.totalEarnings())
     }, 360000)
 
     log(`Confirmed DU sidechain balance ${duSideBalanceBefore} -> ${await duSidechain.totalEarnings()}`)
 }
 
 // goes over bridge => extra wait
-async function withdraw(duSidechain, member) {
+async function withdraw(duSidechain, member, options) {
+    const {
+        payForSignatureTransport = true,
+    } = options
+
     const balanceBefore = await erc20Mainnet.balanceOf(member)
     log(`withdraw for ${member} (mainnet balance ${balanceBefore})`)
     const tx = await duSidechain.withdrawAll(member, true)
-    await tx.wait()
+    const tr = await tx.wait()
+
+    if (payForSignatureTransport) {
+        log(`Got receipt, filtering UserRequestForSignature from ${tr.events.length} events...`)
+        // event UserRequestForSignature(bytes32 indexed messageId, bytes encodedData);
+        const sigEventArgsArray = tr.events.filter((e) => e.event === "UserRequestForSignature").map((e) => e.args)
+        if (sigEventArgsArray.length < 1) {
+            throw new Error("No UserRequestForSignature events emitted from withdraw transaction, can't transport withdraw to mainnet")
+        }
+        /* eslint-disable no-await-in-loop */
+        // eslint-disable-next-line no-restricted-syntax
+        for (const eventArgs of sigEventArgsArray) {
+            const messageId = eventArgs[0]
+            const messageHash = keccak256(eventArgs[1])
+
+            log(`Waiting until sidechain AMB has collected required signatures for hash=${messageHash}...`)
+            await until(async () => requiredSignaturesHaveBeenCollected(messageHash, options))
+
+            log(`Checking mainnet AMB hasn't already processed messageId=${messageId}`)
+            const mainnetAmb = await getMainnetAmb(options)
+            const alreadySent = await mainnetAmb.messageCallStatus(messageId)
+            const failAddress = await mainnetAmb.failedMessageSender(messageId)
+            if (alreadySent || failAddress !== "0x0000000000000000000000000000000000000000") { // zero address means no failed messages
+                log(`WARNING: Mainnet bridge has already processed withdraw messageId=${messageId}`)
+                log("This could happen if payForSignatureTransport=true, but bridge operator also pays for signatures, and got there before your client")
+                continue
+            }
+
+            log(`Transporting signatures for hash=${messageHash}`)
+            await transportSignatures(messageHash, duSidechain.signer, options)
+        }
+        /* eslint-enable no-await-in-loop */
+    }
+
     log(`withdraw submitted for ${member}, waiting to receive the tokens on the mainnet side...`)
     await until(async () => !balanceBefore.eq(await erc20Mainnet.balanceOf(member)), 360000)
 }
