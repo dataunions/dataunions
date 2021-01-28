@@ -8,7 +8,7 @@ const {
 const log = require("debug")("Streamr:DU:test-utils")
 // const log = console.log // useful for debugging sometimes
 
-const DataUnionFactoryMainnet = require("../build/contracts/DataUnionFactoryMainnet.json")
+const DataUnionFactoryMainnet = require("../../build/contracts/DataUnionFactoryMainnet.json")
 
 const mainnetAmbABI = [{
     name: "executeSignatures",

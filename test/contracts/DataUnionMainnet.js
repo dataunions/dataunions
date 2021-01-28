@@ -71,7 +71,7 @@ contract("DataUnionMainnet", accounts => {
             await dataUnionMainnet.sendTokensToBridge({from: creator})
             assertEqual(+(await dataUnionMainnet.totalAdminFees()), adminFeeWei)
             assertEqual(+(await dataUnionMainnet.adminFeesWithdrawable()), new BN(0))
-            assertEqual(+(await dataUnionMainnet.totalEarnings()), amtWei.sub(adminFeeWei))
+            assertEqual(+(await dataUnionMainnet.tokensSentToBridge()), amtWei.sub(adminFeeWei))
             assertEqual(+(await testToken.balanceOf(creator)), adminFeeWei)
 
             //try same with autoSendAdminFee off:
@@ -88,7 +88,7 @@ contract("DataUnionMainnet", accounts => {
             await dataUnionMainnet.sendTokensToBridge({from: creator})
             assertEqual(+(await dataUnionMainnet.totalAdminFees()), adminFeeWei.mul(new BN(2)))
             assertEqual(+(await dataUnionMainnet.adminFeesWithdrawable()), adminFeeWei)
-            assertEqual(+(await dataUnionMainnet.totalEarnings()), amtWei.sub(adminFeeWei).mul(new BN(2)))
+            assertEqual(+(await dataUnionMainnet.tokensSentToBridge()), amtWei.sub(adminFeeWei).mul(new BN(2)))
             assertEqual(+(await testToken.balanceOf(creator)), adminFeeWei)
             await dataUnionMainnet.withdrawAdminFees({from: sender})
             assertEqual(+(await testToken.balanceOf(creator)), adminFeeWei.mul(new BN(2)))
