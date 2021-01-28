@@ -37,10 +37,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
     function version() public pure returns (uint256) { return 2; }
 
- /*
-    totalEarnings = tokensSentToBridge
-*/
-    uint256 public totalEarnings;
+    uint256 public tokensSentToBridge;
 
 
     constructor() public Ownable(address(0)) {}
@@ -173,10 +170,8 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
         //check that memberEarnings were sent
         require(unaccountedTokens() == 0, "not_transferred");
-        totalEarnings = totalEarnings.add(memberEarnings);
+        tokensSentToBridge = tokensSentToBridge.add(memberEarnings);
 
-        bytes memory data = abi.encodeWithSignature("refreshRevenue()");
-        amb.requireToPassMessage(sidechainAddress(), data, sidechain_maxgas);
         return newTokens;
     }
 
