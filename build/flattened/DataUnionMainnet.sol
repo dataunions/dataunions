@@ -885,6 +885,10 @@ pragma solidity 0.6.6;
 
 // Tokenbridge Arbitrary Message Bridge
 interface IAMB {
+
+    //only on mainnet AMB:
+    function executeSignatures(bytes calldata _data, bytes calldata _signatures) external;
+
     function messageSender() external view returns (address);
 
     function maxGasPerTx() external view returns (uint256);
@@ -897,6 +901,10 @@ interface IAMB {
 
     function messageCallStatus(bytes32 _messageId) external view returns (bool);
 
+    function requiredSignatures() external view returns (uint256);
+    function numMessagesSigned(bytes32 _message) external view returns (uint256);
+    function signature(bytes32 _hash, uint256 _index) external view returns (bytes memory);
+    function message(bytes32 _hash) external view returns (bytes memory);
     function failedMessageDataHash(bytes32 _messageId)
         external
         view
@@ -979,14 +987,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
     function version() public pure returns (uint256) { return 2; }
 
- /*
-    totalEarnings includes:
-         member earnings (ie revenue - admin fees)
-         tokens held for members via transferToMemberInContract()
-
-    totalRevenue = totalEarnings + totalAdminFees;
-*/
-    uint256 public totalEarnings;
+    uint256 public tokensSentToBridge;
 
 
     constructor() public Ownable(address(0)) {}
@@ -1119,10 +1120,8 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
         //check that memberEarnings were sent
         require(unaccountedTokens() == 0, "not_transferred");
-        totalEarnings = totalEarnings.add(memberEarnings);
+        tokensSentToBridge = tokensSentToBridge.add(memberEarnings);
 
-        bytes memory data = abi.encodeWithSignature("refreshRevenue()");
-        amb.requireToPassMessage(sidechainAddress(), data, sidechain_maxgas);
         return newTokens;
     }
 

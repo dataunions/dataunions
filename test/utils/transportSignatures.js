@@ -7,111 +7,11 @@ const {
 
 const log = require("debug")("Streamr:DU:test-utils")
 // const log = console.log // useful for debugging sometimes
-
-const DataUnionFactoryMainnet = require("../../build/contracts/DataUnionFactoryMainnet.json")
-
-const mainnetAmbABI = [{
-    name: "executeSignatures",
-    inputs: [{ type: "bytes" }, { type: "bytes" }], // data, signatures
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function"
-}, {
-    name: "messageCallStatus",
-    inputs: [{ type: "bytes32" }], // messageId
-    outputs: [{ type: "bool" }],
-    stateMutability: "view",
-    type: "function"
-}, {
-    name: "failedMessageSender",
-    inputs: [{ type: "bytes32" }], // messageId
-    outputs: [{ type: "address" }],
-    stateMutability: "view",
-    type: "function"
-}, {
-    name: "relayedMessages",
-    inputs: [{ type: "bytes32" }], // messageId, was called "_txhash" though?!
-    outputs: [{ name: "", type: "bool" }],
-    stateMutability: "view",
-    type: "function"
-}, {
-    name: "validatorContract",
-    inputs: [],
-    outputs: [{ type: "address" }],
-    stateMutability: "view",
-    type: "function"
-}]
-
-const sidechainAmbABI = [{
-    name: "signature",
-    inputs: [{ type: "bytes32" }, { type: "uint256" }], // messageHash, index
-    outputs: [{ type: "bytes" }],
-    stateMutability: "view",
-    type: "function"
-}, {
-    name: "message",
-    inputs: [{ type: "bytes32" }], // messageHash
-    outputs: [{ type: "bytes" }],
-    stateMutability: "view",
-    type: "function"
-}, {
-    name: "requiredSignatures",
-    inputs: [],
-    outputs: [{ type: "uint256" }],
-    stateMutability: "view",
-    type: "function"
-}, {
-    name: "numMessagesSigned",
-    inputs: [{ type: "bytes32" }], // messageHash (TODO: double check)
-    outputs: [{ type: "uint256" }],
-    stateMutability: "view",
-    type: "function"
-}]
-
-// Find the Asyncronous Message-passing Bridge sidechain ("home") contract
-let cachedSidechainAmb
-async function getSidechainAmb(options) {
-    const {
-        factoryMainnetAddress,
-        mainnetProvider,
-        sidechainProvider,
-    } = options
-    if (!cachedSidechainAmb) {
-        const getAmbPromise = async () => {
-            const factoryMainnet = new Contract(factoryMainnetAddress, DataUnionFactoryMainnet.abi, mainnetProvider)
-            const factorySidechainAddress = await factoryMainnet.data_union_sidechain_factory()
-            const factorySidechain = new Contract(factorySidechainAddress, [{
-                name: "amb",
-                inputs: [],
-                outputs: [{ type: "address" }],
-                stateMutability: "view",
-                type: "function"
-            }], sidechainProvider)
-            const sidechainAmbAddress = await factorySidechain.amb()
-            return new Contract(sidechainAmbAddress, sidechainAmbABI, sidechainProvider)
-        }
-        cachedSidechainAmb = getAmbPromise()
-        cachedSidechainAmb = await cachedSidechainAmb // eslint-disable-line require-atomic-updates
-    }
-    return cachedSidechainAmb
-}
-
-async function getMainnetAmb(options) {
-    const {
-        factoryMainnetAddress,
-        mainnetProvider,
-    } = options
-    const factoryMainnet = new Contract(factoryMainnetAddress, DataUnionFactoryMainnet.abi, mainnetProvider)
-    const mainnetAmbAddress = await factoryMainnet.amb()
-    return new Contract(mainnetAmbAddress, mainnetAmbABI, mainnetProvider)
-}
-
-async function requiredSignaturesHaveBeenCollected(messageHash, options = {}) {
-    const sidechainAmb = await getSidechainAmb(options)
-    const requiredSignatureCount = await sidechainAmb.requiredSignatures()
+async function requiredSignaturesHaveBeenCollected(messageHash, amb) {
+    const requiredSignatureCount = await amb.requiredSignatures()
 
     // Bit 255 is set to mark completion, double check though
-    const sigCountStruct = await sidechainAmb.numMessagesSigned(messageHash)
+    const sigCountStruct = await amb.numMessagesSigned(messageHash)
     const collectedSignatureCount = sigCountStruct.mask(255)
     const markedComplete = sigCountStruct.shr(255).gt(0)
 
@@ -121,12 +21,7 @@ async function requiredSignaturesHaveBeenCollected(messageHash, options = {}) {
 }
 
 // move signatures from sidechain to mainnet
-async function transportSignatures(messageHash, wallet, options) {
-    const {
-        mainnetProvider,
-    } = options
-
-    const sidechainAmb = await getSidechainAmb(options)
+async function transportSignatures(messageHash, wallet, sidechainAmb, mainnetAmb) {
     const message = await sidechainAmb.message(messageHash)
     const messageId = "0x" + message.substr(2, 64)
     const sigCountStruct = await sidechainAmb.numMessagesSigned(messageHash)
@@ -144,9 +39,8 @@ async function transportSignatures(messageHash, wallet, options) {
     })
     const packedSignatures = BigNumber.from(signatures.length).toHexString() + vArray.join("") + rArray.join("") + sArray.join("")
     log(`All signatures packed into one: ${packedSignatures}`)
-
+/*
     // Gas estimation also checks that the transaction would succeed, and provides a helpful error message in case it would fail
-    const mainnetAmb = await getMainnetAmb(options)
     log(`Estimating gas using mainnet AMB @ ${mainnetAmb.address}, message=${message}`)
     let gasLimit
     try {
@@ -154,6 +48,7 @@ async function transportSignatures(messageHash, wallet, options) {
         gasLimit = await mainnetAmb.estimateGas.executeSignatures(message, packedSignatures) + 200000
         log(`Calculated gas limit: ${gasLimit.toString()}`)
     } catch (e) {
+        log(`Gas estimation failed: ${e}`)
         // Failure modes from https://github.com/poanetwork/tokenbridge/blob/master/oracle/src/events/processAMBCollectedSignatures/estimateGas.js
         log("Gas estimation failed: Check if the message was already processed")
         const alreadyProcessed = await mainnetAmb.relayedMessages(messageId)
@@ -197,15 +92,14 @@ async function transportSignatures(messageHash, wallet, options) {
 
         throw new Error(`Gas estimation failed: Unknown error while processing message ${message} with ${e.stack}`)
     }
-
+*/
     log(`Sending message from wallet ${wallet.address}`)
-    const txAMB = await mainnetAmb.connect(wallet).executeSignatures(message, packedSignatures)
+    const txAMB = await mainnetAmb.executeSignatures(message, packedSignatures)
     const trAMB = await txAMB.wait()
     return trAMB
 }
 
 module.exports = {
-    getMainnetAmb,
     requiredSignaturesHaveBeenCollected,
     transportSignatures,
 }
