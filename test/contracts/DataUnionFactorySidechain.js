@@ -3,7 +3,7 @@ const { toWei } = web3.utils
 
 const DataUnionSidechain = artifacts.require("./DataUnionSidechain.sol")
 const DataUnionFactorySidechain = artifacts.require("./DataUnionFactorySidechain.sol")
-const ERC20Mintable = artifacts.require("./ERC20Mintable.sol")
+const TestToken = artifacts.require("./TestToken.sol")
 const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const MockAMB = artifacts.require("./MockAMB.sol")
 
@@ -17,7 +17,7 @@ contract("DataUnionFactorySidechain", async accounts => {
     let testToken, dataUnionSidechain, mockAMB, mockTokenMediator, factory
 
     before(async () => {
-        testToken = await ERC20Mintable.new("name","symbol",{ from: creator })
+        testToken = await TestToken.new("name","symbol",{ from: creator })
         mockAMB = await MockAMB.new({from: creator})
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})

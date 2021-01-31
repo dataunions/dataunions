@@ -56,9 +56,6 @@ const userRequestForSignatureInterface = new Interface(["event UserRequestForSig
 let factoryMainnet, mainnetAmb, sidechainAmb
 
 describe("Data Union tests using only ethers.js directly", () => {
-    // for faster manual testing, use a factory from previous runs
-    // const DataUnionFactoryMainnet = require("../../build/contracts/DataUnionFactoryMainnet.json")
-    // const factoryMainnet = new Contract("0xEcB44c01B8D17E07C289533e6674b24c3C913183", DataUnionFactoryMainnet.abi, walletMainnet)
 
     before(async function () {
         this.timeout(process.env.TEST_TIMEOUT || 60000)

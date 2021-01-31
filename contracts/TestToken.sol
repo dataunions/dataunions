@@ -36,10 +36,13 @@ contract TestToken is ERC20, Ownable, IERC677 {
     //   require(token.transferAndCall(tokenMediator, amount, toBytes(to)), "error_transfer");
     // So returns false if amount = 666
     function transferAndCall(
-        address,
+        address to,
         uint256 amount,
-        bytes calldata
-    ) external override returns (bool) {
-        return amount != 666;
+        bytes calldata data
+    ) external override returns (bool) {        
+        if(amount == 666 || !transfer(to, amount))
+            return false;
+        (bool success,) = to.call(abi.encodeWithSignature("onTokenTransfer(address,uint256,bytes)", msg.sender, amount, data));
+        return success;
     }
 }

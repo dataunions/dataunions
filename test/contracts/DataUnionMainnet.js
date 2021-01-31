@@ -5,7 +5,7 @@ const w3 = new Web3(web3.currentProvider)
 const DataUnionMainnet = artifacts.require("./DataUnionMainnet.sol")
 const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const MockAMB = artifacts.require("./MockAMB.sol")
-const ERC20Mintable = artifacts.require("./ERC20Mintable.sol")
+const TestToken = artifacts.require("./TestToken.sol")
 
 contract("DataUnionMainnet", accounts => {
     const creator = accounts[0]
@@ -30,7 +30,7 @@ contract("DataUnionMainnet", accounts => {
     )
     */
     before(async () => {
-        testToken = await ERC20Mintable.new("name","symbol",{ from: creator })
+        testToken = await TestToken.new("name","symbol",{ from: creator })
         await testToken.mint(sender, w3.utils.toWei("10000"), { from: creator })
         const dummy = testToken.address
         mockAMB = await MockAMB.new({from: creator})
