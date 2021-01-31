@@ -3,7 +3,6 @@ const ORACLE_VALIDATOR_ADDRESS_PRIVATE_KEY = "5e98cce00cff5dea6b454889f359a4ec06
 const DATACOIN_ADDRESS = "0xbAA81A0179015bE47Ad439566374F2Bae098686F"
 const HOME_ERC677_MEDIATOR = "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F"
 const FOREIGN_ERC677_MEDIATOR = "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F"
-const FOREIGN_ERC20 = "0xbAA81A0179015bE47Ad439566374F2Bae098686F"
 const HOME_ERC677 = "0x73Be21733CC5D08e1a14Ea9a399fb27DB3BEf8fF"
 
 const Token = require("../../build/contracts/IERC20.json")
@@ -128,20 +127,13 @@ async function testSend(duMainnet, duSidechain, tokenWei) {
     log(`Sent to bridge, waiting for the tokens to appear at ${duSidechain.address} in sidechain`)
 
     await until(async () => {
-        try{
-/*
-            log('rr1')
-            let tx = await duSidechain.refreshRevenue()
-            log(`rr2 ${JSON.stringify(tx)}`)
-            await tx.wait(0)
-            log('rr3')
-*/
+        try {
             const ercbal = await erc677Sidechain.balanceOf(duSidechain.address)
             let rslt = !duSideBalanceBefore.eq(await duSidechain.totalEarnings())
-            log(`RSLT ${ercbal} ${rslt}`)
+            log(`Sidechain ERC677 balance ${ercbal} ${rslt}`)
             return rslt
         }
-        catch(err){
+        catch (err) {
             log("ERR " + err)
         }
         return false
