@@ -62,10 +62,8 @@ contract("DataUnionMainnet", accounts => {
         }),
 
         it("splits revenue correctly", async () => {
-            //send revenue
-            assert(await testToken.transfer(dataUnionMainnet.address, amtWei, {from: sender}))
-            assertEqual(+(await dataUnionMainnet.unaccountedTokens()), amtWei)
-            assertEvent(await dataUnionMainnet.sendTokensToBridge({from: creator}), "AdminFeeCharged")
+            //send revenue with transferAndCall. Should update balance automatically
+            assert(await testToken.transferAndCall(dataUnionMainnet.address, amtWei, [], {from: sender}))
             assertEqual(+(await dataUnionMainnet.unaccountedTokens()), new BN(0))
             //should do nothing
             await dataUnionMainnet.sendTokensToBridge({from: creator})
@@ -79,7 +77,7 @@ contract("DataUnionMainnet", accounts => {
             await assertFails(dataUnionMainnet.setAutoSendAdminFee(false, {from: sender}))
             dataUnionMainnet.setAutoSendAdminFee(false, {from: creator})
 
-            //send revenue
+            //send revenue with transfer. must call sendTokensToBridge() manually
             assert(await testToken.transfer(dataUnionMainnet.address, amtWei, {from: sender}))
             assertEqual(+(await dataUnionMainnet.unaccountedTokens()), amtWei)
             assertEvent(await dataUnionMainnet.sendTokensToBridge({from: creator}), "AdminFeeCharged")
