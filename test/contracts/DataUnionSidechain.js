@@ -202,8 +202,8 @@ contract("DataUnionSidechain", accounts => {
     })
 
     it("getStats", async () => {
-        await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.refreshRevenue({from: creator})
+        //test send with transferAndCall. refreshRevenue not needed in this case
+        await testToken.transferAndCall(dataUnionSidechain.address, "3000", [])
         await dataUnionSidechain.withdraw(members[0], "500", false, {from: members[0]})
         const [
             totalEarnings,

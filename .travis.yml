@@ -21,6 +21,11 @@ jobs:
         - git clone https://github.com/streamr-dev/streamr-docker-dev.git
         - streamr-docker-dev/streamr-docker-dev/bin.sh start parity-sidechain-node0 parity-node0 bridge --wait
         - docker ps
+# print system usage stats
+        - uname -a
+        - top -n1
+        - free -h
+        - df -h
         - npm run integration-test
       env:
         - DEBUG=*

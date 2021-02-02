@@ -5,7 +5,7 @@ const w3 = new Web3(web3.currentProvider)
 const DataUnionMainnet = artifacts.require("./DataUnionMainnet.sol")
 const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const MockAMB = artifacts.require("./MockAMB.sol")
-const ERC20Mintable = artifacts.require("./ERC20Mintable.sol")
+const TestToken = artifacts.require("./TestToken.sol")
 
 contract("DataUnionMainnet", accounts => {
     const creator = accounts[0]
@@ -30,7 +30,7 @@ contract("DataUnionMainnet", accounts => {
     )
     */
     before(async () => {
-        testToken = await ERC20Mintable.new("name","symbol",{ from: creator })
+        testToken = await TestToken.new("name","symbol",{ from: creator })
         await testToken.mint(sender, w3.utils.toWei("10000"), { from: creator })
         const dummy = testToken.address
         mockAMB = await MockAMB.new({from: creator})
@@ -62,16 +62,14 @@ contract("DataUnionMainnet", accounts => {
         }),
 
         it("splits revenue correctly", async () => {
-            //send revenue
-            assert(await testToken.transfer(dataUnionMainnet.address, amtWei, {from: sender}))
-            assertEqual(+(await dataUnionMainnet.unaccountedTokens()), amtWei)
-            assertEvent(await dataUnionMainnet.sendTokensToBridge({from: creator}), "AdminFeeCharged")
+            //send revenue with transferAndCall. Should update balance automatically
+            assert(await testToken.transferAndCall(dataUnionMainnet.address, amtWei, [], {from: sender}))
             assertEqual(+(await dataUnionMainnet.unaccountedTokens()), new BN(0))
             //should do nothing
             await dataUnionMainnet.sendTokensToBridge({from: creator})
             assertEqual(+(await dataUnionMainnet.totalAdminFees()), adminFeeWei)
             assertEqual(+(await dataUnionMainnet.adminFeesWithdrawable()), new BN(0))
-            assertEqual(+(await dataUnionMainnet.totalEarnings()), amtWei.sub(adminFeeWei))
+            assertEqual(+(await dataUnionMainnet.tokensSentToBridge()), amtWei.sub(adminFeeWei))
             assertEqual(+(await testToken.balanceOf(creator)), adminFeeWei)
 
             //try same with autoSendAdminFee off:
@@ -79,7 +77,7 @@ contract("DataUnionMainnet", accounts => {
             await assertFails(dataUnionMainnet.setAutoSendAdminFee(false, {from: sender}))
             dataUnionMainnet.setAutoSendAdminFee(false, {from: creator})
 
-            //send revenue
+            //send revenue with transfer. must call sendTokensToBridge() manually
             assert(await testToken.transfer(dataUnionMainnet.address, amtWei, {from: sender}))
             assertEqual(+(await dataUnionMainnet.unaccountedTokens()), amtWei)
             assertEvent(await dataUnionMainnet.sendTokensToBridge({from: creator}), "AdminFeeCharged")
@@ -88,7 +86,7 @@ contract("DataUnionMainnet", accounts => {
             await dataUnionMainnet.sendTokensToBridge({from: creator})
             assertEqual(+(await dataUnionMainnet.totalAdminFees()), adminFeeWei.mul(new BN(2)))
             assertEqual(+(await dataUnionMainnet.adminFeesWithdrawable()), adminFeeWei)
-            assertEqual(+(await dataUnionMainnet.totalEarnings()), amtWei.sub(adminFeeWei).mul(new BN(2)))
+            assertEqual(+(await dataUnionMainnet.tokensSentToBridge()), amtWei.sub(adminFeeWei).mul(new BN(2)))
             assertEqual(+(await testToken.balanceOf(creator)), adminFeeWei)
             await dataUnionMainnet.withdrawAdminFees({from: sender})
             assertEqual(+(await testToken.balanceOf(creator)), adminFeeWei.mul(new BN(2)))

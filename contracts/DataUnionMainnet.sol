@@ -37,14 +37,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
     function version() public pure returns (uint256) { return 2; }
 
- /*
-    totalEarnings includes:
-         member earnings (ie revenue - admin fees)
-         tokens held for members via transferToMemberInContract()
-
-    totalRevenue = totalEarnings + totalAdminFees;
-*/
-    uint256 public totalEarnings;
+    uint256 public tokensSentToBridge;
 
 
     constructor() public Ownable(address(0)) {}
@@ -106,6 +99,18 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         return CloneLib.predictCloneAddressCreate2(sidechain_template_DU, sidechain_DU_factory, bytes32(uint256(address(this))));
     }
 
+    /**
+    ERC677 callback function
+    see https://github.com/ethereum/EIPs/issues/677
+    */
+    function onTokenTransfer(address, uint256, bytes calldata) external returns (bool success) {
+        if(msg.sender != address(token)){
+            return false;
+        }
+        sendTokensToBridge();
+        return true;
+    }
+
 /*
 2 way doesnt work atm
     //calls withdraw(member) on home network
@@ -165,10 +170,8 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
         //check that memberEarnings were sent
         require(unaccountedTokens() == 0, "not_transferred");
-        totalEarnings = totalEarnings.add(memberEarnings);
+        tokensSentToBridge = tokensSentToBridge.add(memberEarnings);
 
-        bytes memory data = abi.encodeWithSignature("refreshRevenue()");
-        amb.requireToPassMessage(sidechainAddress(), data, sidechain_maxgas);
         return newTokens;
     }
 

@@ -1,21 +1,32 @@
-// TODO: these must be synced with streamr-docker-dev/oracles.env
+//addresses from docker setup
 const ORACLE_VALIDATOR_ADDRESS_PRIVATE_KEY = "5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0"
 const DATACOIN_ADDRESS = "0xbAA81A0179015bE47Ad439566374F2Bae098686F"
-const erc677SidechainAddress = "0x73Be21733CC5D08e1a14Ea9a399fb27DB3BEf8fF"
+const HOME_ERC677_MEDIATOR = "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F"
+const FOREIGN_ERC677_MEDIATOR = "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F"
+const HOME_ERC677 = "0x73Be21733CC5D08e1a14Ea9a399fb27DB3BEf8fF"
+
+const Token = require("../../build/contracts/IERC20.json")
+const DataUnionSidechain = require("../../build/contracts/DataUnionSidechain.json")
+const ITokenMediator = require("../../build/contracts/ITokenMediator.json")
+const IAMB = require("../../build/contracts/IAMB.json")
 
 const {
     Contract,
     Wallet,
+    BigNumber,
     providers: { JsonRpcProvider },
-    utils: { bigNumberify }
+    utils: { keccak256, Interface, id }
 } = require("ethers")
 
 const assert = require("assert")
 const until = require("../../util/await-until")
+const {
+    requiredSignaturesHaveBeenCollected,
+    transportSignatures,
+} = require("../utils/transportSignatures")
 
 const log = require("debug")("Streamr:du:test:e2e:plain")
-//require("debug").log = console.log.bind(console)  // get logging into stdout so mocha won't hide it
-
+// require("debug").log = console.log.bind(console)  // get logging into stdout so mocha won't hide it
 
 const {
     deployDataUnion,
@@ -35,24 +46,27 @@ const providerMainnet = new JsonRpcProvider({
 const walletSidechain = new Wallet(ORACLE_VALIDATOR_ADDRESS_PRIVATE_KEY, providerSidechain)
 const walletMainnet = new Wallet(ORACLE_VALIDATOR_ADDRESS_PRIVATE_KEY, providerMainnet)
 
-const Token = require("../../build/contracts/IERC20.json")
-const erc677Sidechain = new Contract(erc677SidechainAddress, Token.abi, walletSidechain)
+const erc677Sidechain = new Contract(HOME_ERC677, Token.abi, walletSidechain)
 const erc20Mainnet = new Contract(DATACOIN_ADDRESS, Token.abi, walletMainnet)
-
-const DataUnionSidechain = require("../../build/contracts/DataUnionSidechain.json")
+const homeMediator = new Contract(HOME_ERC677_MEDIATOR, ITokenMediator.abi, walletSidechain)
+const foreignMediator = new Contract(FOREIGN_ERC677_MEDIATOR, ITokenMediator.abi, walletMainnet)
+const payForSignatureTransport = true
+const userRequestForSignatureEventTopic = id("UserRequestForSignature(bytes32,bytes)")
+const userRequestForSignatureInterface = new Interface(["event UserRequestForSignature(bytes32 indexed messageId, bytes encodedData)"])
+let factoryMainnet, mainnetAmb, sidechainAmb
 
 describe("Data Union tests using only ethers.js directly", () => {
-    // for faster manual testing, use a factory from previous runs
-    //const DataUnionFactoryMainnet = require("../../build/contracts/DataUnionFactoryMainnet.json")
-    //const factoryMainnet = new Contract("0xD5beE21175494389A10aFDA8FeBC8465A3A35DE0", DataUnionFactoryMainnet.abi, walletMainnet)
 
-    let factoryMainnet
     before(async function () {
         this.timeout(process.env.TEST_TIMEOUT || 60000)
         const factorySidechain = await deployDataUnionFactorySidechain(walletSidechain)
         const templateSidechain = getTemplateSidechain()
         factoryMainnet = await deployDataUnionFactoryMainnet(walletMainnet, templateSidechain.address, factorySidechain.address)
         log(`Deployed factory contracts sidechain ${factorySidechain.address}, mainnet ${factoryMainnet.address}`)
+        const HOME_AMB = await homeMediator.bridgeContract()
+        const FOREIGN_AMB = await foreignMediator.bridgeContract()
+        mainnetAmb = new Contract(HOME_AMB, IAMB.abi, walletSidechain)
+        sidechainAmb = new Contract(FOREIGN_AMB, IAMB.abi, walletMainnet)
     })
 
     it("can deploy, add members and withdraw", async function () {
@@ -83,7 +97,9 @@ describe("Data Union tests using only ethers.js directly", () => {
         await printStats(duSidechain, member)
 
         const balanceAfter = await erc20Mainnet.balanceOf(member)
-        assert.equal(balanceAfter.sub(balanceBefore).toString(), bigNumberify(sendAmount).div("2").toString())
+        log(`balanceBefore ${balanceBefore} balanceAfter ${balanceAfter} sendAmount ${sendAmount}`)
+        assert(balanceAfter.sub(balanceBefore).eq(BigNumber.from(sendAmount).div(2)))
+        //assert.equal(balanceAfter.sub(balanceBefore).toString(), bigNumberify(sendAmount).div("2").toString())
 
     })
 })
@@ -99,22 +115,75 @@ async function testSend(duMainnet, duSidechain, tokenWei) {
     await tx1.wait()
     log(`Transferred ${tokenWei} to ${duMainnet.address}, sending to bridge`)
 
-    //sends tokens to sidechain contract via bridge, calls sidechain.addRevenue()
+    //sends tokens to sidechain contract via bridge, calls sidechain.refreshRevenue()
     const duSideBalanceBefore = await duSidechain.totalEarnings()
     const tx2 = await duMainnet.sendTokensToBridge()
     await tx2.wait()
 
+
     log(`Sent to bridge, waiting for the tokens to appear at ${duSidechain.address} in sidechain`)
-    await until(async () => !duSideBalanceBefore.eq(await duSidechain.totalEarnings()), 360000)
+
+    await until(async () => {
+        try {
+            const ercbal = await erc677Sidechain.balanceOf(duSidechain.address)
+            let rslt = !duSideBalanceBefore.eq(await duSidechain.totalEarnings())
+            log(`Sidechain ERC677 balance ${ercbal} ${rslt}`)
+            return rslt
+        }
+        catch (err) {
+            log("ERR " + err)
+        }
+        return false
+    }, 360000)
+
     log(`Confirmed DU sidechain balance ${duSideBalanceBefore} -> ${await duSidechain.totalEarnings()}`)
 }
 
 // goes over bridge => extra wait
 async function withdraw(duSidechain, member) {
+
     const balanceBefore = await erc20Mainnet.balanceOf(member)
     log(`withdraw for ${member} (mainnet balance ${balanceBefore})`)
     const tx = await duSidechain.withdrawAll(member, true)
-    await tx.wait()
+    const tr = await tx.wait()
+
+    if (payForSignatureTransport) {
+        log(`Got receipt, filtering UserRequestForSignature from ${tr.events.length} events...`)
+        log(`tr: ${JSON.stringify(tr)}`)
+        // event UserRequestForSignature(bytes32 indexed messageId, bytes encodedData);
+        const sigEventArgsArray = tr.events.filter((e) => e.topics[0] === userRequestForSignatureEventTopic)
+        if (sigEventArgsArray.length < 1) {
+            throw new Error("No UserRequestForSignature events emitted from withdraw transaction, can't transport withdraw to mainnet")
+        }
+        /* eslint-disable no-await-in-loop */
+        // eslint-disable-next-line no-restricted-syntax
+        log(`sigEventArgsArray: ${JSON.stringify(sigEventArgsArray)}`)
+        for (var event of sigEventArgsArray) {
+            log(`event: ${JSON.stringify(event)}`)
+            const sigEvent = userRequestForSignatureInterface.parseLog(event)
+            log(`sigEvent: ${JSON.stringify(sigEvent)}`)
+
+            const messageId = sigEvent.args[0]
+            const messageHash = keccak256(sigEvent.args[1])
+
+            log(`Waiting until sidechain AMB has collected required signatures for hash=${messageHash}...`)
+            await until(async () => requiredSignaturesHaveBeenCollected(messageHash, mainnetAmb),360000)
+
+            log(`Checking mainnet AMB hasn't already processed messageId=${messageId}`)
+            const alreadySent = await mainnetAmb.messageCallStatus(messageId)
+            const failAddress = await mainnetAmb.failedMessageSender(messageId)
+            if (alreadySent || failAddress !== "0x0000000000000000000000000000000000000000") { // zero address means no failed messages
+                log(`WARNING: Mainnet bridge has already processed withdraw messageId=${messageId}`)
+                log("This could happen if payForSignatureTransport=true, but bridge operator also pays for signatures, and got there before your client")
+                continue
+            }
+
+            log(`Transporting signatures for hash=${messageHash}`)
+            await transportSignatures(messageHash, duSidechain.signer, mainnetAmb, sidechainAmb)
+        }
+        /* eslint-enable no-await-in-loop */
+    }
+
     log(`withdraw submitted for ${member}, waiting to receive the tokens on the mainnet side...`)
     await until(async () => !balanceBefore.eq(await erc20Mainnet.balanceOf(member)), 360000)
 }
