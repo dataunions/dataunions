@@ -1,9 +1,10 @@
 pragma solidity 0.6.6;
 
 import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "./ISidechainMigrationManager.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 
-contract SidechainMigrationManager is Ownable {
+contract SidechainMigrationManager is Ownable, ISidechainMigrationManager {
 
     event OldTokenChange(address indexed current, address indexed prev);
     event NewTokenChange(address indexed current, address indexed prev);
@@ -11,9 +12,9 @@ contract SidechainMigrationManager is Ownable {
     event Withdrawal(address indexed owner, uint amount);
     event Swap(address indexed user, uint amount);
 
-    address public oldToken;
-    address public newToken;
-    address public newMediator;
+    address override public oldToken;
+    address override public newToken;
+    address override public newMediator;
     
     constructor() public Ownable(msg.sender) {}
 

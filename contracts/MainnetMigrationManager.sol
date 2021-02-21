@@ -1,14 +1,15 @@
 pragma solidity 0.6.6;
 
 import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "./IMainnetMigrationManager.sol";
 
-contract MainnetMigrationManager is Ownable {
+contract MainnetMigrationManager is Ownable, IMainnetMigrationManager {
     event OldTokenChange(address indexed current, address indexed prev);
     event NewTokenChange(address indexed current, address indexed prev);
     event NewMediatorChange(address indexed current, address indexed prev);
 
-    address public newToken;
-    address public newMediator;
+    address override public newToken;
+    address override public newMediator;
     
     constructor() public Ownable(msg.sender) {}
 
