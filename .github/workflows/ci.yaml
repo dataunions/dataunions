@@ -19,10 +19,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-16.04
         node_version:
           - 10.19.x
+        os:
+          - ubuntu-16.04
         architecture:
           - x64
         experimental: [false]
