@@ -234,8 +234,8 @@ contract DataUnionSidechain is Ownable {
     function transferToMemberInContract(address recipient, uint amount) public {
         uint balanceBefore = token.balanceOf(address(this));
         require(token.transferFrom(msg.sender, address(this), amount), "error_transfer");
-        uint bal_after = token.balanceOf(address(this));
-        require(bal_after.sub(balanceBefore) >= amount, "error_transfer");
+        uint balanceAfter = token.balanceOf(address(this));
+        require(balanceAfter.sub(balanceBefore) >= amount, "error_transfer");
 
         _increaseBalance(recipient, amount);
         totalEarnings = totalEarnings.add(amount);
