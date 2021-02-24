@@ -21,11 +21,11 @@ contract DataUnionFactoryMainnet {
     address public dataUnionSidechainFactory;
     uint256 public sidechainMaxgas;
     IAMB public amb;
-    ITokenMediator public token_mediator;
+    ITokenMediator public tokenMediator;
     address public token;
 
     constructor(address _token,
-                address _token_mediator,
+                address _tokenMediator,
                 address _dataUnionMainnetTemplate,
                 address _dataUnionSidechainTemplate,
                 address _dataUnionSidechainFactory,
@@ -33,11 +33,11 @@ contract DataUnionFactoryMainnet {
         public
     {
         token = _token;
-        token_mediator = ITokenMediator(_token_mediator);
+        tokenMediator = ITokenMediator(_tokenMediator);
         dataUnionMainnetTemplate = _dataUnionMainnetTemplate;
         dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
         dataUnionSidechainFactory = _dataUnionSidechainFactory;
-        amb = IAMB(token_mediator.bridgeContract());
+        amb = IAMB(tokenMediator.bridgeContract());
         sidechainMaxgas = _sidechainMaxgas;
     }
 
@@ -71,7 +71,7 @@ contract DataUnionFactoryMainnet {
 /*
     function initialize(
         address _token,
-        address _token_mediator,
+        address _tokenMediator,
         address _sidechain_DU_factory,
         uint256 _sidechainMaxgas,
         address _sidechain_template_DU,
@@ -88,7 +88,7 @@ contract DataUnionFactoryMainnet {
         bytes32 salt = keccak256(abi.encode(bytes(name), msg.sender));
         bytes memory data = abi.encodeWithSignature("initialize(address,address,address,uint256,address,address,uint256,address[])",
             token,
-            token_mediator,
+            tokenMediator,
             dataUnionSidechainFactory,
             sidechainMaxgas,
             dataUnionSidechainTemplate,

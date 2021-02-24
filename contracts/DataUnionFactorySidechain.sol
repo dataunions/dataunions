@@ -17,18 +17,18 @@ contract DataUnionFactorySidechain is Ownable{
 
     address public dataUnionSidechainTemplate;
     IAMB public amb;
-    ITokenMediator public token_mediator;
+    ITokenMediator public tokenMediator;
     
     // when sidechain DU is created, the factory sends a bit of sETH to the DU and the owner
     uint public newDUInitialEth;
     uint public newDUOwnerInitialEth;
     uint public defaultNewMemberEth;
     address public token;
-    constructor(address _token, address _token_mediator, address _dataUnionSidechainTemplate) public Ownable(msg.sender) {
+    constructor(address _token, address _tokenMediator, address _dataUnionSidechainTemplate) public Ownable(msg.sender) {
         token = _token;
-        token_mediator = ITokenMediator(_token_mediator);
+        tokenMediator = ITokenMediator(_tokenMediator);
         dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
-        amb = IAMB(token_mediator.bridgeContract());
+        amb = IAMB(tokenMediator.bridgeContract());
     }
 
     //contract is payable
@@ -73,7 +73,7 @@ contract DataUnionFactorySidechain is Ownable{
             owner,
             token,
             agents,
-            address(token_mediator),
+            address(tokenMediator),
             duMainnet,
             defaultNewMemberEth
         );
