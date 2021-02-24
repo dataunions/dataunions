@@ -53,11 +53,11 @@ contract DataUnionFactorySidechain is Ownable{
     }
 
 
-    function sidechainAddress(address mainet_address)
+    function sidechainAddress(address mainetAddress)
         public view
         returns (address proxy)
     {
-        return CloneLib.predictCloneAddressCreate2(dataUnionSidechainTemplate, address(this), bytes32(uint256(mainet_address)));
+        return CloneLib.predictCloneAddressCreate2(dataUnionSidechainTemplate, address(this), bytes32(uint256(mainetAddress)));
     }
 
     /*
