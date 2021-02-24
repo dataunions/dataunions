@@ -40,7 +40,7 @@ contract SidechainMigrationManager is Ownable, ISidechainMigrationManager {
         emit Withdrawal(owner, bal);
     }
 
-    function swap(uint amount) public {
+    function swap(uint amount) public override {
         require(oldToken != address(0) && newToken != address(0), "tokens_not_set");
         IERC20 fromToken = IERC20(oldToken);
         IERC20 toToken = IERC20(newToken);
@@ -48,6 +48,5 @@ contract SidechainMigrationManager is Ownable, ISidechainMigrationManager {
         require(toToken.transfer(msg.sender, amount), "transfer_failed");
         emit Swap(msg.sender, amount);
     }
-
 
 }

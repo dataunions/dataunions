@@ -947,9 +947,19 @@ interface ITokenMediator {
 
 }
 
+// File: contracts/IMainnetMigrationManager.sol
+
+pragma solidity 0.6.6;
+
+interface IMainnetMigrationManager {
+    function newToken() external returns (address);
+    function newMediator() external returns (address);
+}
+
 // File: contracts/DataUnionMainnet.sol
 
 pragma solidity 0.6.6;
+
 
 
 
@@ -964,7 +974,8 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     event AdminFeeChanged(uint256 adminFee);
     event AdminFeeCharged(uint256 amount);
     event AdminFeesWithdrawn(address indexed admin, uint256 amount);
-
+    event MigrateToken(address indexed newToken, address indexed oldToken);
+    event MigrateMediator(address indexed newMediator, address indexed oldMediator);
     event RevenueReceived(uint256 amount);
 
     IAMB public amb;
@@ -972,6 +983,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     address public sidechain_DU_factory;
     uint256 public sidechain_maxgas;
     ERC20 public token;
+    IMainnetMigrationManager public migrationManager;
 
 /*
     NOTE: any variables set below will NOT be visible in clones
@@ -1132,5 +1144,18 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         require(token.transfer(owner, withdrawable), "transfer_failed");
         emit AdminFeesWithdrawn(owner, withdrawable);
         return withdrawable;
+    }
+
+    function migrate() public onlyOwner {
+        address newToken = migrationManager.newToken();
+        if(newToken != address(0) && newToken != address(token)) {
+            emit MigrateToken(newToken, address(token));
+            token = ERC20(newToken);
+        }
+        address newMediator = migrationManager.newMediator();
+        if(newMediator != address(0) && newMediator != address(token_mediator)) {
+            emit MigrateMediator(newMediator, address(token_mediator));
+            token_mediator = ITokenMediator(newMediator);
+        }
     }
 }

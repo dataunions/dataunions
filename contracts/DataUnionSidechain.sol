@@ -4,6 +4,7 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "./IERC677.sol";
 import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "./ISidechainMigrationManager.sol";
 
 contract DataUnionSidechain is Ownable {
     using SafeMath for uint256;
@@ -32,6 +33,11 @@ contract DataUnionSidechain is Ownable {
     event UpdateNewMemberEth(uint value);
     event NewMemberEthSent(uint amountWei);
 
+    //migrate token and mediator
+    event MigrateToken(address indexed newToken, address indexed oldToken, uint amountMigrated);
+    event MigrateMediator(address indexed newMediator, address indexed oldMediator);
+
+
     struct MemberInfo {
         ActiveStatus status;
         uint256 earningsBeforeLastJoin;
@@ -53,6 +59,8 @@ contract DataUnionSidechain is Ownable {
     uint256 public joinPartAgentCount;
 
     uint256 public newMemberEth;
+
+    ISidechainMigrationManager public migrationManager;
 
     mapping(address => MemberInfo) public memberData;
     mapping(address => ActiveStatus) public joinPartAgents;
@@ -441,5 +449,27 @@ contract DataUnionSidechain is Ownable {
         else require(token.transfer(to, amount), "error_transfer");
         emit EarningsWithdrawn(from, amount);
         return amount;
+    }
+
+    function migrate() public onlyOwner {
+        address newMediator = migrationManager.newMediator();
+        if(newMediator != address(0) && newMediator != address(tokenMediator)) {
+            emit MigrateMediator(newMediator, address(tokenMediator));
+            tokenMediator = newMediator;
+        }
+        IERC677 newToken = IERC677(migrationManager.newToken());
+        if(address(newToken) != address(0) && address(newToken) != address(token)) {
+            refreshRevenue();
+            uint oldBalance = token.balanceOf(address(this));
+            uint newBalance = newToken.balanceOf(address(this));
+            if(oldBalance != 0) {
+                migrationManager.swap(oldBalance);
+                require(token.balanceOf(address(this)) == 0, "tokens_not_sent");
+                //require at least oldBalance more new tokens
+                require(newToken.balanceOf(address(this)).sub(newBalance) >= oldBalance, "tokens_not_received");
+            }
+            emit MigrateToken(address(newToken), address(token), oldBalance);
+            token = newToken;
+        }
     }
 }
