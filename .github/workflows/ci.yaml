@@ -13,18 +13,23 @@ on:
 jobs:
   build:
     name: Build
+    timeout-minutes: 20
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
         os:
           - ubuntu-16.04
-          - ubuntu-18.04
         node_version:
           - 10.19.x
-          - 12.x
         architecture:
           - x64
+        include:
+          - os: ubuntu-18.04
+            experimental: true
+          - node_version: 12.x
+            experimental: true
     env:
       DEBUG: '*'
       TEST_TIMEOUT: '600000'
