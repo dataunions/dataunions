@@ -319,7 +319,7 @@ contract("DataUnionSidechain", accounts => {
     })
 
     it("can migrate token", async () => {
-        const amount = 3000;
+        const amount = 3000
         await testToken.transfer(dataUnionSidechain.address, amount.toString())
         await dataUnionSidechain.refreshRevenue({from: creator})
 
@@ -334,7 +334,7 @@ contract("DataUnionSidechain", accounts => {
         assertEqual(await migrateToken.balanceOf(migrationManager.address), 0)
 
         assertEvent(await dataUnionSidechain.withdrawAll(members[0], false, {from: members[0]}), "EarningsWithdrawn")
-        assertEqual(await migrateToken.balanceOf(members[0]), amount/members.length)
+        assertEqual(await migrateToken.balanceOf(members[0]), amount / members.length)
 
     })
 })

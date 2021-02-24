@@ -15,7 +15,7 @@ contract("DataUnionFactorySidechain", async accounts => {
     const others = accounts.slice(6)
 
     const newMemberEth = toWei("0.1")
-    let testToken, dataUnionSidechain, mockAMB, mockTokenMediator, factory
+    let testToken, dataUnionSidechain, mockAMB, mockTokenMediator, factory, migrationManager
 
     before(async () => {
         migrationManager = await SidechainMigrationManager.new({ from: creator })
