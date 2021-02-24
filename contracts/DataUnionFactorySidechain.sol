@@ -15,7 +15,7 @@ contract DataUnionFactorySidechain is Ownable{
     event DUInitialEthSent(uint amountWei);
     event OwnerInitialEthSent(uint amountWei);
 
-    address public data_union_sidechain_template;
+    address public dataUnionSidechainTemplate;
     IAMB public amb;
     ITokenMediator public token_mediator;
     
@@ -24,10 +24,10 @@ contract DataUnionFactorySidechain is Ownable{
     uint public newDUOwnerInitialEth;
     uint public defaultNewMemberEth;
     address public token;
-    constructor(address _token, address _token_mediator, address _data_union_sidechain_template) public Ownable(msg.sender) {
+    constructor(address _token, address _token_mediator, address _dataUnionSidechainTemplate) public Ownable(msg.sender) {
         token = _token;
         token_mediator = ITokenMediator(_token_mediator);
-        data_union_sidechain_template = _data_union_sidechain_template;
+        dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
         amb = IAMB(token_mediator.bridgeContract());
     }
 
@@ -57,7 +57,7 @@ contract DataUnionFactorySidechain is Ownable{
         public view
         returns (address proxy)
     {
-        return CloneLib.predictCloneAddressCreate2(data_union_sidechain_template, address(this), bytes32(uint256(mainet_address)));
+        return CloneLib.predictCloneAddressCreate2(dataUnionSidechainTemplate, address(this), bytes32(uint256(mainet_address)));
     }
 
     /*
@@ -77,8 +77,8 @@ contract DataUnionFactorySidechain is Ownable{
             duMainnet,
             defaultNewMemberEth
         );
-        address payable du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_sidechain_template), data, salt);
-        emit SidechainDUCreated(duMainnet, du, owner, data_union_sidechain_template);
+        address payable du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(dataUnionSidechainTemplate), data, salt);
+        emit SidechainDUCreated(duMainnet, du, owner, dataUnionSidechainTemplate);
 
         // continue whether or not send succeeds
         if (newDUInitialEth != 0 && address(this).balance >= newDUInitialEth) {

@@ -17,7 +17,7 @@ contract DataUnionFactoryMainnet {
     address public dataUnionMainnetTemplate;
 
     // needed to calculate address of sidechain contract
-    address public data_union_sidechain_template;
+    address public dataUnionSidechainTemplate;
     address public data_union_sidechain_factory;
     uint256 public sidechain_maxgas;
     IAMB public amb;
@@ -27,7 +27,7 @@ contract DataUnionFactoryMainnet {
     constructor(address _token,
                 address _token_mediator,
                 address _dataUnionMainnetTemplate,
-                address _data_union_sidechain_template,
+                address _dataUnionSidechainTemplate,
                 address _data_union_sidechain_factory,
                 uint256 _sidechain_maxgas)
         public
@@ -35,7 +35,7 @@ contract DataUnionFactoryMainnet {
         token = _token;
         token_mediator = ITokenMediator(_token_mediator);
         dataUnionMainnetTemplate = _dataUnionMainnetTemplate;
-        data_union_sidechain_template = _data_union_sidechain_template;
+        dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
         data_union_sidechain_factory = _data_union_sidechain_factory;
         amb = IAMB(token_mediator.bridgeContract());
         sidechain_maxgas = _sidechain_maxgas;
@@ -47,7 +47,7 @@ contract DataUnionFactoryMainnet {
         returns (address)
     {
         return CloneLib.predictCloneAddressCreate2(
-            data_union_sidechain_template,
+            dataUnionSidechainTemplate,
             data_union_sidechain_factory,
             bytes32(uint256(mainet_address))
         );
@@ -91,7 +91,7 @@ contract DataUnionFactoryMainnet {
             token_mediator,
             data_union_sidechain_factory,
             sidechain_maxgas,
-            data_union_sidechain_template,
+            dataUnionSidechainTemplate,
             owner,
             adminFeeFraction,
             agents
