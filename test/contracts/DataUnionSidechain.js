@@ -37,19 +37,23 @@ contract("DataUnionSidechain", accounts => {
     let testToken, migrateToken, dataUnionSidechain, migrationManager
 
     beforeEach(async () => {
-        // Last 2 initialize args are dummy. Doesn't talk to mainnet contract in test
-        // function initialize(
-        //   address initialOwner,
-        //   address tokenAddress,
-        //   address[] memory initialJoinPartAgents,
-        //   address tokenMediatorAddress,
-        //   address mainnetDataUnionAddress
-        // )
+        /*
+        function initialize(
+            address initialOwner,
+            address _migrationManager,
+            address[] memory initialJoinPartAgents,
+            address mainnetDataUnionAddress,
+            uint256 defaultNewMemberEth
+        ) 
+        */
         migrationManager = await SidechainMigrationManager.new({ from: creator })
         testToken = await TestToken.new("name", "symbol", { from: creator })
+        await migrationManager.setNewToken(testToken.address, { from: creator })
+        //this is a dummy non-zero address. mediator not used
+        await migrationManager.setNewMediator(agents[0], { from: creator })
         migrateToken = await TestToken.new("migrate", "m", { from: creator })
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
-        await dataUnionSidechain.initialize(creator, testToken.address, agents, agents[0], agents[0], "1", {from: creator})
+        await dataUnionSidechain.initialize(creator, migrationManager.address, agents, agents[0], "1", {from: creator})
         await testToken.mint(creator, toWei("10000"), { from: creator })
         await migrateToken.mint(creator, toWei("10000"), { from: creator })
         await dataUnionSidechain.addMembers(members, {from: agents[1]})
@@ -315,13 +319,22 @@ contract("DataUnionSidechain", accounts => {
     })
 
     it("can migrate token", async () => {
+        const amount = 3000;
+        await testToken.transfer(dataUnionSidechain.address, amount.toString())
+        await dataUnionSidechain.refreshRevenue({from: creator})
 
-        await assertFails(dataUnionSidechain.setMigrationManager(migrationManager.address, {from: members[1]}))
-        dataUnionSidechain.setMigrationManager(migrationManager.address, {from: creator})
-        await testToken.transfer(dataUnionSidechain.address, "3000")
-        await migrateToken.transfer(migrationManager.address, "3000")
+        await migrateToken.transfer(migrationManager.address, amount.toString())
+        await migrationManager.setOldToken(testToken.address, {from: creator})
+        await migrationManager.setNewToken(migrateToken.address, {from: creator})
         await assertFails(dataUnionSidechain.migrate({from: members[1]}))        
         assertEvent(await dataUnionSidechain.migrate({from: creator}), "MigrateToken")
+        assertEqual(await testToken.balanceOf(dataUnionSidechain.address), 0)
+        assertEqual(await migrateToken.balanceOf(dataUnionSidechain.address), amount)
+        assertEqual(await testToken.balanceOf(migrationManager.address), amount)
+        assertEqual(await migrateToken.balanceOf(migrationManager.address), 0)
+
+        assertEvent(await dataUnionSidechain.withdrawAll(members[0], false, {from: members[0]}), "EarningsWithdrawn")
+        assertEqual(await migrateToken.balanceOf(members[0]), amount/members.length)
 
     })
 })

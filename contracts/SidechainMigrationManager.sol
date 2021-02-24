@@ -19,6 +19,7 @@ contract SidechainMigrationManager is Ownable, ISidechainMigrationManager {
     constructor() public Ownable(msg.sender) {}
 
     function setOldToken(address oldToken_) public onlyOwner {
+        emit OldTokenChange(oldToken_, oldToken);
         oldToken = oldToken_;
     }
 

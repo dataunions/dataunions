@@ -6,6 +6,7 @@ const DataUnionFactorySidechain = artifacts.require("./DataUnionFactorySidechain
 const TestToken = artifacts.require("./TestToken.sol")
 const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const MockAMB = artifacts.require("./MockAMB.sol")
+const SidechainMigrationManager = artifacts.require("./SidechainMigrationManager.sol")
 
 contract("DataUnionFactorySidechain", async accounts => {
     const creator = accounts[0]
@@ -17,11 +18,14 @@ contract("DataUnionFactorySidechain", async accounts => {
     let testToken, dataUnionSidechain, mockAMB, mockTokenMediator, factory
 
     before(async () => {
+        migrationManager = await SidechainMigrationManager.new({ from: creator })
         testToken = await TestToken.new("name","symbol",{ from: creator })
         mockAMB = await MockAMB.new({from: creator})
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
-        factory = await DataUnionFactorySidechain.new(testToken.address, mockTokenMediator.address, dataUnionSidechain.address, {from: creator})
+        await migrationManager.setNewToken(testToken.address, { from: creator })
+        await migrationManager.setNewMediator(mockTokenMediator.address, { from: creator })
+        factory = await DataUnionFactorySidechain.new(migrationManager.address, dataUnionSidechain.address, {from: creator})
     })
     it("sidechain ETH flow", async () => {
         const ownerEth = toWei("0.01")

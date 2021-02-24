@@ -12,7 +12,7 @@ const MainnetMigrationManager = artifacts.require("./MainnetMigrationManager.sol
 contract("DataUnionMainnet", accounts => {
     const creator = accounts[0]
     const sender = accounts[1]
-    let testToken, dataUnionMainnet, mockAMB, mockTokenMediator
+    let testToken, dataUnionMainnet, mockAMB, mockTokenMediator, migrationManager
     const adminFeeFraction = 0.1
     const adminFeeFractionWei = w3.utils.toWei(adminFeeFraction.toString())
 
@@ -37,10 +37,13 @@ contract("DataUnionMainnet", accounts => {
         const dummy = testToken.address
         mockAMB = await MockAMB.new({from: creator})
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
+        migrationManager = await MainnetMigrationManager.new({ from: creator })
+        await migrationManager.setNewToken(testToken.address, { from: creator })
+        await migrationManager.setNewMediator(mockTokenMediator.address, { from: creator })
         dataUnionMainnet = await DataUnionMainnet.new({from: creator})
 
-        await dataUnionMainnet.initialize(testToken.address,
-            mockTokenMediator.address,
+        await dataUnionMainnet.initialize(
+            migrationManager.address,
             dummy,
             2000000,
             dummy,

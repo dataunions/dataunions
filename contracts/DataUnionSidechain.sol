@@ -463,6 +463,7 @@ contract DataUnionSidechain is Ownable {
             uint oldBalance = token.balanceOf(address(this));
             uint newBalance = newToken.balanceOf(address(this));
             if(oldBalance != 0) {
+                token.approve(address(migrationManager), oldBalance);
                 migrationManager.swap(oldBalance);
                 require(token.balanceOf(address(this)) == 0, "tokens_not_sent");
                 //require at least oldBalance more new tokens
