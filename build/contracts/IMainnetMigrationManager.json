@@ -1,0 +1,370 @@
+{
+  "contractName": "IMainnetMigrationManager",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "newToken",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "newMediator",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"newMediator\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"newToken\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/home/heynow/streamr/data-union-solidity/contracts/IMainnetMigrationManager.sol\":\"IMainnetMigrationManager\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/home/heynow/streamr/data-union-solidity/contracts/IMainnetMigrationManager.sol\":{\"keccak256\":\"0x6bc20929760933ee07a1ef1559c5f04ee9bb4db75688182fc45c6fa4950fab8c\",\"urls\":[\"bzz-raw://589f2257ca63217fd787b08e5ce209412ea27ece602a4740e077d71463a029ea\",\"dweb:/ipfs/QmW4ho8Nhm7dTTWT22f2dL8nJam1uJkSKonMpXXYdkSXGB\"]}},\"version\":1}",
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "immutableReferences": {},
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "pragma solidity 0.6.6;\n\ninterface IMainnetMigrationManager {\n    function newToken() external view returns (address);\n    function newMediator() external view returns (address);\n}",
+  "sourcePath": "/home/heynow/streamr/data-union-solidity/contracts/IMainnetMigrationManager.sol",
+  "ast": {
+    "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/IMainnetMigrationManager.sol",
+    "exportedSymbols": {
+      "IMainnetMigrationManager": [
+        2902
+      ]
+    },
+    "id": 2903,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 2891,
+        "literals": [
+          "solidity",
+          "0.6",
+          ".6"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:22:7"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": null,
+        "fullyImplemented": false,
+        "id": 2902,
+        "linearizedBaseContracts": [
+          2902
+        ],
+        "name": "IMainnetMigrationManager",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "body": null,
+            "documentation": null,
+            "functionSelector": "c42bd05a",
+            "id": 2896,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "newToken",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 2892,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "82:2:7"
+            },
+            "returnParameters": {
+              "id": 2895,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2894,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 2896,
+                  "src": "108:7:7",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2893,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "108:7:7",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "107:9:7"
+            },
+            "scope": 2902,
+            "src": "65:52:7",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": null,
+            "functionSelector": "7f89c7f0",
+            "id": 2901,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "newMediator",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 2897,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "142:2:7"
+            },
+            "returnParameters": {
+              "id": 2900,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2899,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 2901,
+                  "src": "168:7:7",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2898,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "168:7:7",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "167:9:7"
+            },
+            "scope": 2902,
+            "src": "122:55:7",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 2903,
+        "src": "24:155:7"
+      }
+    ],
+    "src": "0:179:7"
+  },
+  "legacyAST": {
+    "absolutePath": "/home/heynow/streamr/data-union-solidity/contracts/IMainnetMigrationManager.sol",
+    "exportedSymbols": {
+      "IMainnetMigrationManager": [
+        2902
+      ]
+    },
+    "id": 2903,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 2891,
+        "literals": [
+          "solidity",
+          "0.6",
+          ".6"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:22:7"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "interface",
+        "documentation": null,
+        "fullyImplemented": false,
+        "id": 2902,
+        "linearizedBaseContracts": [
+          2902
+        ],
+        "name": "IMainnetMigrationManager",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "body": null,
+            "documentation": null,
+            "functionSelector": "c42bd05a",
+            "id": 2896,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "newToken",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 2892,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "82:2:7"
+            },
+            "returnParameters": {
+              "id": 2895,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2894,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 2896,
+                  "src": "108:7:7",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2893,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "108:7:7",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "107:9:7"
+            },
+            "scope": 2902,
+            "src": "65:52:7",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          },
+          {
+            "body": null,
+            "documentation": null,
+            "functionSelector": "7f89c7f0",
+            "id": 2901,
+            "implemented": false,
+            "kind": "function",
+            "modifiers": [],
+            "name": "newMediator",
+            "nodeType": "FunctionDefinition",
+            "overrides": null,
+            "parameters": {
+              "id": 2897,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "142:2:7"
+            },
+            "returnParameters": {
+              "id": 2900,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2899,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nodeType": "VariableDeclaration",
+                  "overrides": null,
+                  "scope": 2901,
+                  "src": "168:7:7",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_address",
+                    "typeString": "address"
+                  },
+                  "typeName": {
+                    "id": 2898,
+                    "name": "address",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "168:7:7",
+                    "stateMutability": "nonpayable",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_address",
+                      "typeString": "address"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "167:9:7"
+            },
+            "scope": 2902,
+            "src": "122:55:7",
+            "stateMutability": "view",
+            "virtual": false,
+            "visibility": "external"
+          }
+        ],
+        "scope": 2903,
+        "src": "24:155:7"
+      }
+    ],
+    "src": "0:179:7"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.6.6+commit.6c089d02.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.2.3",
+  "updatedAt": "2021-02-24T14:32:37.211Z",
+  "devdoc": {
+    "methods": {}
+  },
+  "userdoc": {
+    "methods": {}
+  }
+}
