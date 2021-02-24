@@ -42,14 +42,14 @@ contract DataUnionFactoryMainnet {
     }
 
 
-    function sidechainAddress(address mainet_address)
+    function sidechainAddress(address mainetAddress)
         public view
         returns (address)
     {
         return CloneLib.predictCloneAddressCreate2(
             dataUnionSidechainTemplate,
             dataUnionSidechainFactory,
-            bytes32(uint256(mainet_address))
+            bytes32(uint256(mainetAddress))
         );
     }
     /*
