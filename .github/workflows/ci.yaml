@@ -21,7 +21,7 @@ jobs:
           - ubuntu-18.04
         node_version:
           - 10.19.x
-          - 14.x
+          - 12.x
         architecture:
           - x64
     env:
