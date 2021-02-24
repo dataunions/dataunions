@@ -19,7 +19,7 @@ contract DataUnionFactoryMainnet {
     // needed to calculate address of sidechain contract
     address public dataUnionSidechainTemplate;
     address public dataUnionSidechainFactory;
-    uint256 public sidechain_maxgas;
+    uint256 public sidechainMaxgas;
     IAMB public amb;
     ITokenMediator public token_mediator;
     address public token;
@@ -29,7 +29,7 @@ contract DataUnionFactoryMainnet {
                 address _dataUnionMainnetTemplate,
                 address _dataUnionSidechainTemplate,
                 address _dataUnionSidechainFactory,
-                uint256 _sidechain_maxgas)
+                uint256 _sidechainMaxgas)
         public
     {
         token = _token;
@@ -38,7 +38,7 @@ contract DataUnionFactoryMainnet {
         dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
         dataUnionSidechainFactory = _dataUnionSidechainFactory;
         amb = IAMB(token_mediator.bridgeContract());
-        sidechain_maxgas = _sidechain_maxgas;
+        sidechainMaxgas = _sidechainMaxgas;
     }
 
 
@@ -73,7 +73,7 @@ contract DataUnionFactoryMainnet {
         address _token,
         address _token_mediator,
         address _sidechain_DU_factory,
-        uint256 _sidechain_maxgas,
+        uint256 _sidechainMaxgas,
         address _sidechain_template_DU,
         address _owner,
         uint256 adminFeeFraction,
@@ -90,7 +90,7 @@ contract DataUnionFactoryMainnet {
             token,
             token_mediator,
             dataUnionSidechainFactory,
-            sidechain_maxgas,
+            sidechainMaxgas,
             dataUnionSidechainTemplate,
             owner,
             adminFeeFraction,

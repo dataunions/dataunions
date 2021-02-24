@@ -20,7 +20,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     IAMB public amb;
     ITokenMediator public token_mediator;
     address public sidechain_DU_factory;
-    uint256 public sidechain_maxgas;
+    uint256 public sidechainMaxgas;
     ERC20 public token;
 
 /*
@@ -46,7 +46,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         address _token,
         address _token_mediator,
         address _sidechain_DU_factory,
-        uint256 _sidechain_maxgas,
+        uint256 _sidechainMaxgas,
         address _sidechain_template_DU,
         address _owner,
         uint256 _adminFeeFraction,
@@ -63,7 +63,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         amb = IAMB(token_mediator.bridgeContract());
         token = ERC20(_token);
         sidechain_DU_factory = _sidechain_DU_factory;
-        sidechain_maxgas = _sidechain_maxgas;
+        sidechainMaxgas = _sidechainMaxgas;
         sidechain_template_DU = _sidechain_template_DU;
         setAdminFee(_adminFeeFraction);
         //transfer to real admin
@@ -92,7 +92,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
     function deployNewDUSidechain(address[] memory agents) public {
         bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,address[])", owner, agents);
-        amb.requireToPassMessage(sidechain_DU_factory, data, sidechain_maxgas);
+        amb.requireToPassMessage(sidechain_DU_factory, data, sidechainMaxgas);
     }
 
     function sidechainAddress() public view returns (address) {
@@ -120,7 +120,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
             member,
             true
         );
-        amb.requireToPassMessage(sidechainAddress(), data, sidechain_maxgas);
+        amb.requireToPassMessage(sidechainAddress(), data, sidechainMaxgas);
     }
     */
 
