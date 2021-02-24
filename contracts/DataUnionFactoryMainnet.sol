@@ -14,7 +14,7 @@ interface IDataUnionMainnet {
 contract DataUnionFactoryMainnet {
     event MainnetDUCreated(address indexed mainnet, address indexed sidechain, address indexed owner, address template);
 
-    address public data_union_mainnet_template;
+    address public dataUnionMainnetTemplate;
 
     // needed to calculate address of sidechain contract
     address public data_union_sidechain_template;
@@ -26,7 +26,7 @@ contract DataUnionFactoryMainnet {
 
     constructor(address _token,
                 address _token_mediator,
-                address _data_union_mainnet_template,
+                address _dataUnionMainnetTemplate,
                 address _data_union_sidechain_template,
                 address _data_union_sidechain_factory,
                 uint256 _sidechain_maxgas)
@@ -34,7 +34,7 @@ contract DataUnionFactoryMainnet {
     {
         token = _token;
         token_mediator = ITokenMediator(_token_mediator);
-        data_union_mainnet_template = _data_union_mainnet_template;
+        dataUnionMainnetTemplate = _dataUnionMainnetTemplate;
         data_union_sidechain_template = _data_union_sidechain_template;
         data_union_sidechain_factory = _data_union_sidechain_factory;
         amb = IAMB(token_mediator.bridgeContract());
@@ -61,7 +61,7 @@ contract DataUnionFactoryMainnet {
     {
         bytes32 salt = keccak256(abi.encode(bytes(name), deployer));
         return CloneLib.predictCloneAddressCreate2(
-            data_union_mainnet_template,
+            dataUnionMainnetTemplate,
             address(this),
             salt
         );
@@ -96,8 +96,8 @@ contract DataUnionFactoryMainnet {
             adminFeeFraction,
             agents
         );
-        address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_mainnet_template), data, salt);
-        emit MainnetDUCreated(du, sidechainAddress(du), owner, data_union_mainnet_template);
+        address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(dataUnionMainnetTemplate), data, salt);
+        emit MainnetDUCreated(du, sidechainAddress(du), owner, dataUnionMainnetTemplate);
         return du;
     }
 }
