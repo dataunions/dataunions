@@ -26,9 +26,8 @@ jobs:
         architecture:
           - x64
         include:
-          - os: ubuntu-18.04
-            experimental: true
           - node_version: 12.x
+            os: ubuntu-18.04
             experimental: true
     env:
       DEBUG: '*'
