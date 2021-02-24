@@ -74,7 +74,7 @@ contract DataUnionFactoryMainnet {
         address _tokenMediator,
         address _sidechainDataUnionFactory,
         uint256 _sidechainMaxgas,
-        address _sidechain_template_DU,
+        address _sidechainTemplateDataUnion,
         address _owner,
         uint256 adminFeeFraction,
         address[] memory agents

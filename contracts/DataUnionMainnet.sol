@@ -29,7 +29,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 */
 
     // needed to compute sidechain address
-    address public sidechain_template_DU;
+    address public sidechainTemplateDataUnion;
     uint256 public adminFeeFraction;
     uint256 public totalAdminFees;
     uint256 public totalAdminFeesWithdrawn;
@@ -47,7 +47,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         address _tokenMediator,
         address _sidechainDataUnionFactory,
         uint256 _sidechainMaxgas,
-        address _sidechain_template_DU,
+        address _sidechainTemplateDataUnion,
         address _owner,
         uint256 _adminFeeFraction,
         address[] memory agents
@@ -64,7 +64,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         token = ERC20(_token);
         sidechainDataUnionFactory = _sidechainDataUnionFactory;
         sidechainMaxgas = _sidechainMaxgas;
-        sidechain_template_DU = _sidechain_template_DU;
+        sidechainTemplateDataUnion = _sidechainTemplateDataUnion;
         setAdminFee(_adminFeeFraction);
         //transfer to real admin
         owner = _owner;
@@ -96,7 +96,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     }
 
     function sidechainAddress() public view returns (address) {
-        return CloneLib.predictCloneAddressCreate2(sidechain_template_DU, sidechainDataUnionFactory, bytes32(uint256(address(this))));
+        return CloneLib.predictCloneAddressCreate2(sidechainTemplateDataUnion, sidechainDataUnionFactory, bytes32(uint256(address(this))));
     }
 
     /**
