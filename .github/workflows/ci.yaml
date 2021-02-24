@@ -25,6 +25,7 @@ jobs:
           - 10.19.x
         architecture:
           - x64
+        experimental: [ false ]
         include:
           - node_version: 12.x
             os: ubuntu-18.04
