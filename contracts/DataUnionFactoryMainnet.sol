@@ -72,7 +72,7 @@ contract DataUnionFactoryMainnet {
     function initialize(
         address _token,
         address _tokenMediator,
-        address _sidechain_DU_factory,
+        address _sidechainDataUnionFactory,
         uint256 _sidechainMaxgas,
         address _sidechain_template_DU,
         address _owner,

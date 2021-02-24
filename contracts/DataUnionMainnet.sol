@@ -19,7 +19,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
     IAMB public amb;
     ITokenMediator public tokenMediator;
-    address public sidechain_DU_factory;
+    address public sidechainDataUnionFactory;
     uint256 public sidechainMaxgas;
     ERC20 public token;
 
@@ -45,7 +45,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     function initialize(
         address _token,
         address _tokenMediator,
-        address _sidechain_DU_factory,
+        address _sidechainDataUnionFactory,
         uint256 _sidechainMaxgas,
         address _sidechain_template_DU,
         address _owner,
@@ -62,7 +62,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         tokenMediator = ITokenMediator(_tokenMediator);
         amb = IAMB(tokenMediator.bridgeContract());
         token = ERC20(_token);
-        sidechain_DU_factory = _sidechain_DU_factory;
+        sidechainDataUnionFactory = _sidechainDataUnionFactory;
         sidechainMaxgas = _sidechainMaxgas;
         sidechain_template_DU = _sidechain_template_DU;
         setAdminFee(_adminFeeFraction);
@@ -92,11 +92,11 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
     function deployNewDUSidechain(address[] memory agents) public {
         bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,address[])", owner, agents);
-        amb.requireToPassMessage(sidechain_DU_factory, data, sidechainMaxgas);
+        amb.requireToPassMessage(sidechainDataUnionFactory, data, sidechainMaxgas);
     }
 
     function sidechainAddress() public view returns (address) {
-        return CloneLib.predictCloneAddressCreate2(sidechain_template_DU, sidechain_DU_factory, bytes32(uint256(address(this))));
+        return CloneLib.predictCloneAddressCreate2(sidechain_template_DU, sidechainDataUnionFactory, bytes32(uint256(address(this))));
     }
 
     /**
