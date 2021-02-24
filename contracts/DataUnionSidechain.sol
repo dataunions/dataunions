@@ -77,17 +77,17 @@ contract DataUnionSidechain is Ownable {
 
     function initialize(
         address initialOwner,
-        address tokenAddress,
+        address _migrationManager,
         address[] memory initialJoinPartAgents,
-        address tokenMediatorAddress,
         address mainnetDataUnionAddress,
         uint256 defaultNewMemberEth
     ) public {
         require(!isInitialized(), "error_alreadyInitialized");
         owner = msg.sender; // set real owner at the end. During initialize, addJoinPartAgents can be called by owner only
-        token = IERC677(tokenAddress);
+        migrationManager = ISidechainMigrationManager(_migrationManager);
+        token = IERC677(migrationManager.newToken());
         addJoinPartAgents(initialJoinPartAgents);
-        tokenMediator = tokenMediatorAddress;
+        tokenMediator = migrationManager.newMediator();
         dataUnionMainnet = mainnetDataUnionAddress;
         setNewMemberEth(defaultNewMemberEth);
         owner = initialOwner;

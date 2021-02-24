@@ -404,17 +404,17 @@ contract DataUnionSidechain is Ownable {
 
     function initialize(
         address initialOwner,
-        address tokenAddress,
+        address _migrationManager,
         address[] memory initialJoinPartAgents,
-        address tokenMediatorAddress,
         address mainnetDataUnionAddress,
         uint256 defaultNewMemberEth
     ) public {
         require(!isInitialized(), "error_alreadyInitialized");
         owner = msg.sender; // set real owner at the end. During initialize, addJoinPartAgents can be called by owner only
-        token = IERC677(tokenAddress);
+        migrationManager = ISidechainMigrationManager(_migrationManager);
+        token = IERC677(migrationManager.newToken());
         addJoinPartAgents(initialJoinPartAgents);
-        tokenMediator = tokenMediatorAddress;
+        tokenMediator = migrationManager.newMediator();
         dataUnionMainnet = mainnetDataUnionAddress;
         setNewMemberEth(defaultNewMemberEth);
         owner = initialOwner;
@@ -793,7 +793,7 @@ contract DataUnionSidechain is Ownable {
                 migrationManager.swap(oldBalance);
                 require(token.balanceOf(address(this)) == 0, "tokens_not_sent");
                 //require at least oldBalance more new tokens
-                require(newToken.balanceOf(address(this)).sub(oldBalance) >= oldBalance, "tokens_not_received");
+                require(newToken.balanceOf(address(this)).sub(newBalance) >= oldBalance, "tokens_not_received");
             }
             emit MigrateToken(address(newToken), address(token), oldBalance);
             token = newToken;

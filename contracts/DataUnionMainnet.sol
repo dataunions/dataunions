@@ -46,8 +46,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     constructor() public Ownable(address(0)) {}
 
     function initialize(
-        address _token,
-        address _token_mediator,
+        address _migrationManager,
         address _sidechain_DU_factory,
         uint256 _sidechain_maxgas,
         address _sidechain_template_DU,
@@ -58,13 +57,14 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         require(!isInitialized(), "init_once");
         // must set default values here so that there are in clone state
         autoSendAdminFee = true;
+        migrationManager = IMainnetMigrationManager(_migrationManager);
 
         //during setup, msg.sender is admin
         owner = msg.sender;
 
-        token_mediator = ITokenMediator(_token_mediator);
+        token_mediator = ITokenMediator(migrationManager.newMediator());
         amb = IAMB(token_mediator.bridgeContract());
-        token = ERC20(_token);
+        token = ERC20(migrationManager.newToken());
         sidechain_DU_factory = _sidechain_DU_factory;
         sidechain_maxgas = _sidechain_maxgas;
         sidechain_template_DU = _sidechain_template_DU;

@@ -4,7 +4,7 @@ const { BN, toWei } = w3.utils
 const { assertEqual, assertFails, assertEvent } = require("../utils/web3Assert")
 const DataUnionSidechain = artifacts.require("./DataUnionSidechain.sol")
 const TestToken = artifacts.require("./TestToken.sol")
-
+const SidechainMigrationManager = artifacts.require("./SidechainMigrationManager.sol")
 const log = require("debug")("Streamr:du:test:DataUnionSidechain")
 //const log = console.log  // for debugging?
 
@@ -34,8 +34,7 @@ contract("DataUnionSidechain", accounts => {
     const agents = accounts.slice(1, 3)
     const members = accounts.slice(3, 6)
     const others = accounts.slice(6)
-
-    let testToken, dataUnionSidechain
+    let testToken, migrateToken, dataUnionSidechain, migrationManager
 
     beforeEach(async () => {
         // Last 2 initialize args are dummy. Doesn't talk to mainnet contract in test
@@ -46,10 +45,13 @@ contract("DataUnionSidechain", accounts => {
         //   address tokenMediatorAddress,
         //   address mainnetDataUnionAddress
         // )
+        migrationManager = await SidechainMigrationManager.new({ from: creator })
         testToken = await TestToken.new("name", "symbol", { from: creator })
+        migrateToken = await TestToken.new("migrate", "m", { from: creator })
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
         await dataUnionSidechain.initialize(creator, testToken.address, agents, agents[0], agents[0], "1", {from: creator})
         await testToken.mint(creator, toWei("10000"), { from: creator })
+        await migrateToken.mint(creator, toWei("10000"), { from: creator })
         await dataUnionSidechain.addMembers(members, {from: agents[1]})
 
         log(`DataUnionSidechain initialized at ${dataUnionSidechain.address}`)
@@ -310,5 +312,16 @@ contract("DataUnionSidechain", accounts => {
         await assertFails(dataUnionSidechain.signatureIsValid(members[1], recipient, "100", truncatedSig), "error_badSignatureLength")
         await assertFails(dataUnionSidechain.signatureIsValid(members[1], recipient, "100", badVersionSig), "error_badSignatureVersion")
         assert(!await dataUnionSidechain.signatureIsValid(members[1], recipient, "200", signature), "Bad signature was accepted as valid :(")
+    })
+
+    it("can migrate token", async () => {
+
+        await assertFails(dataUnionSidechain.setMigrationManager(migrationManager.address, {from: members[1]}))
+        dataUnionSidechain.setMigrationManager(migrationManager.address, {from: creator})
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await migrateToken.transfer(migrationManager.address, "3000")
+        await assertFails(dataUnionSidechain.migrate({from: members[1]}))        
+        assertEvent(await dataUnionSidechain.migrate({from: creator}), "MigrateToken")
+
     })
 })

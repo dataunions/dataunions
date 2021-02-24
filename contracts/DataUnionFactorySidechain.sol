@@ -6,8 +6,9 @@ import "./CloneLib.sol";
 import "./IAMB.sol";
 import "./ITokenMediator.sol";
 import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "./ISidechainMigrationManager.sol";
 
-contract DataUnionFactorySidechain is Ownable{
+contract DataUnionFactorySidechain is Ownable {
     event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
     event UpdateNewDUInitialEth(uint amount);
     event UpdateNewDUOwnerInitialEth(uint amount);
@@ -15,21 +16,26 @@ contract DataUnionFactorySidechain is Ownable{
     event DUInitialEthSent(uint amountWei);
     event OwnerInitialEthSent(uint amountWei);
 
-    address public data_union_sidechain_template;
-    IAMB public amb;
-    ITokenMediator public token_mediator;
-    
+    address public dataUnionSidechainTemplate;
     // when sidechain DU is created, the factory sends a bit of sETH to the DU and the owner
     uint public newDUInitialEth;
     uint public newDUOwnerInitialEth;
     uint public defaultNewMemberEth;
-    address public token;
-    constructor(address _token, address _token_mediator, address _data_union_sidechain_template) public Ownable(msg.sender) {
-        token = _token;
-        token_mediator = ITokenMediator(_token_mediator);
-        data_union_sidechain_template = _data_union_sidechain_template;
-        amb = IAMB(token_mediator.bridgeContract());
+    ISidechainMigrationManager public migrationManager;
+
+    constructor(address _migrationManager, address _dataUnionSidechainTemplate) public Ownable(msg.sender) {
+        migrationManager = ISidechainMigrationManager(_migrationManager);
+        dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
     }
+
+    function amb() public view returns (IAMB) {
+        return IAMB(ITokenMediator(migrationManager.newMediator()).bridgeContract());
+    }
+
+    function token() public view returns (address) {
+        return migrationManager.newToken();
+    }
+    
 
     //contract is payable
     receive() external payable {}
@@ -57,7 +63,7 @@ contract DataUnionFactorySidechain is Ownable{
         public view
         returns (address proxy)
     {
-        return CloneLib.predictCloneAddressCreate2(data_union_sidechain_template, address(this), bytes32(uint256(mainet_address)));
+        return CloneLib.predictCloneAddressCreate2(dataUnionSidechainTemplate, address(this), bytes32(uint256(mainet_address)));
     }
 
     /*
@@ -66,19 +72,18 @@ contract DataUnionFactorySidechain is Ownable{
     */
     
     function deployNewDUSidechain(address payable owner, address[] memory agents) public returns (address) {
-        require(msg.sender == address(amb), "only_AMB");
-        address duMainnet = amb.messageSender();
+        require(msg.sender == address(amb()), "only_AMB");
+        address duMainnet = amb().messageSender();
         bytes32 salt = bytes32(uint256(duMainnet));
-        bytes memory data = abi.encodeWithSignature("initialize(address,address,address[],address,address,uint256)",
+        bytes memory data = abi.encodeWithSignature("initialize(address,address,address[],address,uint256)",
             owner,
-            token,
+            migrationManager,
             agents,
-            address(token_mediator),
             duMainnet,
             defaultNewMemberEth
         );
-        address payable du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_sidechain_template), data, salt);
-        emit SidechainDUCreated(duMainnet, du, owner, data_union_sidechain_template);
+        address payable du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(dataUnionSidechainTemplate), data, salt);
+        emit SidechainDUCreated(duMainnet, du, owner, dataUnionSidechainTemplate);
 
         // continue whether or not send succeeds
         if (newDUInitialEth != 0 && address(this).balance >= newDUInitialEth) {

@@ -6,6 +6,8 @@ const DataUnionMainnet = artifacts.require("./DataUnionMainnet.sol")
 const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const MockAMB = artifacts.require("./MockAMB.sol")
 const TestToken = artifacts.require("./TestToken.sol")
+const MainnetMigrationManager = artifacts.require("./MainnetMigrationManager.sol")
+
 
 contract("DataUnionMainnet", accounts => {
     const creator = accounts[0]
