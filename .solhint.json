@@ -2,9 +2,15 @@
     "extends": "solhint:recommended",
     "plugins": [],
     "rules": {
-        "quotes": ["error", "double"],
+        "quotes": [
+            "error",
+            "double"
+        ],
         "max-line-length": "off",
         "mark-callable-contracts": "off",
-        "compiler-version": ["error", "^0.6.0"]
+        "compiler-version": [
+            "error",
+            "0.6.6"
+        ]
     }
 }
