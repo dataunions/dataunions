@@ -1,11 +1,69 @@
 {
     "extends": "solhint:recommended",
-    "plugins": ["prettier"],
+    "plugins": [],
     "rules": {
-        "prettier/prettier": "warn",
-        "quotes": ["error", "double"],
-        "max-line-length": false,
-        "mark-callable-contracts": false,
-        "compiler-version": ["error", "^0.6.0"]
+        "code-complexity": [
+            "error",
+            7
+        ],
+        "function-max-lines": [
+            "error",
+            35
+        ],
+        "max-states-count": [
+            "error",
+            15
+        ],
+        "no-empty-blocks": "off",
+        "no-unused-vars": "error",
+        "payable-fallback": "error",
+        "reason-string": [
+            "error",
+            {
+                "maxLength": 32
+            }
+        ],
+        "constructor-syntax": "error",
+        "const-name-snakecase": "error",
+        "event-name-camelcase": "error",
+        "func-name-mixedcase": "error",
+        "func-param-name-mixedcase": "error",
+        "modifier-name-mixedcase": "error",
+        "use-forbidden-name": "error",
+        "var-name-mixedcase": "error",
+        "imports-on-top": "error",
+        "visibility-modifier-order": "error",
+        "avoid-call-value": "error",
+        "avoid-low-level-calls": "error",
+        "avoid-sha3": "error",
+        "avoid-suicide": "error",
+        "avoid-throw": "error",
+        "avoid-tx-origin": "error",
+        "check-send-result": "error",
+        "multiple-sends": "error",
+        "no-complex-fallback": "error",
+        "no-inline-assembly": "error",
+        "not-rely-on-block-hash": "error",
+        "not-rely-on-time": "error",
+        "reentrancy": "error",
+        "state-visibility": "error",
+        "func-visibility": [
+            "error",
+            {
+                "ignoreConstructors": false
+            }
+        ],
+        "quotes": [
+            "error",
+            "double"
+        ],
+        "max-line-length": [
+            "error",
+            200
+        ],
+        "compiler-version": [
+            "error",
+            "0.6.6"
+        ]
     }
 }
