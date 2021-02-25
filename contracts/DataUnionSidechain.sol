@@ -232,10 +232,10 @@ contract DataUnionSidechain is Ownable {
      * Transfer tokens from outside contract, add to a recipient's in-contract balance
      */
     function transferToMemberInContract(address recipient, uint amount) public {
-        uint bal_before = token.balanceOf(address(this));
+        uint balanceBefore = token.balanceOf(address(this));
         require(token.transferFrom(msg.sender, address(this), amount), "error_transfer");
-        uint bal_after = token.balanceOf(address(this));
-        require(bal_after.sub(bal_before) >= amount, "error_transfer");
+        uint balanceAfter = token.balanceOf(address(this));
+        require(balanceAfter.sub(balanceBefore) >= amount, "error_transfer");
 
         _increaseBalance(recipient, amount);
         totalEarnings = totalEarnings.add(amount);
@@ -337,7 +337,8 @@ contract DataUnionSidechain is Ownable {
         require(signature.length == 65, "error_badSignatureLength");
 
         bytes32 r; bytes32 s; uint8 v;
-        assembly {      // solium-disable-line security/no-inline-assembly
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
             r := mload(add(signature, 32))
             s := mload(add(signature, 64))
             v := byte(0, mload(add(signature, 96)))
@@ -404,6 +405,7 @@ contract DataUnionSidechain is Ownable {
     }
 
     function toBytes(address a) public pure returns (bytes memory b) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let m := mload(0x40)
             a := and(a, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)

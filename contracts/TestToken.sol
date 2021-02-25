@@ -42,6 +42,7 @@ contract TestToken is ERC20, Ownable, IERC677 {
     ) external override returns (bool) {        
         if(amount == 666 || !transfer(to, amount))
             return false;
+        // solhint-disable-next-line
         (bool success,) = to.call(abi.encodeWithSignature("onTokenTransfer(address,uint256,bytes)", msg.sender, amount, data));
         return success;
     }

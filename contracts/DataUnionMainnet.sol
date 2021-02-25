@@ -18,9 +18,9 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     event RevenueReceived(uint256 amount);
 
     IAMB public amb;
-    ITokenMediator public token_mediator;
-    address public sidechain_DU_factory;
-    uint256 public sidechain_maxgas;
+    ITokenMediator public tokenMediator;
+    address public sidechainDataUnionFactory;
+    uint256 public sidechainMaxgas;
     ERC20 public token;
 
 /*
@@ -29,7 +29,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 */
 
     // needed to compute sidechain address
-    address public sidechain_template_DU;
+    address public sidechainTemplateDataUnion;
     uint256 public adminFeeFraction;
     uint256 public totalAdminFees;
     uint256 public totalAdminFeesWithdrawn;
@@ -44,10 +44,10 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
     function initialize(
         address _token,
-        address _token_mediator,
-        address _sidechain_DU_factory,
-        uint256 _sidechain_maxgas,
-        address _sidechain_template_DU,
+        address _tokenMediator,
+        address _sidechainDataUnionFactory,
+        uint256 _sidechainMaxgas,
+        address _sidechainTemplateDataUnion,
         address _owner,
         uint256 _adminFeeFraction,
         address[] memory agents
@@ -59,12 +59,12 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         //during setup, msg.sender is admin
         owner = msg.sender;
 
-        token_mediator = ITokenMediator(_token_mediator);
-        amb = IAMB(token_mediator.bridgeContract());
+        tokenMediator = ITokenMediator(_tokenMediator);
+        amb = IAMB(tokenMediator.bridgeContract());
         token = ERC20(_token);
-        sidechain_DU_factory = _sidechain_DU_factory;
-        sidechain_maxgas = _sidechain_maxgas;
-        sidechain_template_DU = _sidechain_template_DU;
+        sidechainDataUnionFactory = _sidechainDataUnionFactory;
+        sidechainMaxgas = _sidechainMaxgas;
+        sidechainTemplateDataUnion = _sidechainTemplateDataUnion;
         setAdminFee(_adminFeeFraction);
         //transfer to real admin
         owner = _owner;
@@ -92,11 +92,11 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
     function deployNewDUSidechain(address[] memory agents) public {
         bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,address[])", owner, agents);
-        amb.requireToPassMessage(sidechain_DU_factory, data, sidechain_maxgas);
+        amb.requireToPassMessage(sidechainDataUnionFactory, data, sidechainMaxgas);
     }
 
     function sidechainAddress() public view returns (address) {
-        return CloneLib.predictCloneAddressCreate2(sidechain_template_DU, sidechain_DU_factory, bytes32(uint256(address(this))));
+        return CloneLib.predictCloneAddressCreate2(sidechainTemplateDataUnion, sidechainDataUnionFactory, bytes32(uint256(address(this))));
     }
 
     /**
@@ -120,7 +120,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
             member,
             true
         );
-        amb.requireToPassMessage(sidechainAddress(), data, sidechain_maxgas);
+        amb.requireToPassMessage(sidechainAddress(), data, sidechainMaxgas);
     }
     */
 
@@ -153,16 +153,16 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         if(autoSendAdminFee) withdrawAdminFees();
 
         // transfer memberEarnings
-        require(token.approve(address(token_mediator), 0), "approve_failed");
-        require(token.approve(address(token_mediator), memberEarnings), "approve_failed");
-        bytes4 bridgeMode = token_mediator.getBridgeMode();
+        require(token.approve(address(tokenMediator), 0), "approve_failed");
+        require(token.approve(address(tokenMediator), memberEarnings), "approve_failed");
+        bytes4 bridgeMode = tokenMediator.getBridgeMode();
         //MultiAMB 0xb1516c26 == bytes4(keccak256(abi.encodePacked("multi-erc-to-erc-amb")))
         //Single token AMB 0x76595b56 ==  bytes4(keccak256(abi.encodePacked("erc-to-erc-amb")))
         if(bridgeMode == 0xb1516c26) {
-            token_mediator.relayTokens(address(token), sidechainAddress(), memberEarnings);
+            tokenMediator.relayTokens(address(token), sidechainAddress(), memberEarnings);
         }
         else if(bridgeMode == 0x76595b56){
-            token_mediator.relayTokens(sidechainAddress(), memberEarnings);
+            tokenMediator.relayTokens(sidechainAddress(), memberEarnings);
         }
         else{
             revert("unknown_bridge_mode");
