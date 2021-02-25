@@ -87,6 +87,7 @@ contract DataUnionFactorySidechain is Ownable{
             }
         }
         if (newDUOwnerInitialEth != 0 && address(this).balance >= newDUOwnerInitialEth) {
+            // solhint-disable-next-line multiple-sends
             if (owner.send(newDUOwnerInitialEth)) {
                 emit OwnerInitialEthSent(newDUOwnerInitialEth);
             }
