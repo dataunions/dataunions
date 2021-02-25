@@ -26,7 +26,7 @@ jobs:
         - top -n1
         - free -h
         - df -h
-        - npm build
+        - npm run build
         - npm run integration-test
       env:
         - DEBUG=*
