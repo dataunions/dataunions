@@ -6,7 +6,10 @@
             "error",
             "double"
         ],
-        "max-line-length": "off",
+        "max-line-length": [
+            "error",
+            200
+        ],
         "mark-callable-contracts": "off",
         "compiler-version": [
             "error",
