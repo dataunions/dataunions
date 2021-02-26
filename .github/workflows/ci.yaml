@@ -28,9 +28,6 @@ jobs:
           - node_version: 12.x
             os: ubuntu-18.04
             experimental: true
-    env:
-      DEBUG: '*'
-      TEST_TIMEOUT: '600000'
     steps:
       - uses: actions/checkout@v2.3.4
       - name: Node ${{ matrix.node_version }} - x64 on ${{ matrix.os }}
@@ -56,4 +53,7 @@ jobs:
         with:
           services-to-start: 'parity-sidechain-node0 parity-node0 bridge'
       - name: Integration Test
+        env:
+          DEBUG: '*'
+          TEST_TIMEOUT: '600000'
         run: npm run integration-test
