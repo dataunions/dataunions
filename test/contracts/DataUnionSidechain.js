@@ -335,6 +335,7 @@ contract("DataUnionSidechain", accounts => {
 
         assertEvent(await dataUnionSidechain.withdrawAll(members[0], false, {from: members[0]}), "EarningsWithdrawn")
         assertEqual(await migrateToken.balanceOf(members[0]), amount / members.length)
-
+        // agents[0] is the new dummy mediator address
+        assertEqual(await dataUnionSidechain.tokenMediator(), agents[0])
     })
 })

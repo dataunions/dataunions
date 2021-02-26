@@ -12,7 +12,7 @@ const MainnetMigrationManager = artifacts.require("./MainnetMigrationManager.sol
 contract("DataUnionMainnet", accounts => {
     const creator = accounts[0]
     const sender = accounts[1]
-    let testToken, dataUnionMainnet, mockAMB, mockTokenMediator, migrationManager
+    let testToken, dataUnionMainnet, mockAMB, mockTokenMediator, migrationManager, migrateToken
     const adminFeeFraction = 0.1
     const adminFeeFractionWei = w3.utils.toWei(adminFeeFraction.toString())
 
@@ -41,6 +41,8 @@ contract("DataUnionMainnet", accounts => {
         await migrationManager.setNewToken(testToken.address, { from: creator })
         await migrationManager.setNewMediator(mockTokenMediator.address, { from: creator })
         dataUnionMainnet = await DataUnionMainnet.new({from: creator})
+        migrateToken = await TestToken.new("migrate", "m", { from: creator })
+        mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
 
         await dataUnionMainnet.initialize(
             migrationManager.address,
@@ -96,6 +98,17 @@ contract("DataUnionMainnet", accounts => {
             await dataUnionMainnet.withdrawAdminFees({from: sender})
             assertEqual(+(await testToken.balanceOf(creator)), adminFeeWei.mul(new BN(2)))
             assert(await testToken.transfer(dataUnionMainnet.address, amtWei, {from: sender}))
+        }),
+
+        it("can migrate", async () => {
+            await assertFails(migrationManager.setNewToken(testToken.address, {from: sender}))
+            await migrationManager.setNewToken(migrateToken.address, { from: creator })
+            //dummy mediator address
+            await migrationManager.setNewMediator(sender, { from: creator })    
+            await assertFails(dataUnionMainnet.migrate({from: sender}))
+            assertEvent(await dataUnionMainnet.migrate({from: creator}), "MigrateToken")
+            assertEqual(await dataUnionMainnet.token(), migrateToken.address)
+            assertEqual(await dataUnionMainnet.tokenMediator(), sender)
         })
     })
 })

@@ -4,6 +4,7 @@ import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/acce
 import "./IMainnetMigrationManager.sol";
 
 contract MainnetMigrationManager is Ownable, IMainnetMigrationManager {
+
     event OldTokenChange(address indexed current, address indexed prev);
     event NewTokenChange(address indexed current, address indexed prev);
     event NewMediatorChange(address indexed current, address indexed prev);
@@ -22,5 +23,5 @@ contract MainnetMigrationManager is Ownable, IMainnetMigrationManager {
         emit NewMediatorChange(newMediator_, newMediator);
         newMediator = newMediator_;
     }
-
+    
 }
