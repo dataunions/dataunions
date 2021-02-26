@@ -45,14 +45,14 @@ contract DataUnionFactoryMainnet {
     }
 
 
-    function sidechainAddress(address mainet_address)
+    function sidechainAddress(address mainetAddress)
         public view
         returns (address)
     {
         return CloneLib.predictCloneAddressCreate2(
             dataUnionSidechainTemplate,
             dataUnionSidechainFactory,
-            bytes32(uint256(mainet_address))
+            bytes32(uint256(mainetAddress))
         );
     }
     /*
@@ -74,10 +74,10 @@ contract DataUnionFactoryMainnet {
 /*
     function initialize(
         address _token,
-        address _token_mediator,
-        address _sidechain_DU_factory,
-        uint256 _sidechainMaxGas,
-        address _sidechain_template_DU,
+        address _tokenMediator,
+        address _sidechainDataUnionFactory,
+        uint256 _sidechainMaxgas,
+        address _sidechainTemplateDataUnion,
         address _owner,
         uint256 adminFeeFraction,
         address[] memory agents

@@ -59,11 +59,11 @@ contract DataUnionFactorySidechain is Ownable {
     }
 
 
-    function sidechainAddress(address mainet_address)
+    function sidechainAddress(address mainnetAddress)
         public view
         returns (address proxy)
     {
-        return CloneLib.predictCloneAddressCreate2(dataUnionSidechainTemplate, address(this), bytes32(uint256(mainet_address)));
+        return CloneLib.predictCloneAddressCreate2(dataUnionSidechainTemplate, address(this), bytes32(uint256(mainnetAddress)));
     }
 
     /*
@@ -92,6 +92,7 @@ contract DataUnionFactorySidechain is Ownable {
             }
         }
         if (newDUOwnerInitialEth != 0 && address(this).balance >= newDUOwnerInitialEth) {
+            // solhint-disable-next-line multiple-sends
             if (owner.send(newDUOwnerInitialEth)) {
                 emit OwnerInitialEthSent(newDUOwnerInitialEth);
             }
