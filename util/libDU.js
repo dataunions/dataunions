@@ -42,9 +42,9 @@ async function deployDataUnionFactorySidechain(wallet, migrationMgrAddress = nul
         )
         var tx = await migrationMgrDeployer.deploy({ gasLimit: 6000000 })
         const migrationManager = await tx.deployed()
-        tx = await migrationManager.setNewToken(home_erc677)
+        tx = await migrationManager.setCurrentToken(home_erc677)
         await tx.wait()
-        tx = await migrationManager.setNewMediator(home_erc_mediator)
+        tx = await migrationManager.setCurrentMediator(home_erc_mediator)
         await tx.wait()
         log(`Sidechain migrationManager: ${migrationManager.address}`)
         migrationMgrAddress = migrationManager.address
@@ -87,9 +87,9 @@ async function deployDataUnionFactoryMainnet(wallet, sidechainTemplateAddress, s
         )
         var tx = await migrationMgrDeployer.deploy({ gasLimit: 6000000 })
         const migrationManager = await tx.deployed()
-        tx = await migrationManager.setNewToken(foreign_erc20)
+        tx = await migrationManager.setCurrentToken(foreign_erc20)
         await tx.wait()
-        tx = await migrationManager.setNewMediator(foreign_erc_mediator)
+        tx = await migrationManager.setCurrentMediator(foreign_erc_mediator)
         await tx.wait()
         log(`Mainnet migrationManager: ${migrationManager.address}`)
         migrationMgrAddress = migrationManager.address
