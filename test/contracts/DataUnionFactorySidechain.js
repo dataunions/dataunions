@@ -23,8 +23,8 @@ contract("DataUnionFactorySidechain", async accounts => {
         mockAMB = await MockAMB.new({from: creator})
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
-        await migrationManager.setNewToken(testToken.address, { from: creator })
-        await migrationManager.setNewMediator(mockTokenMediator.address, { from: creator })
+        await migrationManager.setCurrentToken(testToken.address, { from: creator })
+        await migrationManager.setCurrentMediator(mockTokenMediator.address, { from: creator })
         factory = await DataUnionFactorySidechain.new(migrationManager.address, dataUnionSidechain.address, {from: creator})
     })
     it("sidechain ETH flow", async () => {

@@ -38,8 +38,8 @@ contract("DataUnionMainnet", accounts => {
         mockAMB = await MockAMB.new({from: creator})
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
         migrationManager = await MainnetMigrationManager.new({ from: creator })
-        await migrationManager.setNewToken(testToken.address, { from: creator })
-        await migrationManager.setNewMediator(mockTokenMediator.address, { from: creator })
+        await migrationManager.setCurrentToken(testToken.address, { from: creator })
+        await migrationManager.setCurrentMediator(mockTokenMediator.address, { from: creator })
         dataUnionMainnet = await DataUnionMainnet.new({from: creator})
         migrateToken = await TestToken.new("migrate", "m", { from: creator })
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
@@ -101,10 +101,10 @@ contract("DataUnionMainnet", accounts => {
         }),
 
         it("can migrate", async () => {
-            await assertFails(migrationManager.setNewToken(testToken.address, {from: sender}))
-            await migrationManager.setNewToken(migrateToken.address, { from: creator })
+            await assertFails(migrationManager.setCurrentToken(testToken.address, {from: sender}))
+            await migrationManager.setCurrentToken(migrateToken.address, { from: creator })
             //dummy mediator address
-            await migrationManager.setNewMediator(sender, { from: creator })    
+            await migrationManager.setCurrentMediator(sender, { from: creator })    
             await assertFails(dataUnionMainnet.migrate({from: sender}))
             assertEvent(await dataUnionMainnet.migrate({from: creator}), "MigrateToken")
             assertEqual(await dataUnionMainnet.token(), migrateToken.address)

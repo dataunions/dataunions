@@ -48,9 +48,9 @@ contract("DataUnionSidechain", accounts => {
         */
         migrationManager = await SidechainMigrationManager.new({ from: creator })
         testToken = await TestToken.new("name", "symbol", { from: creator })
-        await migrationManager.setNewToken(testToken.address, { from: creator })
+        await migrationManager.setCurrentToken(testToken.address, { from: creator })
         //this is a dummy non-zero address. mediator not used
-        await migrationManager.setNewMediator(agents[0], { from: creator })
+        await migrationManager.setCurrentMediator(agents[0], { from: creator })
         migrateToken = await TestToken.new("migrate", "m", { from: creator })
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
         await dataUnionSidechain.initialize(creator, migrationManager.address, agents, agents[0], "1", {from: creator})
@@ -325,7 +325,7 @@ contract("DataUnionSidechain", accounts => {
 
         await migrateToken.transfer(migrationManager.address, amount.toString())
         await migrationManager.setOldToken(testToken.address, {from: creator})
-        await migrationManager.setNewToken(migrateToken.address, {from: creator})
+        await migrationManager.setCurrentToken(migrateToken.address, {from: creator})
         await assertFails(dataUnionSidechain.migrate({from: members[1]}))        
         assertEvent(await dataUnionSidechain.migrate({from: creator}), "MigrateToken")
         assertEqual(await testToken.balanceOf(dataUnionSidechain.address), 0)

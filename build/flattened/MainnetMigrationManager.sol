@@ -51,13 +51,13 @@ contract Ownable {
     }
 }
 
-// File: contracts/IMainnetMigrationManager.sol
+// File: contracts/FactoryConfig.sol
 
 pragma solidity 0.6.6;
 
-interface IMainnetMigrationManager {
-    function newToken() external view returns (address);
-    function newMediator() external view returns (address);
+interface FactoryConfig {
+    function currentToken() external view returns (address);
+    function currentMediator() external view returns (address);
 }
 
 // File: contracts/MainnetMigrationManager.sol
@@ -66,24 +66,25 @@ pragma solidity 0.6.6;
 
 
 
-contract MainnetMigrationManager is Ownable, IMainnetMigrationManager {
-    event OldTokenChange(address indexed current, address indexed prev);
-    event NewTokenChange(address indexed current, address indexed prev);
-    event NewMediatorChange(address indexed current, address indexed prev);
+contract MainnetMigrationManager is Ownable, FactoryConfig {
 
-    address override public newToken;
-    address override public newMediator;
+    event OldTokenChange(address indexed current, address indexed prev);
+    event CurrentTokenChange(address indexed current, address indexed prev);
+    event CurrentMediatorChange(address indexed current, address indexed prev);
+
+    address override public currentToken;
+    address override public currentMediator;
     
     constructor() public Ownable(msg.sender) {}
 
-    function setNewToken(address newToken_) public onlyOwner {
-        emit NewTokenChange(newToken_, newToken);
-        newToken = newToken_;
+    function setCurrentToken(address currentToken_) public onlyOwner {
+        emit CurrentTokenChange(currentToken_, currentToken);
+        currentToken = currentToken_;
     }
 
-    function setNewMediator(address newMediator_) public onlyOwner {
-        emit NewMediatorChange(newMediator_, newMediator);
-        newMediator = newMediator_;
+    function setCurrentMediator(address currentMediator_) public onlyOwner {
+        emit CurrentMediatorChange(currentMediator_, currentMediator);
+        currentMediator = currentMediator_;
     }
 
 }
