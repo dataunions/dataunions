@@ -20,8 +20,8 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     event RevenueReceived(uint256 amount);
 
     ITokenMediator public tokenMediator;
-    address public sidechain_DU_factory;
-    uint256 public sidechain_maxgas;
+    address public sidechainDUFactory;
+    uint256 public sidechainMaxGas;
     ERC20 public token;
     FactoryConfig public migrationManager;
 
@@ -31,7 +31,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 */
 
     // needed to compute sidechain address
-    address public sidechain_template_DU;
+    address public sidechainDUTemplate;
     uint256 public adminFeeFraction;
     uint256 public totalAdminFees;
     uint256 public totalAdminFeesWithdrawn;
@@ -46,9 +46,9 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
     function initialize(
         address _migrationManager,
-        address _sidechain_DU_factory,
-        uint256 _sidechain_maxgas,
-        address _sidechain_template_DU,
+        address _sidechainDUFactory,
+        uint256 _sidechainMaxGas,
+        address _sidechainDUTemplate,
         address _owner,
         uint256 _adminFeeFraction,
         address[] memory agents
@@ -63,9 +63,9 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
         tokenMediator = ITokenMediator(migrationManager.currentMediator());
         token = ERC20(migrationManager.currentToken());
-        sidechain_DU_factory = _sidechain_DU_factory;
-        sidechain_maxgas = _sidechain_maxgas;
-        sidechain_template_DU = _sidechain_template_DU;
+        sidechainDUFactory = _sidechainDUFactory;
+        sidechainMaxGas = _sidechainMaxGas;
+        sidechainDUTemplate = _sidechainDUTemplate;
         setAdminFee(_adminFeeFraction);
         //transfer to real admin
         owner = _owner;
@@ -97,11 +97,11 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
     function deployNewDUSidechain(address[] memory agents) public {
         bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,address[])", owner, agents);
-        amb().requireToPassMessage(sidechain_DU_factory, data, sidechain_maxgas);
+        amb().requireToPassMessage(sidechainDUFactory, data, sidechainMaxGas);
     }
 
     function sidechainAddress() public view returns (address) {
-        return CloneLib.predictCloneAddressCreate2(sidechain_template_DU, sidechain_DU_factory, bytes32(uint256(address(this))));
+        return CloneLib.predictCloneAddressCreate2(sidechainDUTemplate, sidechainDUFactory, bytes32(uint256(address(this))));
     }
 
     /**

@@ -10,7 +10,7 @@ contract DataUnionSidechain is Ownable {
     using SafeMath for uint256;
 
     //used to describe members and join part agents
-    enum ActiveStatus {None, Active, Inactive}
+    enum ActiveStatus {NONE, ACTIVE, INACTIVE}
 
     //emitted by joins/parts
     event MemberJoined(address indexed member);
@@ -66,7 +66,7 @@ contract DataUnionSidechain is Ownable {
     mapping(address => ActiveStatus) public joinPartAgents;
 
     modifier onlyJoinPartAgent() {
-        require(joinPartAgents[msg.sender] == ActiveStatus.Active, "error_onlyJoinPartAgent");
+        require(joinPartAgents[msg.sender] == ActiveStatus.ACTIVE, "error_onlyJoinPartAgent");
         _;
     }
 
@@ -132,11 +132,11 @@ contract DataUnionSidechain is Ownable {
 
     function getEarnings(address member) public view returns (uint256) {
         MemberInfo storage info = memberData[member];
-        require(info.status != ActiveStatus.None, "error_notMember");
+        require(info.status != ActiveStatus.NONE, "error_notMember");
         return
             info.earningsBeforeLastJoin +
             (
-                info.status == ActiveStatus.Active
+                info.status == ActiveStatus.ACTIVE
                     ? lifetimeMemberEarnings.sub(info.lmeAtJoin)
                     : 0
             );
@@ -144,7 +144,7 @@ contract DataUnionSidechain is Ownable {
 
     function getWithdrawn(address member) public view returns (uint256) {
         MemberInfo storage info = memberData[member];
-        require(info.status != ActiveStatus.None, "error_notMember");
+        require(info.status != ActiveStatus.NONE, "error_notMember");
         return info.withdrawnEarnings;
     }
 
@@ -163,15 +163,15 @@ contract DataUnionSidechain is Ownable {
     }
 
     function addJoinPartAgent(address agent) public onlyOwner {
-        require(joinPartAgents[agent] != ActiveStatus.Active, "error_alreadyActiveAgent");
-        joinPartAgents[agent] = ActiveStatus.Active;
+        require(joinPartAgents[agent] != ActiveStatus.ACTIVE, "error_alreadyActiveAgent");
+        joinPartAgents[agent] = ActiveStatus.ACTIVE;
         emit JoinPartAgentAdded(agent);
         joinPartAgentCount = joinPartAgentCount.add(1);
     }
 
     function removeJoinPartAgent(address agent) public onlyOwner {
-        require(joinPartAgents[agent] == ActiveStatus.Active, "error_notActiveAgent");
-        joinPartAgents[agent] = ActiveStatus.Inactive;
+        require(joinPartAgents[agent] == ActiveStatus.ACTIVE, "error_notActiveAgent");
+        joinPartAgents[agent] = ActiveStatus.INACTIVE;
         emit JoinPartAgentRemoved(agent);
         joinPartAgentCount = joinPartAgentCount.sub(1);
     }
@@ -194,12 +194,12 @@ contract DataUnionSidechain is Ownable {
 
     function addMember(address payable member) public onlyJoinPartAgent {
         MemberInfo storage info = memberData[member];
-        require(info.status != ActiveStatus.Active, "error_alreadyMember");
-        if(info.status == ActiveStatus.Inactive){
+        require(info.status != ActiveStatus.ACTIVE, "error_alreadyMember");
+        if(info.status == ActiveStatus.INACTIVE){
             inactiveMemberCount = inactiveMemberCount.sub(1);
         }
-        bool sendEth = info.status == ActiveStatus.None && newMemberEth != 0 && address(this).balance >= newMemberEth;
-        info.status = ActiveStatus.Active;
+        bool sendEth = info.status == ActiveStatus.NONE && newMemberEth != 0 && address(this).balance >= newMemberEth;
+        info.status = ActiveStatus.ACTIVE;
         info.lmeAtJoin = lifetimeMemberEarnings;
         activeMemberCount = activeMemberCount.add(1);
         emit MemberJoined(member);
@@ -213,11 +213,11 @@ contract DataUnionSidechain is Ownable {
     }
 
     function partMember(address member) public {
-        require(msg.sender == member || joinPartAgents[msg.sender] == ActiveStatus.Active, "error_notPermitted");
+        require(msg.sender == member || joinPartAgents[msg.sender] == ActiveStatus.ACTIVE, "error_notPermitted");
         MemberInfo storage info = memberData[member];
-        require(info.status == ActiveStatus.Active, "error_notActiveMember");
+        require(info.status == ActiveStatus.ACTIVE, "error_notActiveMember");
         info.earningsBeforeLastJoin = getEarnings(member);
-        info.status = ActiveStatus.Inactive;
+        info.status = ActiveStatus.INACTIVE;
         activeMemberCount = activeMemberCount.sub(1);
         inactiveMemberCount = inactiveMemberCount.add(1);
         emit MemberParted(member);
@@ -273,8 +273,8 @@ contract DataUnionSidechain is Ownable {
         info.earningsBeforeLastJoin = info.earningsBeforeLastJoin.add(amount);
 
         // allow seeing and withdrawing earnings
-        if (info.status == ActiveStatus.None) {
-            info.status = ActiveStatus.Inactive;
+        if (info.status == ActiveStatus.NONE) {
+            info.status = ActiveStatus.INACTIVE;
             inactiveMemberCount = inactiveMemberCount.add(1);
         }
     }
