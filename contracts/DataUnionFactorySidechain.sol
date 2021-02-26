@@ -29,11 +29,11 @@ contract DataUnionFactorySidechain is Ownable {
     }
 
     function amb() public view returns (IAMB) {
-        return IAMB(ITokenMediator(migrationManager.newMediator()).bridgeContract());
+        return IAMB(ITokenMediator(migrationManager.currentMediator()).bridgeContract());
     }
 
     function token() public view returns (address) {
-        return migrationManager.newToken();
+        return migrationManager.currentToken();
     }
     
 

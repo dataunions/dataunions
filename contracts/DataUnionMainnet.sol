@@ -7,7 +7,7 @@ import "./PurchaseListener.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
 import "./ITokenMediator.sol";
-import "./IMainnetMigrationManager.sol";
+import "./FactoryConfig.sol";
 
 contract DataUnionMainnet is Ownable, PurchaseListener {
     using SafeMath for uint256;
@@ -23,7 +23,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     address public sidechain_DU_factory;
     uint256 public sidechain_maxgas;
     ERC20 public token;
-    IMainnetMigrationManager public migrationManager;
+    FactoryConfig public migrationManager;
 
 /*
     NOTE: any variables set below will NOT be visible in clones
@@ -56,13 +56,13 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         require(!isInitialized(), "init_once");
         // must set default values here so that there are in clone state
         autoSendAdminFee = true;
-        migrationManager = IMainnetMigrationManager(_migrationManager);
+        migrationManager = FactoryConfig(_migrationManager);
 
         //during setup, msg.sender is admin
         owner = msg.sender;
 
-        tokenMediator = ITokenMediator(migrationManager.newMediator());
-        token = ERC20(migrationManager.newToken());
+        tokenMediator = ITokenMediator(migrationManager.currentMediator());
+        token = ERC20(migrationManager.currentToken());
         sidechain_DU_factory = _sidechain_DU_factory;
         sidechain_maxgas = _sidechain_maxgas;
         sidechain_template_DU = _sidechain_template_DU;
@@ -177,12 +177,12 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     }
 
     function migrate() public onlyOwner {
-        address newToken = migrationManager.newToken();
+        address newToken = migrationManager.currentToken();
         if(newToken != address(0) && newToken != address(token)) {
             emit MigrateToken(newToken, address(token));
             token = ERC20(newToken);
         }
-        address newMediator = migrationManager.newMediator();
+        address newMediator = migrationManager.currentMediator();
         if(newMediator != address(0) && newMediator != address(tokenMediator)) {
             emit MigrateMediator(newMediator, address(tokenMediator));
             tokenMediator = ITokenMediator(newMediator);

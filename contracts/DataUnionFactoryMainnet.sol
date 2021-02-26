@@ -5,7 +5,7 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
 import "./ITokenMediator.sol";
-import "./IMainnetMigrationManager.sol";
+import "./FactoryConfig.sol";
 
 interface IDataUnionMainnet {
     function sidechainAddress() external view returns (address proxy);
@@ -20,7 +20,7 @@ contract DataUnionFactoryMainnet {
     address public data_union_sidechain_template;
     address public data_union_sidechain_factory;
     uint256 public sidechain_maxgas;
-    IMainnetMigrationManager public migrationManager;
+    FactoryConfig public migrationManager;
 
     constructor(address _migrationManager,
                 address _data_union_mainnet_template,
@@ -29,7 +29,7 @@ contract DataUnionFactoryMainnet {
                 uint256 _sidechain_maxgas)
         public
     {
-        migrationManager = IMainnetMigrationManager(_migrationManager);
+        migrationManager = FactoryConfig(_migrationManager);
         data_union_mainnet_template = _data_union_mainnet_template;
         data_union_sidechain_template = _data_union_sidechain_template;
         data_union_sidechain_factory = _data_union_sidechain_factory;
@@ -37,11 +37,11 @@ contract DataUnionFactoryMainnet {
     }
 
     function amb() public view returns (IAMB) {
-        return IAMB(ITokenMediator(migrationManager.newMediator()).bridgeContract());
+        return IAMB(ITokenMediator(migrationManager.currentMediator()).bridgeContract());
     }
  
     function token() public view returns (address) {
-        return migrationManager.newToken();
+        return migrationManager.currentToken();
     }
 
 

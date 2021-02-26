@@ -34,8 +34,8 @@ contract DataUnionSidechain is Ownable {
     event NewMemberEthSent(uint amountWei);
 
     //migrate token and mediator
-    event MigrateToken(address indexed newToken, address indexed oldToken, uint amountMigrated);
-    event MigrateMediator(address indexed newMediator, address indexed oldMediator);
+    event MigrateToken(address indexed currentToken, address indexed oldToken, uint amountMigrated);
+    event MigrateMediator(address indexed currentMediator, address indexed oldMediator);
 
 
     struct MemberInfo {
@@ -85,9 +85,9 @@ contract DataUnionSidechain is Ownable {
         require(!isInitialized(), "error_alreadyInitialized");
         owner = msg.sender; // set real owner at the end. During initialize, addJoinPartAgents can be called by owner only
         migrationManager = ISidechainMigrationManager(_migrationManager);
-        token = IERC677(migrationManager.newToken());
+        token = IERC677(migrationManager.currentToken());
         addJoinPartAgents(initialJoinPartAgents);
-        tokenMediator = migrationManager.newMediator();
+        tokenMediator = migrationManager.currentMediator();
         dataUnionMainnet = mainnetDataUnionAddress;
         setNewMemberEth(defaultNewMemberEth);
         owner = initialOwner;
@@ -452,25 +452,25 @@ contract DataUnionSidechain is Ownable {
     }
 
     function migrate() public onlyOwner {
-        address newMediator = migrationManager.newMediator();
-        if(newMediator != address(0) && newMediator != address(tokenMediator)) {
-            emit MigrateMediator(newMediator, address(tokenMediator));
-            tokenMediator = newMediator;
+        address currentMediator = migrationManager.currentMediator();
+        if(currentMediator != address(0) && currentMediator != address(tokenMediator)) {
+            emit MigrateMediator(currentMediator, address(tokenMediator));
+            tokenMediator = currentMediator;
         }
-        IERC677 newToken = IERC677(migrationManager.newToken());
-        if(address(newToken) != address(0) && address(newToken) != address(token)) {
+        IERC677 currentToken = IERC677(migrationManager.currentToken());
+        if(address(currentToken) != address(0) && address(currentToken) != address(token)) {
             refreshRevenue();
             uint oldBalance = token.balanceOf(address(this));
-            uint newBalance = newToken.balanceOf(address(this));
+            uint newBalance = currentToken.balanceOf(address(this));
             if(oldBalance != 0) {
                 token.approve(address(migrationManager), oldBalance);
                 migrationManager.swap(oldBalance);
                 require(token.balanceOf(address(this)) == 0, "tokens_not_sent");
                 //require at least oldBalance more new tokens
-                require(newToken.balanceOf(address(this)).sub(newBalance) >= oldBalance, "tokens_not_received");
+                require(currentToken.balanceOf(address(this)).sub(newBalance) >= oldBalance, "tokens_not_received");
             }
-            emit MigrateToken(address(newToken), address(token), oldBalance);
-            token = newToken;
+            emit MigrateToken(address(currentToken), address(token), oldBalance);
+            token = currentToken;
         }
     }
 }

@@ -7,14 +7,14 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 contract SidechainMigrationManager is Ownable, ISidechainMigrationManager {
 
     event OldTokenChange(address indexed current, address indexed prev);
-    event NewTokenChange(address indexed current, address indexed prev);
-    event NewMediatorChange(address indexed current, address indexed prev);
+    event CurrentTokenChange(address indexed current, address indexed prev);
+    event CurrentMediatorChange(address indexed current, address indexed prev);
     event Withdrawal(address indexed owner, uint amount);
-    event Swap(address indexed user, uint amount);
+    event Swap(address indexed user, address indexed fromToken, address indexed toToken, uint amount);
 
     address override public oldToken;
-    address override public newToken;
-    address override public newMediator;
+    address override public currentToken;
+    address override public currentMediator;
     
     constructor() public Ownable(msg.sender) {}
 
@@ -23,14 +23,14 @@ contract SidechainMigrationManager is Ownable, ISidechainMigrationManager {
         oldToken = oldToken_;
     }
 
-    function setNewToken(address newToken_) public onlyOwner {
-        emit NewTokenChange(newToken_, newToken);
-        newToken = newToken_;
+    function setCurrentToken(address currentToken_) public onlyOwner {
+        emit CurrentTokenChange(currentToken_, currentToken);
+        currentToken = currentToken_;
     }
 
-    function setNewMediator(address newMediator_) public onlyOwner {
-        emit NewMediatorChange(newMediator_, newMediator);
-        newMediator = newMediator_;
+    function setCurrentMediator(address currentMediator_) public onlyOwner {
+        emit CurrentMediatorChange(currentMediator_, currentMediator);
+        currentMediator = currentMediator_;
     }
 
     function withdraw(address tokenAddress) public onlyOwner {
@@ -42,12 +42,12 @@ contract SidechainMigrationManager is Ownable, ISidechainMigrationManager {
     }
 
     function swap(uint amount) public override {
-        require(oldToken != address(0) && newToken != address(0), "tokens_not_set");
+        require(oldToken != address(0) && currentToken != address(0), "tokens_not_set");
         IERC20 fromToken = IERC20(oldToken);
-        IERC20 toToken = IERC20(newToken);
+        IERC20 toToken = IERC20(currentToken);
         require(fromToken.transferFrom(msg.sender, address(this), amount), "transfer_failed");
         require(toToken.transfer(msg.sender, amount), "transfer_failed");
-        emit Swap(msg.sender, amount);
+        emit Swap(msg.sender, oldToken, currentToken, amount);
     }
 
 }

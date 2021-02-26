@@ -1,27 +1,27 @@
 pragma solidity 0.6.6;
 
 import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
-import "./IMainnetMigrationManager.sol";
+import "./FactoryConfig.sol";
 
-contract MainnetMigrationManager is Ownable, IMainnetMigrationManager {
+contract MainnetMigrationManager is Ownable, FactoryConfig {
 
     event OldTokenChange(address indexed current, address indexed prev);
-    event NewTokenChange(address indexed current, address indexed prev);
-    event NewMediatorChange(address indexed current, address indexed prev);
+    event CurrentTokenChange(address indexed current, address indexed prev);
+    event CurrentMediatorChange(address indexed current, address indexed prev);
 
-    address override public newToken;
-    address override public newMediator;
+    address override public currentToken;
+    address override public currentMediator;
     
     constructor() public Ownable(msg.sender) {}
 
-    function setNewToken(address newToken_) public onlyOwner {
-        emit NewTokenChange(newToken_, newToken);
-        newToken = newToken_;
+    function setCurrentToken(address currentToken_) public onlyOwner {
+        emit CurrentTokenChange(currentToken_, currentToken);
+        currentToken = currentToken_;
     }
 
-    function setNewMediator(address newMediator_) public onlyOwner {
-        emit NewMediatorChange(newMediator_, newMediator);
-        newMediator = newMediator_;
+    function setCurrentMediator(address currentMediator_) public onlyOwner {
+        emit CurrentMediatorChange(currentMediator_, currentMediator);
+        currentMediator = currentMediator_;
     }
-    
+
 }
