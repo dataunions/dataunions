@@ -6,7 +6,7 @@
     "clean": "rm -rf build/ && mkdir -p build/contracts",
     "build": "truffle compile && ./flatten",
     "deploy": "truffle migrate",
-    "lint": "eslint . && solhint contracts/**/*.sol",
+    "lint": "eslint . && solhint -f unix contracts/**/*.sol",
     "coverage": "truffle run coverage --file=test/contracts/*",
     "unit-test": "truffle test test/contracts/*",
     "integration-test": "mocha test/e2e --exit",
