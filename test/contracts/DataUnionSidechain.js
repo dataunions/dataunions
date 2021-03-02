@@ -1,4 +1,3 @@
-const { BigNumber } = require("ethers")
 const Web3 = require("web3")
 const w3 = new Web3(web3.currentProvider)
 const { BN, toWei } = w3.utils

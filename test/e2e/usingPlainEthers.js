@@ -9,8 +9,8 @@ const Token = require("../../build/contracts/IERC20.json")
 const DataUnionSidechain = require("../../build/contracts/DataUnionSidechain.json")
 const ITokenMediator = require("../../build/contracts/ITokenMediator.json")
 const IAMB = require("../../build/contracts/IAMB.json")
-const MainnetMigrationManager = require("../../build/contracts/MainnetMigrationManager.json")
-const SidechainMigrationManager = require("../../build/contracts/SidechainMigrationManager.json")
+//const MainnetMigrationManager = require("../../build/contracts/MainnetMigrationManager.json")
+//const SidechainMigrationManager = require("../../build/contracts/SidechainMigrationManager.json")
 const TestToken = require("../../build/contracts/TestToken.json")
 const {
     Contract,
@@ -112,25 +112,22 @@ describe("Data Union tests using only ethers.js directly", () => {
         //test migrate
         const testAmount = "1000000000000000000"
         const testToken = await deployTestToken(walletSidechain, sidechainMigrationMgr.address, BigNumber.from(testAmount))
-        const smmbal = await testToken.balanceOf(sidechainMigrationMgr.address)
-        const dubal = await erc677Sidechain.balanceOf(duSidechain.address)
-        //log(`s ${smmbal} ${dubal}`)
-        log(`testing migrate to new token`)
+        log("testing migrate to new token")
         var tx
         tx = await sidechainMigrationMgr.setCurrentToken(testToken.address)
         await tx.wait()
         tx = await sidechainMigrationMgr.setOldToken(erc677Sidechain.address)
         await tx.wait()
-        log(`migrate`)
+        log("migrate")
 
         tx = await duSidechain.migrate({gasLimit: 4000000})
         await tx.wait()
-        log(`migrated`)
+        log("migrated")
         //TODO install bridge mediator for testToken and send to mainnet
         tx = await duSidechain.withdrawAll(member2, false)
         await tx.wait()
         const balanceAfter2 = await testToken.balanceOf(member2)
-        log(`checking balance in new token`)
+        log("checking balance in new token")
         assert(balanceAfter2.eq(BigNumber.from(sendAmount).div(2)))
     })
 
