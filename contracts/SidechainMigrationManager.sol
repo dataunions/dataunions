@@ -49,7 +49,7 @@ contract SidechainMigrationManager is Ownable, ISidechainMigrationManager {
         require(oldToken != address(0) && currentToken != address(0), "tokens_not_set");
         IERC20 fromToken = IERC20(oldToken);
         IERC20 toToken = IERC20(currentToken);
-        require(fromToken.transferFrom(msg.sender, address(this), amount), "transfer_failed");
+        require(fromToken.transferFrom(msg.sender, address(this), amount), "transferFrom_failed");
         require(toToken.transfer(msg.sender, amount), "transfer_failed");
         emit Swap(msg.sender, oldToken, currentToken, amount);
     }
