@@ -6,7 +6,7 @@
     "clean": "rm -rf build/ && mkdir -p build/contracts",
     "build": "truffle compile && ./flatten",
     "deploy": "truffle migrate",
-    "lint": "eslint . && solhint contracts/**/*.sol",
+    "lint": "eslint . && solhint -f unix contracts/**/*.sol",
     "format": "prettier --no-color --config .prettierrc --write contracts/**/*.sol",
     "format-check": "prettier --no-color --config .prettierrc --check contracts/**/*.sol",
     "coverage": "truffle run coverage --file=test/contracts/*",
