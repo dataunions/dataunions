@@ -5,11 +5,11 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
 import "./ITokenMediator.sol";
+import "./FactoryConfig.sol";
 
 interface IDataUnionMainnet {
     function sidechainAddress() external view returns (address proxy);
 }
-
 
 contract DataUnionFactoryMainnet {
     event MainnetDUCreated(address indexed mainnet, address indexed sidechain, address indexed owner, address template);
@@ -19,26 +19,29 @@ contract DataUnionFactoryMainnet {
     // needed to calculate address of sidechain contract
     address public dataUnionSidechainTemplate;
     address public dataUnionSidechainFactory;
-    uint256 public sidechainMaxgas;
-    IAMB public amb;
-    ITokenMediator public tokenMediator;
-    address public token;
+    uint256 public sidechainMaxGas;
+    FactoryConfig public migrationManager;
 
-    constructor(address _token,
-                address _tokenMediator,
+    constructor(address _migrationManager,
                 address _dataUnionMainnetTemplate,
                 address _dataUnionSidechainTemplate,
                 address _dataUnionSidechainFactory,
-                uint256 _sidechainMaxgas)
+                uint256 _sidechainMaxGas)
         public
     {
-        token = _token;
-        tokenMediator = ITokenMediator(_tokenMediator);
+        migrationManager = FactoryConfig(_migrationManager);
         dataUnionMainnetTemplate = _dataUnionMainnetTemplate;
         dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
         dataUnionSidechainFactory = _dataUnionSidechainFactory;
-        amb = IAMB(tokenMediator.bridgeContract());
-        sidechainMaxgas = _sidechainMaxgas;
+        sidechainMaxGas = _sidechainMaxGas;
+    }
+
+    function amb() public view returns (IAMB) {
+        return IAMB(ITokenMediator(migrationManager.currentMediator()).bridgeContract());
+    }
+ 
+    function token() public view returns (address) {
+        return migrationManager.currentToken();
     }
 
 
@@ -86,11 +89,10 @@ contract DataUnionFactoryMainnet {
         returns (address)
     {
         bytes32 salt = keccak256(abi.encode(bytes(name), msg.sender));
-        bytes memory data = abi.encodeWithSignature("initialize(address,address,address,uint256,address,address,uint256,address[])",
-            token,
-            tokenMediator,
+        bytes memory data = abi.encodeWithSignature("initialize(address,address,uint256,address,address,uint256,address[])",
+            migrationManager,
             dataUnionSidechainFactory,
-            sidechainMaxgas,
+            sidechainMaxGas,
             dataUnionSidechainTemplate,
             owner,
             adminFeeFraction,

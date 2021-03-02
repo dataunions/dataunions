@@ -4,12 +4,13 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "./IERC677.sol";
 import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "./ISidechainMigrationManager.sol";
 
 contract DataUnionSidechain is Ownable {
     using SafeMath for uint256;
 
     //used to describe members and join part agents
-    enum ActiveStatus {None, Active, Inactive}
+    enum ActiveStatus {NONE, ACTIVE, INACTIVE}
 
     //emitted by joins/parts
     event MemberJoined(address indexed member);
@@ -31,6 +32,11 @@ contract DataUnionSidechain is Ownable {
     //new member eth
     event UpdateNewMemberEth(uint value);
     event NewMemberEthSent(uint amountWei);
+
+    //migrate token and mediator
+    event MigrateToken(address indexed newToken, address indexed oldToken, uint amountMigrated);
+    event MigrateMediator(address indexed newMediator, address indexed oldMediator);
+
 
     struct MemberInfo {
         ActiveStatus status;
@@ -54,11 +60,13 @@ contract DataUnionSidechain is Ownable {
 
     uint256 public newMemberEth;
 
+    ISidechainMigrationManager public migrationManager;
+
     mapping(address => MemberInfo) public memberData;
     mapping(address => ActiveStatus) public joinPartAgents;
 
     modifier onlyJoinPartAgent() {
-        require(joinPartAgents[msg.sender] == ActiveStatus.Active, "error_onlyJoinPartAgent");
+        require(joinPartAgents[msg.sender] == ActiveStatus.ACTIVE, "error_onlyJoinPartAgent");
         _;
     }
 
@@ -69,17 +77,17 @@ contract DataUnionSidechain is Ownable {
 
     function initialize(
         address initialOwner,
-        address tokenAddress,
+        address _migrationManager,
         address[] memory initialJoinPartAgents,
-        address tokenMediatorAddress,
         address mainnetDataUnionAddress,
         uint256 defaultNewMemberEth
     ) public {
         require(!isInitialized(), "error_alreadyInitialized");
         owner = msg.sender; // set real owner at the end. During initialize, addJoinPartAgents can be called by owner only
-        token = IERC677(tokenAddress);
+        migrationManager = ISidechainMigrationManager(_migrationManager);
+        token = IERC677(migrationManager.currentToken());
         addJoinPartAgents(initialJoinPartAgents);
-        tokenMediator = tokenMediatorAddress;
+        tokenMediator = migrationManager.currentMediator();
         dataUnionMainnet = mainnetDataUnionAddress;
         setNewMemberEth(defaultNewMemberEth);
         owner = initialOwner;
@@ -124,11 +132,11 @@ contract DataUnionSidechain is Ownable {
 
     function getEarnings(address member) public view returns (uint256) {
         MemberInfo storage info = memberData[member];
-        require(info.status != ActiveStatus.None, "error_notMember");
+        require(info.status != ActiveStatus.NONE, "error_notMember");
         return
             info.earningsBeforeLastJoin +
             (
-                info.status == ActiveStatus.Active
+                info.status == ActiveStatus.ACTIVE
                     ? lifetimeMemberEarnings.sub(info.lmeAtJoin)
                     : 0
             );
@@ -136,7 +144,7 @@ contract DataUnionSidechain is Ownable {
 
     function getWithdrawn(address member) public view returns (uint256) {
         MemberInfo storage info = memberData[member];
-        require(info.status != ActiveStatus.None, "error_notMember");
+        require(info.status != ActiveStatus.NONE, "error_notMember");
         return info.withdrawnEarnings;
     }
 
@@ -155,15 +163,15 @@ contract DataUnionSidechain is Ownable {
     }
 
     function addJoinPartAgent(address agent) public onlyOwner {
-        require(joinPartAgents[agent] != ActiveStatus.Active, "error_alreadyActiveAgent");
-        joinPartAgents[agent] = ActiveStatus.Active;
+        require(joinPartAgents[agent] != ActiveStatus.ACTIVE, "error_alreadyActiveAgent");
+        joinPartAgents[agent] = ActiveStatus.ACTIVE;
         emit JoinPartAgentAdded(agent);
         joinPartAgentCount = joinPartAgentCount.add(1);
     }
 
     function removeJoinPartAgent(address agent) public onlyOwner {
-        require(joinPartAgents[agent] == ActiveStatus.Active, "error_notActiveAgent");
-        joinPartAgents[agent] = ActiveStatus.Inactive;
+        require(joinPartAgents[agent] == ActiveStatus.ACTIVE, "error_notActiveAgent");
+        joinPartAgents[agent] = ActiveStatus.INACTIVE;
         emit JoinPartAgentRemoved(agent);
         joinPartAgentCount = joinPartAgentCount.sub(1);
     }
@@ -186,12 +194,12 @@ contract DataUnionSidechain is Ownable {
 
     function addMember(address payable member) public onlyJoinPartAgent {
         MemberInfo storage info = memberData[member];
-        require(info.status != ActiveStatus.Active, "error_alreadyMember");
-        if(info.status == ActiveStatus.Inactive){
+        require(info.status != ActiveStatus.ACTIVE, "error_alreadyMember");
+        if(info.status == ActiveStatus.INACTIVE){
             inactiveMemberCount = inactiveMemberCount.sub(1);
         }
-        bool sendEth = info.status == ActiveStatus.None && newMemberEth != 0 && address(this).balance >= newMemberEth;
-        info.status = ActiveStatus.Active;
+        bool sendEth = info.status == ActiveStatus.NONE && newMemberEth != 0 && address(this).balance >= newMemberEth;
+        info.status = ActiveStatus.ACTIVE;
         info.lmeAtJoin = lifetimeMemberEarnings;
         activeMemberCount = activeMemberCount.add(1);
         emit MemberJoined(member);
@@ -205,11 +213,11 @@ contract DataUnionSidechain is Ownable {
     }
 
     function partMember(address member) public {
-        require(msg.sender == member || joinPartAgents[msg.sender] == ActiveStatus.Active, "error_notPermitted");
+        require(msg.sender == member || joinPartAgents[msg.sender] == ActiveStatus.ACTIVE, "error_notPermitted");
         MemberInfo storage info = memberData[member];
-        require(info.status == ActiveStatus.Active, "error_notActiveMember");
+        require(info.status == ActiveStatus.ACTIVE, "error_notActiveMember");
         info.earningsBeforeLastJoin = getEarnings(member);
-        info.status = ActiveStatus.Inactive;
+        info.status = ActiveStatus.INACTIVE;
         activeMemberCount = activeMemberCount.sub(1);
         inactiveMemberCount = inactiveMemberCount.add(1);
         emit MemberParted(member);
@@ -265,8 +273,8 @@ contract DataUnionSidechain is Ownable {
         info.earningsBeforeLastJoin = info.earningsBeforeLastJoin.add(amount);
 
         // allow seeing and withdrawing earnings
-        if (info.status == ActiveStatus.None) {
-            info.status = ActiveStatus.Inactive;
+        if (info.status == ActiveStatus.NONE) {
+            info.status = ActiveStatus.INACTIVE;
             inactiveMemberCount = inactiveMemberCount.add(1);
         }
     }
@@ -443,5 +451,29 @@ contract DataUnionSidechain is Ownable {
         else require(token.transfer(to, amount), "error_transfer");
         emit EarningsWithdrawn(from, amount);
         return amount;
+    }
+
+    function migrate() public onlyOwner {
+        address newMediator = migrationManager.currentMediator();
+        if(newMediator != address(0) && newMediator != address(tokenMediator)) {
+            emit MigrateMediator(newMediator, address(tokenMediator));
+            tokenMediator = newMediator;
+        }
+        IERC677 newToken = IERC677(migrationManager.currentToken());
+        if(address(newToken) != address(0) && address(newToken) != address(token) &&
+            migrationManager.oldToken() == address(token)) {
+            refreshRevenue();
+            uint oldBalance = token.balanceOf(address(this));
+            uint newBalance = newToken.balanceOf(address(this));
+            if(oldBalance != 0) {
+                token.approve(address(migrationManager), oldBalance);
+                migrationManager.swap(oldBalance);
+                require(token.balanceOf(address(this)) == 0, "tokens_not_sent");
+                //require at least oldBalance more new tokens
+                require(newToken.balanceOf(address(this)).sub(newBalance) >= oldBalance, "tokens_not_received");
+            }
+            emit MigrateToken(address(newToken), address(token), oldBalance);
+            token = newToken;
+        }
     }
 }
