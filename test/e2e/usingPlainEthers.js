@@ -9,9 +9,12 @@ const Token = require("../../build/contracts/IERC20.json")
 const DataUnionSidechain = require("../../build/contracts/DataUnionSidechain.json")
 const ITokenMediator = require("../../build/contracts/ITokenMediator.json")
 const IAMB = require("../../build/contracts/IAMB.json")
-
+const MainnetMigrationManager = require("../../build/contracts/MainnetMigrationManager.json")
+const SidechainMigrationManager = require("../../build/contracts/SidechainMigrationManager.json")
+const TestToken = require("../../build/contracts/TestToken.json")
 const {
     Contract,
+    ContractFactory,
     Wallet,
     BigNumber,
     providers: { JsonRpcProvider },
@@ -33,6 +36,8 @@ const {
     deployDataUnionFactorySidechain,
     deployDataUnionFactoryMainnet,
     getTemplateSidechain,
+    deployMainnetMigrationManager,
+    deploySidechainMigrationManager
 } = require("../../util/libDU")
 
 const providerSidechain = new JsonRpcProvider({
@@ -53,15 +58,17 @@ const foreignMediator = new Contract(FOREIGN_ERC677_MEDIATOR, ITokenMediator.abi
 const payForSignatureTransport = true
 const userRequestForSignatureEventTopic = id("UserRequestForSignature(bytes32,bytes)")
 const userRequestForSignatureInterface = new Interface(["event UserRequestForSignature(bytes32 indexed messageId, bytes encodedData)"])
-let factoryMainnet, mainnetAmb, sidechainAmb
+let factoryMainnet, mainnetAmb, sidechainAmb, mainnetMigrationMgr, sidechainMigrationMgr
 
 describe("Data Union tests using only ethers.js directly", () => {
 
     before(async function () {
         this.timeout(process.env.TEST_TIMEOUT || 60000)
-        const factorySidechain = await deployDataUnionFactorySidechain(walletSidechain)
+        mainnetMigrationMgr = await deployMainnetMigrationManager(walletMainnet)
+        sidechainMigrationMgr = await deploySidechainMigrationManager(walletSidechain) 
+        const factorySidechain = await deployDataUnionFactorySidechain(walletSidechain, sidechainMigrationMgr.address)
         const templateSidechain = getTemplateSidechain()
-        factoryMainnet = await deployDataUnionFactoryMainnet(walletMainnet, templateSidechain.address, factorySidechain.address)
+        factoryMainnet = await deployDataUnionFactoryMainnet(walletMainnet, templateSidechain.address, factorySidechain.address, mainnetMigrationMgr.address)
         log(`Deployed factory contracts sidechain ${factorySidechain.address}, mainnet ${factoryMainnet.address}`)
         const HOME_AMB = await homeMediator.bridgeContract()
         const FOREIGN_AMB = await foreignMediator.bridgeContract()
@@ -101,7 +108,33 @@ describe("Data Union tests using only ethers.js directly", () => {
         assert(balanceAfter.sub(balanceBefore).eq(BigNumber.from(sendAmount).div(2)))
         //assert.equal(balanceAfter.sub(balanceBefore).toString(), bigNumberify(sendAmount).div("2").toString())
 
+
+        //test migrate
+        const testAmount = "1000000000000000000"
+        const testToken = await deployTestToken(walletSidechain, sidechainMigrationMgr.address, BigNumber.from(testAmount))
+        const smmbal = await testToken.balanceOf(sidechainMigrationMgr.address)
+        const dubal = await erc677Sidechain.balanceOf(duSidechain.address)
+        //log(`s ${smmbal} ${dubal}`)
+        log(`testing migrate to new token`)
+        var tx
+        tx = await sidechainMigrationMgr.setCurrentToken(testToken.address)
+        await tx.wait()
+        tx = await sidechainMigrationMgr.setOldToken(erc677Sidechain.address)
+        await tx.wait()
+        log(`migrate`)
+
+        tx = await duSidechain.migrate({gasLimit: 4000000})
+        await tx.wait()
+        log(`migrated`)
+        //TODO install bridge mediator for testToken and send to mainnet
+        tx = await duSidechain.withdrawAll(member2, false)
+        await tx.wait()
+        const balanceAfter2 = await testToken.balanceOf(member2)
+        log(`checking balance in new token`)
+        assert(balanceAfter2.eq(BigNumber.from(sendAmount).div(2)))
     })
+
+
 })
 
 // goes over bridge => extra wait
@@ -143,7 +176,10 @@ async function testSend(duMainnet, duSidechain, tokenWei) {
 async function withdraw(duSidechain, member) {
 
     const balanceBefore = await erc20Mainnet.balanceOf(member)
-    log(`withdraw for ${member} (mainnet balance ${balanceBefore})`)
+    const earnings = await duSidechain.getWithdrawableEarnings(member)
+    log(`withdraw for ${member} (mainnet balance ${balanceBefore}) (earnings ${earnings})`)
+    const owner = await duSidechain.owner()
+    log(`du owner ${owner}`)
     const tx = await duSidechain.withdrawAll(member, true)
     const tr = await tx.wait()
 
@@ -193,6 +229,16 @@ async function addMembers(duSidechain, members) {
     const tx = await duSidechain.addMembers(members)
     await tx.wait()
     log(`Added members ${members} to DU ${duSidechain.address}`)
+}
+
+async function deployTestToken(wallet, recipient, initialAmount) {
+    const templateDeployer = new ContractFactory(TestToken.abi, TestToken.bytecode, wallet)
+    const templateTx = await templateDeployer.deploy("test","tst", { gasLimit: 6000000 })
+    const testToken = await templateTx.deployed()
+    const tx = await testToken.mint(recipient, initialAmount)
+    await tx.wait()
+    log(`created TestToken ${testToken.address} and minted ${initialAmount} for ${recipient}`)
+    return testToken
 }
 
 async function printStats(duSidechain, member) {

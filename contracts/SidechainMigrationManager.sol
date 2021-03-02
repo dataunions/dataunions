@@ -12,11 +12,15 @@ contract SidechainMigrationManager is Ownable, ISidechainMigrationManager {
     event Withdrawal(address indexed owner, uint amount);
     event Swap(address indexed user, address indexed fromToken, address indexed toToken, uint amount);
 
-    address override public oldToken;
     address override public currentToken;
+    address override public oldToken;
     address override public currentMediator;
     
-    constructor() public Ownable(msg.sender) {}
+    constructor(address _currentToken, address _oldToken, address _currentMediator) public Ownable(msg.sender) {
+        currentToken = _currentToken;
+        oldToken = _oldToken;
+        currentMediator = _currentMediator;
+    }
 
     function setOldToken(address oldToken_) public onlyOwner {
         emit OldTokenChange(oldToken_, oldToken);

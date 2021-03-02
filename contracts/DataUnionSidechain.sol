@@ -34,8 +34,8 @@ contract DataUnionSidechain is Ownable {
     event NewMemberEthSent(uint amountWei);
 
     //migrate token and mediator
-    event MigrateToken(address indexed currentToken, address indexed oldToken, uint amountMigrated);
-    event MigrateMediator(address indexed currentMediator, address indexed oldMediator);
+    event MigrateToken(address indexed newToken, address indexed oldToken, uint amountMigrated);
+    event MigrateMediator(address indexed newMediator, address indexed oldMediator);
 
 
     struct MemberInfo {
@@ -454,25 +454,26 @@ contract DataUnionSidechain is Ownable {
     }
 
     function migrate() public onlyOwner {
-        address currentMediator = migrationManager.currentMediator();
-        if(currentMediator != address(0) && currentMediator != address(tokenMediator)) {
-            emit MigrateMediator(currentMediator, address(tokenMediator));
-            tokenMediator = currentMediator;
+        address newMediator = migrationManager.currentMediator();
+        if(newMediator != address(0) && newMediator != address(tokenMediator)) {
+            emit MigrateMediator(newMediator, address(tokenMediator));
+            tokenMediator = newMediator;
         }
-        IERC677 currentToken = IERC677(migrationManager.currentToken());
-        if(address(currentToken) != address(0) && address(currentToken) != address(token)) {
+        IERC677 newToken = IERC677(migrationManager.currentToken());
+        if(address(newToken) != address(0) && address(newToken) != address(token) &&
+            migrationManager.oldToken() == address(token)) {
             refreshRevenue();
             uint oldBalance = token.balanceOf(address(this));
-            uint newBalance = currentToken.balanceOf(address(this));
+            uint newBalance = newToken.balanceOf(address(this));
             if(oldBalance != 0) {
                 token.approve(address(migrationManager), oldBalance);
                 migrationManager.swap(oldBalance);
                 require(token.balanceOf(address(this)) == 0, "tokens_not_sent");
                 //require at least oldBalance more new tokens
-                require(currentToken.balanceOf(address(this)).sub(newBalance) >= oldBalance, "tokens_not_received");
+                require(newToken.balanceOf(address(this)).sub(newBalance) >= oldBalance, "tokens_not_received");
             }
-            emit MigrateToken(address(currentToken), address(token), oldBalance);
-            token = currentToken;
+            emit MigrateToken(address(newToken), address(token), oldBalance);
+            token = newToken;
         }
     }
 }

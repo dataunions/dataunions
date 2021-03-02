@@ -12,7 +12,10 @@ contract MainnetMigrationManager is Ownable, FactoryConfig {
     address override public currentToken;
     address override public currentMediator;
     
-    constructor() public Ownable(msg.sender) {}
+    constructor(address _currentToken, address _currentMediator) public Ownable(msg.sender) {
+        currentToken = _currentToken;
+        currentMediator = _currentMediator;
+    }
 
     function setCurrentToken(address currentToken_) public onlyOwner {
         emit CurrentTokenChange(currentToken_, currentToken);

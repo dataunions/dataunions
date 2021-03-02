@@ -1,3 +1,4 @@
+const { BigNumber } = require("ethers")
 const Web3 = require("web3")
 const w3 = new Web3(web3.currentProvider)
 const { BN, toWei } = w3.utils
@@ -6,6 +7,7 @@ const DataUnionSidechain = artifacts.require("./DataUnionSidechain.sol")
 const TestToken = artifacts.require("./TestToken.sol")
 const SidechainMigrationManager = artifacts.require("./SidechainMigrationManager.sol")
 const log = require("debug")("Streamr:du:test:DataUnionSidechain")
+const zeroAddress = "0x0000000000000000000000000000000000000000"
 //const log = console.log  // for debugging?
 
 /**
@@ -46,11 +48,9 @@ contract("DataUnionSidechain", accounts => {
             uint256 defaultNewMemberEth
         ) 
         */
-        migrationManager = await SidechainMigrationManager.new({ from: creator })
         testToken = await TestToken.new("name", "symbol", { from: creator })
-        await migrationManager.setCurrentToken(testToken.address, { from: creator })
-        //this is a dummy non-zero address. mediator not used
-        await migrationManager.setCurrentMediator(agents[0], { from: creator })
+        //mediator is a dummy non-zero address. mediator not used
+        migrationManager = await SidechainMigrationManager.new(testToken.address, zeroAddress, agents[0], { from: creator })
         migrateToken = await TestToken.new("migrate", "m", { from: creator })
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
         await dataUnionSidechain.initialize(creator, migrationManager.address, agents, agents[0], "1", {from: creator})

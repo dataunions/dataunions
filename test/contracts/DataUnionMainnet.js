@@ -37,9 +37,7 @@ contract("DataUnionMainnet", accounts => {
         const dummy = testToken.address
         mockAMB = await MockAMB.new({from: creator})
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
-        migrationManager = await MainnetMigrationManager.new({ from: creator })
-        await migrationManager.setCurrentToken(testToken.address, { from: creator })
-        await migrationManager.setCurrentMediator(mockTokenMediator.address, { from: creator })
+        migrationManager = await MainnetMigrationManager.new(testToken.address, mockTokenMediator.address, { from: creator })
         dataUnionMainnet = await DataUnionMainnet.new({from: creator})
         migrateToken = await TestToken.new("migrate", "m", { from: creator })
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
