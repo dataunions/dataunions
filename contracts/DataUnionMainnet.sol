@@ -7,6 +7,8 @@ import "./PurchaseListener.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
 import "./ITokenMediator.sol";
+import "./ISingleTokenMediator.sol";
+import "./IMultiTokenMediator.sol";
 import "./FactoryConfig.sol";
 
 contract DataUnionMainnet is Ownable, PurchaseListener {
@@ -151,10 +153,10 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         //MultiAMB 0xb1516c26 == bytes4(keccak256(abi.encodePacked("multi-erc-to-erc-amb")))
         //Single token AMB 0x76595b56 ==  bytes4(keccak256(abi.encodePacked("erc-to-erc-amb")))
         if(bridgeMode == 0xb1516c26) {
-            tokenMediator.relayTokens(address(token), sidechainAddress(), memberEarnings);
+            IMultiTokenMediator(address(tokenMediator)).relayTokens(address(token), sidechainAddress(), memberEarnings);
         }
         else if(bridgeMode == 0x76595b56){
-            tokenMediator.relayTokens(sidechainAddress(), memberEarnings);
+            ISingleTokenMediator(address(tokenMediator)).relayTokens(sidechainAddress(), memberEarnings);
         }
         else{
             revert("unknown_bridge_mode");
