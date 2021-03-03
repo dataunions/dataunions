@@ -4,10 +4,15 @@ const DATACOIN_ADDRESS = "0xbAA81A0179015bE47Ad439566374F2Bae098686F"
 const HOME_ERC677_MEDIATOR = "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F"
 const FOREIGN_ERC677_MEDIATOR = "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F"
 const HOME_ERC677 = "0x73Be21733CC5D08e1a14Ea9a399fb27DB3BEf8fF"
+const HOME_MULTIMEDIATOR = "0x41B89Db86BE735c03A9296437E39F5FDAdC4c678"
+const FOREIGN_MULTIMEDIATOR = "0x6346Ed242adE018Bd9320D5E3371c377BAB29c31"
+
+
 
 const Token = require("../../build/contracts/IERC20.json")
 const DataUnionSidechain = require("../../build/contracts/DataUnionSidechain.json")
 const ITokenMediator = require("../../build/contracts/ITokenMediator.json")
+const IMultiTokenMediator = require("../../build/contracts/IMultiTokenMediator.json")
 const IAMB = require("../../build/contracts/IAMB.json")
 //const MainnetMigrationManager = require("../../build/contracts/MainnetMigrationManager.json")
 //const SidechainMigrationManager = require("../../build/contracts/SidechainMigrationManager.json")
@@ -55,10 +60,13 @@ const erc677Sidechain = new Contract(HOME_ERC677, Token.abi, walletSidechain)
 const erc20Mainnet = new Contract(DATACOIN_ADDRESS, Token.abi, walletMainnet)
 const homeMediator = new Contract(HOME_ERC677_MEDIATOR, ITokenMediator.abi, walletSidechain)
 const foreignMediator = new Contract(FOREIGN_ERC677_MEDIATOR, ITokenMediator.abi, walletMainnet)
+const homeMultiMediator = new Contract(HOME_MULTIMEDIATOR, IMultiTokenMediator.abi, walletSidechain)
+const foreignMultiMediator = new Contract(FOREIGN_MULTIMEDIATOR, IMultiTokenMediator.abi, walletMainnet)
 const payForSignatureTransport = true
 const userRequestForSignatureEventTopic = id("UserRequestForSignature(bytes32,bytes)")
 const userRequestForSignatureInterface = new Interface(["event UserRequestForSignature(bytes32 indexed messageId, bytes encodedData)"])
 let factoryMainnet, mainnetAmb, sidechainAmb, mainnetMigrationMgr, sidechainMigrationMgr
+const zeroAddress = "0x0000000000000000000000000000000000000000"
 
 describe("Data Union tests using only ethers.js directly", () => {
 
@@ -100,7 +108,7 @@ describe("Data Union tests using only ethers.js directly", () => {
         await printStats(duSidechain, member)
         await testSend(duMainnet, duSidechain, sendAmount)
         await printStats(duSidechain, member)
-        await withdraw(duSidechain, member)
+        await withdraw(erc20Mainnet, duSidechain, member)
         await printStats(duSidechain, member)
 
         const balanceAfter = await erc20Mainnet.balanceOf(member)
@@ -110,24 +118,35 @@ describe("Data Union tests using only ethers.js directly", () => {
 
 
         //test migrate
-        const testAmount = "1000000000000000000"
-        const testToken = await deployTestToken(walletSidechain, sidechainMigrationMgr.address, BigNumber.from(testAmount))
+        const testAmount = "100000000000000000000"
+        const testToken = await deployTestToken(walletMainnet, BigNumber.from(testAmount))
         log("testing migrate to new token")
-        var tx
-        tx = await sidechainMigrationMgr.setCurrentToken(testToken.address)
+        //var tx
+        let homeAddress
+        await until(async () => {
+            try {
+                homeAddress = await homeMultiMediator.homeTokenAddress(testToken.address)
+                log(`homeMultiMediator Token ${homeAddress}`)
+                return homeAddress != 0
+            }
+            catch (err) {
+                log("ERR " + err)
+            }
+            return false
+        }, 360000)
+        tx = await sidechainMigrationMgr.setCurrentToken(homeAddress)
         await tx.wait()
         tx = await sidechainMigrationMgr.setOldToken(erc677Sidechain.address)
         await tx.wait()
-        log("migrate")
-
+        tx = await sidechainMigrationMgr.setCurrentMediator(HOME_MULTIMEDIATOR)
+        await tx.wait()
+        log("migrate DU sidechain")
         tx = await duSidechain.migrate({gasLimit: 4000000})
         await tx.wait()
         log("migrated")
-        //TODO install bridge mediator for testToken and send to mainnet
-        tx = await duSidechain.withdrawAll(member2, false)
-        await tx.wait()
+        await withdraw(testToken, duSidechain, member2)
         const balanceAfter2 = await testToken.balanceOf(member2)
-        log("checking balance in new token")
+        log("checking balance in new token on mainnet")
         assert(balanceAfter2.eq(BigNumber.from(sendAmount).div(2)))
     })
 
@@ -170,9 +189,9 @@ async function testSend(duMainnet, duSidechain, tokenWei) {
 }
 
 // goes over bridge => extra wait
-async function withdraw(duSidechain, member) {
+async function withdraw(mainnetToken, duSidechain, member) {
 
-    const balanceBefore = await erc20Mainnet.balanceOf(member)
+    const balanceBefore = await mainnetToken.balanceOf(member)
     const earnings = await duSidechain.getWithdrawableEarnings(member)
     log(`withdraw for ${member} (mainnet balance ${balanceBefore}) (earnings ${earnings})`)
     const owner = await duSidechain.owner()
@@ -218,7 +237,7 @@ async function withdraw(duSidechain, member) {
     }
 
     log(`withdraw submitted for ${member}, waiting to receive the tokens on the mainnet side...`)
-    await until(async () => !balanceBefore.eq(await erc20Mainnet.balanceOf(member)), 360000)
+    await until(async () => !balanceBefore.eq(await mainnetToken.balanceOf(member)), 360000)
 }
 
 // "instant" in that it doesn't go over bridge
@@ -228,13 +247,26 @@ async function addMembers(duSidechain, members) {
     log(`Added members ${members} to DU ${duSidechain.address}`)
 }
 
-async function deployTestToken(wallet, recipient, initialAmount) {
+/*
+    create testToken and send across multiTokenBridge to sidechainMigrationManager
+*/
+async function deployTestToken(wallet, amt) {
     const templateDeployer = new ContractFactory(TestToken.abi, TestToken.bytecode, wallet)
     const templateTx = await templateDeployer.deploy("test","tst", { gasLimit: 6000000 })
     const testToken = await templateTx.deployed()
-    const tx = await testToken.mint(recipient, initialAmount)
+    let tx = await testToken.mint(wallet.address, amt)
     await tx.wait()
-    log(`created TestToken ${testToken.address} and minted ${initialAmount} for ${recipient}`)
+    //send some coin to the multimediator so the token is created on sidechain
+//    const amt = "1000000000000000000"
+    //tx = await testToken.mint(wallet.address, amt)
+    //await tx.wait()
+
+    tx = await testToken.approve(foreignMultiMediator.address, amt)
+    await tx.wait()
+    log(`relaying ${amt} test tokens to multi token mediator`)
+    tx = await foreignMultiMediator.relayTokens(testToken.address, sidechainMigrationMgr.address, amt )
+    await tx.wait()
+    log(`created TestToken ${testToken.address}, minted ${amt}, relayed to sidechainMigrationMgr`)
     return testToken
 }
 
