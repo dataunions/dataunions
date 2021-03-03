@@ -66,7 +66,7 @@ const payForSignatureTransport = true
 const userRequestForSignatureEventTopic = id("UserRequestForSignature(bytes32,bytes)")
 const userRequestForSignatureInterface = new Interface(["event UserRequestForSignature(bytes32 indexed messageId, bytes encodedData)"])
 let factoryMainnet, mainnetAmb, sidechainAmb, mainnetMigrationMgr, sidechainMigrationMgr
-const zeroAddress = "0x0000000000000000000000000000000000000000"
+//const zeroAddress = "0x0000000000000000000000000000000000000000"
 
 describe("Data Union tests using only ethers.js directly", () => {
 
@@ -121,7 +121,6 @@ describe("Data Union tests using only ethers.js directly", () => {
         const testAmount = "100000000000000000000"
         const testToken = await deployTestToken(walletMainnet, BigNumber.from(testAmount))
         log("testing migrate to new token")
-        //var tx
         let homeAddress
         await until(async () => {
             try {
@@ -134,6 +133,7 @@ describe("Data Union tests using only ethers.js directly", () => {
             }
             return false
         }, 360000)
+        let tx
         tx = await sidechainMigrationMgr.setCurrentToken(homeAddress)
         await tx.wait()
         tx = await sidechainMigrationMgr.setOldToken(erc677Sidechain.address)
@@ -256,14 +256,11 @@ async function deployTestToken(wallet, amt) {
     const testToken = await templateTx.deployed()
     let tx = await testToken.mint(wallet.address, amt)
     await tx.wait()
-    //send some coin to the multimediator so the token is created on sidechain
-//    const amt = "1000000000000000000"
-    //tx = await testToken.mint(wallet.address, amt)
-    //await tx.wait()
 
+    //send coins to sidechainMigrationMgr via multiTokenMediator
     tx = await testToken.approve(foreignMultiMediator.address, amt)
     await tx.wait()
-    log(`relaying ${amt} test tokens to multi token mediator`)
+    log(`relaying ${amt} test tokens to sidechainMigrationMgr`)
     tx = await foreignMultiMediator.relayTokens(testToken.address, sidechainMigrationMgr.address, amt )
     await tx.wait()
     log(`created TestToken ${testToken.address}, minted ${amt}, relayed to sidechainMigrationMgr`)

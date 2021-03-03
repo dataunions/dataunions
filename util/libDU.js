@@ -32,7 +32,7 @@ async function deployMainnetMigrationManager(wallet) {
     var tx = await migrationMgrDeployer.deploy(foreign_erc20, foreign_erc_mediator)
     const migrationManager = await tx.deployed()
     log(`Mainnet migrationManager: ${migrationManager.address}`)
-    return migrationManager;
+    return migrationManager
 }
 
 async function deploySidechainMigrationManager(wallet) {
