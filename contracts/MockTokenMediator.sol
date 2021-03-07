@@ -1,7 +1,6 @@
 pragma solidity 0.6.6;
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./ISingleTokenMediator.sol";
-import "./IMultiTokenMediator.sol";
 
 contract MockTokenMediator is ISingleTokenMediator {
     ERC20 public token;
@@ -28,4 +27,8 @@ contract MockTokenMediator is ISingleTokenMediator {
         require(token.transferFrom(msg.sender, _receiver, _value), "transfer_rejected_in_mock");
     }
 
+    function relayTokensAndCall(address _token, address _receiver, uint256 _value, bytes memory) override public {
+        require(_token == address(token), "wrong_token");
+        relayTokens(_receiver, _value);
+    }
 }
