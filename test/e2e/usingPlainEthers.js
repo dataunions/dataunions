@@ -212,7 +212,7 @@ async function testSend(duMainnet, duSidechain, tokenWei) {
     log(`Confirmed DU sidechain balance ${duSideBalanceBefore} -> ${await duSidechain.totalEarnings()}`)
 }
 
-async function getSidechainDu(mainnetDu){
+async function getSidechainDu(mainnetDu) {
     const sidechainDu = await mainnetDu.sidechainAddress()
     return new Contract(
         sidechainDu,
@@ -221,7 +221,7 @@ async function getSidechainDu(mainnetDu){
     )
 }
 
-async function getMainnetDu(sidechainDu){
+async function getMainnetDu(sidechainDu) {
     const mainnetDu = await sidechainDu.dataUnionMainnet()
     return new Contract(
         mainnetDu,
@@ -230,7 +230,7 @@ async function getMainnetDu(sidechainDu){
     )
 }
 
-async function getTokenContracts(mainnetDu){
+async function getTokenContracts(mainnetDu) {
     const mainnetTokenAddress = await mainnetDu.token()
     const mainnetToken = new Contract(
         mainnetTokenAddress,
@@ -250,7 +250,7 @@ async function getTokenContracts(mainnetDu){
 // goes over bridge => extra wait
 async function withdraw(duSidechain, member) {
     const duMainnet = await getMainnetDu(duSidechain)
-    const [mainnetToken, sidechainToken] = await getTokenContracts(duMainnet)
+    const [mainnetToken, ] = await getTokenContracts(duMainnet)
     const balanceBefore = await mainnetToken.balanceOf(member)
     const earnings = await duSidechain.getWithdrawableEarnings(member)
     log(`withdraw for ${member} (mainnet balance ${balanceBefore}) (earnings ${earnings})`)
