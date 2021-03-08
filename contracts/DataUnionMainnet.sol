@@ -7,8 +7,6 @@ import "./PurchaseListener.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
 import "./ITokenMediator.sol";
-import "./ISingleTokenMediator.sol";
-import "./IMultiTokenMediator.sol";
 import "./FactoryConfig.sol";
 
 contract DataUnionMainnet is Ownable, PurchaseListener {
@@ -149,19 +147,8 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         // transfer memberEarnings
         require(token.approve(address(tokenMediator), 0), "approve_failed");
         require(token.approve(address(tokenMediator), memberEarnings), "approve_failed");
-        bytes4 bridgeMode = tokenMediator.getBridgeMode();
-        //MultiAMB 0xb1516c26 == bytes4(keccak256(abi.encodePacked("multi-erc-to-erc-amb")))
-        //Single token AMB 0x76595b56 ==  bytes4(keccak256(abi.encodePacked("erc-to-erc-amb")))
-        if(bridgeMode == 0xb1516c26) {
-            IMultiTokenMediator(address(tokenMediator)).relayTokens(address(token), sidechainAddress(), memberEarnings);
-        }
-        else if(bridgeMode == 0x76595b56){
-            ISingleTokenMediator(address(tokenMediator)).relayTokens(sidechainAddress(), memberEarnings);
-        }
-        else{
-            revert("unknown_bridge_mode");
-        }
-
+        //must send some no-zero data to trigger callback fn
+        tokenMediator.relayTokensAndCall(address(token), sidechainAddress(), memberEarnings, abi.encodePacked("DU2"));
         //check that memberEarnings were sent
         require(unaccountedTokens() == 0, "not_transferred");
         tokensSentToBridge = tokensSentToBridge.add(memberEarnings);

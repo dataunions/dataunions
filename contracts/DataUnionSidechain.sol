@@ -5,8 +5,9 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "./IERC677.sol";
 import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "./ISidechainMigrationManager.sol";
+import "./IERC20Receiver.sol";
 
-contract DataUnionSidechain is Ownable {
+contract DataUnionSidechain is Ownable, IERC20Receiver {
     using SafeMath for uint256;
 
     //used to describe members and join part agents
@@ -108,6 +109,14 @@ contract DataUnionSidechain is Ownable {
         refreshRevenue();
         return true;
     }
+
+    /*
+        tokenbridge callback function
+    */
+    function onTokenBridged(address, uint256, bytes memory) override public {
+        refreshRevenue();
+    }
+
 
     /**
      * Atomic getter to get all state variables in one call
@@ -448,7 +457,11 @@ contract DataUnionSidechain is Ownable {
                 ),
                 "error_transfer"
             );
-        else require(token.transfer(to, amount), "error_transfer");
+        /*
+            transferAndCall enables transfers to another tokenbridge. 
+            in this case to = bridge, and the recipient on other chain is from
+        */
+        else require(token.transferAndCall(to, amount, toBytes(from)), "error_transfer");
         emit EarningsWithdrawn(from, amount);
         return amount;
     }

@@ -11,6 +11,8 @@ const FOREIGN_MULTIMEDIATOR = "0x6346Ed242adE018Bd9320D5E3371c377BAB29c31"
 
 const Token = require("../../build/contracts/IERC20.json")
 const DataUnionSidechain = require("../../build/contracts/DataUnionSidechain.json")
+const DataUnionMainnet = require("../../build/contracts/DataUnionMainnet.json")
+
 const ITokenMediator = require("../../build/contracts/ITokenMediator.json")
 const IMultiTokenMediator = require("../../build/contracts/IMultiTokenMediator.json")
 const IAMB = require("../../build/contracts/IAMB.json")
@@ -84,7 +86,7 @@ describe("Data Union tests using only ethers.js directly", () => {
         sidechainAmb = new Contract(FOREIGN_AMB, IAMB.abi, walletMainnet)
     })
 
-    it("can deploy, add members and withdraw", async function () {
+    it("can deploy, add members and withdraw, migrate and withdraw in new token", async function () {
         this.timeout(process.env.TEST_TIMEOUT || 300000)
         const member = "0x4178baBE9E5148c6D5fd431cD72884B07Ad855a0"
         const member2 = "0x0101010101010101010010101010101001010101"
@@ -108,7 +110,7 @@ describe("Data Union tests using only ethers.js directly", () => {
         await printStats(duSidechain, member)
         await testSend(duMainnet, duSidechain, sendAmount)
         await printStats(duSidechain, member)
-        await withdraw(erc20Mainnet, duSidechain, member)
+        await withdraw(duSidechain, member)
         await printStats(duSidechain, member)
 
         const balanceAfter = await erc20Mainnet.balanceOf(member)
@@ -134,35 +136,57 @@ describe("Data Union tests using only ethers.js directly", () => {
             return false
         }, 360000)
         let tx
+        log("migrate DU sidechain")
         tx = await sidechainMigrationMgr.setCurrentToken(homeAddress)
         await tx.wait()
         tx = await sidechainMigrationMgr.setOldToken(erc677Sidechain.address)
         await tx.wait()
         tx = await sidechainMigrationMgr.setCurrentMediator(HOME_MULTIMEDIATOR)
         await tx.wait()
-        log("migrate DU sidechain")
         tx = await duSidechain.migrate({gasLimit: 4000000})
         await tx.wait()
         log("migrated")
-        await withdraw(testToken, duSidechain, member2)
-        const balanceAfter2 = await testToken.balanceOf(member2)
+
+        log("migrate DU mainnet")
+        tx = await mainnetMigrationMgr.setCurrentToken(testToken.address)
+        await tx.wait()
+        tx = await mainnetMigrationMgr.setCurrentMediator(FOREIGN_MULTIMEDIATOR)
+        await tx.wait()
+        tx = await duMainnet.migrate({gasLimit: 4000000})
+        await tx.wait()
+        log("migrated")
+
+
+        
+        await withdraw(duSidechain, member2)
+        let balanceAfter2 = await testToken.balanceOf(member2)
         log("checking balance in new token on mainnet")
         assert(balanceAfter2.eq(BigNumber.from(sendAmount).div(2)))
-    })
 
+        //now that we've migrated, testSend sends the new token
+        log("sending new token on mainnet")
+        await testSend(duMainnet, duSidechain, sendAmount)
+        await withdraw(duSidechain, member2)
+        balanceAfter2 = await testToken.balanceOf(member2)
+        log("checking balance in new token on mainnet")
+        // should receive 2 * 1/2 sendAmounts
+        assert(balanceAfter2.eq(BigNumber.from(sendAmount)))
+    })
 
 })
 
 // goes over bridge => extra wait
 // duSidechain needed just for the wait!
 async function testSend(duMainnet, duSidechain, tokenWei) {
-    const bal = await erc20Mainnet.balanceOf(walletMainnet.address)
+    const [mainnetToken, sidechainToken] = await getTokenContracts(duMainnet)
+
+    const bal = await mainnetToken.balanceOf(walletMainnet.address)
     log(`User wallet mainnet balance ${bal}`)
 
     //transfer ERC20 to mainet contract
-    const tx1 = await erc20Mainnet.transfer(duMainnet.address, tokenWei)
+    const tx1 = await mainnetToken.transfer(duMainnet.address, tokenWei)
     await tx1.wait()
-    log(`Transferred ${tokenWei} to ${duMainnet.address}, sending to bridge`)
+    log(`Transferred ${tokenWei} ${mainnetToken.address} to ${duMainnet.address}, sending to bridge`)
 
     //sends tokens to sidechain contract via bridge, calls sidechain.refreshRevenue()
     const duSideBalanceBefore = await duSidechain.totalEarnings()
@@ -174,7 +198,7 @@ async function testSend(duMainnet, duSidechain, tokenWei) {
 
     await until(async () => {
         try {
-            const ercbal = await erc677Sidechain.balanceOf(duSidechain.address)
+            const ercbal = await sidechainToken.balanceOf(duSidechain.address)
             let rslt = !duSideBalanceBefore.eq(await duSidechain.totalEarnings())
             log(`Sidechain ERC677 balance ${ercbal} ${rslt}`)
             return rslt
@@ -188,9 +212,45 @@ async function testSend(duMainnet, duSidechain, tokenWei) {
     log(`Confirmed DU sidechain balance ${duSideBalanceBefore} -> ${await duSidechain.totalEarnings()}`)
 }
 
-// goes over bridge => extra wait
-async function withdraw(mainnetToken, duSidechain, member) {
+async function getSidechainDu(mainnetDu) {
+    const sidechainDu = await mainnetDu.sidechainAddress()
+    return new Contract(
+        sidechainDu,
+        DataUnionSidechain.abi,
+        walletSidechain
+    )
+}
 
+async function getMainnetDu(sidechainDu) {
+    const mainnetDu = await sidechainDu.dataUnionMainnet()
+    return new Contract(
+        mainnetDu,
+        DataUnionMainnet.abi,
+        walletMainnet
+    )
+}
+
+async function getTokenContracts(mainnetDu) {
+    const mainnetTokenAddress = await mainnetDu.token()
+    const mainnetToken = new Contract(
+        mainnetTokenAddress,
+        Token.abi,
+        walletMainnet
+    )
+    const sidechainDu = await getSidechainDu(mainnetDu)
+    const sidechainTokenAddress = await sidechainDu.token()
+    const sidechainToken = new Contract(
+        sidechainTokenAddress,
+        Token.abi,
+        walletSidechain
+    ) 
+    return [mainnetToken, sidechainToken]
+}
+
+// goes over bridge => extra wait
+async function withdraw(duSidechain, member) {
+    const duMainnet = await getMainnetDu(duSidechain)
+    const [mainnetToken, ] = await getTokenContracts(duMainnet)
     const balanceBefore = await mainnetToken.balanceOf(member)
     const earnings = await duSidechain.getWithdrawableEarnings(member)
     log(`withdraw for ${member} (mainnet balance ${balanceBefore}) (earnings ${earnings})`)
@@ -254,7 +314,8 @@ async function deployTestToken(wallet, amt) {
     const templateDeployer = new ContractFactory(TestToken.abi, TestToken.bytecode, wallet)
     const templateTx = await templateDeployer.deploy("test","tst", { gasLimit: 6000000 })
     const testToken = await templateTx.deployed()
-    let tx = await testToken.mint(wallet.address, amt)
+    //mint amt to wallet + send amt to foreignMultiMediator
+    let tx = await testToken.mint(wallet.address, amt.mul(2))
     await tx.wait()
 
     //send coins to sidechainMigrationMgr via multiTokenMediator
@@ -268,9 +329,12 @@ async function deployTestToken(wallet, amt) {
 }
 
 async function printStats(duSidechain, member) {
-    const bal1 = await erc20Mainnet.balanceOf(member)
+    const duMainnet = await getMainnetDu(duSidechain)
+    const [mainnetToken, sidechainToken] = await getTokenContracts(duMainnet)
+    log(`mainnetToken ${mainnetToken.address} sidechainToken ${sidechainToken.address}`)
+    const bal1 = await mainnetToken.balanceOf(member)
     log(`${member} mainnet balance ${bal1}`)
-    const bal2 = await erc677Sidechain.balanceOf(member)
+    const bal2 = await sidechainToken.balanceOf(member)
     log(`${member} side-chain balance ${bal2}`)
 
     const memberData = await duSidechain.memberData(member)
@@ -283,6 +347,6 @@ async function printStats(duSidechain, member) {
         log(`${member} side-chain total earnings ${bal4}`)
     }
 
-    const bal5 = await erc677Sidechain.balanceOf(duSidechain.address)
+    const bal5 = await sidechainToken.balanceOf(duSidechain.address)
     log(`side-chain DU ${duSidechain.address} token balance ${bal5}`)
 }
