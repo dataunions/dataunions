@@ -155,11 +155,22 @@ describe("Data Union tests using only ethers.js directly", () => {
         tx = await duMainnet.migrate({gasLimit: 4000000})
         await tx.wait()
         log("migrated")
+
+
         
         await withdraw(duSidechain, member2)
-        const balanceAfter2 = await testToken.balanceOf(member2)
+        let balanceAfter2 = await testToken.balanceOf(member2)
         log("checking balance in new token on mainnet")
         assert(balanceAfter2.eq(BigNumber.from(sendAmount).div(2)))
+
+        //now that we've migrated, testSend sends the new token
+        log("sending new token on mainnet")
+        await testSend(duMainnet, duSidechain, sendAmount)
+        await withdraw(duSidechain, member2)
+        balanceAfter2 = await testToken.balanceOf(member2)
+        log("checking balance in new token on mainnet")
+        // should receive 2 * 1/2 sendAmounts
+        assert(balanceAfter2.eq(BigNumber.from(sendAmount)))
     })
 
 })
@@ -175,7 +186,7 @@ async function testSend(duMainnet, duSidechain, tokenWei) {
     //transfer ERC20 to mainet contract
     const tx1 = await mainnetToken.transfer(duMainnet.address, tokenWei)
     await tx1.wait()
-    log(`Transferred ${tokenWei} to ${duMainnet.address}, sending to bridge`)
+    log(`Transferred ${tokenWei} ${mainnetToken.address} to ${duMainnet.address}, sending to bridge`)
 
     //sends tokens to sidechain contract via bridge, calls sidechain.refreshRevenue()
     const duSideBalanceBefore = await duSidechain.totalEarnings()
@@ -303,7 +314,8 @@ async function deployTestToken(wallet, amt) {
     const templateDeployer = new ContractFactory(TestToken.abi, TestToken.bytecode, wallet)
     const templateTx = await templateDeployer.deploy("test","tst", { gasLimit: 6000000 })
     const testToken = await templateTx.deployed()
-    let tx = await testToken.mint(wallet.address, amt)
+    //mint amt to wallet + send amt to foreignMultiMediator
+    let tx = await testToken.mint(wallet.address, amt.mul(2))
     await tx.wait()
 
     //send coins to sidechainMigrationMgr via multiTokenMediator
