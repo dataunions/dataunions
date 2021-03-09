@@ -19,7 +19,7 @@ jobs:
         - sudo /etc/init.d/mysql stop
         - sudo ifconfig docker0 10.200.10.1/24
         - git clone https://github.com/streamr-dev/streamr-docker-dev.git
-        - streamr-docker-dev/streamr-docker-dev/bin.sh start parity-sidechain-node0 parity-node0 bridge --wait
+        - streamr-docker-dev/streamr-docker-dev/bin.sh start --wait
         - docker ps
 # print system usage stats
         - uname -a
