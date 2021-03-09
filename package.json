@@ -25,7 +25,7 @@
     "web3": "^1.2.4"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^3.1.0",
+    "@openzeppelin/contracts": "^3.4.1",
     "ethers": "^5.0.26"
   }
 }
