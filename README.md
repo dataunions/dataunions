@@ -45,7 +45,7 @@ So you can always fetch the DataUnionSidechain address deterministically by call
 DataUnionMainnet handles token passing and admin fees only. DataUnionMainnet does not have membership information because that is managed on the sidechain. Thus the bulk of the accounting is done on DataUnionSidechain.
 
 ## Sidechain Contract
-DataUnionSidechain records member joins and parts made by "agents". Agents are set at init, and can be added by the admin. 
+DataUnionSidechain records member joins and parts made by "agents". Agents are set at init. They be added by the admin by calling `addJoinPartAgent(address)` or `addJoinPartAgents([address1, address2, ...])` and removed by calling `removeJoinPartAgent(address)`. 
 
 #### Accounting for Equal Split in Constant Time
 
