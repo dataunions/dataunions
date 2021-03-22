@@ -1,5 +1,3 @@
-/*global web3 assert */
-
 const BN = require("bn.js")
 
 /**
