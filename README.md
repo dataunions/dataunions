@@ -24,6 +24,8 @@ The purpose of the sidechain is to **facilitate cheap join and part operations**
 
 The DataUnionFactoryMainnet and DataUnionFactorySidechain contract produce DataUnionMainnet and DataUnionSidechain instances using a cloned template. There are some nuances to this pattern: When you supply constructor args to the template, the args [configure template's initial state](https://medium.com/@hayeah/diving-into-the-ethereum-vm-part-5-the-smart-contract-creation-process-cb7b6133b855). But clones don't see template's state because they call template code with [DELEGATECALL](https://ethervm.io/#F4). So the template's initial var values are invisible to clones. For this reason, our templates use 0-arg constructors plus an `initialize()` function that sets up up ownership. Both deploy and `initialize()` are performed in the same transaction by the factory, so there is no danger that ownership of the contract is claimed by the wrong party.
 
+The factories are connected to MigrationManager contracts (operated by a trusted party such as Streamr) that specify the token and bridge details. The DataUnions have a `migrate()` method that can be used to migrate the token according to the MigrationManager at the DU admin's request.
+
 #### Note About Addresses
 The factory contracts make use of [CREATE2](https://eips.ethereum.org/EIPS/eip-1014), which creates a contract address at predictable address given by:
 `keccak256( 0xff ++ factory_address ++ salt ++ keccak256(contract_code))`
@@ -43,7 +45,7 @@ So you can always fetch the DataUnionSidechain address deterministically by call
 DataUnionMainnet handles token passing and admin fees only. DataUnionMainnet does not have membership information because that is managed on the sidechain. Thus the bulk of the accounting is done on DataUnionSidechain.
 
 ## Sidechain Contract
-DataUnionSidechain records member joins and parts made by "agents". Agents are set at init, and can be added by the admin. 
+DataUnionSidechain records member joins and parts made by "agents". Agents are set at init. They be added by the admin by calling `addJoinPartAgent(address)` or `addJoinPartAgents([address1, address2, ...])` and removed by calling `removeJoinPartAgent(address)`. 
 
 #### Accounting for Equal Split in Constant Time
 

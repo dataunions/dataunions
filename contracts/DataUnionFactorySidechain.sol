@@ -6,8 +6,9 @@ import "./CloneLib.sol";
 import "./IAMB.sol";
 import "./ITokenMediator.sol";
 import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "./ISidechainMigrationManager.sol";
 
-contract DataUnionFactorySidechain is Ownable{
+contract DataUnionFactorySidechain is Ownable {
     event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
     event UpdateNewDUInitialEth(uint amount);
     event UpdateNewDUOwnerInitialEth(uint amount);
@@ -16,20 +17,25 @@ contract DataUnionFactorySidechain is Ownable{
     event OwnerInitialEthSent(uint amountWei);
 
     address public dataUnionSidechainTemplate;
-    IAMB public amb;
-    ITokenMediator public tokenMediator;
-    
     // when sidechain DU is created, the factory sends a bit of sETH to the DU and the owner
     uint public newDUInitialEth;
     uint public newDUOwnerInitialEth;
     uint public defaultNewMemberEth;
-    address public token;
-    constructor(address _token, address _tokenMediator, address _dataUnionSidechainTemplate) public Ownable(msg.sender) {
-        token = _token;
-        tokenMediator = ITokenMediator(_tokenMediator);
+    ISidechainMigrationManager public migrationManager;
+
+    constructor(address _migrationManager, address _dataUnionSidechainTemplate) public Ownable(msg.sender) {
+        migrationManager = ISidechainMigrationManager(_migrationManager);
         dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
-        amb = IAMB(tokenMediator.bridgeContract());
     }
+
+    function amb() public view returns (IAMB) {
+        return IAMB(ITokenMediator(migrationManager.currentMediator()).bridgeContract());
+    }
+
+    function token() public view returns (address) {
+        return migrationManager.currentToken();
+    }
+    
 
     //contract is payable
     receive() external payable {}
@@ -53,11 +59,11 @@ contract DataUnionFactorySidechain is Ownable{
     }
 
 
-    function sidechainAddress(address mainetAddress)
+    function sidechainAddress(address mainnetAddress)
         public view
         returns (address proxy)
     {
-        return CloneLib.predictCloneAddressCreate2(dataUnionSidechainTemplate, address(this), bytes32(uint256(mainetAddress)));
+        return CloneLib.predictCloneAddressCreate2(dataUnionSidechainTemplate, address(this), bytes32(uint256(mainnetAddress)));
     }
 
     /*
@@ -66,14 +72,13 @@ contract DataUnionFactorySidechain is Ownable{
     */
     
     function deployNewDUSidechain(address payable owner, address[] memory agents) public returns (address) {
-        require(msg.sender == address(amb), "only_AMB");
-        address duMainnet = amb.messageSender();
+        require(msg.sender == address(amb()), "only_AMB");
+        address duMainnet = amb().messageSender();
         bytes32 salt = bytes32(uint256(duMainnet));
-        bytes memory data = abi.encodeWithSignature("initialize(address,address,address[],address,address,uint256)",
+        bytes memory data = abi.encodeWithSignature("initialize(address,address,address[],address,uint256)",
             owner,
-            token,
+            migrationManager,
             agents,
-            address(tokenMediator),
             duMainnet,
             defaultNewMemberEth
         );

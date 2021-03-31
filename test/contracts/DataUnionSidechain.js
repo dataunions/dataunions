@@ -4,8 +4,9 @@ const { BN, toWei } = w3.utils
 const { assertEqual, assertFails, assertEvent } = require("../utils/web3Assert")
 const DataUnionSidechain = artifacts.require("./DataUnionSidechain.sol")
 const TestToken = artifacts.require("./TestToken.sol")
-
+const SidechainMigrationManager = artifacts.require("./SidechainMigrationManager.sol")
 const log = require("debug")("Streamr:du:test:DataUnionSidechain")
+const zeroAddress = "0x0000000000000000000000000000000000000000"
 //const log = console.log  // for debugging?
 
 /**
@@ -34,22 +35,26 @@ contract("DataUnionSidechain", accounts => {
     const agents = accounts.slice(1, 3)
     const members = accounts.slice(3, 6)
     const others = accounts.slice(6)
-
-    let testToken, dataUnionSidechain
+    let testToken, migrateToken, dataUnionSidechain, migrationManager
 
     beforeEach(async () => {
-        // Last 2 initialize args are dummy. Doesn't talk to mainnet contract in test
-        // function initialize(
-        //   address initialOwner,
-        //   address tokenAddress,
-        //   address[] memory initialJoinPartAgents,
-        //   address tokenMediatorAddress,
-        //   address mainnetDataUnionAddress
-        // )
+        /*
+        function initialize(
+            address initialOwner,
+            address _migrationManager,
+            address[] memory initialJoinPartAgents,
+            address mainnetDataUnionAddress,
+            uint256 defaultNewMemberEth
+        ) 
+        */
         testToken = await TestToken.new("name", "symbol", { from: creator })
+        //mediator is a dummy non-zero address. mediator not used
+        migrationManager = await SidechainMigrationManager.new(testToken.address, zeroAddress, agents[0], { from: creator })
+        migrateToken = await TestToken.new("migrate", "m", { from: creator })
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
-        await dataUnionSidechain.initialize(creator, testToken.address, agents, agents[0], agents[0], "1", {from: creator})
+        await dataUnionSidechain.initialize(creator, migrationManager.address, agents, agents[0], "1", {from: creator})
         await testToken.mint(creator, toWei("10000"), { from: creator })
+        await migrateToken.mint(creator, toWei("10000"), { from: creator })
         await dataUnionSidechain.addMembers(members, {from: agents[1]})
 
         log(`DataUnionSidechain initialized at ${dataUnionSidechain.address}`)
@@ -310,5 +315,26 @@ contract("DataUnionSidechain", accounts => {
         await assertFails(dataUnionSidechain.signatureIsValid(members[1], recipient, "100", truncatedSig), "error_badSignatureLength")
         await assertFails(dataUnionSidechain.signatureIsValid(members[1], recipient, "100", badVersionSig), "error_badSignatureVersion")
         assert(!await dataUnionSidechain.signatureIsValid(members[1], recipient, "200", signature), "Bad signature was accepted as valid :(")
+    })
+
+    it("can migrate token", async () => {
+        const amount = 3000
+        await testToken.transfer(dataUnionSidechain.address, amount.toString())
+        await dataUnionSidechain.refreshRevenue({from: creator})
+
+        await migrateToken.transfer(migrationManager.address, amount.toString())
+        await migrationManager.setOldToken(testToken.address, {from: creator})
+        await migrationManager.setCurrentToken(migrateToken.address, {from: creator})
+        await assertFails(dataUnionSidechain.migrate({from: members[1]}))        
+        assertEvent(await dataUnionSidechain.migrate({from: creator}), "MigrateToken")
+        assertEqual(await testToken.balanceOf(dataUnionSidechain.address), 0)
+        assertEqual(await migrateToken.balanceOf(dataUnionSidechain.address), amount)
+        assertEqual(await testToken.balanceOf(migrationManager.address), amount)
+        assertEqual(await migrateToken.balanceOf(migrationManager.address), 0)
+
+        assertEvent(await dataUnionSidechain.withdrawAll(members[0], false, {from: members[0]}), "EarningsWithdrawn")
+        assertEqual(await migrateToken.balanceOf(members[0]), amount / members.length)
+        // agents[0] is the new dummy mediator address
+        assertEqual(await dataUnionSidechain.tokenMediator(), agents[0])
     })
 })

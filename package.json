@@ -18,19 +18,16 @@
   "license": "AGPL-3.0",
   "devDependencies": {
     "debug": "4.1.1",
-    "eslint": "5.14.1",
+    "eslint": "7.22.0",
     "openzeppelin-solidity": "3.1.0",
-    "prettier": "2.2.1",
-    "prettier-plugin-solidity": "1.0.0-beta.5",
-    "solhint": "3.3.2",
-    "solhint-plugin-prettier": "0.0.5",
-    "solidity-coverage": "^0.7.10",
-    "truffle": "^5.1.23",
+    "solhint": "3.3.4",
+    "solidity-coverage": "^0.7.16",
+    "truffle": "^5.2.5",
     "truffle-flattener": "^1.4.3",
     "web3": "^1.2.4"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^3.1.0",
-    "ethers": "^5.0.26"
+    "@openzeppelin/contracts": "^3.4.1",
+    "ethers": "^5.0.32"
   }
 }
