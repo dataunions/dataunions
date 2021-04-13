@@ -1,8 +1,8 @@
 pragma solidity 0.6.6;
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "./ITokenMediator.sol";
+import "./ISingleTokenMediator.sol";
 
-contract MockTokenMediator is ITokenMediator {
+contract MockTokenMediator is ISingleTokenMediator {
     ERC20 public token;
     address public amb;
     constructor(address _token, address _amb) public {
@@ -20,7 +20,6 @@ contract MockTokenMediator is ITokenMediator {
         return 0x76595b56;
     }
 
-
     /**
      * Transfers to address on local network
      */
@@ -28,9 +27,8 @@ contract MockTokenMediator is ITokenMediator {
         require(token.transferFrom(msg.sender, _receiver, _value), "transfer_rejected_in_mock");
     }
 
-    //not implemented in single token mediator
-    function relayTokens(address, address, uint256) override public {
-        revert("not_implemented");
+    function relayTokensAndCall(address _token, address _receiver, uint256 _value, bytes memory) override public {
+        require(_token == address(token), "wrong_token");
+        relayTokens(_receiver, _value);
     }
-
 }

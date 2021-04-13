@@ -7,6 +7,7 @@ import "./PurchaseListener.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
 import "./ITokenMediator.sol";
+import "./FactoryConfig.sol";
 
 contract DataUnionMainnet is Ownable, PurchaseListener {
     using SafeMath for uint256;
@@ -14,14 +15,15 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     event AdminFeeChanged(uint256 adminFee);
     event AdminFeeCharged(uint256 amount);
     event AdminFeesWithdrawn(address indexed admin, uint256 amount);
-
+    event MigrateToken(address indexed newToken, address indexed oldToken);
+    event MigrateMediator(address indexed newMediator, address indexed oldMediator);
     event RevenueReceived(uint256 amount);
 
-    IAMB public amb;
-    ITokenMediator public token_mediator;
-    address public sidechain_DU_factory;
-    uint256 public sidechain_maxgas;
+    ITokenMediator public tokenMediator;
+    address public sidechainDUFactory;
+    uint256 public sidechainMaxGas;
     ERC20 public token;
+    FactoryConfig public migrationManager;
 
 /*
     NOTE: any variables set below will NOT be visible in clones
@@ -29,7 +31,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 */
 
     // needed to compute sidechain address
-    address public sidechain_template_DU;
+    address public sidechainDUTemplate;
     uint256 public adminFeeFraction;
     uint256 public totalAdminFees;
     uint256 public totalAdminFeesWithdrawn;
@@ -43,11 +45,10 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     constructor() public Ownable(address(0)) {}
 
     function initialize(
-        address _token,
-        address _token_mediator,
-        address _sidechain_DU_factory,
-        uint256 _sidechain_maxgas,
-        address _sidechain_template_DU,
+        address _migrationManager,
+        address _sidechainDUFactory,
+        uint256 _sidechainMaxGas,
+        address _sidechainDUTemplate,
         address _owner,
         uint256 _adminFeeFraction,
         address[] memory agents
@@ -55,16 +56,16 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         require(!isInitialized(), "init_once");
         // must set default values here so that there are in clone state
         autoSendAdminFee = true;
+        migrationManager = FactoryConfig(_migrationManager);
 
         //during setup, msg.sender is admin
         owner = msg.sender;
 
-        token_mediator = ITokenMediator(_token_mediator);
-        amb = IAMB(token_mediator.bridgeContract());
-        token = ERC20(_token);
-        sidechain_DU_factory = _sidechain_DU_factory;
-        sidechain_maxgas = _sidechain_maxgas;
-        sidechain_template_DU = _sidechain_template_DU;
+        tokenMediator = ITokenMediator(migrationManager.currentMediator());
+        token = ERC20(migrationManager.currentToken());
+        sidechainDUFactory = _sidechainDUFactory;
+        sidechainMaxGas = _sidechainMaxGas;
+        sidechainDUTemplate = _sidechainDUTemplate;
         setAdminFee(_adminFeeFraction);
         //transfer to real admin
         owner = _owner;
@@ -73,6 +74,10 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
     function isInitialized() public view returns (bool) {
         return address(token) != address(0);
+    }
+
+    function amb() public view returns (IAMB) {
+        return IAMB(tokenMediator.bridgeContract());
     }
 
     /**
@@ -92,11 +97,11 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
     function deployNewDUSidechain(address[] memory agents) public {
         bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,address[])", owner, agents);
-        amb.requireToPassMessage(sidechain_DU_factory, data, sidechain_maxgas);
+        amb().requireToPassMessage(sidechainDUFactory, data, sidechainMaxGas);
     }
 
     function sidechainAddress() public view returns (address) {
-        return CloneLib.predictCloneAddressCreate2(sidechain_template_DU, sidechain_DU_factory, bytes32(uint256(address(this))));
+        return CloneLib.predictCloneAddressCreate2(sidechainDUTemplate, sidechainDUFactory, bytes32(uint256(address(this))));
     }
 
     /**
@@ -110,19 +115,6 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         sendTokensToBridge();
         return true;
     }
-
-/*
-2 way doesnt work atm
-    //calls withdraw(member) on home network
-    function withdraw(address member) public {
-        bytes memory data = abi.encodeWithSignature(
-            "withdraw(address,bool)",
-            member,
-            true
-        );
-        amb.requireToPassMessage(sidechainAddress(), data, sidechain_maxgas);
-    }
-    */
 
     //function onPurchase(bytes32 productId, address subscriber, uint256 endTimestamp, uint256 priceDatacoin, uint256 feeDatacoin)
     function onPurchase(bytes32, address, uint256, uint256, uint256) external override returns (bool) {
@@ -153,21 +145,10 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         if(autoSendAdminFee) withdrawAdminFees();
 
         // transfer memberEarnings
-        require(token.approve(address(token_mediator), 0), "approve_failed");
-        require(token.approve(address(token_mediator), memberEarnings), "approve_failed");
-        bytes4 bridgeMode = token_mediator.getBridgeMode();
-        //MultiAMB 0xb1516c26 == bytes4(keccak256(abi.encodePacked("multi-erc-to-erc-amb")))
-        //Single token AMB 0x76595b56 ==  bytes4(keccak256(abi.encodePacked("erc-to-erc-amb")))
-        if(bridgeMode == 0xb1516c26) {
-            token_mediator.relayTokens(address(token), sidechainAddress(), memberEarnings);
-        }
-        else if(bridgeMode == 0x76595b56){
-            token_mediator.relayTokens(sidechainAddress(), memberEarnings);
-        }
-        else{
-            revert("unknown_bridge_mode");
-        }
-
+        require(token.approve(address(tokenMediator), 0), "approve_failed");
+        require(token.approve(address(tokenMediator), memberEarnings), "approve_failed");
+        //must send some no-zero data to trigger callback fn
+        tokenMediator.relayTokensAndCall(address(token), sidechainAddress(), memberEarnings, abi.encodePacked("DU2"));
         //check that memberEarnings were sent
         require(unaccountedTokens() == 0, "not_transferred");
         tokensSentToBridge = tokensSentToBridge.add(memberEarnings);
@@ -182,5 +163,18 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         require(token.transfer(owner, withdrawable), "transfer_failed");
         emit AdminFeesWithdrawn(owner, withdrawable);
         return withdrawable;
+    }
+
+    function migrate() public onlyOwner {
+        address newToken = migrationManager.currentToken();
+        if(newToken != address(0) && newToken != address(token)) {
+            emit MigrateToken(newToken, address(token));
+            token = ERC20(newToken);
+        }
+        address newMediator = migrationManager.currentMediator();
+        if(newMediator != address(0) && newMediator != address(tokenMediator)) {
+            emit MigrateMediator(newMediator, address(tokenMediator));
+            tokenMediator = ITokenMediator(newMediator);
+        }
     }
 }

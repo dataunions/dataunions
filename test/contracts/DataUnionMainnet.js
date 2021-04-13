@@ -6,11 +6,13 @@ const DataUnionMainnet = artifacts.require("./DataUnionMainnet.sol")
 const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const MockAMB = artifacts.require("./MockAMB.sol")
 const TestToken = artifacts.require("./TestToken.sol")
+const MainnetMigrationManager = artifacts.require("./MainnetMigrationManager.sol")
+
 
 contract("DataUnionMainnet", accounts => {
     const creator = accounts[0]
     const sender = accounts[1]
-    let testToken, dataUnionMainnet, mockAMB, mockTokenMediator
+    let testToken, dataUnionMainnet, mockAMB, mockTokenMediator, migrationManager, migrateToken
     const adminFeeFraction = 0.1
     const adminFeeFractionWei = w3.utils.toWei(adminFeeFraction.toString())
 
@@ -35,10 +37,13 @@ contract("DataUnionMainnet", accounts => {
         const dummy = testToken.address
         mockAMB = await MockAMB.new({from: creator})
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
+        migrationManager = await MainnetMigrationManager.new(testToken.address, mockTokenMediator.address, { from: creator })
         dataUnionMainnet = await DataUnionMainnet.new({from: creator})
+        migrateToken = await TestToken.new("migrate", "m", { from: creator })
+        mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
 
-        await dataUnionMainnet.initialize(testToken.address,
-            mockTokenMediator.address,
+        await dataUnionMainnet.initialize(
+            migrationManager.address,
             dummy,
             2000000,
             dummy,
@@ -91,6 +96,17 @@ contract("DataUnionMainnet", accounts => {
             await dataUnionMainnet.withdrawAdminFees({from: sender})
             assertEqual(+(await testToken.balanceOf(creator)), adminFeeWei.mul(new BN(2)))
             assert(await testToken.transfer(dataUnionMainnet.address, amtWei, {from: sender}))
+        }),
+
+        it("can migrate", async () => {
+            await assertFails(migrationManager.setCurrentToken(testToken.address, {from: sender}))
+            await migrationManager.setCurrentToken(migrateToken.address, { from: creator })
+            //dummy mediator address
+            await migrationManager.setCurrentMediator(sender, { from: creator })    
+            await assertFails(dataUnionMainnet.migrate({from: sender}))
+            assertEvent(await dataUnionMainnet.migrate({from: creator}), "MigrateToken")
+            assertEqual(await dataUnionMainnet.token(), migrateToken.address)
+            assertEqual(await dataUnionMainnet.tokenMediator(), sender)
         })
     })
 })

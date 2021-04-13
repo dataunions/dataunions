@@ -5,51 +5,54 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
 import "./ITokenMediator.sol";
+import "./FactoryConfig.sol";
 
 interface IDataUnionMainnet {
     function sidechainAddress() external view returns (address proxy);
 }
 
-
 contract DataUnionFactoryMainnet {
     event MainnetDUCreated(address indexed mainnet, address indexed sidechain, address indexed owner, address template);
 
-    address public data_union_mainnet_template;
+    address public dataUnionMainnetTemplate;
 
     // needed to calculate address of sidechain contract
-    address public data_union_sidechain_template;
-    address public data_union_sidechain_factory;
-    uint256 public sidechain_maxgas;
-    IAMB public amb;
-    ITokenMediator public token_mediator;
-    address public token;
+    address public dataUnionSidechainTemplate;
+    address public dataUnionSidechainFactory;
+    uint256 public sidechainMaxGas;
+    FactoryConfig public migrationManager;
 
-    constructor(address _token,
-                address _token_mediator,
-                address _data_union_mainnet_template,
-                address _data_union_sidechain_template,
-                address _data_union_sidechain_factory,
-                uint256 _sidechain_maxgas)
+    constructor(address _migrationManager,
+                address _dataUnionMainnetTemplate,
+                address _dataUnionSidechainTemplate,
+                address _dataUnionSidechainFactory,
+                uint256 _sidechainMaxGas)
         public
     {
-        token = _token;
-        token_mediator = ITokenMediator(_token_mediator);
-        data_union_mainnet_template = _data_union_mainnet_template;
-        data_union_sidechain_template = _data_union_sidechain_template;
-        data_union_sidechain_factory = _data_union_sidechain_factory;
-        amb = IAMB(token_mediator.bridgeContract());
-        sidechain_maxgas = _sidechain_maxgas;
+        migrationManager = FactoryConfig(_migrationManager);
+        dataUnionMainnetTemplate = _dataUnionMainnetTemplate;
+        dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
+        dataUnionSidechainFactory = _dataUnionSidechainFactory;
+        sidechainMaxGas = _sidechainMaxGas;
+    }
+
+    function amb() public view returns (IAMB) {
+        return IAMB(ITokenMediator(migrationManager.currentMediator()).bridgeContract());
+    }
+ 
+    function token() public view returns (address) {
+        return migrationManager.currentToken();
     }
 
 
-    function sidechainAddress(address mainet_address)
+    function sidechainAddress(address mainetAddress)
         public view
         returns (address)
     {
         return CloneLib.predictCloneAddressCreate2(
-            data_union_sidechain_template,
-            data_union_sidechain_factory,
-            bytes32(uint256(mainet_address))
+            dataUnionSidechainTemplate,
+            dataUnionSidechainFactory,
+            bytes32(uint256(mainetAddress))
         );
     }
     /*
@@ -61,7 +64,7 @@ contract DataUnionFactoryMainnet {
     {
         bytes32 salt = keccak256(abi.encode(bytes(name), deployer));
         return CloneLib.predictCloneAddressCreate2(
-            data_union_mainnet_template,
+            dataUnionMainnetTemplate,
             address(this),
             salt
         );
@@ -71,10 +74,10 @@ contract DataUnionFactoryMainnet {
 /*
     function initialize(
         address _token,
-        address _token_mediator,
-        address _sidechain_DU_factory,
-        uint256 _sidechain_maxgas,
-        address _sidechain_template_DU,
+        address _tokenMediator,
+        address _sidechainDataUnionFactory,
+        uint256 _sidechainMaxgas,
+        address _sidechainTemplateDataUnion,
         address _owner,
         uint256 adminFeeFraction,
         address[] memory agents
@@ -86,18 +89,17 @@ contract DataUnionFactoryMainnet {
         returns (address)
     {
         bytes32 salt = keccak256(abi.encode(bytes(name), msg.sender));
-        bytes memory data = abi.encodeWithSignature("initialize(address,address,address,uint256,address,address,uint256,address[])",
-            token,
-            token_mediator,
-            data_union_sidechain_factory,
-            sidechain_maxgas,
-            data_union_sidechain_template,
+        bytes memory data = abi.encodeWithSignature("initialize(address,address,uint256,address,address,uint256,address[])",
+            migrationManager,
+            dataUnionSidechainFactory,
+            sidechainMaxGas,
+            dataUnionSidechainTemplate,
             owner,
             adminFeeFraction,
             agents
         );
-        address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(data_union_mainnet_template), data, salt);
-        emit MainnetDUCreated(du, sidechainAddress(du), owner, data_union_mainnet_template);
+        address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(dataUnionMainnetTemplate), data, salt);
+        emit MainnetDUCreated(du, sidechainAddress(du), owner, dataUnionMainnetTemplate);
         return du;
     }
 }
