@@ -1,6 +1,6 @@
 pragma solidity 0.6.6;
 
-import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "./Ownable.sol"; 
 import "./ISidechainMigrationManager.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 
