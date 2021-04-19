@@ -15,7 +15,7 @@ contract BinanceAdapter {
     /*
     ERC677 callback
     */
-    function onTokenTransfer(address, uint256 amount, bytes calldata data) external returns (bool success) {
+    function onTokenTransfer(address, uint256 amount, bytes calldata data) external returns (bool) {
         uint256 maxint = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
         //min output is 1 wei, no deadline
         _withdrawToBinance(toAddress(data), amount, convertToCoin, 1, maxint);
@@ -53,7 +53,7 @@ contract BinanceAdapter {
         emit WithdrawToBinance(address(toCoin), binanceAddress, amountDatacoin, sendToBinanceAmount);
     }
 
-    function _honeyswapPath(address toCoinXDai) internal returns (address[] memory) {
+    function _honeyswapPath(address toCoinXDai) internal view returns (address[] memory) {
         if(liquidityToken == address(0)){
             //no intermediate
             address[] memory path = new address[](2);
@@ -70,7 +70,7 @@ contract BinanceAdapter {
     }
     
     // util functions
-    function toBytes(address a) public pure returns (bytes memory b) {
+    function toBytes(address a) internal pure returns (bytes memory b) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             let m := mload(0x40)
