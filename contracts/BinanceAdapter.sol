@@ -10,25 +10,27 @@ contract BinanceAdapter {
     address public bscBridge;
     IERC677 public dataCoin;
     address public convertToCoin;
-
+    //optional intermediate token for liquidity path
+    address public liquidityToken;
     /*
     ERC677 callback
     */
     function onTokenTransfer(address, uint256 amount, bytes calldata data) external returns (bool success) {
         uint256 maxint = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
         //min output is 1 wei, no deadline
-        withdrawToBinance(toAddress(data), amount, convertToCoin, 1, maxint);
+        _withdrawToBinance(toAddress(data), amount, convertToCoin, 1, maxint);
     }
 
-    constructor(address dataCoin_, address honeyswapRouter_, address bscBridge_, address convertToCoin_) public {
+    constructor(address dataCoin_, address honeyswapRouter_, address bscBridge_, address convertToCoin_, address liquidityToken_) public {
         dataCoin = IERC677(dataCoin_);
         honeyswapRouter = IUniswapV2Router02(honeyswapRouter_);
         bscBridge = address(bscBridge_);
         convertToCoin = convertToCoin_;
+        liquidityToken = liquidityToken_;
     }
 
 
-    function withdrawToBinance(address binanceAddress, uint256 amountDatacoin, address toCoinXDai, uint256 toCoinMinAmount, uint256 deadlineTimestamp) internal {
+    function _withdrawToBinance(address binanceAddress, uint256 amountDatacoin, address toCoinXDai, uint256 toCoinMinAmount, uint256 deadlineTimestamp) internal {
         IERC677 toCoin;
         // in toCoin:
         uint256 sendToBinanceAmount;
@@ -41,9 +43,7 @@ contract BinanceAdapter {
         }
         else{
             require(dataCoin.approve(address(honeyswapRouter), amountDatacoin), "approve_failed");
-            address[] memory path = new address[](2);
-            path[0] = address(dataCoin);
-            path[1] = toCoinXDai;
+            address[] memory path = _honeyswapPath(toCoinXDai);
             // this should err if not enough DATA coin balance
             honeyswapRouter.swapExactTokensForTokens(amountDatacoin, toCoinMinAmount, path, address(this), deadlineTimestamp);
             toCoin = IERC677(toCoinXDai);
@@ -51,6 +51,22 @@ contract BinanceAdapter {
         }
         toCoin.transferAndCall(bscBridge, sendToBinanceAmount, toBytes(binanceAddress));
         emit WithdrawToBinance(address(toCoin), binanceAddress, amountDatacoin, sendToBinanceAmount);
+    }
+
+    function _honeyswapPath(address toCoinXDai) internal returns (address[] memory) {
+        if(liquidityToken == address(0)){
+            //no intermediate
+            address[] memory path = new address[](2);
+            path[0] = address(dataCoin);
+            path[1] = toCoinXDai;
+            return path;
+        }
+        //use intermediate liquidity token
+        address[] memory path = new address[](3);
+        path[0] = address(dataCoin);
+        path[1] = liquidityToken;
+        path[2] = toCoinXDai;
+        return path;
     }
     
     // util functions
