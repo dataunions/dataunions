@@ -249,14 +249,16 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
      * Transfer tokens from outside contract, add to a recipient's in-contract balance
      */
     function transferToMemberInContract(address recipient, uint amount) public {
+        // this is done first, so that in case token implementation calls the onTokenTransfer in its transferFrom (which by ERC677 it should NOT),
+        //   transferred tokens will still not count as revenue (distributed to all) but a simple earnings increase to this particular member
+        _increaseBalance(recipient, amount);
+        totalEarnings = totalEarnings.add(amount);
+        emit TransferToAddressInContract(msg.sender, recipient,  amount);
+
         uint balanceBefore = token.balanceOf(address(this));
         require(token.transferFrom(msg.sender, address(this), amount), "error_transfer");
         uint balanceAfter = token.balanceOf(address(this));
         require(balanceAfter.sub(balanceBefore) >= amount, "error_transfer");
-
-        _increaseBalance(recipient, amount);
-        totalEarnings = totalEarnings.add(amount);
-        emit TransferToAddressInContract(msg.sender, recipient,  amount);
     }
 
     /**
@@ -458,7 +460,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
                 "error_transfer"
             );
         /*
-            transferAndCall enables transfers to another tokenbridge. 
+            transferAndCall enables transfers to another tokenbridge.
             in this case to = bridge, and the recipient on other chain is from
         */
         else require(token.transferAndCall(to, amount, toBytes(from)), "error_transfer");
