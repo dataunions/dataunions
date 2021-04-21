@@ -5,6 +5,7 @@ import "./IERC677.sol";
 
 contract BinanceAdapter {
     event WithdrawToBinance(address indexed token, address indexed to, uint256 amountDatacoin, uint256 amountOtheroken);
+    event SetBinanceRecipient(address indexed member, address indexed recipient);
 
     IUniswapV2Router02 public honeyswapRouter;
     address public bscBridge;
@@ -12,13 +13,17 @@ contract BinanceAdapter {
     address public convertToCoin;
     //optional intermediate token for liquidity path
     address public liquidityToken;
+
+    mapping(address => address) public binanceRecipient;
     /*
     ERC677 callback
     */
     function onTokenTransfer(address, uint256 amount, bytes calldata data) external returns (bool) {
         uint256 maxint = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
+        address recipient = binanceRecipient[toAddress(data)];
+        require(recipient != address(0), "recipient_undefined");
         //min output is 1 wei, no deadline
-        _withdrawToBinance(toAddress(data), amount, convertToCoin, 1, maxint);
+        _withdrawToBinance(recipient, amount, convertToCoin, 1, maxint);
     }
 
     constructor(address dataCoin_, address honeyswapRouter_, address bscBridge_, address convertToCoin_, address liquidityToken_) public {
@@ -27,6 +32,20 @@ contract BinanceAdapter {
         bscBridge = address(bscBridge_);
         convertToCoin = convertToCoin_;
         liquidityToken = liquidityToken_;
+    }
+
+    function setBinanceRecipient(address recipient) public {
+        _setBinanceRecipient(msg.sender, recipient);
+    }
+
+    function setBinanceRecipientFromSig(address recipient, bytes sig) public {
+        _setBinanceRecipient(getSigner(recipient, sig), recipient);
+    }
+    
+
+    function _setBinanceRecipient(address member, address recipient) internal {
+        binanceRecipient[member] = recipient;
+        emit SetBinanceRecipient(member, recipient);
     }
 
 
@@ -95,4 +114,32 @@ contract BinanceAdapter {
 
         return tempAddress;
     }
+
+    function getSigner(
+        address recipient,
+        bytes memory signature
+    )
+        public view
+        returns (address)
+    {
+        require(signature.length == 65, "error_badSignatureLength");
+
+        bytes32 r; bytes32 s; uint8 v;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            r := mload(add(signature, 32))
+            s := mload(add(signature, 64))
+            v := byte(0, mload(add(signature, 96)))
+        }
+        if (v < 27) {
+            v += 27;
+        }
+        require(v == 27 || v == 28, "error_badSignatureVersion");
+
+        bytes32 messageHash = keccak256(abi.encodePacked(
+            "\x19Ethereum Signed Message:\n104", recipient, address(this)));
+        
+        return ecrecover(messageHash, v, r, s);
+    }
+
 }
