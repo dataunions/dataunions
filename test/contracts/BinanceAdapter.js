@@ -1,7 +1,7 @@
 const Web3 = require("web3")
 const w3 = new Web3(web3.currentProvider)
 const { BN, toWei } = w3.utils
-const { assertEqual, assertFails, assertEvent } = require("../utils/web3Assert")
+const { assertEqual, assertFails } = require("../utils/web3Assert")
 const DataUnionSidechain = artifacts.require("./DataUnionSidechain.sol")
 const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const BinanceAdapter = artifacts.require("./BinanceAdapter.sol")
@@ -82,7 +82,6 @@ contract("BinanceAdapter", accounts => {
         
         //members[0] withdraws to member[1] via bridge
         await adapter.setBinanceRecipient(members[1], {from: members[0]})
-        const bridge = await adapter.bscBridge()
         await dataUnionSidechain.withdrawAllTo(adapter.address, false, {from: members[0]})
         assertEqual(0, await dataUnionSidechain.getWithdrawableEarnings(members[0]))
         assertEqual(await testToken.balanceOf(mockBinanceMediator.address), 0)        
