@@ -52,12 +52,11 @@ contract BinanceAdapter {
     */
 
     function setBinanceRecipientFromSig(address from, address recipient, uint256 nonce, bytes memory sig) public {
-        address signer = getSigner(recipient, nonce, sig);
-        require(signer == from, "bad_signature");
-        UserData storage userdata = binanceRecipient[signer];
+        UserData storage userdata = binanceRecipient[from];
         require(nonce == userdata.nonce.add(1), "nonce_too_low");
+        require(getSigner(recipient, nonce, sig) == from, "bad_signature");
         userdata.nonce = nonce;
-        _setBinanceRecipient(signer, recipient);
+        _setBinanceRecipient(from, recipient);
     }
     
 

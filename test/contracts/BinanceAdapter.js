@@ -63,7 +63,6 @@ contract("BinanceAdapter", accounts => {
     it("can set Binance recipient", async () => {
         await adapter.setBinanceRecipient(members[1], {from: members[0]})
         assertEqual(members[1], (await adapter.binanceRecipient(members[0]))[0])
-        //async function makeSetBinanceRecipientSignature(to, nonce, adapterAddress, signer) {
         // set members[1]'s recipient to member[2] using signature
         let nonce = (await adapter.binanceRecipient(members[1]))[1]
         nonce = nonce.add(new BN(1))
@@ -71,5 +70,24 @@ contract("BinanceAdapter", accounts => {
         //console.log(`nonce ${nonce} sig ${sig} ${members[1]} ${members[2]}`)
         await adapter.setBinanceRecipientFromSig(members[1], members[2], nonce, sig, {from: members[0]})
         assertEqual(members[2], (await adapter.binanceRecipient(members[1]))[0])
+
+        //replay should fail
+        await assertFails(adapter.setBinanceRecipientFromSig(members[1], members[2], nonce, sig, {from: members[0]}))
+    }),
+    it("can withdraw to mediator without conversion", async () => {
+        const amt = toWei("300")
+        await testToken.transferAndCall(dataUnionSidechain.address, amt, "0x", {from: creator})
+        const bal = toWei("100")
+        assertEqual(bal, await dataUnionSidechain.getWithdrawableEarnings(members[0]))
+        
+        //members[0] withdraws to member[1] via bridge
+        await adapter.setBinanceRecipient(members[1], {from: members[0]})
+        const bridge = await adapter.bscBridge()
+        await dataUnionSidechain.withdrawAllTo(adapter.address, false, {from: members[0]})
+        assertEqual(0, await dataUnionSidechain.getWithdrawableEarnings(members[0]))
+        assertEqual(await testToken.balanceOf(mockBinanceMediator.address), 0)        
+        assertEqual(await testToken.balanceOf(members[0]), 0)
+        assertEqual(await testToken.balanceOf(members[1]), bal)
     })
+
 })
