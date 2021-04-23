@@ -1,7 +1,7 @@
 pragma solidity 0.6.6;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "./Ownable.sol";
 import "./IERC677.sol";
 
 /**
@@ -9,7 +9,7 @@ import "./IERC677.sol";
  * Transfers of 666 are rejected with return value false
  */
 contract TestToken is ERC20, Ownable, IERC677 {
-    constructor (string memory name, string memory symbol) public ERC20(name, symbol) {
+    constructor (string memory name, string memory symbol) public ERC20(name, symbol) Ownable(msg.sender) {
         // solhint-disable-previous-line no-empty-blocks
     }
 

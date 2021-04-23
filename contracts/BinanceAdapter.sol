@@ -2,10 +2,19 @@ pragma solidity 0.6.6;
 
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol"; 
 import "./IERC677.sol";
+import "./BytesLib.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract BinanceAdapter {
+    using SafeMath for uint256;
+
     event WithdrawToBinance(address indexed token, address indexed to, uint256 amountDatacoin, uint256 amountOtheroken);
     event SetBinanceRecipient(address indexed member, address indexed recipient);
+
+    struct UserData {
+        address binanceAddress;
+        uint256 nonce;
+    }
 
     IUniswapV2Router02 public honeyswapRouter;
     address public bscBridge;
@@ -13,17 +22,17 @@ contract BinanceAdapter {
     address public convertToCoin;
     //optional intermediate token for liquidity path
     address public liquidityToken;
-
-    mapping(address => address) public binanceRecipient;
+    uint256 public datacoinPassed;
+    mapping(address => UserData) public binanceRecipient;
     /*
     ERC677 callback
     */
     function onTokenTransfer(address, uint256 amount, bytes calldata data) external returns (bool) {
         uint256 maxint = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
-        address recipient = binanceRecipient[toAddress(data)];
-        require(recipient != address(0), "recipient_undefined");
+        UserData storage userdata = binanceRecipient[BytesLib.toAddress(data)];
+        require(userdata.binanceAddress != address(0), "recipient_undefined");
         //min output is 1 wei, no deadline
-        _withdrawToBinance(recipient, amount, convertToCoin, 1, maxint);
+        _withdrawToBinance(userdata.binanceAddress, amount, convertToCoin, 1, maxint);
     }
 
     constructor(address dataCoin_, address honeyswapRouter_, address bscBridge_, address convertToCoin_, address liquidityToken_) public {
@@ -38,13 +47,22 @@ contract BinanceAdapter {
         _setBinanceRecipient(msg.sender, recipient);
     }
 
-    function setBinanceRecipientFromSig(address recipient, bytes sig) public {
-        _setBinanceRecipient(getSigner(recipient, sig), recipient);
+    /*
+    deadline is a timestamp to prevent replay attacks
+    */
+
+    function setBinanceRecipientFromSig(address recipient, uint256 nonce, bytes memory sig) public {
+        address signer = getSigner(recipient, nonce, sig);
+        UserData storage userdata = binanceRecipient[signer];
+        require(nonce == userdata.nonce.add(1), "nonce_too_low");
+        userdata.nonce = nonce;
+        _setBinanceRecipient(signer, recipient);
     }
     
 
     function _setBinanceRecipient(address member, address recipient) internal {
-        binanceRecipient[member] = recipient;
+        UserData storage userdata = binanceRecipient[member];
+        userdata.binanceAddress = recipient;
         emit SetBinanceRecipient(member, recipient);
     }
 
@@ -68,8 +86,9 @@ contract BinanceAdapter {
             toCoin = IERC677(toCoinXDai);
             sendToBinanceAmount = toCoin.balanceOf(address(this));
         }
-        toCoin.transferAndCall(bscBridge, sendToBinanceAmount, toBytes(binanceAddress));
+        toCoin.transferAndCall(bscBridge, sendToBinanceAmount, BytesLib.toBytes(binanceAddress));
         emit WithdrawToBinance(address(toCoin), binanceAddress, amountDatacoin, sendToBinanceAmount);
+        datacoinPassed = datacoinPassed.add(amountDatacoin);
     }
 
     function _honeyswapPath(address toCoinXDai) internal view returns (address[] memory) {
@@ -88,35 +107,9 @@ contract BinanceAdapter {
         return path;
     }
     
-    // util functions
-    function toBytes(address a) internal pure returns (bytes memory b) {
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            let m := mload(0x40)
-            a := and(a, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-            mstore(
-                add(m, 20),
-                xor(0x140000000000000000000000000000000000000000, a)
-            )
-            mstore(0x40, add(m, 52))
-            b := m
-        }
-    }
-
-    //from https://github.com/GNSPS/solidity-bytes-utils/blob/6458fb2780a3092bc756e737f246be1de6d3d362/contracts/BytesLib.sol#L297
-    function toAddress(bytes memory _bytes) internal pure returns (address) {
-        require(_bytes.length >= 20, "toAddress_outOfBounds");
-        address tempAddress;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            tempAddress := div(mload(add(_bytes, 0x20)), 0x1000000000000000000000000)
-        }
-
-        return tempAddress;
-    }
-
     function getSigner(
         address recipient,
+        uint256 nonce,
         bytes memory signature
     )
         public view
@@ -137,7 +130,7 @@ contract BinanceAdapter {
         require(v == 27 || v == 28, "error_badSignatureVersion");
 
         bytes32 messageHash = keccak256(abi.encodePacked(
-            "\x19Ethereum Signed Message:\n104", recipient, address(this)));
+            "\x19Ethereum Signed Message:\n104", recipient, nonce, address(this)));
         
         return ecrecover(messageHash, v, r, s);
     }
