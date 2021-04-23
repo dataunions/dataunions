@@ -1,6 +1,7 @@
 pragma solidity 0.6.6;
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./ISingleTokenMediator.sol";
+import "./BytesLib.sol";
 
 contract MockTokenMediator is ISingleTokenMediator {
     ERC20 public token;
@@ -30,5 +31,11 @@ contract MockTokenMediator is ISingleTokenMediator {
     function relayTokensAndCall(address _token, address _receiver, uint256 _value, bytes memory) override public {
         require(_token == address(token), "wrong_token");
         relayTokens(_receiver, _value);
+    }
+    /*
+    ERC677 callback
+    */
+    function onTokenTransfer(address, uint256 amount, bytes calldata data) external returns (bool) {
+        relayTokens(BytesLib.toAddress(data), amount);
     }
 }

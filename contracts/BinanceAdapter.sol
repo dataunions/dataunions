@@ -51,8 +51,9 @@ contract BinanceAdapter {
     deadline is a timestamp to prevent replay attacks
     */
 
-    function setBinanceRecipientFromSig(address recipient, uint256 nonce, bytes memory sig) public {
+    function setBinanceRecipientFromSig(address from, address recipient, uint256 nonce, bytes memory sig) public {
         address signer = getSigner(recipient, nonce, sig);
+        require(signer == from, "bad_signature");
         UserData storage userdata = binanceRecipient[signer];
         require(nonce == userdata.nonce.add(1), "nonce_too_low");
         userdata.nonce = nonce;
@@ -130,7 +131,7 @@ contract BinanceAdapter {
         require(v == 27 || v == 28, "error_badSignatureVersion");
 
         bytes32 messageHash = keccak256(abi.encodePacked(
-            "\x19Ethereum Signed Message:\n104", recipient, nonce, address(this)));
+            "\x19Ethereum Signed Message:\n72", recipient, nonce, address(this)));
         
         return ecrecover(messageHash, v, r, s);
     }
