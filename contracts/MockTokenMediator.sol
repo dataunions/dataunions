@@ -40,6 +40,6 @@ contract MockTokenMediator is ISingleTokenMediator {
     ERC677 callback
     */
     function onTokenTransfer(address, uint256 amount, bytes calldata data) external returns (bool) {
-        require(token.transfer(BytesLib.toAddress(data), amount), "transfer_rejected_in_mock");
+        require(ERC20(msg.sender).transfer(BytesLib.toAddress(data), amount), "transfer_rejected_in_mock");
     }
 }

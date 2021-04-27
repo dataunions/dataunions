@@ -10,12 +10,12 @@ const SidechainMigrationManager = artifacts.require("./SidechainMigrationManager
 
 //Uniswap v2
 const UniswapV2FactoryJson = require("@uniswap/v2-core/build/UniswapV2Factory.json")
-const UniswapV2PairJson = require("@uniswap/v2-core/build/UniswapV2Pair.json")
+//const UniswapV2PairJson = require("@uniswap/v2-core/build/UniswapV2Pair.json")
 const UniswapV2Router02Json = require("@uniswap/v2-periphery/build/UniswapV2Router02.json")
 const WETH9Json = require("@uniswap/v2-periphery/build/WETH9.json")
 
 const UniswapV2Factory = new w3.eth.Contract(UniswapV2FactoryJson.abi, null, { data: UniswapV2FactoryJson.bytecode })
-const UniswapV2Pair = new w3.eth.Contract(UniswapV2PairJson.abi, null, { data: UniswapV2PairJson.bytecode })
+//const UniswapV2Pair = new w3.eth.Contract(UniswapV2PairJson.abi, null, { data: UniswapV2PairJson.bytecode })
 const UniswapV2Router02 = new w3.eth.Contract(UniswapV2Router02Json.abi, null, { data: UniswapV2Router02Json.bytecode })
 const WETH9 = new w3.eth.Contract(WETH9Json.abi, null, { data: WETH9Json.bytecode })
 
@@ -56,7 +56,7 @@ contract("BinanceAdapter", accounts => {
     const agents = accounts.slice(1, 3)
     const members = accounts.slice(3, 6)
     const others = accounts.slice(6)
-    let testToken, migrateToken, dataUnionSidechain, migrationManager, adapter, mockBinanceMediator, uniswapRouter
+    let testToken, otherToken, dataUnionSidechain, migrationManager, mockBinanceMediator, uniswapRouter
 
     before(async () => {
         uniswapRouter = await deployUniswap2(creator)
@@ -75,25 +75,24 @@ contract("BinanceAdapter", accounts => {
         testToken = await TestToken.new("name", "symbol", { from: creator })
         //mediator is a dummy non-zero address. mediator not used
         migrationManager = await SidechainMigrationManager.new(testToken.address, zeroAddress, agents[0], { from: creator })
-        migrateToken = await TestToken.new("migrate", "m", { from: creator })
+        otherToken = await TestToken.new("migrate", "m", { from: creator })
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
         await dataUnionSidechain.initialize(creator, migrationManager.address, agents, agents[0], "1", {from: creator})
         await testToken.mint(creator, toWei("10000"), { from: creator })
-        await migrateToken.mint(creator, toWei("10000"), { from: creator })
+        await otherToken.mint(creator, toWei("10000"), { from: creator })
         
-        
-        const amtTest = toWei("100")
-        const amtMigrate = toWei("10")
+        //10 testToken ~= 1 otherToken
+        const amtTest = toWei("1000")
+        const amtOther = toWei("100")
         await testToken.approve(uniswapRouter.options.address, amtTest, { from: creator })
-        await migrateToken.approve(uniswapRouter.options.address, amtMigrate, { from: creator })
-        await uniswapRouter.methods.addLiquidity(testToken.address, migrateToken.address, amtTest, amtMigrate, 0, 0, creator, futureTime).send({gas: 6000000, from: creator})
+        await otherToken.approve(uniswapRouter.options.address, amtOther, { from: creator })
+        await uniswapRouter.methods.addLiquidity(testToken.address, otherToken.address, amtTest, amtOther, 0, 0, creator, futureTime).send({gas: 6000000, from: creator})
 
         await dataUnionSidechain.addMembers(members, {from: agents[1]})
         //amd address 0 is dummy
         mockBinanceMediator = await MockTokenMediator.new(testToken.address, zeroAddress, {from: creator})
         //    constructor(address dataCoin_, address honeyswapRouter_, address bscBridge_, address convertToCoin_, address liquidityToken_) public {
         // no conversion until we install Uniswap contract
-        adapter = await BinanceAdapter.new(testToken.address, zeroAddress, mockBinanceMediator.address, zeroAddress, zeroAddress, {from: creator }) 
         log(`DataUnionSidechain initialized at ${dataUnionSidechain.address}`)
         log(`  creator: ${creator}`)
         log(`  agents: ${JSON.stringify(agents)}`)
@@ -102,6 +101,7 @@ contract("BinanceAdapter", accounts => {
     })
 
     it("can set Binance recipient", async () => {
+        let adapter = await BinanceAdapter.new(testToken.address, zeroAddress, mockBinanceMediator.address, zeroAddress, zeroAddress, {from: creator }) 
         await adapter.setBinanceRecipient(members[1], {from: members[0]})
         assertEqual(members[1], (await adapter.binanceRecipient(members[0]))[0])
         // set members[1]'s recipient to member[2] using signature
@@ -116,6 +116,7 @@ contract("BinanceAdapter", accounts => {
         await assertFails(adapter.setBinanceRecipientFromSig(members[1], members[2], nonce, sig, {from: members[0]}))
     }),
     it("can withdraw to mediator without conversion", async () => {
+        let adapter = await BinanceAdapter.new(testToken.address, zeroAddress, mockBinanceMediator.address, zeroAddress, zeroAddress, {from: creator }) 
         const amt = toWei("300")
         await testToken.transferAndCall(dataUnionSidechain.address, amt, "0x", {from: creator})
         const bal = toWei("100")
@@ -128,6 +129,24 @@ contract("BinanceAdapter", accounts => {
         assertEqual(await testToken.balanceOf(mockBinanceMediator.address), 0)        
         assertEqual(await testToken.balanceOf(members[0]), 0)
         assertEqual(await testToken.balanceOf(members[1]), bal)
+    })
+
+    it("can withdraw to mediator with conversion", async () => {
+        let adapter = await BinanceAdapter.new(testToken.address, uniswapRouter.options.address, mockBinanceMediator.address, otherToken.address, zeroAddress, {from: creator }) 
+        const amt = toWei("30")
+        await testToken.transferAndCall(dataUnionSidechain.address, amt, "0x", {from: creator})
+        const bal = new BN(toWei("10"))
+        assertEqual(bal, await dataUnionSidechain.getWithdrawableEarnings(members[0]))
+        
+        //members[0] withdraws to member[1] via bridge
+        await adapter.setBinanceRecipient(members[1], {from: members[0]})
+        await dataUnionSidechain.withdrawAllTo(adapter.address, false, {from: members[0]})
+        assertEqual(0, await dataUnionSidechain.getWithdrawableEarnings(members[0]))
+        assertEqual(await testToken.balanceOf(mockBinanceMediator.address), 0)        
+        assertEqual(await testToken.balanceOf(members[0]), 0)
+        const otherTokenBal = await otherToken.balanceOf(members[1])
+        // otherTokenBal should be a bit less than bal/10
+        assert(otherTokenBal > bal.div(new BN(15)))
     })
 
 })
