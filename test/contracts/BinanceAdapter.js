@@ -7,8 +7,23 @@ const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const BinanceAdapter = artifacts.require("./BinanceAdapter.sol")
 const TestToken = artifacts.require("./TestToken.sol")
 const SidechainMigrationManager = artifacts.require("./SidechainMigrationManager.sol")
+
+//Uniswap v2
+const UniswapV2FactoryJson = require("@uniswap/v2-core/build/UniswapV2Factory.json")
+const UniswapV2PairJson = require("@uniswap/v2-core/build/UniswapV2Pair.json")
+const UniswapV2Router02Json = require("@uniswap/v2-periphery/build/UniswapV2Router02.json")
+const WETH9Json = require("@uniswap/v2-periphery/build/WETH9.json")
+
+const UniswapV2Factory = new w3.eth.Contract(UniswapV2FactoryJson.abi, null, { data: UniswapV2FactoryJson.bytecode })
+const UniswapV2Pair = new w3.eth.Contract(UniswapV2PairJson.abi, null, { data: UniswapV2PairJson.bytecode })
+const UniswapV2Router02 = new w3.eth.Contract(UniswapV2Router02Json.abi, null, { data: UniswapV2Router02Json.bytecode })
+const WETH9 = new w3.eth.Contract(WETH9Json.abi, null, { data: WETH9Json.bytecode })
+
+
 const log = require("debug")("Streamr:du:test:DataUnionSidechain")
 const zeroAddress = "0x0000000000000000000000000000000000000000"
+const futureTime = 4449513600
+
 //const log = console.log  // for debugging?
 
 /**
@@ -22,12 +37,30 @@ async function makeSetBinanceRecipientSignature(to, nonce, adapterAddress, signe
     return w3.eth.sign(message, signer)
 }
 
+async function deployUniswap2(creator) {
+/*
+    let deployer = new ContractFactory(WETH9.abi, WETH9.bytecode, wallet)
+    let tx = await deployer.deploy()
+    const weth = await tx.deployed()
+    log(`WETH deployed to ${weth.address}`)
+*/    
+    const weth = await WETH9.deploy(({ arguments: [] })).send({ gas: 6000000, from: creator })
+    const factory = await UniswapV2Factory.deploy(({ arguments: [creator] })).send({ gas: 6000000, from: creator })
+    const router = await UniswapV2Router02.deploy(({ arguments: [factory.options.address, weth.options.address] })).send({ gas: 6000000, from: creator })
+    log(`created Uniswap2. Router: ${router.options.address}`)
+    return router
+}
+
 contract("BinanceAdapter", accounts => {
     const creator = accounts[0]
     const agents = accounts.slice(1, 3)
     const members = accounts.slice(3, 6)
     const others = accounts.slice(6)
-    let testToken, migrateToken, dataUnionSidechain, migrationManager, adapter, mockBinanceMediator
+    let testToken, migrateToken, dataUnionSidechain, migrationManager, adapter, mockBinanceMediator, uniswapRouter
+
+    before(async () => {
+        uniswapRouter = await deployUniswap2(creator)
+    })
 
     beforeEach(async () => {
         /*
@@ -47,6 +80,14 @@ contract("BinanceAdapter", accounts => {
         await dataUnionSidechain.initialize(creator, migrationManager.address, agents, agents[0], "1", {from: creator})
         await testToken.mint(creator, toWei("10000"), { from: creator })
         await migrateToken.mint(creator, toWei("10000"), { from: creator })
+        
+        
+        const amtTest = toWei("100")
+        const amtMigrate = toWei("10")
+        await testToken.approve(uniswapRouter.options.address, amtTest, { from: creator })
+        await migrateToken.approve(uniswapRouter.options.address, amtMigrate, { from: creator })
+        await uniswapRouter.methods.addLiquidity(testToken.address, migrateToken.address, amtTest, amtMigrate, 0, 0, creator, futureTime).send({gas: 6000000, from: creator})
+
         await dataUnionSidechain.addMembers(members, {from: agents[1]})
         //amd address 0 is dummy
         mockBinanceMediator = await MockTokenMediator.new(testToken.address, zeroAddress, {from: creator})
