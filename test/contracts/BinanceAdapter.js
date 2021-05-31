@@ -109,11 +109,11 @@ contract("BinanceAdapter", accounts => {
         nonce = nonce.add(new BN(1))
         const sig = await makeSetBinanceRecipientSignature(members[2], nonce, adapter.address, members[1])
         //console.log(`nonce ${nonce} sig ${sig} ${members[1]} ${members[2]}`)
-        await adapter.setBinanceRecipientFromSig(members[1], members[2], nonce, sig, {from: members[0]})
+        await adapter.setBinanceRecipientFromSig(members[1], members[2], sig, {from: members[0]})
         assertEqual(members[2], (await adapter.binanceRecipient(members[1]))[0])
 
         //replay should fail
-        await assertFails(adapter.setBinanceRecipientFromSig(members[1], members[2], nonce, sig, {from: members[0]}))
+        await assertFails(adapter.setBinanceRecipientFromSig(members[1], members[2], sig, {from: members[0]}))
     }),
     it("can withdraw to mediator without conversion", async () => {
         let adapter = await BinanceAdapter.new(testToken.address, zeroAddress, mockBinanceMediator.address, zeroAddress, zeroAddress, {from: creator }) 
