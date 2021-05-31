@@ -51,14 +51,13 @@ contract BinanceAdapter {
     deadline is a timestamp to prevent replay attacks
     */
 
-    function setBinanceRecipientFromSig(address from, address recipient, uint256 nonce, bytes memory sig) public {
+    function setBinanceRecipientFromSig(address from, address recipient, bytes memory sig) public {
         UserData storage userdata = binanceRecipient[from];
-        require(nonce == userdata.nonce.add(1), "nonce_too_low");
-        require(getSigner(recipient, nonce, sig) == from, "bad_signature");
-        userdata.nonce = nonce;
+        uint nextNonce = userdata.nonce.add(1);
+        require(getSigner(recipient, nextNonce, sig) == from, "bad_signature");
+        userdata.nonce = nextNonce;
         _setBinanceRecipient(from, recipient);
-    }
-    
+    }    
 
     function _setBinanceRecipient(address member, address recipient) internal {
         UserData storage userdata = binanceRecipient[member];
