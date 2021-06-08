@@ -1,6 +1,6 @@
 {
     "extends": "solhint:recommended",
-    "plugins": [],
+    "plugins": ["prettier"],
     "rules": {
         "code-complexity": [
             "error",

@@ -7,6 +7,8 @@
     "build": "truffle compile && ./flatten",
     "deploy": "truffle migrate",
     "lint": "eslint . && solhint -f unix contracts/**/*.sol",
+    "format": "prettier --no-color --config .prettierrc --write contracts/**/*.sol",
+    "format-check": "prettier --no-color --config .prettierrc --check contracts/**/*.sol",
     "coverage": "truffle run coverage --file=test/contracts/*",
     "unit-test": "truffle test test/contracts/*",
     "integration-test": "mocha test/e2e --exit",
