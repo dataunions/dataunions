@@ -1,5 +1,7 @@
 # data-union-solidity
 
+[![Discord Chat](https://img.shields.io/discord/801574432350928907.svg?label=Discord&logo=Discord&colorB=7289da)](https://discord.gg/FVtAph9cvz)
+
 A Data Union (DU) is a collection of "members" that split token revenue sent to a single mainnet contract. This DU implementation uses the following components:
 
 1. A **mainchain** contract where revenue is sent.
