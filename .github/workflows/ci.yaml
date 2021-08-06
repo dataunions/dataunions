@@ -20,14 +20,10 @@ jobs:
       fail-fast: false
       matrix:
         node_version:
-          - 10.19.x
+          - 16.6.1
         os:
-          - ubuntu-16.04
+          - ubuntu-18.04
         experimental: [false]
-        include:
-          - node_version: 12.x
-            os: ubuntu-18.04
-            experimental: true
     steps:
       - uses: actions/checkout@v2.3.4
       - name: Node ${{ matrix.node_version }} - x64 on ${{ matrix.os }}
@@ -46,9 +42,8 @@ jobs:
       - name: Run lint, build and unit test
         run: |
           npm run lint
-          npm run format-check
           npm run build
-          npm run unit-test
+          npm run test
       - name: Start Streamr Docker Stack
         uses: streamr-dev/streamr-docker-dev-action@v1.0.0-alpha.3
         with:

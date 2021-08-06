@@ -12,7 +12,7 @@
     "coverage": "truffle run coverage --file=test/contracts/*",
     "unit-test": "truffle test test/contracts/*",
     "integration-test": "mocha test/e2e --exit",
-    "test": "npm run unit-test && npm run integration-test"
+    "test": "npm run unit-test"
   },
   "author": "Streamr Network AG",
   "license": "AGPL-3.0",
