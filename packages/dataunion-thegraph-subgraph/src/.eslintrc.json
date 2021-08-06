@@ -1,0 +1,9 @@
+{
+    "rules": {
+        "prefer-const": "off",
+        "eqeqeq": "off",
+        "max-len": ["warn", {
+            "code": 150
+        }]
+    }
+}

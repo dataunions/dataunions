@@ -1,0 +1,37 @@
+{
+  "name": "dataunion-thegraph-subgraph",
+  "version": "0.0.1",
+  "description": "Subgraph definitions for sidechain data unions",
+  "scripts": {
+    "clean": "rm -rf build generated",
+    "codegen": "graph codegen",
+    "graphbuild": "graph build",
+    "build": "npm run prepare:local && npm run codegen && npm run graphbuild",
+    "build-production": "npm run prepare:mainnet && npm run codegen && npm run graphbuild",
+    "lint": "eslint ./src/*.ts",
+    "docker:build": "npm run build && docker build . -t streamr/graph-deploy-dataunion-subgraph:dev",
+    "docker:publish": "docker image push streamr/graph-deploy-dataunion-subgraph:dev",
+    "prepare:mainnet": "npx mustache config/mainnet.json subgraph.template.yaml > subgraph.yaml",
+    "prepare:local": "npx mustache config/local.json subgraph.template.yaml > subgraph.yaml",
+    "create-local": "graph create streamr-dev/dataunion --node http://localhost:8020",
+    "deploy-local": "graph deploy streamr-dev/dataunion --ipfs http://localhost:5001 --node http://localhost:8020",
+    "create-production": "graph create streamr-dev/dataunion --node https://api.thegraph.com/deploy/",
+    "deploy-production": "npm run build-production && graph deploy streamr-dev/dataunion --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/",
+    "doAll": "npm run build && npm run create-local && npm run deploy-local"
+  },
+  "devDependencies": {
+    "@graphprotocol/graph-cli": "^0.20.0",
+    "@typescript-eslint/eslint-plugin": "^4.28.0",
+    "@typescript-eslint/parser": "^4.28.0",
+    "eslint": "^7.29.0",
+    "eslint-config-streamr-ts": "^3.0.1",
+    "eslint-plugin-chai-friendly": "^0.7.1",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-promise": "^5.1.0",
+    "typescript": "^4.3.4"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-ts": "^0.20.0",
+    "mustache": "^4.2.0"
+  }
+}
