@@ -1,29 +1,30 @@
-pragma solidity 0.6.6;
+// SPDX-License-Identifier: MIT
+
+pragma solidity 0.8.6;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "./PurchaseListener.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
 import "./ITokenMediator.sol";
-import "./FactoryConfig.sol";
 
 contract DataUnionMainnet is Ownable, PurchaseListener {
-    using SafeMath for uint256;
 
-    event AdminFeeChanged(uint256 adminFee);
-    event AdminFeeCharged(uint256 amount);
+    event FeesChanged(uint256 adminFee, uint256 duFee);    
+    event FeesCharged(uint256 adminFee, uint256 duFee);
+
     event AdminFeesWithdrawn(address indexed admin, uint256 amount);
-    event MigrateToken(address indexed newToken, address indexed oldToken);
-    event MigrateMediator(address indexed newMediator, address indexed oldMediator);
+    
     event RevenueReceived(uint256 amount);
+    
+    event DuBeneficiaryChanged(address current, address old);
+    event DuFeesWithdrawn(address indexed admin, uint256 amount);
 
     ITokenMediator public tokenMediator;
     address public sidechainDUFactory;
     uint256 public sidechainMaxGas;
     ERC20 public token;
-    FactoryConfig public migrationManager;
 
 /*
     NOTE: any variables set below will NOT be visible in clones
@@ -35,7 +36,14 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     uint256 public adminFeeFraction;
     uint256 public totalAdminFees;
     uint256 public totalAdminFeesWithdrawn;
-    bool public autoSendAdminFee;
+    
+    bool public autoSendFees;
+
+    //du beneficiary info
+    uint256 public duFeeFraction;
+    uint256 public totalDuFees;
+    uint256 public totalDuFeesWithdrawn;
+    address public duBeneficiary;
 
     function version() public pure returns (uint256) { return 2; }
 
@@ -45,28 +53,31 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     constructor() public Ownable(address(0)) {}
 
     function initialize(
-        address _migrationManager,
+        address _token,
+        address _mediator,
         address _sidechainDUFactory,
         uint256 _sidechainMaxGas,
         address _sidechainDUTemplate,
         address _owner,
         uint256 _adminFeeFraction,
+        uint256 _duFeeFraction,
+        address _duBeneficiary,
         address[] memory agents
     )  public {
         require(!isInitialized(), "init_once");
         // must set default values here so that there are in clone state
-        autoSendAdminFee = true;
-        migrationManager = FactoryConfig(_migrationManager);
+        autoSendFees = true;
 
         //during setup, msg.sender is admin
         owner = msg.sender;
 
-        tokenMediator = ITokenMediator(migrationManager.currentMediator());
-        token = ERC20(migrationManager.currentToken());
+        tokenMediator = ITokenMediator(_mediator);
+        token = ERC20(_token);
         sidechainDUFactory = _sidechainDUFactory;
         sidechainMaxGas = _sidechainMaxGas;
         sidechainDUTemplate = _sidechainDUTemplate;
-        setAdminFee(_adminFeeFraction);
+        setFees(_adminFeeFraction, _duFeeFraction);
+        setDuBeneficiary(_duBeneficiary);
         //transfer to real admin
         owner = _owner;
         deployNewDUSidechain(agents);
@@ -81,17 +92,27 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     }
 
     /**
-     * Admin fee as a fraction of revenue.
+     * Admin and du fees as a fraction of revenue.
      * @param newAdminFee fixed-point decimal in the same way as ether: 50% === 0.5 ether === "500000000000000000"
+     * @param newDuFee fixed-point decimal in the same way as ether: 50% === 0.5 ether === "500000000000000000"
      */
-    function setAdminFee(uint256 newAdminFee) public onlyOwner {
-        require(newAdminFee <= 1 ether, "error_adminFee");
+    function setFees(uint256 newAdminFee, uint256 newDuFee) public onlyOwner {
+        require((newAdminFee + newDuFee) <= 1 ether, "error_Fees");
         adminFeeFraction = newAdminFee;
-        emit AdminFeeChanged(adminFeeFraction);
+        duFeeFraction = newDuFee;
+        emit FeesChanged(adminFeeFraction, duFeeFraction);
     }
 
-    function setAutoSendAdminFee(bool autoSend) public onlyOwner {
-        autoSendAdminFee = autoSend;
+
+    function setDuBeneficiary(address _duBeneficiary) public onlyOwner {
+        require(_duBeneficiary != address(0), "invalid_address");
+        duBeneficiary = _duBeneficiary;        
+        emit DuBeneficiaryChanged(duBeneficiary, _duBeneficiary);
+    }
+
+
+    function setAutoSendFees(bool autoSend) public onlyOwner {
+        autoSendFees = autoSend;
     }
 
 
@@ -101,7 +122,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     }
 
     function sidechainAddress() public view returns (address) {
-        return CloneLib.predictCloneAddressCreate2(sidechainDUTemplate, sidechainDUFactory, bytes32(uint256(address(this))));
+        return CloneLib.predictCloneAddressCreate2(sidechainDUTemplate, sidechainDUFactory, bytes32(uint256(uint160(address(this)))));
     }
 
     /**
@@ -123,13 +144,20 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     }
 
     function adminFeesWithdrawable() public view returns (uint256) {
-        return totalAdminFees.sub(totalAdminFeesWithdrawn);
+        return totalAdminFees - totalAdminFeesWithdrawn;
     }
+
+
+    function duFeesWithdrawable() public view returns (uint256) {
+        return totalDuFees - totalDuFeesWithdrawn;
+    }
+
 
     function unaccountedTokens() public view returns (uint256) {
-        return token.balanceOf(address(this)).sub(adminFeesWithdrawable());
+        return token.balanceOf(address(this)) - (adminFeesWithdrawable() + duFeesWithdrawable());
     }
 
+   
 
     function sendTokensToBridge() public returns (uint256) {
         uint256 newTokens = unaccountedTokens();
@@ -137,21 +165,25 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
         emit RevenueReceived(newTokens);
 
-        uint256 adminFee = newTokens.mul(adminFeeFraction).div(10**18);
-        uint256 memberEarnings = newTokens.sub(adminFee);
+        uint256 adminFee = (newTokens * adminFeeFraction) / (10 ** token.decimals());
+        uint256 duFee = (newTokens * duFeeFraction) / (10 ** token.decimals());
+        uint256 memberEarnings = newTokens - (adminFee + duFee);
 
-        totalAdminFees = totalAdminFees.add(adminFee);
-        emit AdminFeeCharged(adminFee);
-        if(autoSendAdminFee) withdrawAdminFees();
+        totalAdminFees += adminFee;
+        totalDuFees += duFee;
+        emit FeesCharged(adminFee, duFee);
+        if(autoSendFees) {
+            withdrawAdminFees();
+            withdrawDuFees();
+        }
 
         // transfer memberEarnings
-        require(token.approve(address(tokenMediator), 0), "approve_failed");
         require(token.approve(address(tokenMediator), memberEarnings), "approve_failed");
         //must send some no-zero data to trigger callback fn
         tokenMediator.relayTokensAndCall(address(token), sidechainAddress(), memberEarnings, abi.encodePacked("DU2"));
         //check that memberEarnings were sent
         require(unaccountedTokens() == 0, "not_transferred");
-        tokensSentToBridge = tokensSentToBridge.add(memberEarnings);
+        tokensSentToBridge = tokensSentToBridge + memberEarnings;
 
         return newTokens;
     }
@@ -159,22 +191,19 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     function withdrawAdminFees() public returns (uint256) {
         uint256 withdrawable = adminFeesWithdrawable();
         if (withdrawable == 0) return 0;
-        totalAdminFeesWithdrawn = totalAdminFeesWithdrawn.add(withdrawable);
+        totalAdminFeesWithdrawn += withdrawable;
         require(token.transfer(owner, withdrawable), "transfer_failed");
         emit AdminFeesWithdrawn(owner, withdrawable);
         return withdrawable;
     }
 
-    function migrate() public onlyOwner {
-        address newToken = migrationManager.currentToken();
-        if(newToken != address(0) && newToken != address(token)) {
-            emit MigrateToken(newToken, address(token));
-            token = ERC20(newToken);
-        }
-        address newMediator = migrationManager.currentMediator();
-        if(newMediator != address(0) && newMediator != address(tokenMediator)) {
-            emit MigrateMediator(newMediator, address(tokenMediator));
-            tokenMediator = ITokenMediator(newMediator);
-        }
+    function withdrawDuFees() public returns (uint256) {
+        uint256 withdrawable = duFeesWithdrawable();
+        if (withdrawable == 0) return 0;
+        totalDuFeesWithdrawn += withdrawable;
+        require(token.transfer(duBeneficiary, withdrawable), "transfer_failed");
+        emit DuFeesWithdrawn(duBeneficiary, withdrawable);
+        return withdrawable;
     }
+    
 }

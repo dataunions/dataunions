@@ -1,12 +1,12 @@
-pragma solidity 0.6.6;
+// SPDX-License-Identifier: MIT
+
+pragma solidity 0.8.6;
 
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol"; 
 import "./IERC677.sol";
 import "./BytesLib.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract BinanceAdapter {
-    using SafeMath for uint256;
 
     event WithdrawToBinance(address indexed token, address indexed to, uint256 amountDatacoin, uint256 amountOtheroken);
     event SetBinanceRecipient(address indexed member, address indexed recipient);
@@ -53,7 +53,7 @@ contract BinanceAdapter {
 
     function setBinanceRecipientFromSig(address from, address recipient, bytes memory sig) public {
         UserData storage userdata = binanceRecipient[from];
-        uint nextNonce = userdata.nonce.add(1);
+        uint nextNonce = ++(userdata.nonce);
         require(getSigner(recipient, nextNonce, sig) == from, "bad_signature");
         userdata.nonce = nextNonce;
         _setBinanceRecipient(from, recipient);
@@ -87,19 +87,20 @@ contract BinanceAdapter {
         }
         toCoin.transferAndCall(bscBridge, sendToBinanceAmount, BytesLib.toBytes(binanceAddress));
         emit WithdrawToBinance(address(toCoin), binanceAddress, amountDatacoin, sendToBinanceAmount);
-        datacoinPassed = datacoinPassed.add(amountDatacoin);
+        datacoinPassed = datacoinPassed + amountDatacoin;
     }
 
     function _honeyswapPath(address toCoinXDai) internal view returns (address[] memory) {
+        address[] memory path;
         if(liquidityToken == address(0)){
             //no intermediate
-            address[] memory path = new address[](2);
+            path = new address[](2);
             path[0] = address(dataCoin);
             path[1] = toCoinXDai;
             return path;
         }
         //use intermediate liquidity token
-        address[] memory path = new address[](3);
+        path = new address[](3);
         path[0] = address(dataCoin);
         path[1] = liquidityToken;
         path[2] = toCoinXDai;
