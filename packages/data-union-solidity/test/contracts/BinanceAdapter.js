@@ -6,7 +6,6 @@ const DataUnionSidechain = artifacts.require("./DataUnionSidechain.sol")
 const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const BinanceAdapter = artifacts.require("./BinanceAdapter.sol")
 const TestToken = artifacts.require("./TestToken.sol")
-const SidechainMigrationManager = artifacts.require("./SidechainMigrationManager.sol")
 
 //Uniswap v2
 const UniswapV2FactoryJson = require("@uniswap/v2-core/build/UniswapV2Factory.json")
@@ -56,7 +55,7 @@ contract("BinanceAdapter", accounts => {
     const agents = accounts.slice(1, 3)
     const members = accounts.slice(3, 6)
     const others = accounts.slice(6)
-    let testToken, otherToken, dataUnionSidechain, migrationManager, mockBinanceMediator, uniswapRouter
+    let testToken, otherToken, dataUnionSidechain, mockBinanceMediator, uniswapRouter
 
     before(async () => {
         uniswapRouter = await deployUniswap2(creator)
@@ -66,18 +65,18 @@ contract("BinanceAdapter", accounts => {
         /*
         function initialize(
             address initialOwner,
-            address _migrationManager,
+            address token,
+            address mediator,            
             address[] memory initialJoinPartAgents,
             address mainnetDataUnionAddress,
             uint256 defaultNewMemberEth
         ) 
         */
         testToken = await TestToken.new("name", "symbol", { from: creator })
-        //mediator is a dummy non-zero address. mediator not used
-        migrationManager = await SidechainMigrationManager.new(testToken.address, zeroAddress, agents[0], { from: creator })
         otherToken = await TestToken.new("migrate", "m", { from: creator })
+        //mediator is a dummy non-zero address. mediator not used
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
-        await dataUnionSidechain.initialize(creator, migrationManager.address, agents, agents[0], "1", {from: creator})
+        await dataUnionSidechain.initialize(creator, testToken.address, zeroAddress, agents, agents[0], "1", {from: creator})
         await testToken.mint(creator, toWei("10000"), { from: creator })
         await otherToken.mint(creator, toWei("10000"), { from: creator })
         

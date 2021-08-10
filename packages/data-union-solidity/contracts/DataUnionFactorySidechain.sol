@@ -1,12 +1,12 @@
-pragma solidity 0.6.6;
+// SPDX-License-Identifier: MIT
+
+pragma solidity 0.8.6;
 
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
 import "./ITokenMediator.sol";
 import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
-import "./ISidechainMigrationManager.sol";
 
 contract DataUnionFactorySidechain is Ownable {
     event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
@@ -21,19 +21,10 @@ contract DataUnionFactorySidechain is Ownable {
     uint public newDUInitialEth;
     uint public newDUOwnerInitialEth;
     uint public defaultNewMemberEth;
-    ISidechainMigrationManager public migrationManager;
-
-    constructor(address _migrationManager, address _dataUnionSidechainTemplate) public Ownable(msg.sender) {
-        migrationManager = ISidechainMigrationManager(_migrationManager);
+    
+    constructor(address _dataUnionSidechainTemplate) public Ownable(msg.sender)         
+    {
         dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
-    }
-
-    function amb() public view returns (IAMB) {
-        return IAMB(ITokenMediator(migrationManager.currentMediator()).bridgeContract());
-    }
-
-    function token() public view returns (address) {
-        return migrationManager.currentToken();
     }
     
 
@@ -63,21 +54,32 @@ contract DataUnionFactorySidechain is Ownable {
         public view
         returns (address proxy)
     {
-        return CloneLib.predictCloneAddressCreate2(dataUnionSidechainTemplate, address(this), bytes32(uint256(mainnetAddress)));
+        return CloneLib.predictCloneAddressCreate2(dataUnionSidechainTemplate, address(this), bytes32(uint256(uint160(mainnetAddress))));
     }
+
+    function amb(address _mediator) public view returns (IAMB) {
+        return IAMB(ITokenMediator(_mediator).bridgeContract());
+    }
+
 
     /*
     Must be called by AMB. Use MockAMB for testing.
     salt = mainnet_address.
     */
     
-    function deployNewDUSidechain(address payable owner, address[] memory agents) public returns (address) {
-        require(msg.sender == address(amb()), "only_AMB");
-        address duMainnet = amb().messageSender();
-        bytes32 salt = bytes32(uint256(duMainnet));
-        bytes memory data = abi.encodeWithSignature("initialize(address,address,address[],address,uint256)",
+    function deployNewDUSidechain(
+        address token,
+        address mediator,
+        address payable owner,
+        address[] memory agents
+    ) public returns (address) {
+        require(msg.sender == address(amb(mediator)), "only_AMB");
+        address duMainnet = amb(mediator).messageSender();
+        bytes32 salt = bytes32(uint256(uint160(duMainnet)));
+        bytes memory data = abi.encodeWithSignature("initialize(address,address,address,address[],address,uint256)",
             owner,
-            migrationManager,
+            token,
+            mediator,            
             agents,
             duMainnet,
             defaultNewMemberEth

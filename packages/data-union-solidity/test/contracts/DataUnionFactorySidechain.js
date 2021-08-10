@@ -6,7 +6,6 @@ const DataUnionFactorySidechain = artifacts.require("./DataUnionFactorySidechain
 const TestToken = artifacts.require("./TestToken.sol")
 const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const MockAMB = artifacts.require("./MockAMB.sol")
-const SidechainMigrationManager = artifacts.require("./SidechainMigrationManager.sol")
 const zeroAddress = "0x0000000000000000000000000000000000000000"
 
 contract("DataUnionFactorySidechain", async accounts => {
@@ -16,15 +15,14 @@ contract("DataUnionFactorySidechain", async accounts => {
     const others = accounts.slice(6)
 
     const newMemberEth = toWei("0.1")
-    let testToken, dataUnionSidechain, mockAMB, mockTokenMediator, factory, migrationManager
+    let testToken, dataUnionSidechain, mockAMB, mockTokenMediator, factory
 
     before(async () => {
         testToken = await TestToken.new("name","symbol",{ from: creator })
         mockAMB = await MockAMB.new({from: creator})
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
-        migrationManager = await SidechainMigrationManager.new(testToken.address, zeroAddress, mockTokenMediator.address, { from: creator })
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
-        factory = await DataUnionFactorySidechain.new(migrationManager.address, dataUnionSidechain.address, {from: creator})
+        factory = await DataUnionFactorySidechain.new(dataUnionSidechain.address, {from: creator})
     })
     it("sidechain ETH flow", async () => {
         const ownerEth = toWei("0.01")
@@ -41,7 +39,7 @@ contract("DataUnionFactorySidechain", async accounts => {
         await web3.eth.sendTransaction({from:others[0], to:factory.address, value:web3.utils.toWei("2")})
 
         //this should fail because deployNewDUSidechain must be called by AMB
-        await assertFails(factory.deployNewDUSidechain(creator, agents, {from: others[0]}))
+        await assertFails(factory.deployNewDUSidechain(testToken.address, mockTokenMediator.address, creator, agents, {from: others[0]}))
 
         let balBefore = +(await web3.eth.getBalance(creator))
         const deploy = await factory.contract.methods.deployNewDUSidechain(creator, agents).encodeABI()

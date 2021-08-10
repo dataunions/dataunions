@@ -6,14 +6,14 @@ const DataUnionMainnet = artifacts.require("./DataUnionMainnet.sol")
 const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const MockAMB = artifacts.require("./MockAMB.sol")
 const TestToken = artifacts.require("./TestToken.sol")
-const MainnetMigrationManager = artifacts.require("./MainnetMigrationManager.sol")
-
 
 contract("DataUnionMainnet", accounts => {
     const creator = accounts[0]
     const sender = accounts[1]
-    let testToken, dataUnionMainnet, mockAMB, mockTokenMediator, migrationManager, migrateToken
+    let testToken, dataUnionMainnet, mockAMB, mockTokenMediator
     const adminFeeFraction = 0.1
+    const duFeeFraction  = 0.1
+    const duBeneficiary = accounts[2]
     const adminFeeFractionWei = w3.utils.toWei(adminFeeFraction.toString())
 
     const amtEth = 100
@@ -37,18 +37,19 @@ contract("DataUnionMainnet", accounts => {
         const dummy = testToken.address
         mockAMB = await MockAMB.new({from: creator})
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
-        migrationManager = await MainnetMigrationManager.new(testToken.address, mockTokenMediator.address, { from: creator })
         dataUnionMainnet = await DataUnionMainnet.new({from: creator})
-        migrateToken = await TestToken.new("migrate", "m", { from: creator })
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
 
         await dataUnionMainnet.initialize(
-            migrationManager.address,
+            testToken.address,
+            mockTokenMediator.address,
             dummy,
             2000000,
             dummy,
             creator,
             0,
+            0,
+            accounts[2],
             [creator]
         )
     }),
@@ -57,11 +58,11 @@ contract("DataUnionMainnet", accounts => {
             const version = await dataUnionMainnet.version()
             assertEqual(version, 2)
         }),
-        it("admin fee permissions", async () => {
-            await assertFails(dataUnionMainnet.setAdminFee(w3.utils.toWei("0.1"), {from: sender}))
+        it("fee permissions", async () => {
+            await assertFails(dataUnionMainnet.setFees(w3.utils.toWei("0.1"), w3.utils.toWei("0.1"), {from: sender}))
             //invalid, over 1:
-            await assertFails(dataUnionMainnet.setAdminFee(w3.utils.toWei("1.1"), {from: creator}))
-            assertEvent(await dataUnionMainnet.setAdminFee(adminFeeFractionWei, {from: creator}), "AdminFeeChanged")
+            await assertFails(dataUnionMainnet.setFees(w3.utils.toWei("0.9"), w3.utils.toWei("0.2"), {from: creator}))
+            assertEvent(await dataUnionMainnet.setFees(w3.utils.toWei("0.9"), w3.utils.toWei("0.2"), {from: creator}), "FeesChanged")
             const feeFracion = await dataUnionMainnet.adminFeeFraction()
             assertEqual(+feeFracion, adminFeeFractionWei)            
         }),
@@ -77,10 +78,10 @@ contract("DataUnionMainnet", accounts => {
             assertEqual(+(await dataUnionMainnet.tokensSentToBridge()), amtWei.sub(adminFeeWei))
             assertEqual(+(await testToken.balanceOf(creator)), adminFeeWei)
 
-            //try same with autoSendAdminFee off:
+            //try same with autoSendFees off:
 
-            await assertFails(dataUnionMainnet.setAutoSendAdminFee(false, {from: sender}))
-            dataUnionMainnet.setAutoSendAdminFee(false, {from: creator})
+            await assertFails(dataUnionMainnet.setAutoSendFees(false, {from: sender}))
+            dataUnionMainnet.setAutoSendFees(false, {from: creator})
 
             //send revenue with transfer. must call sendTokensToBridge() manually
             assert(await testToken.transfer(dataUnionMainnet.address, amtWei, {from: sender}))
@@ -96,17 +97,6 @@ contract("DataUnionMainnet", accounts => {
             await dataUnionMainnet.withdrawAdminFees({from: sender})
             assertEqual(+(await testToken.balanceOf(creator)), adminFeeWei.mul(new BN(2)))
             assert(await testToken.transfer(dataUnionMainnet.address, amtWei, {from: sender}))
-        }),
-
-        it("can migrate", async () => {
-            await assertFails(migrationManager.setCurrentToken(testToken.address, {from: sender}))
-            await migrationManager.setCurrentToken(migrateToken.address, { from: creator })
-            //dummy mediator address
-            await migrationManager.setCurrentMediator(sender, { from: creator })    
-            await assertFails(dataUnionMainnet.migrate({from: sender}))
-            assertEvent(await dataUnionMainnet.migrate({from: creator}), "MigrateToken")
-            assertEqual(await dataUnionMainnet.token(), migrateToken.address)
-            assertEqual(await dataUnionMainnet.tokenMediator(), sender)
-        })
+        })      
     })
 })

@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.6;
 
 import "truffle/Assert.sol";
 import "../../contracts/CloneLib.sol";
