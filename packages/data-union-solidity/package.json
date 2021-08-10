@@ -1,0 +1,36 @@
+{
+  "name": "data-union-solidity",
+  "description": "Smart contracts for Data Union with sidechain accounting",
+  "version": "0.0.1",
+  "scripts": {
+    "clean": "rm -rf build/ && mkdir -p build/contracts",
+    "build": "truffle compile && ./flatten",
+    "deploy": "truffle migrate",
+    "lint": "eslint . && solhint -f unix contracts/**/*.sol",
+    "format": "prettier --no-color --config .prettierrc --write contracts/**/*.sol",
+    "format-check": "prettier --no-color --config .prettierrc --check contracts/**/*.sol",
+    "coverage": "truffle run coverage --file=test/contracts/*",
+    "unit-test": "truffle test test/contracts/*",
+    "integration-test": "mocha test/e2e --exit",
+    "test": "npm run unit-test"
+  },
+  "author": "Streamr Network AG",
+  "license": "AGPL-3.0",
+  "devDependencies": {
+    "debug": "4.1.1",
+    "eslint": "7.22.0",
+    "openzeppelin-solidity": "3.1.0",
+    "solhint": "3.3.4",
+    "solidity-coverage": "^0.7.16",
+    "truffle": "^5.2.5",
+    "truffle-flattener": "^1.4.3",
+    "web3": "^1.2.4"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.4.1",
+    "@uniswap/v2-core": "^1.0.1",
+    "@uniswap/v2-periphery": "^1.1.0-beta.0",
+    "ethers": "^5.0.32",
+    "solhint-plugin-prettier": "^0.0.5"
+  }
+}

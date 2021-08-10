@@ -1,0 +1,27 @@
+{
+    "env": {
+        "node": true,
+        "mocha": true
+    },
+    "extends": [
+        "streamr-ts",
+        "plugin:import/typescript"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": 12,
+        "sourceType": "module"
+    },
+    "plugins": ["@typescript-eslint",  "chai-friendly"],
+    "rules": {
+        // "no-shadow": "off",
+        // "@typescript-eslint/no-shadow": ["error"],
+        "quotes": ["error", "single"],
+        "object-curly-spacing": ["error", "always"],
+        "no-await-in-loop": "off",
+        "no-plusplus": "off"
+    },
+    "settings": {
+        "import/extensions": [".js", ".jsx", ".ts", ".tsx", ".mjs"]
+    }
+}

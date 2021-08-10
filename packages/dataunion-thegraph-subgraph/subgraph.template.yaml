@@ -1,0 +1,48 @@
+specVersion: 0.0.2
+description: Subgraph definitions for sidechain data unions
+repository: 
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: DataUnionFactorySidechain
+    network: xDai
+    source:
+      address: '{{DataUnionFactoryAddress}}'
+      abi: DataUnionFactorySidechain
+      startBlock: {{DataUnionFactoryStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      file: ./src/factory.ts
+      entities:
+        - DataUnion
+      abis:
+        - name: DataUnionFactorySidechain
+          file: ./abis/DataUnionFactorySidechain.json
+      eventHandlers:
+        - event: SidechainDUCreated(indexed address,indexed address,indexed address,address)
+          handler: handleDUCreated
+templates:
+  - name: DataUnionSidechain
+    kind: ethereum/contract
+    network: xDai
+    source:
+      abi: DataUnionSidechain
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      file: ./src/dataunion.ts
+      entities:
+        - Member
+        - DataUnionStatsBucket
+      abis:
+        - name: DataUnionSidechain
+          file: ./abis/DataUnionSidechain.json
+      eventHandlers:
+        - event: MemberJoined(indexed address)
+          handler: handleMemberJoined
+        - event: MemberParted(indexed address)
+          handler: handleMemberParted
