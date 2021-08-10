@@ -20,7 +20,7 @@
     "debug": "4.1.1",
     "eslint": "7.22.0",
     "openzeppelin-solidity": "4.2.0",
-    "solhint": "3.3.4",
+    "solhint": "3.3.6",
     "solidity-coverage": "^0.7.16",
     "truffle": "^5.2.5",
     "truffle-flattener": "^1.4.3",
