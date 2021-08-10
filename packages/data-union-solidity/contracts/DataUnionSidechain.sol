@@ -64,14 +64,14 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
     }
 
     // owner will be set by initialize()
-    constructor() public Ownable(address(0)) {}
+    constructor() Ownable(address(0)) {}
 
     receive() external payable {}
 
     function initialize(
         address initialOwner,
         address _token,
-        address _mediator,        
+        address _mediator,
         address[] memory initialJoinPartAgents,
         address mainnetDataUnionAddress,
         uint256 defaultNewMemberEth

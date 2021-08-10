@@ -26,7 +26,7 @@ contract Ownable {
      * @dev The Ownable constructor sets the original `owner` of the contract to the sender
      * account.
      */
-    constructor(address owner_) public {
+    constructor(address owner_) {
         owner = owner_;
     }
 

@@ -11,7 +11,7 @@ contract MockTokenMediator is ISingleTokenMediator {
 
     ERC20 public token;
     address public amb;
-    constructor(address _token, address _amb) public {
+    constructor(address _token, address _amb) {
         token = ERC20(_token);
         amb = _amb;
     }
@@ -43,5 +43,6 @@ contract MockTokenMediator is ISingleTokenMediator {
     */
     function onTokenTransfer(address, uint256 amount, bytes calldata data) external returns (bool) {
         require(ERC20(msg.sender).transfer(BytesLib.toAddress(data), amount), "transfer_rejected_in_mock");
+        return true;
     }
 }

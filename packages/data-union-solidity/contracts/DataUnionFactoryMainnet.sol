@@ -25,15 +25,14 @@ contract DataUnionFactoryMainnet {
                 address _dataUnionMainnetTemplate,
                 address _dataUnionSidechainTemplate,
                 address _dataUnionSidechainFactory,
-                uint256 _sidechainMaxGas) 
-        public
-    {        
+                uint256 _sidechainMaxGas)
+    {
         dataUnionMainnetTemplate = _dataUnionMainnetTemplate;
         dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
         dataUnionSidechainFactory = _dataUnionSidechainFactory;
         sidechainMaxGas = _sidechainMaxGas;
     }
-     
+
 
     function sidechainAddress(address mainetAddress)
         public view

@@ -11,13 +11,13 @@ import "./ITokenMediator.sol";
 
 contract DataUnionMainnet is Ownable, PurchaseListener {
 
-    event FeesChanged(uint256 adminFee, uint256 duFee);    
+    event FeesChanged(uint256 adminFee, uint256 duFee);
     event FeesCharged(uint256 adminFee, uint256 duFee);
 
     event AdminFeesWithdrawn(address indexed admin, uint256 amount);
-    
+
     event RevenueReceived(uint256 amount);
-    
+
     event DuBeneficiaryChanged(address current, address old);
     event DuFeesWithdrawn(address indexed admin, uint256 amount);
 
@@ -36,7 +36,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     uint256 public adminFeeFraction;
     uint256 public totalAdminFees;
     uint256 public totalAdminFeesWithdrawn;
-    
+
     bool public autoSendFees;
 
     //du beneficiary info
@@ -50,7 +50,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     uint256 public tokensSentToBridge;
 
 
-    constructor() public Ownable(address(0)) {}
+    constructor() Ownable(address(0)) {}
 
     function initialize(
         address _token,
@@ -106,7 +106,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
 
     function setDuBeneficiary(address _duBeneficiary) public onlyOwner {
         require(_duBeneficiary != address(0), "invalid_address");
-        duBeneficiary = _duBeneficiary;        
+        duBeneficiary = _duBeneficiary;
         emit DuBeneficiaryChanged(duBeneficiary, _duBeneficiary);
     }
 
@@ -157,7 +157,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         return token.balanceOf(address(this)) - (adminFeesWithdrawable() + duFeesWithdrawable());
     }
 
-   
+
 
     function sendTokensToBridge() public returns (uint256) {
         uint256 newTokens = unaccountedTokens();
@@ -205,5 +205,5 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         emit DuFeesWithdrawn(duBeneficiary, withdrawable);
         return withdrawable;
     }
-    
+
 }

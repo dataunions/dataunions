@@ -21,12 +21,11 @@ contract DataUnionFactorySidechain is Ownable {
     uint public newDUInitialEth;
     uint public newDUOwnerInitialEth;
     uint public defaultNewMemberEth;
-    
-    constructor(address _dataUnionSidechainTemplate) public Ownable(msg.sender)         
-    {
+
+    constructor(address _dataUnionSidechainTemplate) Ownable(msg.sender) {
         dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
     }
-    
+
 
     //contract is payable
     receive() external payable {}
@@ -66,7 +65,7 @@ contract DataUnionFactorySidechain is Ownable {
     Must be called by AMB. Use MockAMB for testing.
     salt = mainnet_address.
     */
-    
+
     function deployNewDUSidechain(
         address token,
         address mediator,
@@ -79,7 +78,7 @@ contract DataUnionFactorySidechain is Ownable {
         bytes memory data = abi.encodeWithSignature("initialize(address,address,address,address[],address,uint256)",
             owner,
             token,
-            mediator,            
+            mediator,
             agents,
             duMainnet,
             defaultNewMemberEth

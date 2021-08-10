@@ -33,9 +33,10 @@ contract BinanceAdapter {
         require(userdata.binanceAddress != address(0), "recipient_undefined");
         //min output is 1 wei, no deadline
         _withdrawToBinance(userdata.binanceAddress, amount, convertToCoin, 1, maxint);
+        return true;
     }
 
-    constructor(address dataCoin_, address honeyswapRouter_, address bscBridge_, address convertToCoin_, address liquidityToken_) public {
+    constructor(address dataCoin_, address honeyswapRouter_, address bscBridge_, address convertToCoin_, address liquidityToken_) {
         dataCoin = IERC677(dataCoin_);
         honeyswapRouter = IUniswapV2Router02(honeyswapRouter_);
         bscBridge = address(bscBridge_);
