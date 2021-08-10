@@ -7,11 +7,11 @@ const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const BinanceAdapter = artifacts.require("./BinanceAdapter.sol")
 const TestToken = artifacts.require("./TestToken.sol")
 
-//Uniswap v2
-const UniswapV2FactoryJson = require("@uniswap/v2-core/build/UniswapV2Factory.json")
-//const UniswapV2PairJson = require("@uniswap/v2-core/build/UniswapV2Pair.json")
-const UniswapV2Router02Json = require("@uniswap/v2-periphery/build/UniswapV2Router02.json")
-const WETH9Json = require("@uniswap/v2-periphery/build/WETH9.json")
+// Uniswap v2, originally from @uniswap/v2-periphery/build
+const UniswapV2FactoryJson = require("./UniswapV2Factory.json")
+// const UniswapV2PairJson = require("@uniswap/v2-core/build/UniswapV2Pair.json")
+const UniswapV2Router02Json = require("./UniswapV2Router02.json")
+const WETH9Json = require("./WETH9.json")
 
 const UniswapV2Factory = new w3.eth.Contract(UniswapV2FactoryJson.abi, null, { data: UniswapV2FactoryJson.bytecode })
 //const UniswapV2Pair = new w3.eth.Contract(UniswapV2PairJson.abi, null, { data: UniswapV2PairJson.bytecode })
@@ -42,7 +42,7 @@ async function deployUniswap2(creator) {
     let tx = await deployer.deploy()
     const weth = await tx.deployed()
     log(`WETH deployed to ${weth.address}`)
-*/    
+*/
     const weth = await WETH9.deploy(({ arguments: [] })).send({ gas: 6000000, from: creator })
     const factory = await UniswapV2Factory.deploy(({ arguments: [creator] })).send({ gas: 6000000, from: creator })
     const router = await UniswapV2Router02.deploy(({ arguments: [factory.options.address, weth.options.address] })).send({ gas: 6000000, from: creator })
@@ -66,11 +66,11 @@ contract("BinanceAdapter", accounts => {
         function initialize(
             address initialOwner,
             address token,
-            address mediator,            
+            address mediator,
             address[] memory initialJoinPartAgents,
             address mainnetDataUnionAddress,
             uint256 defaultNewMemberEth
-        ) 
+        )
         */
         testToken = await TestToken.new("name", "symbol", { from: creator })
         otherToken = await TestToken.new("migrate", "m", { from: creator })
@@ -79,7 +79,7 @@ contract("BinanceAdapter", accounts => {
         await dataUnionSidechain.initialize(creator, testToken.address, zeroAddress, agents, agents[0], "1", {from: creator})
         await testToken.mint(creator, toWei("10000"), { from: creator })
         await otherToken.mint(creator, toWei("10000"), { from: creator })
-        
+
         //10 testToken ~= 1 otherToken
         const amtTest = toWei("1000")
         const amtOther = toWei("100")
@@ -100,7 +100,7 @@ contract("BinanceAdapter", accounts => {
     })
 
     it("can set Binance recipient", async () => {
-        let adapter = await BinanceAdapter.new(testToken.address, zeroAddress, mockBinanceMediator.address, zeroAddress, zeroAddress, {from: creator }) 
+        let adapter = await BinanceAdapter.new(testToken.address, zeroAddress, mockBinanceMediator.address, zeroAddress, zeroAddress, {from: creator })
         await adapter.setBinanceRecipient(members[1], {from: members[0]})
         assertEqual(members[1], (await adapter.binanceRecipient(members[0]))[0])
         // set members[1]'s recipient to member[2] using signature
@@ -115,33 +115,33 @@ contract("BinanceAdapter", accounts => {
         await assertFails(adapter.setBinanceRecipientFromSig(members[1], members[2], sig, {from: members[0]}))
     }),
     it("can withdraw to mediator without conversion", async () => {
-        let adapter = await BinanceAdapter.new(testToken.address, zeroAddress, mockBinanceMediator.address, zeroAddress, zeroAddress, {from: creator }) 
+        let adapter = await BinanceAdapter.new(testToken.address, zeroAddress, mockBinanceMediator.address, zeroAddress, zeroAddress, {from: creator })
         const amt = toWei("300")
         await testToken.transferAndCall(dataUnionSidechain.address, amt, "0x", {from: creator})
         const bal = toWei("100")
         assertEqual(bal, await dataUnionSidechain.getWithdrawableEarnings(members[0]))
-        
+
         //members[0] withdraws to member[1] via bridge
         await adapter.setBinanceRecipient(members[1], {from: members[0]})
         await dataUnionSidechain.withdrawAllTo(adapter.address, false, {from: members[0]})
         assertEqual(0, await dataUnionSidechain.getWithdrawableEarnings(members[0]))
-        assertEqual(await testToken.balanceOf(mockBinanceMediator.address), 0)        
+        assertEqual(await testToken.balanceOf(mockBinanceMediator.address), 0)
         assertEqual(await testToken.balanceOf(members[0]), 0)
         assertEqual(await testToken.balanceOf(members[1]), bal)
     })
 
     it("can withdraw to mediator with conversion", async () => {
-        let adapter = await BinanceAdapter.new(testToken.address, uniswapRouter.options.address, mockBinanceMediator.address, otherToken.address, zeroAddress, {from: creator }) 
+        let adapter = await BinanceAdapter.new(testToken.address, uniswapRouter.options.address, mockBinanceMediator.address, otherToken.address, zeroAddress, {from: creator })
         const amt = toWei("30")
         await testToken.transferAndCall(dataUnionSidechain.address, amt, "0x", {from: creator})
         const bal = new BN(toWei("10"))
         assertEqual(bal, await dataUnionSidechain.getWithdrawableEarnings(members[0]))
-        
+
         //members[0] withdraws to member[1] via bridge
         await adapter.setBinanceRecipient(members[1], {from: members[0]})
         await dataUnionSidechain.withdrawAllTo(adapter.address, false, {from: members[0]})
         assertEqual(0, await dataUnionSidechain.getWithdrawableEarnings(members[0]))
-        assertEqual(await testToken.balanceOf(mockBinanceMediator.address), 0)        
+        assertEqual(await testToken.balanceOf(mockBinanceMediator.address), 0)
         assertEqual(await testToken.balanceOf(members[0]), 0)
         const otherTokenBal = await otherToken.balanceOf(members[1])
         // otherTokenBal should be a bit less than bal/10

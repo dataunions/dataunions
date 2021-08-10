@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.6;
 
-import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol"; 
+import "./uniswap-v2-periphery/IUniswapV2Router02.sol";
 import "./IERC677.sol";
 import "./BytesLib.sol";
 
@@ -57,7 +57,7 @@ contract BinanceAdapter {
         require(getSigner(recipient, nextNonce, sig) == from, "bad_signature");
         userdata.nonce = nextNonce;
         _setBinanceRecipient(from, recipient);
-    }    
+    }
 
     function _setBinanceRecipient(address member, address recipient) internal {
         UserData storage userdata = binanceRecipient[member];
@@ -106,7 +106,7 @@ contract BinanceAdapter {
         path[2] = toCoinXDai;
         return path;
     }
-    
+
     function getSigner(
         address recipient,
         uint256 nonce,
@@ -131,7 +131,7 @@ contract BinanceAdapter {
 
         bytes32 messageHash = keccak256(abi.encodePacked(
             "\x19Ethereum Signed Message:\n72", recipient, nonce, address(this)));
-        
+
         return ecrecover(messageHash, v, r, s);
     }
 
