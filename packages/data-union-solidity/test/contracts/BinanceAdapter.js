@@ -113,8 +113,9 @@ contract("BinanceAdapter", accounts => {
 
         //replay should fail
         await assertFails(adapter.setBinanceRecipientFromSig(members[1], members[2], sig, {from: members[0]}))
-    }),
-    it("can withdraw to mediator without conversion", async () => {
+    })
+
+    it.skip("can withdraw to mediator without conversion", async () => {
         let adapter = await BinanceAdapter.new(testToken.address, zeroAddress, mockBinanceMediator.address, zeroAddress, zeroAddress, {from: creator })
         const amt = toWei("300")
         await testToken.transferAndCall(dataUnionSidechain.address, amt, "0x", {from: creator})
@@ -130,7 +131,7 @@ contract("BinanceAdapter", accounts => {
         assertEqual(await testToken.balanceOf(members[1]), bal)
     })
 
-    it("can withdraw to mediator with conversion", async () => {
+    it.skip("can withdraw to mediator with conversion", async () => {
         let adapter = await BinanceAdapter.new(testToken.address, uniswapRouter.options.address, mockBinanceMediator.address, otherToken.address, zeroAddress, {from: creator })
         const amt = toWei("30")
         await testToken.transferAndCall(dataUnionSidechain.address, amt, "0x", {from: creator})
