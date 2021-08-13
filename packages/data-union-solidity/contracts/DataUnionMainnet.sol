@@ -12,15 +12,14 @@ import "./ITokenMediator.sol";
 
 contract DataUnionMainnet is Ownable, PurchaseListener {
 
-    event FeesChanged(uint256 adminFee, uint256 duFee);
-    event FeesCharged(uint256 adminFee, uint256 duFee);
-
-    event AdminFeesWithdrawn(address indexed admin, uint256 amount);
-
     event RevenueReceived(uint256 amount);
 
-    event DuBeneficiaryChanged(address current, address old);
-    event DuFeesWithdrawn(address indexed admin, uint256 amount);
+    event FeesChanged(uint256 adminFee, uint256 dataUnionFee);
+    event FeesCharged(uint256 adminFee, uint256 dataUnionFee);
+
+    event AdminFeesWithdrawn(address indexed admin, uint256 amount);
+    event DataUnionBeneficiaryChanged(address current, address old);
+    event DataUnionFeesWithdrawn(address indexed admin, uint256 amount);
 
     ITokenMediator public tokenMediator;
     address public sidechainDUFactory;
@@ -30,24 +29,22 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     // NOTE: any variables set below will NOT be visible in clones from CloneLib / factories
     //       clones must set variables in initialize()
 
-    // needed to compute sidechain address
-    address public sidechainDUTemplate;
+    address public sidechainDUTemplate; // needed to compute sidechain address
+
+    bool public autoSendFees;
+
     uint256 public adminFeeFraction;
     uint256 public totalAdminFees;
     uint256 public totalAdminFeesWithdrawn;
 
-    bool public autoSendFees;
-
-    //du beneficiary info
-    uint256 public duFeeFraction;
-    uint256 public totalDuFees;
-    uint256 public totalDuFeesWithdrawn;
-    address public duBeneficiary;
+    uint256 public dataUnionFeeFraction;
+    uint256 public totalDataUnionFees;
+    uint256 public totalDataUnionFeesWithdrawn;
+    address public dataUnionBeneficiary;
 
     function version() public pure returns (uint256) { return 2; }
 
     uint256 public tokensSentToBridge;
-
 
     constructor() Ownable(address(0)) {}
 
@@ -59,8 +56,8 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         address _sidechainDUTemplate,
         address _owner,
         uint256 _adminFeeFraction,
-        uint256 _duFeeFraction,
-        address _duBeneficiary,
+        uint256 _dataUnionFeeFraction,
+        address _dataUnionBeneficiary,
         address[] memory agents
     )  public {
         require(!isInitialized(), "init_once");
@@ -75,8 +72,8 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         sidechainDUFactory = _sidechainDUFactory;
         sidechainMaxGas = _sidechainMaxGas;
         sidechainDUTemplate = _sidechainDUTemplate;
-        setFees(_adminFeeFraction, _duFeeFraction);
-        setDuBeneficiary(_duBeneficiary);
+        setFees(_adminFeeFraction, _dataUnionFeeFraction);
+        setDataUnionBeneficiary(_dataUnionBeneficiary);
         //transfer to real admin
         owner = _owner;
         deployNewDUSidechain(agents);
@@ -91,29 +88,27 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     }
 
     /**
-     * Admin and du fees as a fraction of revenue.
-     * @param newAdminFee fixed-point decimal in the same way as ether: 50% === 0.5 ether === "500000000000000000"
-     * @param newDuFee fixed-point decimal in the same way as ether: 50% === 0.5 ether === "500000000000000000"
+     * Admin and DU fees as a fraction of revenue,
+     *   using fixed-point decimal in the same way as ether: 50% === 0.5 ether === "500000000000000000"
+     * @param newAdminFee fee that goes to the DU owner
+     * @param newDataUnionFee fee that goes to the DU beneficiary
      */
-    function setFees(uint256 newAdminFee, uint256 newDuFee) public onlyOwner {
-        require((newAdminFee + newDuFee) <= 1 ether, "error_Fees");
+    function setFees(uint256 newAdminFee, uint256 newDataUnionFee) public onlyOwner {
+        require((newAdminFee + newDataUnionFee) <= 1 ether, "error_Fees");
         adminFeeFraction = newAdminFee;
-        duFeeFraction = newDuFee;
-        emit FeesChanged(adminFeeFraction, duFeeFraction);
+        dataUnionFeeFraction = newDataUnionFee;
+        emit FeesChanged(adminFeeFraction, dataUnionFeeFraction);
     }
 
-
-    function setDuBeneficiary(address _duBeneficiary) public onlyOwner {
-        require(_duBeneficiary != address(0), "invalid_address");
-        duBeneficiary = _duBeneficiary;
-        emit DuBeneficiaryChanged(duBeneficiary, _duBeneficiary);
+    function setDataUnionBeneficiary(address _dataUnionBeneficiary) public onlyOwner {
+        require(_dataUnionBeneficiary != address(0), "invalid_address");
+        dataUnionBeneficiary = _dataUnionBeneficiary;
+        emit DataUnionBeneficiaryChanged(dataUnionBeneficiary, _dataUnionBeneficiary);
     }
-
 
     function setAutoSendFees(bool autoSend) public onlyOwner {
         autoSendFees = autoSend;
     }
-
 
     function deployNewDUSidechain(address[] memory agents) public {
         bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,address[])", owner, agents);
@@ -130,9 +125,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
      * Only the token contract is authorized to call this function
      */
     function onTokenTransfer(address, uint256, bytes calldata) external returns (bool success) {
-        if(msg.sender != address(token)){
-            return false;
-        }
+        if (msg.sender != address(token)) { return false; }
         sendTokensToBridge();
         return true;
     }
@@ -147,17 +140,13 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         return totalAdminFees - totalAdminFeesWithdrawn;
     }
 
-
-    function duFeesWithdrawable() public view returns (uint256) {
-        return totalDuFees - totalDuFeesWithdrawn;
+    function dataUnionFeesWithdrawable() public view returns (uint256) {
+        return totalDataUnionFees - totalDataUnionFeesWithdrawn;
     }
-
 
     function unaccountedTokens() public view returns (uint256) {
-        return token.balanceOf(address(this)) - (adminFeesWithdrawable() + duFeesWithdrawable());
+        return token.balanceOf(address(this)) - (adminFeesWithdrawable() + dataUnionFeesWithdrawable());
     }
-
-
 
     function sendTokensToBridge() public returns (uint256) {
         uint256 newTokens = unaccountedTokens();
@@ -166,24 +155,26 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         emit RevenueReceived(newTokens);
 
         uint256 adminFee = (newTokens * adminFeeFraction) / (10 ** token.decimals());
-        uint256 duFee = (newTokens * duFeeFraction) / (10 ** token.decimals());
+        uint256 duFee = (newTokens * dataUnionFeeFraction) / (10 ** token.decimals());
         uint256 memberEarnings = newTokens - (adminFee + duFee);
 
         totalAdminFees += adminFee;
-        totalDuFees += duFee;
+        totalDataUnionFees += duFee;
         emit FeesCharged(adminFee, duFee);
-        if(autoSendFees) {
+        if (autoSendFees) {
             withdrawAdminFees();
-            withdrawDuFees();
+            withdrawDataUnionFees();
         }
 
         // transfer memberEarnings
         require(token.approve(address(tokenMediator), memberEarnings), "approve_failed");
-        //must send some no-zero data to trigger callback fn
+
+        // must send some non-zero data to trigger the callback function
         tokenMediator.relayTokensAndCall(address(token), sidechainAddress(), memberEarnings, abi.encodePacked("DU2"));
-        //check that memberEarnings were sent
+
+        // check that memberEarnings were sent
         require(unaccountedTokens() == 0, "not_transferred");
-        tokensSentToBridge = tokensSentToBridge + memberEarnings;
+        tokensSentToBridge += memberEarnings;
 
         return newTokens;
     }
@@ -197,12 +188,12 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         return withdrawable;
     }
 
-    function withdrawDuFees() public returns (uint256) {
-        uint256 withdrawable = duFeesWithdrawable();
+    function withdrawDataUnionFees() public returns (uint256) {
+        uint256 withdrawable = dataUnionFeesWithdrawable();
         if (withdrawable == 0) return 0;
-        totalDuFeesWithdrawn += withdrawable;
-        require(token.transfer(duBeneficiary, withdrawable), "transfer_failed");
-        emit DuFeesWithdrawn(duBeneficiary, withdrawable);
+        totalDataUnionFeesWithdrawn += withdrawable;
+        require(token.transfer(dataUnionBeneficiary, withdrawable), "transfer_failed");
+        emit DataUnionFeesWithdrawn(dataUnionBeneficiary, withdrawable);
         return withdrawable;
     }
 
