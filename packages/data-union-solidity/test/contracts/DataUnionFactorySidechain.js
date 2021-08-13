@@ -42,7 +42,7 @@ contract("DataUnionFactorySidechain", async accounts => {
         await assertFails(factory.deployNewDUSidechain(testToken.address, mockTokenMediator.address, creator, agents, {from: others[0]}))
 
         let balBefore = +(await web3.eth.getBalance(creator))
-        const deploy = await factory.contract.methods.deployNewDUSidechain(creator, agents).encodeABI()
+        const deploy = await factory.contract.methods.deployNewDUSidechain(testToken.address, mockTokenMediator.address, creator, agents).encodeABI()
         //console.log(`deply: ${deploy}`)
         await mockAMB.requireToPassMessage(factory.address, deploy, 2000000, {from: others[0]})
         const newdu_address = await factory.sidechainAddress(others[0])
