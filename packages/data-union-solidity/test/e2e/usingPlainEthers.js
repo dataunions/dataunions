@@ -7,8 +7,6 @@ const HOME_ERC677 = "0x73Be21733CC5D08e1a14Ea9a399fb27DB3BEf8fF"
 const HOME_MULTIMEDIATOR = "0x41B89Db86BE735c03A9296437E39F5FDAdC4c678"
 const FOREIGN_MULTIMEDIATOR = "0x6346Ed242adE018Bd9320D5E3371c377BAB29c31"
 
-
-
 const Token = require("../../build/contracts/IERC20.json")
 const DataUnionSidechain = require("../../build/contracts/DataUnionSidechain.json")
 const DataUnionMainnet = require("../../build/contracts/DataUnionMainnet.json")
@@ -75,7 +73,7 @@ describe("Data Union tests using only ethers.js directly", () => {
     before(async function () {
         this.timeout(process.env.TEST_TIMEOUT || 60000)
         mainnetMigrationMgr = await deployMainnetMigrationManager(walletMainnet)
-        sidechainMigrationMgr = await deploySidechainMigrationManager(walletSidechain) 
+        sidechainMigrationMgr = await deploySidechainMigrationManager(walletSidechain)
         const factorySidechain = await deployDataUnionFactorySidechain(walletSidechain, sidechainMigrationMgr.address)
         const templateSidechain = getTemplateSidechain()
         factoryMainnet = await deployDataUnionFactoryMainnet(walletMainnet, templateSidechain.address, factorySidechain.address, mainnetMigrationMgr.address)
@@ -157,7 +155,7 @@ describe("Data Union tests using only ethers.js directly", () => {
         log("migrated")
 
 
-        
+
         await withdraw(duSidechain, member2)
         let balanceAfter2 = await testToken.balanceOf(member2)
         log("checking balance in new token on mainnet")
@@ -243,7 +241,7 @@ async function getTokenContracts(mainnetDu) {
         sidechainTokenAddress,
         Token.abi,
         walletSidechain
-    ) 
+    )
     return [mainnetToken, sidechainToken]
 }
 

@@ -3,7 +3,8 @@
 pragma solidity 0.8.6;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+ // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "./Ownable.sol";
 import "./PurchaseListener.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
@@ -26,10 +27,8 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     uint256 public sidechainMaxGas;
     ERC20 public token;
 
-/*
-    NOTE: any variables set below will NOT be visible in clones
-    clones must set variables in initialize()
-*/
+    // NOTE: any variables set below will NOT be visible in clones from CloneLib / factories
+    //       clones must set variables in initialize()
 
     // needed to compute sidechain address
     address public sidechainDUTemplate;
@@ -126,9 +125,10 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     }
 
     /**
-    ERC677 callback function
-    see https://github.com/ethereum/EIPs/issues/677
-    */
+     * ERC677 callback function, see https://github.com/ethereum/EIPs/issues/677
+     * Sends the tokens arriving through a transferAndCall to the sidechain (ignore arguments/calldata)
+     * Only the token contract is authorized to call this function
+     */
     function onTokenTransfer(address, uint256, bytes calldata) external returns (bool success) {
         if(msg.sender != address(token)){
             return false;

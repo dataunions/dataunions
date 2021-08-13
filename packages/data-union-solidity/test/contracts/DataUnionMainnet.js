@@ -12,8 +12,9 @@ contract("DataUnionMainnet", accounts => {
     const sender = accounts[1]
     let testToken, dataUnionMainnet, mockAMB, mockTokenMediator
     const adminFeeFraction = 0.1
-    const duFeeFraction  = 0.1
+    const duFeeFraction = 0.1
     const duBeneficiary = accounts[2]
+
     const adminFeeFractionWei = w3.utils.toWei(adminFeeFraction.toString())
 
     const amtEth = 100

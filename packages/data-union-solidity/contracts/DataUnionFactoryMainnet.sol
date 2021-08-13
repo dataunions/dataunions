@@ -59,20 +59,6 @@ contract DataUnionFactoryMainnet {
         );
     }
 
-
-/*
-    function initialize(
-        address _token,
-        address _mediator,
-        address _sidechainDataUnionFactory,
-        uint256 _sidechainMaxgas,
-        address _sidechainTemplateDataUnion,
-        address _owner,
-        uint256 adminFeeFraction,
-        address[] memory agents
-    )  public {
-    users can only deploy with salt = their key.
-*/
     function deployNewDataUnion(
         address owner,
         address token,

@@ -2,15 +2,17 @@ const Web3 = require("web3")
 const w3 = new Web3(web3.currentProvider)
 const { BN, toWei } = w3.utils
 const { assertEqual, assertFails, assertEvent } = require("../utils/web3Assert")
-const DataUnionSidechain = artifacts.require("./DataUnionSidechain.sol")
-const TestToken = artifacts.require("./TestToken.sol")
-const SidechainMigrationManager = artifacts.require("./SidechainMigrationManager.sol")
+
 const log = require("debug")("Streamr:du:test:DataUnionSidechain")
-const zeroAddress = "0x0000000000000000000000000000000000000000"
 //const log = console.log  // for debugging?
 
+const DataUnionSidechain = artifacts.require("./DataUnionSidechain.sol")
+const TestToken = artifacts.require("./TestToken.sol")
+const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
+const MockAMB = artifacts.require("./MockAMB.sol")
+
 /**
-* Member can sign off to "donate" all earnings to another address such that someone else
+ * Member can sign off to "donate" all earnings to another address such that someone else
  *   can submit the transaction (and pay for the gas)
  *
  * In Solidity, the message is created by abi.encodePacked(), which represents addresses unpadded as 20bytes.

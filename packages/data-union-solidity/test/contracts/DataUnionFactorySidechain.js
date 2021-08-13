@@ -6,7 +6,6 @@ const DataUnionFactorySidechain = artifacts.require("./DataUnionFactorySidechain
 const TestToken = artifacts.require("./TestToken.sol")
 const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const MockAMB = artifacts.require("./MockAMB.sol")
-const zeroAddress = "0x0000000000000000000000000000000000000000"
 
 contract("DataUnionFactorySidechain", async accounts => {
     const creator = accounts[0]
@@ -18,12 +17,13 @@ contract("DataUnionFactorySidechain", async accounts => {
     let testToken, dataUnionSidechain, mockAMB, mockTokenMediator, factory
 
     before(async () => {
-        testToken = await TestToken.new("name","symbol",{ from: creator })
+        testToken = await TestToken.new("name", "symbol", { from: creator })
         mockAMB = await MockAMB.new({from: creator})
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
         factory = await DataUnionFactorySidechain.new(dataUnionSidechain.address, {from: creator})
     })
+
     it("sidechain ETH flow", async () => {
         const ownerEth = toWei("0.01")
         const newDUEth = toWei("1")

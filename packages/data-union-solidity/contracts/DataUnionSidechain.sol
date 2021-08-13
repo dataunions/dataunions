@@ -4,7 +4,8 @@ pragma solidity 0.8.6;
 
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "./IERC677.sol";
-import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+// TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "./Ownable.sol";
 import "./IERC20Receiver.sol";
 
 contract DataUnionSidechain is Ownable, IERC20Receiver {

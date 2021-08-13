@@ -6,7 +6,8 @@ import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
 import "./ITokenMediator.sol";
-import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+// TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "./Ownable.sol";
 
 contract DataUnionFactorySidechain is Ownable {
     event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
@@ -61,11 +62,11 @@ contract DataUnionFactorySidechain is Ownable {
     }
 
 
-    /*
-    Must be called by AMB. Use MockAMB for testing.
-    salt = mainnet_address.
-    */
-
+    /**
+     * @dev This function is called over the bridge by the DataUnionMainnet.initialize function
+     * @dev Hence must be called by the AMB. Use MockAMB for testing.
+     * @dev CREATE2 salt = mainnet_address.
+     */
     function deployNewDUSidechain(
         address token,
         address mediator,
