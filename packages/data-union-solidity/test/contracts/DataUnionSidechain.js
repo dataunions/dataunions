@@ -37,26 +37,35 @@ contract("DataUnionSidechain", accounts => {
     const agents = accounts.slice(1, 3)
     const members = accounts.slice(3, 6)
     const others = accounts.slice(6)
-    let testToken, migrateToken, dataUnionSidechain, migrationManager
+    let testToken, dataUnionSidechain, mockAMB, mockTokenMediator
+
+    before(async () => {
+        testToken = await TestToken.new("name", "symbol", { from: creator })
+        await testToken.mint(creator, toWei("10000"), { from: creator })
+
+        mockAMB = await MockAMB.new({from: creator})
+        mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
+    })
 
     beforeEach(async () => {
-        /*
-        function initialize(
+        /* function initialize(
             address initialOwner,
-            address _migrationManager,
+            address _token,
+            address _mediator,
             address[] memory initialJoinPartAgents,
             address mainnetDataUnionAddress,
             uint256 defaultNewMemberEth
-        ) 
-        */
-        testToken = await TestToken.new("name", "symbol", { from: creator })
-        //mediator is a dummy non-zero address. mediator not used
-        migrationManager = await SidechainMigrationManager.new(testToken.address, zeroAddress, agents[0], { from: creator })
-        migrateToken = await TestToken.new("migrate", "m", { from: creator })
+        ) */
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
-        await dataUnionSidechain.initialize(creator, migrationManager.address, agents, agents[0], "1", {from: creator})
-        await testToken.mint(creator, toWei("10000"), { from: creator })
-        await migrateToken.mint(creator, toWei("10000"), { from: creator })
+        await dataUnionSidechain.initialize(
+            creator,
+            testToken.address,
+            mockTokenMediator.address,
+            agents,
+            agents[0],
+            "1",
+            {from: creator}
+        )
         await dataUnionSidechain.addMembers(members, {from: agents[1]})
 
         log(`DataUnionSidechain initialized at ${dataUnionSidechain.address}`)
@@ -87,7 +96,7 @@ contract("DataUnionSidechain", accounts => {
         //re-add and check that inactiveMemberCount decreased
         assertEvent(await dataUnionSidechain.addMembers(others, {from: agents[0]}), "MemberJoined")
         assertEqual(await dataUnionSidechain.inactiveMemberCount(), new BN(0))
-        
+
     })
 
     it("addJoinPartAgent removeJoinPartAgent", async () => {
@@ -113,25 +122,30 @@ contract("DataUnionSidechain", accounts => {
         await assertFails(dataUnionSidechain.addMember(newMember, {from: newAgent}), "error_onlyJoinPartAgent")
     })
 
+    async function getBalances(addresses) {
+        return Promise.all(addresses.map(a => testToken.balanceOf(a)))
+    }
+    async function getBalanceIncrements(addresses, originalBalances) {
+        return Promise.all(addresses.map((a, i) => testToken.balanceOf(a).then(b => b.sub(originalBalances[i]))))
+    }
+
     it("withdrawMembers: batch withdraw many members", async () => {
+        const balances = await getBalances(members)
         await testToken.transfer(dataUnionSidechain.address, "3000")
         await dataUnionSidechain.refreshRevenue({from: creator})
         assertEvent(await dataUnionSidechain.withdrawMembers(members, false, {from: creator}), "EarningsWithdrawn")
-        assertEqual(await testToken.balanceOf(members[0]), 1000)
-        assertEqual(await testToken.balanceOf(members[1]), 1000)
-        assertEqual(await testToken.balanceOf(members[2]), 1000)
+        assertEqual(await getBalanceIncrements(members, balances), [ 1000, 1000, 1000 ])
     })
 
     it("withdrawAll", async () => {
+        const balances = await getBalances(members)
         await testToken.transfer(dataUnionSidechain.address, "3000")
         await dataUnionSidechain.refreshRevenue({from: creator})
         await assertFails(dataUnionSidechain.withdrawAll(members[0], false, {from: others[0]}), "error_notPermitted")
         assertEvent(await dataUnionSidechain.withdrawAll(members[0], false, {from: members[0]}), "EarningsWithdrawn")
         assertEvent(await dataUnionSidechain.withdrawAll(members[1], false, {from: creator}), "EarningsWithdrawn")
         await dataUnionSidechain.withdrawAll(members[1], false, {from: creator})    // this should do nothing, also not revert
-        assertEqual(await testToken.balanceOf(members[0]), 1000)
-        assertEqual(await testToken.balanceOf(members[1]), 1000)
-        assertEqual(await testToken.balanceOf(members[2]), 0)
+        assertEqual(await getBalanceIncrements(members, balances), [ 1000, 1000, 0 ])
     })
 
     it("withdrawAllTo", async () => {
