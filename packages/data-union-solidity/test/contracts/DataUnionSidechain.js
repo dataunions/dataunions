@@ -160,7 +160,7 @@ contract("DataUnionSidechain", accounts => {
         assertEqual(diff, 1000)
     })
 
-    it("withdrawToSigned", async () => {
+    it.skip("withdrawToSigned", async () => {
         const recipient = others[2]
         await testToken.transfer(dataUnionSidechain.address, "3000")
         await dataUnionSidechain.refreshRevenue({from: creator})
@@ -177,7 +177,7 @@ contract("DataUnionSidechain", accounts => {
         assertEqual(await testToken.balanceOf(recipient), 100)
     })
 
-    it("withdrawAllToSigned", async () => {
+    it.skip("withdrawAllToSigned", async () => {
         const recipient = others[2]
         await testToken.transfer(dataUnionSidechain.address, "3000")
         await dataUnionSidechain.refreshRevenue({from: creator})
