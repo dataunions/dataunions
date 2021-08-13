@@ -2,10 +2,11 @@
 // modified from @uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol
 
 // pragma solidity >=0.6.2;
-pragma solidity ^0.8.0;
+pragma solidity 0.8.6;
 
 interface IUniswapV2Router01 {
     function factory() external pure returns (address);
+    // solhint-disable-next-line
     function WETH() external pure returns (address);
 
     function addLiquidity(
