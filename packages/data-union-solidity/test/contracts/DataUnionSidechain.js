@@ -318,25 +318,4 @@ contract("DataUnionSidechain", accounts => {
         await assertFails(dataUnionSidechain.signatureIsValid(members[1], recipient, "100", badVersionSig), "error_badSignatureVersion")
         assert(!await dataUnionSidechain.signatureIsValid(members[1], recipient, "200", signature), "Bad signature was accepted as valid :(")
     })
-
-    it("can migrate token", async () => {
-        const amount = 3000
-        await testToken.transfer(dataUnionSidechain.address, amount.toString())
-        await dataUnionSidechain.refreshRevenue({from: creator})
-
-        await migrateToken.transfer(migrationManager.address, amount.toString())
-        await migrationManager.setOldToken(testToken.address, {from: creator})
-        await migrationManager.setCurrentToken(migrateToken.address, {from: creator})
-        await assertFails(dataUnionSidechain.migrate({from: members[1]}))        
-        assertEvent(await dataUnionSidechain.migrate({from: creator}), "MigrateToken")
-        assertEqual(await testToken.balanceOf(dataUnionSidechain.address), 0)
-        assertEqual(await migrateToken.balanceOf(dataUnionSidechain.address), amount)
-        assertEqual(await testToken.balanceOf(migrationManager.address), amount)
-        assertEqual(await migrateToken.balanceOf(migrationManager.address), 0)
-
-        assertEvent(await dataUnionSidechain.withdrawAll(members[0], false, {from: members[0]}), "EarningsWithdrawn")
-        assertEqual(await migrateToken.balanceOf(members[0]), amount / members.length)
-        // agents[0] is the new dummy mediator address
-        assertEqual(await dataUnionSidechain.tokenMediator(), agents[0])
-    })
 })
