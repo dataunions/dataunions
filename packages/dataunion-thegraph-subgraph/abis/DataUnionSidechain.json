@@ -79,50 +79,6 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newMediator",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "oldMediator",
-        "type": "address"
-      }
-    ],
-    "name": "MigrateMediator",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newToken",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "oldToken",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amountMigrated",
-        "type": "uint256"
-      }
-    ],
-    "name": "MigrateToken",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": false,
         "internalType": "uint256",
         "name": "earningsPerMember",
@@ -373,19 +329,6 @@
   },
   {
     "inputs": [],
-    "name": "migrationManager",
-    "outputs": [
-      {
-        "internalType": "contract ISidechainMigrationManager",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "newMemberEth",
     "outputs": [
       {
@@ -501,7 +444,12 @@
       },
       {
         "internalType": "address",
-        "name": "_migrationManager",
+        "name": "_token",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_mediator",
         "type": "address"
       },
       {
@@ -1080,13 +1028,6 @@
       }
     ],
     "stateMutability": "pure",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "migrate",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   }
 ]
