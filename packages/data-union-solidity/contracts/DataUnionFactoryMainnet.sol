@@ -73,7 +73,7 @@ contract DataUnionFactoryMainnet {
         returns (address)
     {
         bytes32 salt = keccak256(abi.encode(bytes(name), msg.sender));
-        bytes memory data = abi.encodeWithSignature("initialize(address,address,uint256,address,address,uint256,address[])",
+        bytes memory data = abi.encodeWithSignature("initialize(address,address,address,uint256,address,address,uint256,uint256,address,address[])",
             token,
             mediator,
             dataUnionSidechainFactory,
