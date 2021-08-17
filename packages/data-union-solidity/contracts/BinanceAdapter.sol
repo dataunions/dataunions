@@ -54,9 +54,8 @@ contract BinanceAdapter {
 
     function setBinanceRecipientFromSig(address from, address recipient, bytes memory sig) public {
         UserData storage userdata = binanceRecipient[from];
-        uint nextNonce = ++(userdata.nonce);
-        require(getSigner(recipient, nextNonce, sig) == from, "bad_signature");
-        userdata.nonce = nextNonce;
+        userdata.nonce += 1;
+        require(getSigner(recipient, userdata.nonce, sig) == from, "bad_signature");
         _setBinanceRecipient(from, recipient);
     }
 
