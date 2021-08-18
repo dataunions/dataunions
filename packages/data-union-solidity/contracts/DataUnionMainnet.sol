@@ -17,10 +17,12 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     // NOTE: any variables set below will NOT be visible in clones from CloneLib / factories
     //       clones must set variables in initialize()
 
-    ITokenMediator public tokenMediator;
+    ERC20 public tokenMainnet;
+    ERC20 public tokenSidechain;
+    ITokenMediator public tokenMediatorMainnet;
+    ITokenMediator public tokenMediatorSidechain;
     address public sidechainDUFactory;
     uint256 public sidechainMaxGas;
-    ERC20 public token;
 
     address public sidechainDUTemplate; // needed to compute sidechain address
 
@@ -36,8 +38,10 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     constructor() Ownable(address(0)) {}
 
     function initialize(
-        address _token,
-        address _mediator,
+        address _tokenMainnet,
+        address _mediatorMainnet,
+        address _tokenSidechain,
+        address _mediatorSidechain,
         address _sidechainDUFactory,
         uint256 _sidechainMaxGas,
         address _sidechainDUTemplate,
@@ -52,8 +56,10 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
         //during setup, msg.sender is admin
         owner = msg.sender;
 
-        tokenMediator = ITokenMediator(_mediator);
-        token = ERC20(_token);
+        tokenMainnet = ERC20(_tokenMainnet);
+        tokenMediatorMainnet = ITokenMediator(_mediatorMainnet);
+        tokenSidechain = ERC20(_tokenSidechain);
+        tokenMediatorSidechain = ITokenMediator(_mediatorSidechain);
         sidechainDUFactory = _sidechainDUFactory;
         sidechainMaxGas = _sidechainMaxGas;
         sidechainDUTemplate = _sidechainDUTemplate;
@@ -68,18 +74,18 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     }
 
     function isInitialized() public view returns (bool) {
-        return address(token) != address(0);
+        return address(tokenMainnet) != address(0);
     }
 
     function amb() public view returns (IAMB) {
-        return IAMB(tokenMediator.bridgeContract());
+        return IAMB(tokenMediatorMainnet.bridgeContract());
     }
 
     function deployNewDUSidechain(address[] memory agents) public {
         bytes memory data = abi.encodeWithSignature(
             "deployNewDUSidechain(address,address,address,address[],uint256,uint256,address)",
-            address(token),
-            address(tokenMediator),
+            address(tokenSidechain),
+            address(tokenMediatorSidechain),
             owner,
             agents,
             initialAdminFeeFraction,
@@ -99,7 +105,7 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
      * Only the token contract is authorized to call this function
      */
     function onTokenTransfer(address, uint256, bytes calldata) external returns (bool success) {
-        if (msg.sender != address(token)) { return false; }
+        if (msg.sender != address(tokenMainnet)) { return false; }
         sendTokensToBridge();
         return true;
     }
@@ -111,19 +117,19 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     }
 
     function sendTokensToBridge() public returns (uint256) {
-        uint256 newTokens = token.balanceOf(address(this));
+        uint256 newTokens = tokenMainnet.balanceOf(address(this));
         if (newTokens == 0) { return 0; }
 
         emit RevenueReceived(newTokens);
 
         // transfer memberEarnings
-        require(token.approve(address(tokenMediator), newTokens), "approve_failed");
+        require(tokenMainnet.approve(address(tokenMediatorMainnet), newTokens), "approve_failed");
 
         // must send some non-zero data to trigger the callback function
-        tokenMediator.relayTokensAndCall(address(token), sidechainAddress(), newTokens, abi.encodePacked("DU2"));
+        tokenMediatorMainnet.relayTokensAndCall(address(tokenMainnet), sidechainAddress(), newTokens, abi.encodePacked("DU2"));
 
         // check that memberEarnings were sent
-        require(token.balanceOf(address(this)) == 0, "not_transferred");
+        require(tokenMainnet.balanceOf(address(this)) == 0, "not_transferred");
         tokensSentToBridge += newTokens;
 
         return newTokens;

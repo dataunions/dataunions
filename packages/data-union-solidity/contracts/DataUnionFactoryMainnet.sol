@@ -16,6 +16,11 @@ contract DataUnionFactoryMainnet {
 
     address public dataUnionMainnetTemplate;
 
+    address public defaultTokenMainnet;
+    address public defaultTokenMediatorMainnet;
+    address public defaultTokenSidechain;
+    address public defaultTokenMediatorSidechain;
+
     // needed to calculate address of sidechain contract
     address public dataUnionSidechainTemplate;
     address public dataUnionSidechainFactory;
@@ -25,11 +30,19 @@ contract DataUnionFactoryMainnet {
                 address _dataUnionMainnetTemplate,
                 address _dataUnionSidechainTemplate,
                 address _dataUnionSidechainFactory,
+                address _defaultTokenMainnet,
+                address _defaultTokenMediatorMainnet,
+                address _defaultTokenSidechain,
+                address _defaultTokenMediatorSidechain,
                 uint256 _sidechainMaxGas)
     {
         dataUnionMainnetTemplate = _dataUnionMainnetTemplate;
         dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
         dataUnionSidechainFactory = _dataUnionSidechainFactory;
+        defaultTokenMainnet = _defaultTokenMainnet;
+        defaultTokenMediatorMainnet = _defaultTokenMediatorMainnet;
+        defaultTokenSidechain = _defaultTokenSidechain;
+        defaultTokenMediatorSidechain = _defaultTokenMediatorSidechain;
         sidechainMaxGas = _sidechainMaxGas;
     }
 
@@ -61,8 +74,35 @@ contract DataUnionFactoryMainnet {
 
     function deployNewDataUnion(
         address owner,
-        address token,
-        address mediator,
+        uint256 adminFeeFraction,
+        uint256 duFeeFraction,
+        address duBeneficiary,
+        address[] memory agents,
+        string memory name
+    )
+        public
+        returns (address)
+    {
+        return deployNewDataUnionUsingToken(
+            defaultTokenMainnet,
+            defaultTokenMediatorMainnet,
+            defaultTokenSidechain,
+            defaultTokenMediatorSidechain,
+            owner,
+            adminFeeFraction,
+            duFeeFraction,
+            duBeneficiary,
+            agents,
+            name
+        );
+    }
+
+    function deployNewDataUnionUsingToken(
+        address tokenMainnet,
+        address tokenMediatorMainnet,
+        address tokenSidechain,
+        address tokenMediatorSidechain,
+        address owner,
         uint256 adminFeeFraction,
         uint256 duFeeFraction,
         address duBeneficiary,
@@ -73,9 +113,11 @@ contract DataUnionFactoryMainnet {
         returns (address)
     {
         bytes32 salt = keccak256(abi.encode(bytes(name), msg.sender));
-        bytes memory data = abi.encodeWithSignature("initialize(address,address,address,uint256,address,address,uint256,uint256,address,address[])",
-            token,
-            mediator,
+        bytes memory data = abi.encodeWithSignature("initialize(address,address,address,address,address,uint256,address,address,uint256,uint256,address,address[])",
+            tokenMainnet,
+            tokenMediatorMainnet,
+            tokenSidechain,
+            tokenMediatorSidechain,
             dataUnionSidechainFactory,
             sidechainMaxGas,
             dataUnionSidechainTemplate,
