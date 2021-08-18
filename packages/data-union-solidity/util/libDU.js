@@ -118,7 +118,8 @@ async function deployDataUnion(duname, adminFee, tokenAddress, mediatorAddress, 
             { gasLimit: 6000000 }
         )
         // log(`tx ${JSON.stringify(tx)}`)
-        const tr = await tx.wait()
+        // const tr =
+        await tx.wait()
         // log(`deploy tx receipt ${JSON.stringify(tr)}`)
         log(`Waiting for bridge to process deployment and sidechain DU appearing at ${duSidechainAddress}`)
         await until(async () => await sidechainProvider.getCode(duSidechainAddress) !== "0x", bridgeTimeoutMs)
