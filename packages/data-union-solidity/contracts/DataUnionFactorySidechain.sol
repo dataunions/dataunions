@@ -71,18 +71,25 @@ contract DataUnionFactorySidechain is Ownable {
         address token,
         address mediator,
         address payable owner,
-        address[] memory agents
+        address[] memory agents,
+        uint256 initialAdminFeeFraction,
+        uint256 initialDataUnionFeeFraction,
+        address initialDataUnionBeneficiary
     ) public returns (address) {
         require(msg.sender == address(amb(mediator)), "only_AMB");
         address duMainnet = amb(mediator).messageSender();
         bytes32 salt = bytes32(uint256(uint160(duMainnet)));
-        bytes memory data = abi.encodeWithSignature("initialize(address,address,address,address[],address,uint256)",
+        bytes memory data = abi.encodeWithSignature(
+            "initialize(address,address,address,address[],address,uint256,uint256,uint256,address)",
             owner,
             token,
             mediator,
             agents,
             duMainnet,
-            defaultNewMemberEth
+            defaultNewMemberEth,
+            initialAdminFeeFraction,
+            initialDataUnionFeeFraction,
+            initialDataUnionBeneficiary
         );
         address payable du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(dataUnionSidechainTemplate), data, salt);
         emit SidechainDUCreated(duMainnet, du, owner, dataUnionSidechainTemplate);

@@ -34,9 +34,10 @@ async function getWithdrawSignature(signer, to, amount, duContract, previouslyWi
 
 contract("DataUnionSidechain", accounts => {
     const creator = accounts[0]
-    const agents = accounts.slice(1, 3)
-    const members = accounts.slice(3, 6)
-    const others = accounts.slice(6)
+    const duBeneficiary = accounts[1]
+    const agents = accounts.slice(2, 4)
+    const members = accounts.slice(4, 7)
+    const others = accounts.slice(7)
     let testToken, dataUnionSidechain, mockAMB, mockTokenMediator
 
     before(async () => {
@@ -48,22 +49,29 @@ contract("DataUnionSidechain", accounts => {
     })
 
     beforeEach(async () => {
-        /* function initialize(
-            address initialOwner,
-            address _token,
-            address _mediator,
-            address[] memory initialJoinPartAgents,
-            address mainnetDataUnionAddress,
-            uint256 defaultNewMemberEth
-        ) */
+        const dummy = agents[0]
+        // function initialize(
+        //     address initialOwner,
+        //     address tokenAddress,
+        //     address tokenMediatorAddress,
+        //     address[] memory initialJoinPartAgents,
+        //     address mainnetDataUnionAddress,
+        //     uint256 defaultNewMemberEth,
+        //     uint256 initialAdminFeeFraction,
+        //     uint256 initialDataUnionFeeFraction,
+        //     address initialDataUnionBeneficiary
+        // )
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
         await dataUnionSidechain.initialize(
             creator,
             testToken.address,
             mockTokenMediator.address,
             agents,
-            agents[0],
+            dummy,
             "1",
+            toWei("0.1"),
+            toWei("0.1"),
+            duBeneficiary.address,
             {from: creator}
         )
         await dataUnionSidechain.addMembers(members, {from: agents[1]})
@@ -134,7 +142,7 @@ contract("DataUnionSidechain", accounts => {
         await testToken.transfer(dataUnionSidechain.address, "3000")
         await dataUnionSidechain.refreshRevenue({from: creator})
         assertEvent(await dataUnionSidechain.withdrawMembers(members, false, {from: creator}), "EarningsWithdrawn")
-        assertEqual(await getBalanceIncrements(members, balances), [ 1000, 1000, 1000 ])
+        assertEqual(await getBalanceIncrements(members, balances), [ 800, 800, 800 ])
     })
 
     it("withdrawAll", async () => {
@@ -145,7 +153,7 @@ contract("DataUnionSidechain", accounts => {
         assertEvent(await dataUnionSidechain.withdrawAll(members[0], false, {from: members[0]}), "EarningsWithdrawn")
         assertEvent(await dataUnionSidechain.withdrawAll(members[1], false, {from: creator}), "EarningsWithdrawn")
         await dataUnionSidechain.withdrawAll(members[1], false, {from: creator})    // this should do nothing, also not revert
-        assertEqual(await getBalanceIncrements(members, balances), [ 1000, 1000, 0 ])
+        assertEqual(await getBalanceIncrements(members, balances), [ 800, 800, 0 ])
     })
 
     it("withdrawAllTo", async () => {
@@ -265,29 +273,37 @@ contract("DataUnionSidechain", accounts => {
         // repeating it should do nothing (also not throw)
         await dataUnionSidechain.refreshRevenue({from: randomOutsider})
 
-        assertEqual(await dataUnionSidechain.totalEarnings(), 3000)
-        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 1000)
-        assertEqual(await dataUnionSidechain.getEarnings(members[1]), 1000)
-        assertEqual(await dataUnionSidechain.getEarnings(members[2]), 1000)
+        assertEqual(await dataUnionSidechain.totalEarnings(), 2400)
+        assertEqual(await dataUnionSidechain.totalAdminFees(), 300)
+        assertEqual(await dataUnionSidechain.totalDataUnionFees(), 300)
+        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 800)
+        assertEqual(await dataUnionSidechain.getEarnings(members[1]), 800)
+        assertEqual(await dataUnionSidechain.getEarnings(members[2]), 800)
 
         // drop a member, send more tokens, check accounting
         assertEvent(await dataUnionSidechain.partMember(members[0], {from: agents[0]}), "MemberParted")
-        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 1000)
+        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 800)
         await testToken.transfer(dataUnionSidechain.address, "2000")
         await dataUnionSidechain.refreshRevenue({from: randomOutsider})
-        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 1000)
-        assertEqual(await dataUnionSidechain.getEarnings(members[1]), 2000)
-        assertEqual(await dataUnionSidechain.getEarnings(members[2]), 2000)
+        assertEqual(await dataUnionSidechain.totalEarnings(), 4000)
+        assertEqual(await dataUnionSidechain.totalAdminFees(), 500)
+        assertEqual(await dataUnionSidechain.totalDataUnionFees(), 500)
+        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 800)
+        assertEqual(await dataUnionSidechain.getEarnings(members[1]), 1600)
+        assertEqual(await dataUnionSidechain.getEarnings(members[2]), 1600)
         assertEvent(await dataUnionSidechain.addMember(members[0], {from: agents[0]}), "MemberJoined")
 
         // add a member, send tokens, check accounting
         assertEvent(await dataUnionSidechain.addMember(newMember, {from: agents[0]}), "MemberJoined")
         await testToken.transfer(dataUnionSidechain.address, "4000")
         await dataUnionSidechain.refreshRevenue({from: randomOutsider})
-        assertEqual(await dataUnionSidechain.getEarnings(newMember), 1000)
-        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 2000)
-        assertEqual(await dataUnionSidechain.getEarnings(members[1]), 3000)
-        assertEqual(await dataUnionSidechain.getEarnings(members[2]), 3000)
+        assertEqual(await dataUnionSidechain.totalEarnings(), 7200)
+        assertEqual(await dataUnionSidechain.totalAdminFees(), 1400)
+        assertEqual(await dataUnionSidechain.totalDataUnionFees(), 1400)
+        assertEqual(await dataUnionSidechain.getEarnings(newMember), 800)
+        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 1600)
+        assertEqual(await dataUnionSidechain.getEarnings(members[1]), 2400)
+        assertEqual(await dataUnionSidechain.getEarnings(members[2]), 2400)
         assertEvent(await dataUnionSidechain.partMember(newMember, {from: agents[0]}), "MemberParted")
     })
 
