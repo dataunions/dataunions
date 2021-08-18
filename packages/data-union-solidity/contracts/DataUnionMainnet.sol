@@ -111,7 +111,13 @@ contract DataUnionMainnet is Ownable, PurchaseListener {
     }
 
     function deployNewDUSidechain(address[] memory agents) public {
-        bytes memory data = abi.encodeWithSignature("deployNewDUSidechain(address,address[])", owner, agents);
+        bytes memory data = abi.encodeWithSignature(
+            "deployNewDUSidechain(address,address,address,address[])",
+            address(token),
+            address(tokenMediator),
+            owner,
+            agents
+        );
         amb().requireToPassMessage(sidechainDUFactory, data, sidechainMaxGas);
     }
 

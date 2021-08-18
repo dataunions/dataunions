@@ -18,6 +18,7 @@ contract DataUnionFactorySidechain is Ownable {
     event OwnerInitialEthSent(uint amountWei);
 
     address public dataUnionSidechainTemplate;
+
     // when sidechain DU is created, the factory sends a bit of sETH to the DU and the owner
     uint public newDUInitialEth;
     uint public newDUOwnerInitialEth;
@@ -27,8 +28,7 @@ contract DataUnionFactorySidechain is Ownable {
         dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
     }
 
-
-    //contract is payable
+    // contract is payable so it can receive and hold the new member eth stipends
     receive() external payable {}
 
     function setNewDUInitialEth(uint val) public onlyOwner {
