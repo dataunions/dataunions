@@ -35,16 +35,43 @@ contract("DataUnionFactorySidechain", async accounts => {
         assertEvent(await factory.setNewDUOwnerInitialEth(ownerEth, {from: creator}), "UpdateNewDUOwnerInitialEth")
         assertEvent(await factory.setNewMemberInitialEth(newMemberEth, {from: creator}), "UpdateDefaultNewMemberInitialEth")
 
-
         await web3.eth.sendTransaction({from:others[0], to:factory.address, value:web3.utils.toWei("2")})
 
-        //this should fail because deployNewDUSidechain must be called by AMB
-        await assertFails(factory.deployNewDUSidechain(testToken.address, mockTokenMediator.address, creator, agents, {from: others[0]}))
-
         let balBefore = +(await web3.eth.getBalance(creator))
-        const deploy = await factory.contract.methods.deployNewDUSidechain(testToken.address, mockTokenMediator.address, creator, agents).encodeABI()
-        //console.log(`deply: ${deploy}`)
-        await mockAMB.requireToPassMessage(factory.address, deploy, 2000000, {from: others[0]})
+
+        // function deployNewDUSidechain(
+        //     address token,
+        //     address mediator,
+        //     address payable owner,
+        //     address[] memory agents,
+        //     uint256 initialAdminFeeFraction,
+        //     uint256 initialDataUnionFeeFraction,
+        //     address initialDataUnionBeneficiary
+        // )
+
+        // this should fail because deployNewDUSidechain must be called by AMB
+        await assertFails(factory.deployNewDUSidechain(
+            testToken.address,
+            mockTokenMediator.address,
+            creator,
+            agents,
+            toWei("0.1"),
+            toWei("0.1"),
+            others[0],
+            {from: others[0]})
+        )
+
+        const deployMessage = await factory.contract.methods.deployNewDUSidechain(
+            testToken.address,
+            mockTokenMediator.address,
+            creator,
+            agents,
+            toWei("0.1"),
+            toWei("0.1"),
+            others[0]
+        ).encodeABI()
+        //console.log('deploy: %o', deployMessage)
+        await mockAMB.requireToPassMessage(factory.address, deployMessage, 2000000, {from: others[0]})
         const newdu_address = await factory.sidechainAddress(others[0])
         const newdu = await DataUnionSidechain.at(newdu_address)
 

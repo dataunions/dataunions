@@ -55,16 +55,16 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
     uint256 public dataUnionFeeFraction;
     address public dataUnionBeneficiary;
 
-    // Useful metrics
+    // Useful stats
     uint256 public totalRevenue;
     uint256 public totalEarnings;
-    uint256 public totalEarningsWithdrawn;
+    uint256 public totalAdminFees;
+    uint256 public totalDataUnionFees;
+    uint256 public totalWithdrawn;
     uint256 public activeMemberCount;
     uint256 public inactiveMemberCount;
     uint256 public lifetimeMemberEarnings;
     uint256 public joinPartAgentCount;
-    uint256 public totalAdminFees;
-    uint256 public totalDataUnionFees;
 
     mapping(address => MemberInfo) public memberData;
     mapping(address => ActiveStatus) public joinPartAgents;
@@ -110,12 +110,18 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
      * Atomic getter to get all Data Union state variables in one call
      * This alleviates the fact that JSON RPC batch requests aren't available in ethers.js
      */
-    function getStats() public view returns (uint256[6] memory) {
+    function getStats() public view returns (uint256[9] memory) {
+        uint256 cleanedInactiveMemberCount = inactiveMemberCount;
+        if (memberData[owner].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
+        if (memberData[dataUnionBeneficiary].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
         return [
+            totalRevenue,
             totalEarnings,
-            totalEarningsWithdrawn,
+            totalAdminFees,
+            totalDataUnionFees,
+            totalWithdrawn,
             activeMemberCount,
-            inactiveMemberCount,
+            cleanedInactiveMemberCount,
             lifetimeMemberEarnings,
             joinPartAgentCount
         ];
@@ -157,7 +163,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
     function refreshRevenue() public returns (uint256) {
         uint256 balance = token.balanceOf(address(this));
         uint256 newTokens = balance - totalWithdrawable(); // solidity 0.8: a - b errors if b > a
-        if (newTokens == 0 || activeMemberCount == 0) return 0;
+        if (newTokens == 0 || activeMemberCount == 0) { return 0; }
         totalRevenue += newTokens;
         emit RevenueReceived(newTokens);
 
@@ -178,6 +184,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
         totalEarnings = totalEarnings + newEarnings;
         emit NewEarnings(earningsPerMember, activeMemberCount);
 
+        assert (token.balanceOf(address(this)) == totalWithdrawable()); // calling this function immediately again should just return 0 and do nothing
         return newEarnings;
     }
 
@@ -225,8 +232,9 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
         return getEarnings(member) - getWithdrawn(member);
     }
 
+    // this includes the fees paid to admins and the DU beneficiary
     function totalWithdrawable() public view returns (uint256) {
-        return totalEarnings - totalEarningsWithdrawn;
+        return totalRevenue - totalWithdrawn;
     }
 
     function addJoinPartAgents(address[] memory agents) public onlyOwner {
@@ -505,7 +513,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
         require(amount <= getWithdrawableEarnings(from), "error_insufficientBalance");
         MemberInfo storage info = memberData[from];
         info.withdrawnEarnings = info.withdrawnEarnings + amount;
-        totalEarningsWithdrawn = totalEarningsWithdrawn + amount;
+        totalWithdrawn = totalWithdrawn + amount;
         if (sendToMainnet)
             require(
                 token.transferAndCall(

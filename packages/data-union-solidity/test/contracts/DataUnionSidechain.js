@@ -71,7 +71,7 @@ contract("DataUnionSidechain", accounts => {
             "1",
             toWei("0.1"),
             toWei("0.1"),
-            duBeneficiary.address,
+            duBeneficiary,
             {from: creator}
         )
         await dataUnionSidechain.addMembers(members, {from: agents[1]})
@@ -165,7 +165,7 @@ contract("DataUnionSidechain", accounts => {
         const after = await testToken.balanceOf(others[0])
 
         const diff = after.sub(before)
-        assertEqual(diff, 1000)
+        assertEqual(diff, 800)
     })
 
     it.skip("withdrawToSigned", async () => {
@@ -198,7 +198,7 @@ contract("DataUnionSidechain", accounts => {
         await assertFails(dataUnionSidechain.withdrawAllToSigned(members[0], recipient, false, signature, {from: recipient}), "error_badSignature")
         assertEvent(await dataUnionSidechain.withdrawAllToSigned(members[1], recipient, false, signature, {from: recipient}), "EarningsWithdrawn")
 
-        assertEqual(await testToken.balanceOf(recipient), 1000)
+        assertEqual(await testToken.balanceOf(recipient), 800)
     })
 
     it("transferToMemberInContract", async () => {
@@ -219,15 +219,19 @@ contract("DataUnionSidechain", accounts => {
         assert(await testToken.transfer(dataUnionSidechain.address, "3000"))
         await dataUnionSidechain.refreshRevenue({from: others[1]})
         await assertFails(dataUnionSidechain.transferWithinContract(members[1], "100", {from: others[0]}), "error_notMember")
-        await assertFails(dataUnionSidechain.transferWithinContract(members[1], "100", {from: creator}), "error_notMember")
+        // change after sidechain fees / ETH-141: admin receives fees and so becomes an INACTIVE member by _increaseBalance
+        // await assertFails(dataUnionSidechain.transferWithinContract(members[1], "100", {from: creator}), "error_notMember")
         assertEvent(await dataUnionSidechain.transferWithinContract(members[1], "100", {from: members[0]}), "TransferWithinContract")
         assertEvent(await dataUnionSidechain.transferWithinContract(others[1], "100", {from: members[0]}), "TransferWithinContract")
-        assertEqual(await dataUnionSidechain.getWithdrawableEarnings(members[0]), 800)
-        assertEqual(await dataUnionSidechain.getWithdrawableEarnings(members[1]), 1100)
-        assertEqual(await dataUnionSidechain.getWithdrawableEarnings(members[2]), 1000)
+        assertEqual(await dataUnionSidechain.getWithdrawableEarnings(members[0]), 600)
+        assertEqual(await dataUnionSidechain.getWithdrawableEarnings(members[1]), 900)
+        assertEqual(await dataUnionSidechain.getWithdrawableEarnings(members[2]), 800)
         assertEqual(await dataUnionSidechain.getWithdrawableEarnings(others[1]), 100)
-        //other[1] should be status Inactive
-        assertEqual(await dataUnionSidechain.inactiveMemberCount(), new BN(1))
+        // those who received some in-contract balance but aren't members should be marked inactive by _increaseBalance
+        assertEqual(await dataUnionSidechain.inactiveMemberCount(), 3)
+        assertEqual((await dataUnionSidechain.memberData(others[1])).status, 2)
+        assertEqual((await dataUnionSidechain.memberData(duBeneficiary)).status, 2)
+        assertEqual((await dataUnionSidechain.memberData(creator)).status, 2)
     })
 
     it("getStats", async () => {
@@ -235,18 +239,24 @@ contract("DataUnionSidechain", accounts => {
         await testToken.transferAndCall(dataUnionSidechain.address, "3000", [])
         await dataUnionSidechain.withdraw(members[0], "500", false, {from: members[0]})
         const [
+            totalRevenue,
             totalEarnings,
+            totalAdminFees,
+            totalDataUnionFees,
             totalEarningsWithdrawn,
             activeMemberCount,
             inactiveMemberCount,
             lifetimeMemberEarnings,
             joinPartAgentCount
         ] = await dataUnionSidechain.getStats()
-        assertEqual(totalEarnings, 3000)
+        assertEqual(totalRevenue, 3000)
+        assertEqual(totalEarnings, 2400)
+        assertEqual(totalAdminFees, 300)
+        assertEqual(totalDataUnionFees, 300)
         assertEqual(totalEarningsWithdrawn, 500)
         assertEqual(activeMemberCount, 3)
-        assertEqual(inactiveMemberCount, 0)
-        assertEqual(lifetimeMemberEarnings, 1000)
+        assertEqual(inactiveMemberCount, 0) // creator and duBeneficiary are cleaned out of this number though they show up in the "inactiveMemberCount"
+        assertEqual(lifetimeMemberEarnings, 800)
         assertEqual(joinPartAgentCount, 2)
     })
 
@@ -259,7 +269,9 @@ contract("DataUnionSidechain", accounts => {
         await testToken.transfer(dataUnionSidechain.address, "3000")
         await dataUnionSidechain.refreshRevenue({from: creator})
 
-        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 1000)
+        assertEqual(await dataUnionSidechain.getEarnings(members[0]), 800)
+        assertEqual(await dataUnionSidechain.getEarnings(creator), 300)
+        assertEqual(await dataUnionSidechain.getEarnings(duBeneficiary), 300)
     })
 
     it("distributes earnings correctly", async () => {
@@ -298,8 +310,8 @@ contract("DataUnionSidechain", accounts => {
         await testToken.transfer(dataUnionSidechain.address, "4000")
         await dataUnionSidechain.refreshRevenue({from: randomOutsider})
         assertEqual(await dataUnionSidechain.totalEarnings(), 7200)
-        assertEqual(await dataUnionSidechain.totalAdminFees(), 1400)
-        assertEqual(await dataUnionSidechain.totalDataUnionFees(), 1400)
+        assertEqual(await dataUnionSidechain.totalAdminFees(), 900)
+        assertEqual(await dataUnionSidechain.totalDataUnionFees(), 900)
         assertEqual(await dataUnionSidechain.getEarnings(newMember), 800)
         assertEqual(await dataUnionSidechain.getEarnings(members[0]), 1600)
         assertEqual(await dataUnionSidechain.getEarnings(members[1]), 2400)
