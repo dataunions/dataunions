@@ -3,7 +3,7 @@ const ORACLE_VALIDATOR_ADDRESS_PRIVATE_KEY = "5e98cce00cff5dea6b454889f359a4ec06
 const DATACOIN_ADDRESS = "0xbAA81A0179015bE47Ad439566374F2Bae098686F"
 const HOME_ERC677_MEDIATOR = "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F"
 const FOREIGN_ERC677_MEDIATOR = "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F"
-// const HOME_ERC677 = "0x73Be21733CC5D08e1a14Ea9a399fb27DB3BEf8fF"
+const HOME_ERC677 = "0x73Be21733CC5D08e1a14Ea9a399fb27DB3BEf8fF"
 // const HOME_MULTIMEDIATOR = "0x41B89Db86BE735c03A9296437E39F5FDAdC4c678"
 // const FOREIGN_MULTIMEDIATOR = "0x6346Ed242adE018Bd9320D5E3371c377BAB29c31"
 
@@ -52,7 +52,7 @@ const providerMainnet = new JsonRpcProvider({
 const walletSidechain = new Wallet(ORACLE_VALIDATOR_ADDRESS_PRIVATE_KEY, providerSidechain)
 const walletMainnet = new Wallet(ORACLE_VALIDATOR_ADDRESS_PRIVATE_KEY, providerMainnet)
 
-// const erc677Sidechain = new Contract(HOME_ERC677, Token.abi, walletSidechain)
+const erc677Sidechain = new Contract(HOME_ERC677, Token.abi, walletSidechain)
 const erc20Mainnet = new Contract(DATACOIN_ADDRESS, Token.abi, walletMainnet)
 const homeMediator = new Contract(HOME_ERC677_MEDIATOR, ITokenMediator.abi, walletSidechain)
 const foreignMediator = new Contract(FOREIGN_ERC677_MEDIATOR, ITokenMediator.abi, walletMainnet)
@@ -89,6 +89,8 @@ describe("Data Union tests using only ethers.js directly", () => {
             "0",
             erc20Mainnet.address,
             foreignMediator.address,
+            erc677Sidechain.address,
+            homeMediator.address,
             factoryMainnet,
             providerSidechain,
             process.env.TEST_TIMEOUT || 240000
@@ -139,7 +141,6 @@ async function testSend(duMainnet, duSidechain, tokenWei) {
     const tx2 = await duMainnet.sendTokensToBridge()
     await tx2.wait()
 
-
     log(`Sent to bridge, waiting for the tokens to appear at ${duSidechain.address} in sidechain`)
 
     await until(async () => {
@@ -158,14 +159,14 @@ async function testSend(duMainnet, duSidechain, tokenWei) {
     log(`Confirmed DU sidechain balance ${duSideBalanceBefore} -> ${await duSidechain.totalEarnings()}`)
 }
 
-async function getSidechainDu(mainnetDu) {
-    const sidechainDu = await mainnetDu.sidechainAddress()
-    return new Contract(
-        sidechainDu,
-        DataUnionSidechain.abi,
-        walletSidechain
-    )
-}
+// async function getSidechainDu(mainnetDu) {
+//     const sidechainDu = await mainnetDu.sidechainAddress()
+//     return new Contract(
+//         sidechainDu,
+//         DataUnionSidechain.abi,
+//         walletSidechain
+//     )
+// }
 
 async function getMainnetDu(sidechainDu) {
     const mainnetDu = await sidechainDu.dataUnionMainnet()
@@ -177,16 +178,13 @@ async function getMainnetDu(sidechainDu) {
 }
 
 async function getTokenContracts(mainnetDu) {
-    const mainnetTokenAddress = await mainnetDu.token()
     const mainnetToken = new Contract(
-        mainnetTokenAddress,
+        await mainnetDu.tokenMainnet(),
         Token.abi,
         walletMainnet
     )
-    const sidechainDu = await getSidechainDu(mainnetDu)
-    const sidechainTokenAddress = await sidechainDu.token()
     const sidechainToken = new Contract(
-        sidechainTokenAddress,
+        await mainnetDu.tokenSidechain(),
         Token.abi,
         walletSidechain
     )

@@ -62,10 +62,15 @@ async function deployDataUnionFactoryMainnet(wallet, sidechainTemplateAddress, s
         DataUnionFactoryMainnet.bytecode,
         wallet
     )
+    const dummyAddress = "0x0000000000000000000000000000000000001337"
     const factoryTx = await factoryDeployer.deploy(
         templateDU.address,
         sidechainTemplateAddress,
         sidechainFactoryAddress,
+        dummyAddress,
+        dummyAddress,
+        dummyAddress,
+        dummyAddress,
         2000000,
         { gasLimit: 6000000 }
     )
@@ -84,7 +89,7 @@ async function deployDataUnionFactoryMainnet(wallet, sidechainTemplateAddress, s
  * @param {number} bridgeTimeoutMs time that it takes for bridge to cause sidechain community to be deployed
  * @returns {Contract} DataUnionMainnet contract
  */
-async function deployDataUnion(duname, adminFee, tokenAddress, mediatorAddress, dataUnionFactoryMainnet, sidechainProvider, bridgeTimeoutMs) {
+async function deployDataUnion(duname, adminFee, tokenMainnet, mediatorMainnet, tokenSidechain, mediatorSidechain, dataUnionFactoryMainnet, sidechainProvider, bridgeTimeoutMs) {
     const adminWallet = new Wallet(dataUnionFactoryMainnet.signer.privateKey, dataUnionFactoryMainnet.provider)
     const duMainnetAddress = await dataUnionFactoryMainnet.mainnetAddress(adminWallet.address, duname)
     const duSidechainAddress = await dataUnionFactoryMainnet.sidechainAddress(duMainnetAddress)
@@ -92,10 +97,12 @@ async function deployDataUnion(duname, adminFee, tokenAddress, mediatorAddress, 
     if (await adminWallet.provider.getCode(duMainnetAddress) !== "0x") {
         log(`DU ${duname} already exists, skipping deployment`)
     } else {
-        // function deployNewDataUnion(
+        // function deployNewDataUnionUsingToken(
+        //     address tokenMainnet,
+        //     address tokenMediatorMainnet,
+        //     address tokenSidechain,
+        //     address tokenMediatorSidechain,
         //     address owner,
-        //     address token,
-        //     address mediator,
         //     uint256 adminFeeFraction,
         //     uint256 duFeeFraction,
         //     address duBeneficiary,
@@ -103,9 +110,11 @@ async function deployDataUnion(duname, adminFee, tokenAddress, mediatorAddress, 
         //     string memory name
         // )
         const args = [
+            tokenMainnet,
+            mediatorMainnet,
+            tokenSidechain,
+            mediatorSidechain,
             adminWallet.address,
-            tokenAddress,
-            mediatorAddress,
             adminFee,
             "0",
             adminWallet.address,
@@ -113,7 +122,7 @@ async function deployDataUnion(duname, adminFee, tokenAddress, mediatorAddress, 
             duname
         ]
         // log("dataUnionFactoryMainnet.deployNewDataUnion args: %o", args)
-        const tx = await dataUnionFactoryMainnet.deployNewDataUnion(
+        const tx = await dataUnionFactoryMainnet.deployNewDataUnionUsingToken(
             ...args,
             { gasLimit: 6000000 }
         )
