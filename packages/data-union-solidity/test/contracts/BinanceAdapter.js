@@ -18,9 +18,7 @@ const UniswapV2Factory = new w3.eth.Contract(UniswapV2FactoryJson.abi, null, { d
 const UniswapV2Router02 = new w3.eth.Contract(UniswapV2Router02Json.abi, null, { data: UniswapV2Router02Json.bytecode })
 const WETH9 = new w3.eth.Contract(WETH9Json.abi, null, { data: WETH9Json.bytecode })
 
-
 const log = require("debug")("Streamr:du:test:DataUnionSidechain")
-const zeroAddress = "0x0000000000000000000000000000000000000000"
 const futureTime = 4449513600
 
 //const log = console.log  // for debugging?
@@ -51,6 +49,7 @@ async function deployUniswap2(creator) {
 }
 
 contract("BinanceAdapter", accounts => {
+    const dummyAddress = "0x0000000000000000000000000000000000001234"
     const creator = accounts[0]
     const agents = accounts.slice(1, 3)
     const members = accounts.slice(3, 6)
@@ -59,26 +58,16 @@ contract("BinanceAdapter", accounts => {
 
     before(async () => {
         uniswapRouter = await deployUniswap2(creator)
-    })
-
-    beforeEach(async () => {
-        /*
-        function initialize(
-            address initialOwner,
-            address token,
-            address mediator,
-            address[] memory initialJoinPartAgents,
-            address mainnetDataUnionAddress,
-            uint256 defaultNewMemberEth
-        )
-        */
         testToken = await TestToken.new("name", "symbol", { from: creator })
         otherToken = await TestToken.new("migrate", "m", { from: creator })
-        //mediator is a dummy non-zero address. mediator not used
-        dataUnionSidechain = await DataUnionSidechain.new({from: creator})
-        await dataUnionSidechain.initialize(creator, testToken.address, zeroAddress, agents, agents[0], "1", {from: creator})
+
         await testToken.mint(creator, toWei("10000"), { from: creator })
         await otherToken.mint(creator, toWei("10000"), { from: creator })
+
+        //amd address 0 is dummy
+        mockBinanceMediator = await MockTokenMediator.new(testToken.address, dummyAddress, {from: creator})
+        //    constructor(address dataCoin_, address honeyswapRouter_, address bscBridge_, address convertToCoin_, address liquidityToken_) public {
+        // no conversion until we install Uniswap contract
 
         //10 testToken ~= 1 otherToken
         const amtTest = toWei("1000")
@@ -86,12 +75,36 @@ contract("BinanceAdapter", accounts => {
         await testToken.approve(uniswapRouter.options.address, amtTest, { from: creator })
         await otherToken.approve(uniswapRouter.options.address, amtOther, { from: creator })
         await uniswapRouter.methods.addLiquidity(testToken.address, otherToken.address, amtTest, amtOther, 0, 0, creator, futureTime).send({gas: 6000000, from: creator})
+    })
+
+    beforeEach(async () => {
+        //mediator is a dummy non-zero address. mediator not used
+        dataUnionSidechain = await DataUnionSidechain.new({from: creator})
+        // function initialize(
+        //     address initialOwner,
+        //     address tokenAddress,
+        //     address tokenMediatorAddress,
+        //     address[] memory initialJoinPartAgents,
+        //     address mainnetDataUnionAddress,
+        //     uint256 defaultNewMemberEth,
+        //     uint256 initialAdminFeeFraction,
+        //     uint256 initialDataUnionFeeFraction,
+        //     address initialDataUnionBeneficiary
+        // )
+        await dataUnionSidechain.initialize(
+            creator,
+            testToken.address,
+            dummyAddress,
+            agents,
+            dummyAddress,
+            "1",
+            "0",
+            "0",
+            dummyAddress,
+            {from: creator}
+        )
 
         await dataUnionSidechain.addMembers(members, {from: agents[1]})
-        //amd address 0 is dummy
-        mockBinanceMediator = await MockTokenMediator.new(testToken.address, zeroAddress, {from: creator})
-        //    constructor(address dataCoin_, address honeyswapRouter_, address bscBridge_, address convertToCoin_, address liquidityToken_) public {
-        // no conversion until we install Uniswap contract
         log(`DataUnionSidechain initialized at ${dataUnionSidechain.address}`)
         log(`  creator: ${creator}`)
         log(`  agents: ${JSON.stringify(agents)}`)
@@ -100,7 +113,7 @@ contract("BinanceAdapter", accounts => {
     })
 
     it("can set Binance recipient", async () => {
-        let adapter = await BinanceAdapter.new(testToken.address, zeroAddress, mockBinanceMediator.address, zeroAddress, zeroAddress, {from: creator })
+        let adapter = await BinanceAdapter.new(testToken.address, dummyAddress, mockBinanceMediator.address, dummyAddress, dummyAddress, {from: creator })
         await adapter.setBinanceRecipient(members[1], {from: members[0]})
         assertEqual(members[1], (await adapter.binanceRecipient(members[0]))[0])
         // set members[1]'s recipient to member[2] using signature
@@ -116,7 +129,7 @@ contract("BinanceAdapter", accounts => {
     })
 
     it.skip("can withdraw to mediator without conversion", async () => {
-        let adapter = await BinanceAdapter.new(testToken.address, zeroAddress, mockBinanceMediator.address, zeroAddress, zeroAddress, {from: creator })
+        let adapter = await BinanceAdapter.new(testToken.address, dummyAddress, mockBinanceMediator.address, dummyAddress, dummyAddress, {from: creator })
         const amt = toWei("300")
         await testToken.transferAndCall(dataUnionSidechain.address, amt, "0x", {from: creator})
         const bal = toWei("100")
@@ -132,7 +145,7 @@ contract("BinanceAdapter", accounts => {
     })
 
     it.skip("can withdraw to mediator with conversion", async () => {
-        let adapter = await BinanceAdapter.new(testToken.address, uniswapRouter.options.address, mockBinanceMediator.address, otherToken.address, zeroAddress, {from: creator })
+        let adapter = await BinanceAdapter.new(testToken.address, uniswapRouter.options.address, mockBinanceMediator.address, otherToken.address, dummyAddress, {from: creator })
         const amt = toWei("30")
         await testToken.transferAndCall(dataUnionSidechain.address, amt, "0x", {from: creator})
         const bal = new BN(toWei("10"))
