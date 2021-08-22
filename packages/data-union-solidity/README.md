@@ -12,12 +12,12 @@ The purpose of the sidechain is to **facilitate cheap join and part operations**
 
 0. Deploy factory contracts if needed. They are pre-baked into supplied docker images. See [Getting Started](#getting-started)
 1. create a [DataUnionMainnet](https://github.com/streamr-dev/data-union-solidity/blob/master/contracts/DataUnionMainnet.sol) using [mainnetFactory.deployNewDataUnion()](https://github.com/streamr-dev/data-union-solidity/blob/b703721ad0b4aff0bde297b88293365ea2d37022/contracts/DataUnionFactoryMainnet.sol#L114)
-    1. this will automatically create [DataUnionSidechain](https://github.com/streamr-dev/data-union-solidity/blob/master/contracts/DataUnionSidechain.sol) via the bridge. The address of the sidechain contract is [predictable](#note-about-addresses). 
+    1. this will automatically create [DataUnionSidechain](https://github.com/streamr-dev/data-union-solidity/blob/master/contracts/DataUnionSidechain.sol) via the bridge. The address of the sidechain contract is [predictable](#note-about-addresses).
 2. `addMembers()` on [DataUnionSidechain](https://github.com/streamr-dev/data-union-solidity/blob/master/contracts/DataUnionSidechain.sol)
 3. send tokens to DataUnionMainnet and call `sendTokensToBridge()`
     1. this will "send" the tokens across the bridge to the sidechain DataUnionSidechain using the token mediator contracts
 4. `withdraw()` members on DataUnionSidechain
-    1. this will "send" the tokens across the bridge to mainchain to the members' addresses 
+    1. this will "send" the tokens across the bridge to mainchain to the members' addresses
 
 
 # Overview of Components
@@ -26,13 +26,11 @@ The purpose of the sidechain is to **facilitate cheap join and part operations**
 
 The DataUnionFactoryMainnet and DataUnionFactorySidechain contract produce DataUnionMainnet and DataUnionSidechain instances using a cloned template. There are some nuances to this pattern: When you supply constructor args to the template, the args [configure template's initial state](https://medium.com/@hayeah/diving-into-the-ethereum-vm-part-5-the-smart-contract-creation-process-cb7b6133b855). But clones don't see template's state because they call template code with [DELEGATECALL](https://ethervm.io/#F4). So the template's initial var values are invisible to clones. For this reason, our templates use 0-arg constructors plus an `initialize()` function that sets up up ownership. Both deploy and `initialize()` are performed in the same transaction by the factory, so there is no danger that ownership of the contract is claimed by the wrong party.
 
-The factories are connected to MigrationManager contracts (operated by a trusted party such as Streamr) that specify the token and bridge details. The DataUnions have a `migrate()` method that can be used to migrate the token according to the MigrationManager at the DU admin's request.
-
 #### Note About Addresses
 The factory contracts make use of [CREATE2](https://eips.ethereum.org/EIPS/eip-1014), which creates a contract address at predictable address given by:
 `keccak256( 0xff ++ factory_address ++ salt ++ keccak256(contract_code))`
 
-DataUnionFactoryMainnet creates DataUnionMainnet using 
+DataUnionFactoryMainnet creates DataUnionMainnet using
 `salt = keccak256( some_string_name_as_bytes ++ deployer_address)`
 
 Because the DU address is a function of (name, deployer), you cannot use the same name twice with the same deployer address. Use a **different name** each time.
@@ -47,7 +45,7 @@ So you can always fetch the DataUnionSidechain address deterministically by call
 DataUnionMainnet handles token passing and admin fees only. DataUnionMainnet does not have membership information because that is managed on the sidechain. Thus the bulk of the accounting is done on DataUnionSidechain.
 
 ## Sidechain Contract
-DataUnionSidechain records member joins and parts made by "agents". Agents are set at init. They be added by the admin by calling `addJoinPartAgent(address)` or `addJoinPartAgents([address1, address2, ...])` and removed by calling `removeJoinPartAgent(address)`. 
+DataUnionSidechain records member joins and parts made by "agents". Agents are set at init. They be added by the admin by calling `addJoinPartAgent(address)` or `addJoinPartAgents([address1, address2, ...])` and removed by calling `removeJoinPartAgent(address)`.
 
 #### Accounting for Equal Split in Constant Time
 
@@ -75,7 +73,7 @@ The easiest way to get started running and testing Data Unions is to use the pre
 
 This will use parity images for mainchain and sidechain that are preloaded with the AMB, token mediators, and DU factory contracts. It will also spin up required oracle processes. In the test environment, there is only 1 oracle.
 
-mainchain RPC is localhost:8545 
+mainchain RPC is localhost:8545
 
 sidechain RPC is localhost:8546
 
@@ -92,8 +90,8 @@ Use [libDU](https://github.com/streamr-dev/data-union-solidity/blob/DU-12-move-a
   - `getTemplateSidechain`
   - `deployDataUnion`
   - `getContracts(mainet_address)`
- 
-To deploy factories: 
+
+To deploy factories:
 1. `deployDataUnionFactorySidechain`
 2. `deployDataUnionFactoryMainnet`, passing deployDataUnionFactorySidechain.address and template from `getTemplateSidechain()`
 

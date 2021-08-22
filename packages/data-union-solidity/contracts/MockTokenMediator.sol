@@ -1,4 +1,6 @@
-pragma solidity 0.6.6;
+// SPDX-License-Identifier: MIT
+
+pragma solidity 0.8.6;
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./ISingleTokenMediator.sol";
 import "./BytesLib.sol";
@@ -9,7 +11,7 @@ contract MockTokenMediator is ISingleTokenMediator {
 
     ERC20 public token;
     address public amb;
-    constructor(address _token, address _amb) public {
+    constructor(address _token, address _amb) {
         token = ERC20(_token);
         amb = _amb;
     }
@@ -41,5 +43,6 @@ contract MockTokenMediator is ISingleTokenMediator {
     */
     function onTokenTransfer(address, uint256 amount, bytes calldata data) external returns (bool) {
         require(ERC20(msg.sender).transfer(BytesLib.toAddress(data), amount), "transfer_rejected_in_mock");
+        return true;
     }
 }

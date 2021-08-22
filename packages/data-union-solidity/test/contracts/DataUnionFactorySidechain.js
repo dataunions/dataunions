@@ -6,8 +6,6 @@ const DataUnionFactorySidechain = artifacts.require("./DataUnionFactorySidechain
 const TestToken = artifacts.require("./TestToken.sol")
 const MockTokenMediator = artifacts.require("./MockTokenMediator.sol")
 const MockAMB = artifacts.require("./MockAMB.sol")
-const SidechainMigrationManager = artifacts.require("./SidechainMigrationManager.sol")
-const zeroAddress = "0x0000000000000000000000000000000000000000"
 
 contract("DataUnionFactorySidechain", async accounts => {
     const creator = accounts[0]
@@ -16,16 +14,16 @@ contract("DataUnionFactorySidechain", async accounts => {
     const others = accounts.slice(6)
 
     const newMemberEth = toWei("0.1")
-    let testToken, dataUnionSidechain, mockAMB, mockTokenMediator, factory, migrationManager
+    let testToken, dataUnionSidechain, mockAMB, mockTokenMediator, factory
 
     before(async () => {
-        testToken = await TestToken.new("name","symbol",{ from: creator })
+        testToken = await TestToken.new("name", "symbol", { from: creator })
         mockAMB = await MockAMB.new({from: creator})
         mockTokenMediator = await MockTokenMediator.new(testToken.address, mockAMB.address, {from: creator})
-        migrationManager = await SidechainMigrationManager.new(testToken.address, zeroAddress, mockTokenMediator.address, { from: creator })
         dataUnionSidechain = await DataUnionSidechain.new({from: creator})
-        factory = await DataUnionFactorySidechain.new(migrationManager.address, dataUnionSidechain.address, {from: creator})
+        factory = await DataUnionFactorySidechain.new(dataUnionSidechain.address, {from: creator})
     })
+
     it("sidechain ETH flow", async () => {
         const ownerEth = toWei("0.01")
         const newDUEth = toWei("1")
@@ -37,16 +35,43 @@ contract("DataUnionFactorySidechain", async accounts => {
         assertEvent(await factory.setNewDUOwnerInitialEth(ownerEth, {from: creator}), "UpdateNewDUOwnerInitialEth")
         assertEvent(await factory.setNewMemberInitialEth(newMemberEth, {from: creator}), "UpdateDefaultNewMemberInitialEth")
 
-
         await web3.eth.sendTransaction({from:others[0], to:factory.address, value:web3.utils.toWei("2")})
 
-        //this should fail because deployNewDUSidechain must be called by AMB
-        await assertFails(factory.deployNewDUSidechain(creator, agents, {from: others[0]}))
-
         let balBefore = +(await web3.eth.getBalance(creator))
-        const deploy = await factory.contract.methods.deployNewDUSidechain(creator, agents).encodeABI()
-        //console.log(`deply: ${deploy}`)
-        await mockAMB.requireToPassMessage(factory.address, deploy, 2000000, {from: others[0]})
+
+        // function deployNewDUSidechain(
+        //     address token,
+        //     address mediator,
+        //     address payable owner,
+        //     address[] memory agents,
+        //     uint256 initialAdminFeeFraction,
+        //     uint256 initialDataUnionFeeFraction,
+        //     address initialDataUnionBeneficiary
+        // )
+
+        // this should fail because deployNewDUSidechain must be called by AMB
+        await assertFails(factory.deployNewDUSidechain(
+            testToken.address,
+            mockTokenMediator.address,
+            creator,
+            agents,
+            toWei("0.1"),
+            toWei("0.1"),
+            others[0],
+            {from: others[0]})
+        )
+
+        const deployMessage = await factory.contract.methods.deployNewDUSidechain(
+            testToken.address,
+            mockTokenMediator.address,
+            creator,
+            agents,
+            toWei("0.1"),
+            toWei("0.1"),
+            others[0]
+        ).encodeABI()
+        //console.log('deploy: %o', deployMessage)
+        await mockAMB.requireToPassMessage(factory.address, deployMessage, 2000000, {from: others[0]})
         const newdu_address = await factory.sidechainAddress(others[0])
         const newdu = await DataUnionSidechain.at(newdu_address)
 

@@ -1,11 +1,11 @@
-pragma solidity 0.6.6;
+// SPDX-License-Identifier: MIT
+
+pragma solidity 0.8.6;
 
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
 import "./ITokenMediator.sol";
-import "./FactoryConfig.sol";
 
 interface IDataUnionMainnet {
     function sidechainAddress() external view returns (address proxy);
@@ -16,32 +16,34 @@ contract DataUnionFactoryMainnet {
 
     address public dataUnionMainnetTemplate;
 
+    address public defaultTokenMainnet;
+    address public defaultTokenMediatorMainnet;
+    address public defaultTokenSidechain;
+    address public defaultTokenMediatorSidechain;
+
     // needed to calculate address of sidechain contract
     address public dataUnionSidechainTemplate;
     address public dataUnionSidechainFactory;
     uint256 public sidechainMaxGas;
-    FactoryConfig public migrationManager;
 
-    constructor(address _migrationManager,
+    constructor(
                 address _dataUnionMainnetTemplate,
                 address _dataUnionSidechainTemplate,
                 address _dataUnionSidechainFactory,
+                address _defaultTokenMainnet,
+                address _defaultTokenMediatorMainnet,
+                address _defaultTokenSidechain,
+                address _defaultTokenMediatorSidechain,
                 uint256 _sidechainMaxGas)
-        public
     {
-        migrationManager = FactoryConfig(_migrationManager);
         dataUnionMainnetTemplate = _dataUnionMainnetTemplate;
         dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
         dataUnionSidechainFactory = _dataUnionSidechainFactory;
+        defaultTokenMainnet = _defaultTokenMainnet;
+        defaultTokenMediatorMainnet = _defaultTokenMediatorMainnet;
+        defaultTokenSidechain = _defaultTokenSidechain;
+        defaultTokenMediatorSidechain = _defaultTokenMediatorSidechain;
         sidechainMaxGas = _sidechainMaxGas;
-    }
-
-    function amb() public view returns (IAMB) {
-        return IAMB(ITokenMediator(migrationManager.currentMediator()).bridgeContract());
-    }
- 
-    function token() public view returns (address) {
-        return migrationManager.currentToken();
     }
 
 
@@ -52,7 +54,7 @@ contract DataUnionFactoryMainnet {
         return CloneLib.predictCloneAddressCreate2(
             dataUnionSidechainTemplate,
             dataUnionSidechainFactory,
-            bytes32(uint256(mainetAddress))
+            bytes32(uint256(uint160(mainetAddress)))
         );
     }
     /*
@@ -70,32 +72,59 @@ contract DataUnionFactoryMainnet {
         );
     }
 
-
-/*
-    function initialize(
-        address _token,
-        address _tokenMediator,
-        address _sidechainDataUnionFactory,
-        uint256 _sidechainMaxgas,
-        address _sidechainTemplateDataUnion,
-        address _owner,
+    function deployNewDataUnion(
+        address owner,
         uint256 adminFeeFraction,
-        address[] memory agents
-    )  public {
-    users can only deploy with salt = their key.
-*/
-    function deployNewDataUnion(address owner, uint256 adminFeeFraction, address[] memory agents, string memory name)
+        uint256 duFeeFraction,
+        address duBeneficiary,
+        address[] memory agents,
+        string memory name
+    )
+        public
+        returns (address)
+    {
+        return deployNewDataUnionUsingToken(
+            defaultTokenMainnet,
+            defaultTokenMediatorMainnet,
+            defaultTokenSidechain,
+            defaultTokenMediatorSidechain,
+            owner,
+            adminFeeFraction,
+            duFeeFraction,
+            duBeneficiary,
+            agents,
+            name
+        );
+    }
+
+    function deployNewDataUnionUsingToken(
+        address tokenMainnet,
+        address tokenMediatorMainnet,
+        address tokenSidechain,
+        address tokenMediatorSidechain,
+        address owner,
+        uint256 adminFeeFraction,
+        uint256 duFeeFraction,
+        address duBeneficiary,
+        address[] memory agents,
+        string memory name
+    )
         public
         returns (address)
     {
         bytes32 salt = keccak256(abi.encode(bytes(name), msg.sender));
-        bytes memory data = abi.encodeWithSignature("initialize(address,address,uint256,address,address,uint256,address[])",
-            migrationManager,
+        bytes memory data = abi.encodeWithSignature("initialize(address,address,address,address,address,uint256,address,address,uint256,uint256,address,address[])",
+            tokenMainnet,
+            tokenMediatorMainnet,
+            tokenSidechain,
+            tokenMediatorSidechain,
             dataUnionSidechainFactory,
             sidechainMaxGas,
             dataUnionSidechainTemplate,
             owner,
             adminFeeFraction,
+            duFeeFraction,
+            duBeneficiary,
             agents
         );
         address du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(dataUnionMainnetTemplate), data, salt);

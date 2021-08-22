@@ -1,12 +1,13 @@
-pragma solidity 0.6.6;
+// SPDX-License-Identifier: MIT
+
+pragma solidity 0.8.6;
 
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./CloneLib.sol";
 import "./IAMB.sol";
 import "./ITokenMediator.sol";
-import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
-import "./ISidechainMigrationManager.sol";
+// TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "./Ownable.sol";
 
 contract DataUnionFactorySidechain is Ownable {
     event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
@@ -17,27 +18,17 @@ contract DataUnionFactorySidechain is Ownable {
     event OwnerInitialEthSent(uint amountWei);
 
     address public dataUnionSidechainTemplate;
+
     // when sidechain DU is created, the factory sends a bit of sETH to the DU and the owner
     uint public newDUInitialEth;
     uint public newDUOwnerInitialEth;
     uint public defaultNewMemberEth;
-    ISidechainMigrationManager public migrationManager;
 
-    constructor(address _migrationManager, address _dataUnionSidechainTemplate) public Ownable(msg.sender) {
-        migrationManager = ISidechainMigrationManager(_migrationManager);
+    constructor(address _dataUnionSidechainTemplate) Ownable(msg.sender) {
         dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
     }
 
-    function amb() public view returns (IAMB) {
-        return IAMB(ITokenMediator(migrationManager.currentMediator()).bridgeContract());
-    }
-
-    function token() public view returns (address) {
-        return migrationManager.currentToken();
-    }
-    
-
-    //contract is payable
+    // contract is payable so it can receive and hold the new member eth stipends
     receive() external payable {}
 
     function setNewDUInitialEth(uint val) public onlyOwner {
@@ -63,24 +54,42 @@ contract DataUnionFactorySidechain is Ownable {
         public view
         returns (address proxy)
     {
-        return CloneLib.predictCloneAddressCreate2(dataUnionSidechainTemplate, address(this), bytes32(uint256(mainnetAddress)));
+        return CloneLib.predictCloneAddressCreate2(dataUnionSidechainTemplate, address(this), bytes32(uint256(uint160(mainnetAddress))));
     }
 
-    /*
-    Must be called by AMB. Use MockAMB for testing.
-    salt = mainnet_address.
-    */
-    
-    function deployNewDUSidechain(address payable owner, address[] memory agents) public returns (address) {
-        require(msg.sender == address(amb()), "only_AMB");
-        address duMainnet = amb().messageSender();
-        bytes32 salt = bytes32(uint256(duMainnet));
-        bytes memory data = abi.encodeWithSignature("initialize(address,address,address[],address,uint256)",
+    function amb(address _mediator) public view returns (IAMB) {
+        return IAMB(ITokenMediator(_mediator).bridgeContract());
+    }
+
+
+    /**
+     * @dev This function is called over the bridge by the DataUnionMainnet.initialize function
+     * @dev Hence must be called by the AMB. Use MockAMB for testing.
+     * @dev CREATE2 salt = mainnet_address.
+     */
+    function deployNewDUSidechain(
+        address token,
+        address mediator,
+        address payable owner,
+        address[] memory agents,
+        uint256 initialAdminFeeFraction,
+        uint256 initialDataUnionFeeFraction,
+        address initialDataUnionBeneficiary
+    ) public returns (address) {
+        require(msg.sender == address(amb(mediator)), "only_AMB");
+        address duMainnet = amb(mediator).messageSender();
+        bytes32 salt = bytes32(uint256(uint160(duMainnet)));
+        bytes memory data = abi.encodeWithSignature(
+            "initialize(address,address,address,address[],address,uint256,uint256,uint256,address)",
             owner,
-            migrationManager,
+            token,
+            mediator,
             agents,
             duMainnet,
-            defaultNewMemberEth
+            defaultNewMemberEth,
+            initialAdminFeeFraction,
+            initialDataUnionFeeFraction,
+            initialDataUnionBeneficiary
         );
         address payable du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(dataUnionSidechainTemplate), data, salt);
         emit SidechainDUCreated(duMainnet, du, owner, dataUnionSidechainTemplate);

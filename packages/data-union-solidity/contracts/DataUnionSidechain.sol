@@ -1,43 +1,41 @@
-pragma solidity 0.6.6;
+// SPDX-License-Identifier: MIT
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+pragma solidity 0.8.6;
+
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "./IERC677.sol";
-import "./Ownable.sol"; // TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
-import "./ISidechainMigrationManager.sol";
+// TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+import "./Ownable.sol";
 import "./IERC20Receiver.sol";
 
 contract DataUnionSidechain is Ownable, IERC20Receiver {
-    using SafeMath for uint256;
 
-    //used to describe members and join part agents
+    // Used to describe both members and join part agents
     enum ActiveStatus {NONE, ACTIVE, INACTIVE}
 
-    //emitted by joins/parts
+    // Members
     event MemberJoined(address indexed member);
     event MemberParted(address indexed member);
     event JoinPartAgentAdded(address indexed agent);
     event JoinPartAgentRemoved(address indexed agent);
+    event NewMemberEthSent(uint amountWei);
 
-    //emitted when revenue received
+    // Revenue handling: earnings = revenue - admin fee - du fee
     event RevenueReceived(uint256 amount);
+    event FeesCharged(uint256 adminFee, uint256 dataUnionFee);
     event NewEarnings(uint256 earningsPerMember, uint256 activeMemberCount);
 
-    //emitted by withdrawal
+    // Withdrawals
     event EarningsWithdrawn(address indexed member, uint256 amount);
 
-    //in-contract transfers
+    // In-contract transfers
     event TransferWithinContract(address indexed from, address indexed to, uint amount);
     event TransferToAddressInContract(address indexed from, address indexed to, uint amount);
 
-    //new member eth
+    // Variable properties change events
     event UpdateNewMemberEth(uint value);
-    event NewMemberEthSent(uint amountWei);
-
-    //migrate token and mediator
-    event MigrateToken(address indexed newToken, address indexed oldToken, uint amountMigrated);
-    event MigrateMediator(address indexed newMediator, address indexed oldMediator);
-
+    event FeesSet(uint256 adminFee, uint256 dataUnionFee);
+    event DataUnionBeneficiaryChanged(address current, address old);
 
     struct MemberInfo {
         ActiveStatus status;
@@ -46,22 +44,27 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
         uint256 withdrawnEarnings;
     }
 
+    // Constant properties (only set in initialize)
     IERC677 public token;
     address public tokenMediator;
     address public dataUnionMainnet;
 
-    uint256 public totalEarnings;
-    uint256 public totalEarningsWithdrawn;
+    // Variable properties
+    uint256 public newMemberEth;
+    uint256 public adminFeeFraction;
+    uint256 public dataUnionFeeFraction;
+    address public dataUnionBeneficiary;
 
+    // Useful stats
+    uint256 public totalRevenue;
+    uint256 public totalEarnings;
+    uint256 public totalAdminFees;
+    uint256 public totalDataUnionFees;
+    uint256 public totalWithdrawn;
     uint256 public activeMemberCount;
     uint256 public inactiveMemberCount;
     uint256 public lifetimeMemberEarnings;
-
     uint256 public joinPartAgentCount;
-
-    uint256 public newMemberEth;
-
-    ISidechainMigrationManager public migrationManager;
 
     mapping(address => MemberInfo) public memberData;
     mapping(address => ActiveStatus) public joinPartAgents;
@@ -72,24 +75,29 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
     }
 
     // owner will be set by initialize()
-    constructor() public Ownable(address(0)) {}
+    constructor() Ownable(address(0)) {}
 
     receive() external payable {}
 
     function initialize(
         address initialOwner,
-        address _migrationManager,
+        address tokenAddress,
+        address tokenMediatorAddress,
         address[] memory initialJoinPartAgents,
         address mainnetDataUnionAddress,
-        uint256 defaultNewMemberEth
+        uint256 defaultNewMemberEth,
+        uint256 initialAdminFeeFraction,
+        uint256 initialDataUnionFeeFraction,
+        address initialDataUnionBeneficiary
     ) public {
         require(!isInitialized(), "error_alreadyInitialized");
         owner = msg.sender; // set real owner at the end. During initialize, addJoinPartAgents can be called by owner only
-        migrationManager = ISidechainMigrationManager(_migrationManager);
-        token = IERC677(migrationManager.currentToken());
+        token = IERC677(tokenAddress);
         addJoinPartAgents(initialJoinPartAgents);
-        tokenMediator = migrationManager.currentMediator();
+        tokenMediator = tokenMediatorAddress;
         dataUnionMainnet = mainnetDataUnionAddress;
+        setFees(initialAdminFeeFraction, initialDataUnionFeeFraction);
+        setDataUnionBeneficiary(initialDataUnionBeneficiary);
         setNewMemberEth(defaultNewMemberEth);
         owner = initialOwner;
     }
@@ -99,45 +107,108 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
     }
 
     /**
-    ERC677 callback function
-    see https://github.com/ethereum/EIPs/issues/677
-    */
-    function onTokenTransfer(address, uint256, bytes calldata) external returns (bool success) {
-        if(msg.sender != address(token)){
-            return false;
-        }
-        refreshRevenue();
-        return true;
-    }
-
-    /*
-        tokenbridge callback function
-    */
-    function onTokenBridged(address, uint256, bytes memory) override public {
-        refreshRevenue();
-    }
-
-
-    /**
-     * Atomic getter to get all state variables in one call
+     * Atomic getter to get all Data Union state variables in one call
      * This alleviates the fact that JSON RPC batch requests aren't available in ethers.js
      */
-    function getStats() public view returns (uint256[6] memory) {
+    function getStats() public view returns (uint256[9] memory) {
+        uint256 cleanedInactiveMemberCount = inactiveMemberCount;
+        if (memberData[owner].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
+        if (memberData[dataUnionBeneficiary].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
         return [
+            totalRevenue,
             totalEarnings,
-            totalEarningsWithdrawn,
+            totalAdminFees,
+            totalDataUnionFees,
+            totalWithdrawn,
             activeMemberCount,
-            inactiveMemberCount,
+            cleanedInactiveMemberCount,
             lifetimeMemberEarnings,
             joinPartAgentCount
         ];
     }
 
+    /**
+     * Admin and DU fees as a fraction of revenue,
+     *   using fixed-point decimal in the same way as ether: 50% === 0.5 ether === "500000000000000000"
+     * @param newAdminFee fee that goes to the DU owner
+     * @param newDataUnionFee fee that goes to the DU beneficiary
+     */
+    function setFees(uint256 newAdminFee, uint256 newDataUnionFee) public onlyOwner {
+        require((newAdminFee + newDataUnionFee) <= 1 ether, "error_Fees");
+        adminFeeFraction = newAdminFee;
+        dataUnionFeeFraction = newDataUnionFee;
+        emit FeesSet(adminFeeFraction, dataUnionFeeFraction);
+    }
+
+    function setDataUnionBeneficiary(address _dataUnionBeneficiary) public onlyOwner {
+        require(_dataUnionBeneficiary != address(0), "invalid_address");
+        dataUnionBeneficiary = _dataUnionBeneficiary;
+        emit DataUnionBeneficiaryChanged(dataUnionBeneficiary, _dataUnionBeneficiary);
+    }
+
     function setNewMemberEth(uint val) public onlyOwner {
-        if(val == newMemberEth) return;
+        if (val == newMemberEth) { return; }
         newMemberEth = val;
         emit UpdateNewMemberEth(val);
     }
+
+    //------------------------------------------------------------
+    // REVENUE HANDLING FUNCTIONS
+    //------------------------------------------------------------
+
+    /**
+     * Process unaccounted tokens that have been sent previously
+     * Called by AMB (see DataUnionMainnet:sendTokensToBridge)
+     */
+    function refreshRevenue() public returns (uint256) {
+        uint256 balance = token.balanceOf(address(this));
+        uint256 newTokens = balance - totalWithdrawable(); // solidity 0.8: a - b errors if b > a
+        if (newTokens == 0 || activeMemberCount == 0) { return 0; }
+        totalRevenue += newTokens;
+        emit RevenueReceived(newTokens);
+
+        // fractions are expressed as multiples of 10^18 just like tokens, so must divide away the extra 10^18 factor
+        // overflow in multiplication is not an issue: 256bits ~= 10^77
+        uint256 adminFee = (newTokens * adminFeeFraction) / (1 ether);
+        uint256 duFee = (newTokens * dataUnionFeeFraction) / (1 ether);
+        uint256 newEarnings = newTokens - adminFee - duFee;
+
+        _increaseBalance(owner, adminFee);
+        _increaseBalance(dataUnionBeneficiary, duFee);
+        totalAdminFees += adminFee;
+        totalDataUnionFees += duFee;
+        emit FeesCharged(adminFee, duFee);
+
+        uint256 earningsPerMember = newEarnings / activeMemberCount;
+        lifetimeMemberEarnings = lifetimeMemberEarnings + earningsPerMember;
+        totalEarnings = totalEarnings + newEarnings;
+        emit NewEarnings(earningsPerMember, activeMemberCount);
+
+        assert (token.balanceOf(address(this)) == totalWithdrawable()); // calling this function immediately again should just return 0 and do nothing
+        return newEarnings;
+    }
+
+    /**
+     * ERC677 callback function, see https://github.com/ethereum/EIPs/issues/677
+     * Sends the tokens arriving through a transferAndCall to the sidechain (ignore arguments/calldata)
+     * Only the token contract is authorized to call this function
+     */
+    function onTokenTransfer(address, uint256, bytes calldata) external returns (bool success) {
+        if (msg.sender != address(token)) { return false; }
+        refreshRevenue();
+        return true;
+    }
+
+    /**
+     * Tokenbridge callback function
+     */
+    function onTokenBridged(address, uint256, bytes memory) override public {
+        refreshRevenue();
+    }
+
+    //------------------------------------------------------------
+    // MEMBER MANAGEMENT / VIEW FUNCTIONS
+    //------------------------------------------------------------
 
     function getEarnings(address member) public view returns (uint256) {
         MemberInfo storage info = memberData[member];
@@ -146,7 +217,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
             info.earningsBeforeLastJoin +
             (
                 info.status == ActiveStatus.ACTIVE
-                    ? lifetimeMemberEarnings.sub(info.lmeAtJoin)
+                    ? lifetimeMemberEarnings - info.lmeAtJoin
                     : 0
             );
     }
@@ -158,11 +229,12 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
     }
 
     function getWithdrawableEarnings(address member) public view returns (uint256) {
-        return getEarnings(member).sub(getWithdrawn(member));
+        return getEarnings(member) - getWithdrawn(member);
     }
 
+    // this includes the fees paid to admins and the DU beneficiary
     function totalWithdrawable() public view returns (uint256) {
-        return totalEarnings.sub(totalEarningsWithdrawn);
+        return totalRevenue - totalWithdrawn;
     }
 
     function addJoinPartAgents(address[] memory agents) public onlyOwner {
@@ -175,48 +247,32 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
         require(joinPartAgents[agent] != ActiveStatus.ACTIVE, "error_alreadyActiveAgent");
         joinPartAgents[agent] = ActiveStatus.ACTIVE;
         emit JoinPartAgentAdded(agent);
-        joinPartAgentCount = joinPartAgentCount.add(1);
+        joinPartAgentCount = ++joinPartAgentCount;
     }
 
     function removeJoinPartAgent(address agent) public onlyOwner {
         require(joinPartAgents[agent] == ActiveStatus.ACTIVE, "error_notActiveAgent");
         joinPartAgents[agent] = ActiveStatus.INACTIVE;
         emit JoinPartAgentRemoved(agent);
-        joinPartAgentCount = joinPartAgentCount.sub(1);
-    }
-
-    /**
-     * Process unaccounted tokens that have been sent previously
-     * Called by AMB (see DataUnionMainnet:sendTokensToBridge)
-     */
-    function refreshRevenue() public returns (uint256) {
-        uint256 balance = token.balanceOf(address(this));
-        uint256 revenue = balance.sub(totalWithdrawable()); // a.sub(b) errors if b > a
-        if (revenue == 0 || activeMemberCount == 0) return 0;
-        uint256 earningsPerMember = revenue.div(activeMemberCount);
-        lifetimeMemberEarnings = lifetimeMemberEarnings.add(earningsPerMember);
-        totalEarnings = totalEarnings.add(revenue);
-        emit RevenueReceived(revenue);
-        emit NewEarnings(earningsPerMember, activeMemberCount);
-        return revenue;
+        joinPartAgentCount = --joinPartAgentCount;
     }
 
     function addMember(address payable member) public onlyJoinPartAgent {
         MemberInfo storage info = memberData[member];
         require(info.status != ActiveStatus.ACTIVE, "error_alreadyMember");
         if(info.status == ActiveStatus.INACTIVE){
-            inactiveMemberCount = inactiveMemberCount.sub(1);
+            inactiveMemberCount = --inactiveMemberCount;
         }
         bool sendEth = info.status == ActiveStatus.NONE && newMemberEth != 0 && address(this).balance >= newMemberEth;
         info.status = ActiveStatus.ACTIVE;
         info.lmeAtJoin = lifetimeMemberEarnings;
-        activeMemberCount = activeMemberCount.add(1);
+        activeMemberCount = ++activeMemberCount;
         emit MemberJoined(member);
 
         // give new members ETH. continue even if transfer fails
         if (sendEth) {
             if (member.send(newMemberEth)) {
-                NewMemberEthSent(newMemberEth);
+                emit NewMemberEthSent(newMemberEth);
             }
         }
     }
@@ -227,8 +283,8 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
         require(info.status == ActiveStatus.ACTIVE, "error_notActiveMember");
         info.earningsBeforeLastJoin = getEarnings(member);
         info.status = ActiveStatus.INACTIVE;
-        activeMemberCount = activeMemberCount.sub(1);
-        inactiveMemberCount = inactiveMemberCount.add(1);
+        activeMemberCount = --activeMemberCount;
+        inactiveMemberCount = ++inactiveMemberCount;
         emit MemberParted(member);
     }
 
@@ -245,20 +301,24 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
         }
     }
 
+    //------------------------------------------------------------
+    // IN-CONTRACT TRANSFER FUNCTIONS
+    //------------------------------------------------------------
+
     /**
      * Transfer tokens from outside contract, add to a recipient's in-contract balance
      */
     function transferToMemberInContract(address recipient, uint amount) public {
         // this is done first, so that in case token implementation calls the onTokenTransfer in its transferFrom (which by ERC677 it should NOT),
-        //   transferred tokens will still not count as revenue (distributed to all) but a simple earnings increase to this particular member
+        //   transferred tokens will still not count as earnings (distributed to all) but a simple earnings increase to this particular member
         _increaseBalance(recipient, amount);
-        totalEarnings = totalEarnings.add(amount);
+        totalEarnings = totalEarnings + amount;
         emit TransferToAddressInContract(msg.sender, recipient,  amount);
 
         uint balanceBefore = token.balanceOf(address(this));
         require(token.transferFrom(msg.sender, address(this), amount), "error_transfer");
         uint balanceAfter = token.balanceOf(address(this));
-        require(balanceAfter.sub(balanceBefore) >= amount, "error_transfer");
+        require((balanceAfter - balanceBefore) >= amount, "error_transfer");
     }
 
     /**
@@ -271,7 +331,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
     function transferWithinContract(address recipient, uint amount) public {
         require(getWithdrawableEarnings(msg.sender) >= amount, "error_insufficientBalance");    // reverts with "error_notMember" msg.sender not member
         MemberInfo storage info = memberData[msg.sender];
-        info.withdrawnEarnings = info.withdrawnEarnings.add(amount);
+        info.withdrawnEarnings = info.withdrawnEarnings + amount;
         _increaseBalance(recipient, amount);
         emit TransferWithinContract(msg.sender, recipient, amount);
     }
@@ -281,14 +341,18 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
      */
     function _increaseBalance(address member, uint amount) internal {
         MemberInfo storage info = memberData[member];
-        info.earningsBeforeLastJoin = info.earningsBeforeLastJoin.add(amount);
+        info.earningsBeforeLastJoin = info.earningsBeforeLastJoin + amount;
 
         // allow seeing and withdrawing earnings
         if (info.status == ActiveStatus.NONE) {
             info.status = ActiveStatus.INACTIVE;
-            inactiveMemberCount = inactiveMemberCount.add(1);
+            inactiveMemberCount = ++inactiveMemberCount;
         }
     }
+
+    //------------------------------------------------------------
+    // WITHDRAW FUNCTIONS
+    //------------------------------------------------------------
 
     function withdrawMembers(address[] memory members, bool sendToMainnet)
         public
@@ -296,7 +360,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
     {
         uint256 withdrawn = 0;
         for (uint256 i = 0; i < members.length; i++) {
-            withdrawn = withdrawn.add(withdrawAll(members[i], sendToMainnet));
+            withdrawn = withdrawn + (withdrawAll(members[i], sendToMainnet));
         }
         return withdrawn;
     }
@@ -448,8 +512,8 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
         if (amount == 0) return 0;
         require(amount <= getWithdrawableEarnings(from), "error_insufficientBalance");
         MemberInfo storage info = memberData[from];
-        info.withdrawnEarnings = info.withdrawnEarnings.add(amount);
-        totalEarningsWithdrawn = totalEarningsWithdrawn.add(amount);
+        info.withdrawnEarnings = info.withdrawnEarnings + amount;
+        totalWithdrawn = totalWithdrawn + amount;
         if (sendToMainnet)
             require(
                 token.transferAndCall(
@@ -468,27 +532,4 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
         return amount;
     }
 
-    function migrate() public onlyOwner {
-        address newMediator = migrationManager.currentMediator();
-        if(newMediator != address(0) && newMediator != address(tokenMediator)) {
-            emit MigrateMediator(newMediator, address(tokenMediator));
-            tokenMediator = newMediator;
-        }
-        IERC677 newToken = IERC677(migrationManager.currentToken());
-        if(address(newToken) != address(0) && address(newToken) != address(token) &&
-            migrationManager.oldToken() == address(token)) {
-            refreshRevenue();
-            uint oldBalance = token.balanceOf(address(this));
-            uint newBalance = newToken.balanceOf(address(this));
-            if(oldBalance != 0) {
-                token.approve(address(migrationManager), oldBalance);
-                migrationManager.swap(oldBalance);
-                require(token.balanceOf(address(this)) == 0, "tokens_not_sent");
-                //require at least oldBalance more new tokens
-                require(newToken.balanceOf(address(this)).sub(newBalance) >= oldBalance, "tokens_not_received");
-            }
-            emit MigrateToken(address(newToken), address(token), oldBalance);
-            token = newToken;
-        }
-    }
 }

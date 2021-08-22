@@ -1,12 +1,12 @@
-pragma solidity 0.6.6;
+// SPDX-License-Identifier: MIT
 
-import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol"; 
+pragma solidity 0.8.6;
+
+import "./uniswap-v2-periphery/IUniswapV2Router02.sol";
 import "./IERC677.sol";
 import "./BytesLib.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract BinanceAdapter {
-    using SafeMath for uint256;
 
     event WithdrawToBinance(address indexed token, address indexed to, uint256 amountDatacoin, uint256 amountOtheroken);
     event SetBinanceRecipient(address indexed member, address indexed recipient);
@@ -33,9 +33,10 @@ contract BinanceAdapter {
         require(userdata.binanceAddress != address(0), "recipient_undefined");
         //min output is 1 wei, no deadline
         _withdrawToBinance(userdata.binanceAddress, amount, convertToCoin, 1, maxint);
+        return true;
     }
 
-    constructor(address dataCoin_, address honeyswapRouter_, address bscBridge_, address convertToCoin_, address liquidityToken_) public {
+    constructor(address dataCoin_, address honeyswapRouter_, address bscBridge_, address convertToCoin_, address liquidityToken_) {
         dataCoin = IERC677(dataCoin_);
         honeyswapRouter = IUniswapV2Router02(honeyswapRouter_);
         bscBridge = address(bscBridge_);
@@ -53,11 +54,10 @@ contract BinanceAdapter {
 
     function setBinanceRecipientFromSig(address from, address recipient, bytes memory sig) public {
         UserData storage userdata = binanceRecipient[from];
-        uint nextNonce = userdata.nonce.add(1);
-        require(getSigner(recipient, nextNonce, sig) == from, "bad_signature");
-        userdata.nonce = nextNonce;
+        userdata.nonce += 1;
+        require(getSigner(recipient, userdata.nonce, sig) == from, "bad_signature");
         _setBinanceRecipient(from, recipient);
-    }    
+    }
 
     function _setBinanceRecipient(address member, address recipient) internal {
         UserData storage userdata = binanceRecipient[member];
@@ -87,25 +87,26 @@ contract BinanceAdapter {
         }
         toCoin.transferAndCall(bscBridge, sendToBinanceAmount, BytesLib.toBytes(binanceAddress));
         emit WithdrawToBinance(address(toCoin), binanceAddress, amountDatacoin, sendToBinanceAmount);
-        datacoinPassed = datacoinPassed.add(amountDatacoin);
+        datacoinPassed = datacoinPassed + amountDatacoin;
     }
 
     function _honeyswapPath(address toCoinXDai) internal view returns (address[] memory) {
+        address[] memory path;
         if(liquidityToken == address(0)){
             //no intermediate
-            address[] memory path = new address[](2);
+            path = new address[](2);
             path[0] = address(dataCoin);
             path[1] = toCoinXDai;
             return path;
         }
         //use intermediate liquidity token
-        address[] memory path = new address[](3);
+        path = new address[](3);
         path[0] = address(dataCoin);
         path[1] = liquidityToken;
         path[2] = toCoinXDai;
         return path;
     }
-    
+
     function getSigner(
         address recipient,
         uint256 nonce,
@@ -130,7 +131,7 @@ contract BinanceAdapter {
 
         bytes32 messageHash = keccak256(abi.encodePacked(
             "\x19Ethereum Signed Message:\n72", recipient, nonce, address(this)));
-        
+
         return ecrecover(messageHash, v, r, s);
     }
 

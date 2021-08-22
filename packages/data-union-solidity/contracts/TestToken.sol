@@ -1,4 +1,6 @@
-pragma solidity 0.6.6;
+// SPDX-License-Identifier: MIT
+
+pragma solidity 0.8.6;
 
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./Ownable.sol";
@@ -9,7 +11,7 @@ import "./IERC677.sol";
  * Transfers of 666 are rejected with return value false
  */
 contract TestToken is ERC20, Ownable, IERC677 {
-    constructor (string memory name, string memory symbol) public ERC20(name, symbol) Ownable(msg.sender) {
+    constructor (string memory name, string memory symbol) ERC20(name, symbol) Ownable(msg.sender) {
         // solhint-disable-previous-line no-empty-blocks
     }
 
@@ -39,7 +41,7 @@ contract TestToken is ERC20, Ownable, IERC677 {
         address to,
         uint256 amount,
         bytes calldata data
-    ) external override returns (bool) {        
+    ) external override returns (bool) {
         if(amount == 666 || !transfer(to, amount))
             return false;
         // solhint-disable-next-line

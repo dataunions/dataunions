@@ -3,11 +3,6 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_migrationManager",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
         "name": "_dataUnionSidechainTemplate",
         "type": "address"
       }
@@ -165,19 +160,6 @@
   },
   {
     "inputs": [],
-    "name": "migrationManager",
-    "outputs": [
-      {
-        "internalType": "contract ISidechainMigrationManager",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "newDUInitialEth",
     "outputs": [
       {
@@ -246,32 +228,6 @@
     "type": "receive"
   },
   {
-    "inputs": [],
-    "name": "amb",
-    "outputs": [
-      {
-        "internalType": "contract IAMB",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "token",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -331,6 +287,35 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "address",
+        "name": "_mediator",
+        "type": "address"
+      }
+    ],
+    "name": "amb",
+    "outputs": [
+      {
+        "internalType": "contract IAMB",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "mediator",
+        "type": "address"
+      },
       {
         "internalType": "address payable",
         "name": "owner",
