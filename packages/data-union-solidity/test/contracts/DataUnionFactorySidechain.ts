@@ -90,7 +90,8 @@ describe("DataUnionFactorySidechain", (): void => {
         const deployMessage = await factory.interface.encodeFunctionData("deployNewDUSidechain", args)
         log('deploy: %o', deployMessage)
         // MockAMB "message passing" happens instantly, so no need to wait
-        const tr = await mockAMB.requireToPassMessage(factory.address, deployMessage, "2000000", { gasLimit: "3000000" })
+        const tx = await mockAMB.requireToPassMessage(factory.address, deployMessage, "2000000", { gasLimit: "3000000" })
+        const tr = await tx.wait()
         log('Receipt: %o', tr)
 
         // since creator was msg.sender of mockAMB.requireToPassMessage, it's assumed to be the "mainnet DU", too,
@@ -112,7 +113,7 @@ describe("DataUnionFactorySidechain", (): void => {
 
         // check owner eth increased (can't assert exact change because creator also pays gas fees)
         const creatorBalanceChange = (await provider.getBalance(creator.address)).sub(creatorBalanceBefore)
-        expect(creatorBalanceChange.toNumber()).to.be.greaterThan(0)
+        expect(creatorBalanceChange).not.equal(0)
 
         // 1st added member should have been given newMemberEth
         const balanceBefore1 = await provider.getBalance(members[0].address)

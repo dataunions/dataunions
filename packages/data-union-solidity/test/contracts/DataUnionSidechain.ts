@@ -208,7 +208,7 @@ describe("DataUnionSidechain", (): void => {
         expect(diff).to.equal(800)
     })
 
-    it.only("withdrawToSigned", async () => {
+    it("withdrawToSigned", async () => {
         const recipient = others[2]
         const dataUnionSidechainRecipient = await dataUnionSidechain.connect(recipient)
         const r = recipient.address
@@ -222,10 +222,7 @@ describe("DataUnionSidechain", (): void => {
         await expect(dataUnionSidechainRecipient.withdrawToSigned(m[1], o[1], "100", false, signature)).to.be.revertedWith("error_badSignature")
         await expect(dataUnionSidechainRecipient.withdrawToSigned(m[1], r, "1000", false, signature)).to.be.revertedWith("error_badSignature")
         await expect(dataUnionSidechainRecipient.withdrawToSigned(m[0], r, "100", false, signature)).to.be.revertedWith("error_badSignature")
-        log("withdraw")
-
-        // TODO: this causes an infinite loop in the VM execution for the "un-fixed version" of dataUnionSidechain (see _withdraw)
-        await expect(dataUnionSidechainRecipient.withdrawToSigned(m[1], r, "100", false, signature, {gasLimit: "200000"})).to.emit(dataUnionSidechain, "EarningsWithdrawn")
+        await expect(dataUnionSidechainRecipient.withdrawToSigned(m[1], r, "100", false, signature)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
 
         expect(await testToken.balanceOf(r)).to.equal(100)
     })

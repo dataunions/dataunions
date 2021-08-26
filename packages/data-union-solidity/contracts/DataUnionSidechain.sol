@@ -487,20 +487,6 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         return _withdraw(fromSigner, to, amount, sendToMainnet);
     }
 
-    function toBytes(address a) public pure returns (bytes memory b) {
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            let m := mload(0x40)
-            a := and(a, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-            mstore(
-                add(m, 20),
-                xor(0x140000000000000000000000000000000000000000, a)
-            )
-            mstore(0x40, add(m, 52))
-            b := m
-        }
-    }
-
     /**
      * Internal function common to all withdraw methods.
      * Does NOT check proper access, so all callers must do that first.
@@ -517,16 +503,13 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
         if (sendToMainnet) {
             // tokenMediator sends tokens over the bridge it's assigned to
-            require(token.transferAndCall(tokenMediator, amount, toBytes(to)), "error_transfer");
+            require(token.transferAndCall(tokenMediator, amount, abi.encodePacked(to)), "error_transfer");
         } else {
             // transferAndCall also enables transfers over another token bridge
             //   in this case to=another bridge's tokenMediator, and from=recipient on the other chain
             // this follows the tokenMediator API: data will contain the recipient address, which is the same as sender but on the other chain
             // in case transferAndCall recipient is not a tokenMediator, the data can be ignored (it contains the DU member's address)
-            require(token.transferAndCall(to, amount, toBytes(from)), "error_transfer");
-
-            // TODO: The above currently causes the test VM execution to go into infinite loop; fix that, then replace this with the above
-            //require(token.transfer(to, amount), "error_transfer");
+            require(token.transferAndCall(to, amount, abi.encodePacked(from)), "error_transfer");
         }
         emit EarningsWithdrawn(from, amount);
         return amount;

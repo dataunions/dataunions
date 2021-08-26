@@ -20,23 +20,21 @@ const log = Debug("Streamr:du:test:BinanceAdapter")
 
 use(waffle.solidity)
 const { deployContract, provider } = waffle
-const { parseEther } = utils
+const { parseEther, arrayify, solidityPack } = utils
 
 //const log = console.log  // for debugging?
 
 type EthereumAddress = string
 
 const futureTime = 4449513600
+
 /**
- * In Solidity, the message is created by abi.encodePacked(), which represents addresses unpadded as 20bytes.
- * web3.eth.encodeParameters() encodes addresses padded as 32bytes, so it can't be used
- * encodePacked() method from library would be preferable, but this works
+ * See BinanceAdapter.getSigner
+ * solidityPack corresponds to abi.encodePacked: address will not be padded but exactly 20 bytes
  */
 async function makeSetBinanceRecipientSignature(to: EthereumAddress, nonce: BigNumber, adapterAddress: EthereumAddress, signer: Wallet) {
-    const message = to + nonce.toHexString().slice(2).padStart(64, "0") + adapterAddress.slice(2)
-    log("message:", message)
-    const signature = await signer.signMessage(message)
-    log("signature:", signature)
+    const message = solidityPack(["address", "uint256", "address"], [to, nonce, adapterAddress])
+    const signature = await signer.signMessage(arrayify(message))
     return signature
 }
 
@@ -151,23 +149,15 @@ describe("BinanceAdapter", (): void => {
     })
 
     it("can withdraw to mediator without conversion", async () => {
-        const adapter = await deployContract(creator, BinanceAdapterJson, [testToken.address, dummyAddress, mockBinanceMediator.address, dummyAddress, dummyAddress]) as BinanceAdapter
-
-        await testToken.transferAndCall(dataUnionSidechain.address, "300", "0x")
-        expect(await dataUnionSidechain.getWithdrawableEarnings(m[0])).to.equal(80) // == (300 - fees) / 3
-
-        //m[0] withdraws to member[1] via bridge
-        await adapter.connect(members[0]).setBinanceRecipient(m[1])
-        await dataUnionSidechainMember0.withdrawAllTo(adapter.address, false)
-
-        expect(await dataUnionSidechain.getWithdrawableEarnings(m[0])).to.equal(0)
-        expect(await testToken.balanceOf(mockBinanceMediator.address)).to.equal(0)
-        expect(await testToken.balanceOf(m[0])).to.equal(0)
-        expect(await testToken.balanceOf(m[1])).to.equal(80)
-    })
-
-    it("can withdraw to mediator with conversion", async () => {
-        const adapter = await deployContract(creator, BinanceAdapterJson, [testToken.address, dummyAddress, mockBinanceMediator.address, dummyAddress, dummyAddress]) as BinanceAdapter
+        // constructor(address dataCoin_, address honeyswapRouter_, address bscBridge_, address convertToCoin_, address liquidityToken_)
+        const adapter = await deployContract(creator, BinanceAdapterJson, [
+            testToken.address,
+            dummyAddress,                                   // no conversion => no router needed
+            mockBinanceMediator.address,
+            testToken.address,                              // no conversion
+            "0x0000000000000000000000000000000000000000"    // no intermediate liquidity token, see _honeyswapPath
+        ]) as BinanceAdapter
+        log("Binance adapter: ", adapter.address)
 
         await testToken.transferAndCall(dataUnionSidechain.address, "300", "0x")
         expect(await dataUnionSidechain.getWithdrawableEarnings(m[0])).to.equal(80) // == (300 - fees) / 3
@@ -180,8 +170,32 @@ describe("BinanceAdapter", (): void => {
         expect(await testToken.balanceOf(mockBinanceMediator.address)).to.equal(0)
         expect(await testToken.balanceOf(m[0])).to.equal(0)
 
-        // otherToken balance should be a bit less than bal/10
-        expect(await otherToken.balanceOf(m[1])).to.be.greaterThan(5)
+        // received the same tokens 1:1
+        expect(await testToken.balanceOf(m[1])).to.equal(80)
     })
 
+    it("can withdraw to mediator with conversion", async () => {
+        const adapter = await deployContract(creator, BinanceAdapterJson, [
+            testToken.address,
+            uniswapRouter.address,
+            mockBinanceMediator.address,
+            otherToken.address,
+            "0x0000000000000000000000000000000000000000" // no intermediate liquidity token, see _honeyswapPath
+        ]) as BinanceAdapter
+        log("Binance adapter: ", adapter.address)
+
+        await testToken.transferAndCall(dataUnionSidechain.address, "300", "0x")
+        expect(await dataUnionSidechain.getWithdrawableEarnings(m[0])).to.equal(80) // == (300 - fees) / 3
+
+        // members[0] withdraws to members[1] via bridge
+        await adapter.connect(members[0]).setBinanceRecipient(m[1])
+        await dataUnionSidechainMember0.withdrawAllTo(adapter.address, false)
+
+        expect(await dataUnionSidechain.getWithdrawableEarnings(m[0])).to.equal(0)
+        expect(await testToken.balanceOf(mockBinanceMediator.address)).to.equal(0)
+        expect(await testToken.balanceOf(m[0])).to.equal(0)
+
+        // the received otherToken amount is actually a bit less than testToken / 10
+        expect(await otherToken.balanceOf(m[1])).to.equal(7)
+    })
 })

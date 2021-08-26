@@ -12,7 +12,7 @@ const config: HardhatUserConfig = {
                 enabled: true,
                 runs: 200,
             },
-            evmVersion: "istanbul",
+            evmVersion: "berlin",
         }
     },
     typechain: {

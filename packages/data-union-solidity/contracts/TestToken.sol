@@ -39,18 +39,18 @@ contract TestToken is ERC20, Ownable, IERC677 {
         uint256 amount,
         bytes calldata data
     ) external override returns (bool) {
-        // if (!transfer(to, amount)) {
-        //     return false;
-        // }
+        if (!transfer(to, amount)) {
+            return false;
+        }
 
-        // uint256 recipientCodeSize;
-        // assembly {
-        //     recipientCodeSize := extcodesize(to)
-        // }
-        // if (recipientCodeSize > 0) {
-        //     IERC677Receiver receiver = IERC677Receiver(to);
-        //     receiver.onTokenTransfer(msg.sender, amount, data);
-        // }
+        uint256 recipientCodeSize;
+        assembly {
+            recipientCodeSize := extcodesize(to)
+        }
+        if (recipientCodeSize > 0) {
+            IERC677Receiver receiver = IERC677Receiver(to);
+            receiver.onTokenTransfer(msg.sender, amount, data);
+        }
         return true;
     }
 }

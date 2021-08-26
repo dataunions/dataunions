@@ -42,8 +42,10 @@ contract MockTokenMediator is ISingleTokenMediator, IERC677Receiver {
 
     /**
      * ERC677 callback
+     * Mock: instead of going over the bridge, just send the tokens forward to the recipient
      */
     function onTokenTransfer(address, uint256 amount, bytes calldata data) override external {
-        require(ERC20(msg.sender).transfer(BytesLib.toAddress(data), amount), "transfer_rejected_in_mock");
+        address recipient = BytesLib.toAddress(data);
+        require(ERC20(msg.sender).transfer(recipient, amount), "transfer_rejected_in_mock");
     }
 }
