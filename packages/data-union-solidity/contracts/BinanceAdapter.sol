@@ -5,8 +5,9 @@ pragma solidity 0.8.6;
 import "./uniswap-v2-periphery/IUniswapV2Router02.sol";
 import "./IERC677.sol";
 import "./BytesLib.sol";
+import "./IERC677Receiver.sol";
 
-contract BinanceAdapter {
+contract BinanceAdapter is IERC677Receiver {
 
     event WithdrawToBinance(address indexed token, address indexed to, uint256 amountDatacoin, uint256 amountOtheroken);
     event SetBinanceRecipient(address indexed member, address indexed recipient);
@@ -27,13 +28,12 @@ contract BinanceAdapter {
     /*
     ERC677 callback
     */
-    function onTokenTransfer(address, uint256 amount, bytes calldata data) external returns (bool) {
+    function onTokenTransfer(address, uint256 amount, bytes calldata data) override external {
         uint256 maxint = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
         UserData storage userdata = binanceRecipient[BytesLib.toAddress(data)];
         require(userdata.binanceAddress != address(0), "recipient_undefined");
         //min output is 1 wei, no deadline
         _withdrawToBinance(userdata.binanceAddress, amount, convertToCoin, 1, maxint);
-        return true;
     }
 
     constructor(address dataCoin_, address honeyswapRouter_, address bscBridge_, address convertToCoin_, address liquidityToken_) {
@@ -65,19 +65,17 @@ contract BinanceAdapter {
         emit SetBinanceRecipient(member, recipient);
     }
 
-
     function _withdrawToBinance(address binanceAddress, uint256 amountDatacoin, address toCoinXDai, uint256 toCoinMinAmount, uint256 deadlineTimestamp) internal {
         IERC677 toCoin;
         // in toCoin:
         uint256 sendToBinanceAmount;
-        if(toCoinXDai == address(dataCoin) || toCoinXDai == address(0)){
+        if (toCoinXDai == address(dataCoin) || toCoinXDai == address(0)) {
             //no conversion neeeded
             toCoin = IERC677(dataCoin);
             sendToBinanceAmount = toCoin.balanceOf(address(this));
             // err if not enough DATA coin balance
             require(sendToBinanceAmount >= amountDatacoin, "insufficient_balance");
-        }
-        else{
+        } else {
             require(dataCoin.approve(address(honeyswapRouter), amountDatacoin), "approve_failed");
             address[] memory path = _honeyswapPath(toCoinXDai);
             // this should err if not enough DATA coin balance
@@ -92,14 +90,14 @@ contract BinanceAdapter {
 
     function _honeyswapPath(address toCoinXDai) internal view returns (address[] memory) {
         address[] memory path;
-        if(liquidityToken == address(0)){
-            //no intermediate
+        if (liquidityToken == address(0)) {
+            // no intermediate
             path = new address[](2);
             path[0] = address(dataCoin);
             path[1] = toCoinXDai;
             return path;
         }
-        //use intermediate liquidity token
+        // use intermediate liquidity token
         path = new address[](3);
         path[0] = address(dataCoin);
         path[1] = liquidityToken;

@@ -25,7 +25,7 @@ const {
 } = require("ethers")
 
 const assert = require("assert")
-const until = require("../../util/await-until")
+const until = require("../utils/await-until")
 const {
     requiredSignaturesHaveBeenCollected,
     transportSignatures,
@@ -39,7 +39,7 @@ const {
     deployDataUnionFactorySidechain,
     deployDataUnionFactoryMainnet,
     getTemplateSidechain,
-} = require("../../util/libDU")
+} = require("../utils/libDU")
 
 const providerSidechain = new JsonRpcProvider({
     url: "http://10.200.10.1:8546",

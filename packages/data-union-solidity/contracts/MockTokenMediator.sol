@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.6;
-import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./ISingleTokenMediator.sol";
 import "./BytesLib.sol";
+import "./IERC677Receiver.sol";
 
-contract MockTokenMediator is ISingleTokenMediator {
+contract MockTokenMediator is ISingleTokenMediator, IERC677Receiver {
 
     event RelayTokens(address receiver, uint256 value);
 
@@ -38,11 +39,11 @@ contract MockTokenMediator is ISingleTokenMediator {
         require(_token == address(token), "wrong_token");
         relayTokens(_receiver, _value);
     }
-    /*
-    ERC677 callback
-    */
-    function onTokenTransfer(address, uint256 amount, bytes calldata data) external returns (bool) {
+
+    /**
+     * ERC677 callback
+     */
+    function onTokenTransfer(address, uint256 amount, bytes calldata data) override external {
         require(ERC20(msg.sender).transfer(BytesLib.toAddress(data), amount), "transfer_rejected_in_mock");
-        return true;
     }
 }

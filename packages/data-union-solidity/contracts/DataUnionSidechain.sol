@@ -2,13 +2,14 @@
 
 pragma solidity 0.8.6;
 
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IERC677.sol";
-// TODO: switch to "openzeppelin-solidity/contracts/access/Ownable.sol";
+// TODO: switch to "@openzeppelin/contracts/access/Ownable.sol";
 import "./Ownable.sol";
 import "./IERC20Receiver.sol";
+import "./IERC677Receiver.sol";
 
-contract DataUnionSidechain is Ownable, IERC20Receiver {
+contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
     // Used to describe both members and join part agents
     enum ActiveStatus {NONE, ACTIVE, INACTIVE}
@@ -190,13 +191,12 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
 
     /**
      * ERC677 callback function, see https://github.com/ethereum/EIPs/issues/677
-     * Sends the tokens arriving through a transferAndCall to the sidechain (ignore arguments/calldata)
+     * Receives the tokens arriving through bridge
      * Only the token contract is authorized to call this function
      */
-    function onTokenTransfer(address, uint256, bytes calldata) external returns (bool success) {
-        if (msg.sender != address(token)) { return false; }
+    function onTokenTransfer(address, uint256, bytes calldata) override external {
+        require(msg.sender == address(token), "error_onlyTokenContract");
         refreshRevenue();
-        return true;
     }
 
     /**
@@ -509,25 +509,25 @@ contract DataUnionSidechain is Ownable, IERC20Receiver {
         internal
         returns (uint256)
     {
-        if (amount == 0) return 0;
+        if (amount == 0) { return 0; }
         require(amount <= getWithdrawableEarnings(from), "error_insufficientBalance");
         MemberInfo storage info = memberData[from];
-        info.withdrawnEarnings = info.withdrawnEarnings + amount;
-        totalWithdrawn = totalWithdrawn + amount;
-        if (sendToMainnet)
-            require(
-                token.transferAndCall(
-                    tokenMediator,
-                    amount,
-                    toBytes(to)
-                ),
-                "error_transfer"
-            );
-        /*
-            transferAndCall enables transfers to another tokenbridge.
-            in this case to = bridge, and the recipient on other chain is from
-        */
-        else require(token.transferAndCall(to, amount, toBytes(from)), "error_transfer");
+        info.withdrawnEarnings += amount;
+        totalWithdrawn += amount;
+
+        if (sendToMainnet) {
+            // tokenMediator sends tokens over the bridge it's assigned to
+            require(token.transferAndCall(tokenMediator, amount, toBytes(to)), "error_transfer");
+        } else {
+            // transferAndCall also enables transfers over another token bridge
+            //   in this case to=another bridge's tokenMediator, and from=recipient on the other chain
+            // this follows the tokenMediator API: data will contain the recipient address, which is the same as sender but on the other chain
+            // in case transferAndCall recipient is not a tokenMediator, the data can be ignored (it contains the DU member's address)
+            require(token.transferAndCall(to, amount, toBytes(from)), "error_transfer");
+
+            // TODO: The above currently causes the test VM execution to go into infinite loop; fix that, then replace this with the above
+            //require(token.transfer(to, amount), "error_transfer");
+        }
         emit EarningsWithdrawn(from, amount);
         return amount;
     }
