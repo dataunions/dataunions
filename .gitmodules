@@ -1,0 +1,3 @@
+[submodule "packages/data-union-solidity/openzeppelin-contracts"]
+	path = packages/data-union-solidity/openzeppelin-contracts
+	url = git@github.com:OpenZeppelin/openzeppelin-contracts.git
