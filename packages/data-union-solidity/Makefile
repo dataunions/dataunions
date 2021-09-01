@@ -25,7 +25,7 @@ $(SOLC): $(SOLC_DIR)
 install-solc: $(SOLC)
 
 SRC_DIR = contracts
-SRCS = $(wildcard $(SRC_DIR)/*.sol)
+SRCS = $(wildcard $(SRC_DIR)/*.sol) $(wildcard $(SRC_DIR)/*/*.sol)
 ABI_DIR = build/resources/main/solidity
 
 $(ABI_DIR):
