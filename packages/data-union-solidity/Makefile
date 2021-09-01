@@ -18,8 +18,7 @@ $(SOLC_DIR):
 	@mkdir -p $@
 
 $(SOLC): $(SOLC_DIR)
-	curl -o $(SOLC) https://binaries.soliditylang.org/$(OS)-amd64/solc-macosx-amd64-v0.8.6+commit.11564f7e
-	cat $(SOLC)
+	curl -o $(SOLC) https://binaries.soliditylang.org/$(OS)-amd64/solc-$(OS)-amd64-v0.8.6+commit.11564f7e
 	chmod 755 $(SOLC)
 
 .PHONY: install-solc
