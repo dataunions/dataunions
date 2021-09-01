@@ -4,29 +4,48 @@ SHELL = /bin/bash
 .DEFAULT_GOAL = build
 
 ifeq ($(shell uname), Darwin)
-	OS = macosx
+	PLATFORM_SOLC = macosx-amd64
+	PLATFORM_JQ = osx-amd64
 endif
 ifeq ($(shell uname), Linux)
-	OS = linux
+	PLATFORM_SOLC = linux-amd64
+	PLATFORM_JQ = linux64
 endif
 
-SOLC_VERSION = 0.8.6
-SOLC_DIR = build/.solcbin
-SOLC = $(SOLC_DIR)/solc-$(OS)-$(SOLC_VERSION)
-
-$(SOLC_DIR):
+BUILD_TOOL_DIR = build/.bin
+$(BUILD_TOOL_DIR):
 	@mkdir -p $@
 
-$(SOLC): $(SOLC_DIR)
-	curl -o $(SOLC) https://binaries.soliditylang.org/$(OS)-amd64/solc-macosx-amd64-v0.8.6+commit.11564f7e
+# find JQ downloads at https://stedolan.github.io/jq/download/
+JQ = build/.bin/jq
+$(JQ): $(BUILD_TOOL_DIR)
+	curl -Lo $(JQ) https://github.com/stedolan/jq/releases/download/jq-1.6/jq-$(PLATFORM_JQ)
+	chmod 755 $(JQ)
+
+# find solc downloads at https://github.com/ethereum/solc-bin/
+# line is like "pragma solidity 0.8.6;"
+SOLC_VERSION = $(shell grep pragma contracts/DataUnionMainnet.sol |cut -c 34-38)
+SOLC_FILE = $(shell curl -s https://binaries.soliditylang.org/$(PLATFORM_SOLC)/list.txt |grep --color=never $(SOLC_VERSION))
+SOLC = $(BUILD_TOOL_DIR)/solc-$(SOLC_VERSION)
+$(SOLC): $(BUILD_TOOL_DIR)
+	curl -o $(SOLC) https://binaries.soliditylang.org/$(PLATFORM_SOLC)/$(SOLC_FILE)
 	chmod 755 $(SOLC)
 
-.PHONY: install-solc
-install-solc: $(SOLC)
+.PHONY: install-tools
+install-tools: $(SOLC) $(JQ)
+
+# jq flags: [r]aw = no quotes; [c]ompact = no pretty printing; [M]onochrome output = no color
+OPENZEPPELIN_VERSION = $(shell $(JQ) -crM '.dependencies["@openzeppelin/contracts"]' package.json)
+OPENZEPPELIN_DIR = build/openzeppelin-$(OPENZEPPELIN_VERSION)/
+$(OPENZEPPELIN_DIR): install-tools
+	git clone -b v$(OPENZEPPELIN_VERSION) https://github.com/OpenZeppelin/openzeppelin-contracts.git $(OPENZEPPELIN_DIR)
+
+.PHONY: install-dependencies
+install-dependencies: $(OPENZEPPELIN_DIR)
 
 SRC_DIR = contracts
 SRCS = $(wildcard $(SRC_DIR)/*.sol)
-ABI_DIR = build/resources/main/solidity
+ABI_DIR = build/contracts
 
 $(ABI_DIR):
 	@mkdir -p $@
@@ -34,7 +53,7 @@ $(ABI_DIR):
 ABIS := $(patsubst $(SRC_DIR)/%.sol, $(ABI_DIR)/%.abi, $(SRCS))
 
 .PHONY: build
-build: $(SOLC) $(ABIS)
+build: install-dependencies $(ABIS)
 
 SOLC_FLAGS = \
 	--evm-version constantinople \
@@ -49,7 +68,7 @@ SOLC_FLAGS = \
 $(ABI_DIR)/%.abi: $(SRC_DIR)/%.sol | $(ABI_DIR)
 	$(SOLC) \
 		$(SOLC_FLAGS) \
-		@openzeppelin=openzeppelin-contracts \
+		@openzeppelin=$(OPENZEPPELIN_DIR) \
 		$<
 
 .PHONY: clean
