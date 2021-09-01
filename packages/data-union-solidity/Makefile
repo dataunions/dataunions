@@ -18,14 +18,14 @@ $(SOLC_DIR):
 	@mkdir -p $@
 
 $(SOLC): $(SOLC_DIR)
-	curl -o $(SOLC) https://binaries.soliditylang.org/$(OS)-amd64/solc-macosx-amd64-v0.8.6+commit.11564f7e
+	curl -o $(SOLC) https://binaries.soliditylang.org/$(OS)-amd64/solc-$(OS)-amd64-v0.8.6+commit.11564f7e
 	chmod 755 $(SOLC)
 
 .PHONY: install-solc
 install-solc: $(SOLC)
 
 SRC_DIR = contracts
-SRCS = $(wildcard $(SRC_DIR)/*.sol)
+SRCS = $(wildcard $(SRC_DIR)/*.sol) $(wildcard $(SRC_DIR)/*/*.sol)
 ABI_DIR = build/resources/main/solidity
 
 $(ABI_DIR):
