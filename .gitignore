@@ -3,4 +3,3 @@ coverage
 .coverage_contracts
 .coverage_artifacts
 /build
-.idea
