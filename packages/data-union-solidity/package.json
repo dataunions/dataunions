@@ -9,7 +9,6 @@
     "lint": "eslint test/*.* && solhint contracts/*/*.sol",
     "format": "prettier --no-color --config .prettierrc --write contracts/**/*.sol",
     "format-check": "prettier --no-color --config .prettierrc --check contracts/**/*.sol",
-    "_coverage": "truffle run coverage --file=test/contracts/*",
     "unit-test": "hardhat test test/contracts/*",
     "integration-test": "mocha test/e2e --exit",
     "test": "npm run unit-test"

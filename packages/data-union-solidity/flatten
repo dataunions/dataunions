@@ -1,5 +1,0 @@
-#!/bin/bash
-
-for i in $(find contracts -type d); do mkdir -p ${i/contracts/build/flattened}; done
-for i in $(find contracts -name "*.sol"); do node_modules/.bin/truffle-flattener $i > ${i/contracts/build/flattened}; done
-
