@@ -18,8 +18,5 @@
     "graph2_copyInfo": "./scripts/copyAbis.sh",
     "graph3_build": "npm run doAll -w=streamregistry-thegraph-subgraph",
     "graph": "npm run graph1_build && npm run graph2_copyInfo && npm run graph3_build"
-  },
-  "dependencies": {
-    "ethers": "^5.0.0"
   }
 }
