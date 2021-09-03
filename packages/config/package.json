@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "Addresses of deployed contracts and other configuration data for different environments",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "",
+    "clean": "",
+    "build": "",
+    "lint": ""
   },
   "author": "",
   "license": "MIT"
