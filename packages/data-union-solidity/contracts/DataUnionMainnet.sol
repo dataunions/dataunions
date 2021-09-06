@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  // TODO: switch to "@openzeppelin/contracts/access/Ownable.sol";
 import "./Ownable.sol";
 import "./PurchaseListener.sol";
@@ -18,8 +18,8 @@ contract DataUnionMainnet is Ownable, PurchaseListener, IERC677Receiver {
     // NOTE: any variables set below will NOT be visible in clones from CloneLib / factories
     //       clones must set variables in initialize()
 
-    ERC20 public tokenMainnet;
-    ERC20 public tokenSidechain;
+    IERC20 public tokenMainnet;
+    IERC20 public tokenSidechain;
     ITokenMediator public tokenMediatorMainnet;
     ITokenMediator public tokenMediatorSidechain;
     address public sidechainDUFactory;
@@ -57,9 +57,9 @@ contract DataUnionMainnet is Ownable, PurchaseListener, IERC677Receiver {
         //during setup, msg.sender is admin
         owner = msg.sender;
 
-        tokenMainnet = ERC20(_tokenMainnet);
+        tokenMainnet = IERC20(_tokenMainnet);
         tokenMediatorMainnet = ITokenMediator(_mediatorMainnet);
-        tokenSidechain = ERC20(_tokenSidechain);
+        tokenSidechain = IERC20(_tokenSidechain);
         tokenMediatorSidechain = ITokenMediator(_mediatorSidechain);
         sidechainDUFactory = _sidechainDUFactory;
         sidechainMaxGas = _sidechainMaxGas;
