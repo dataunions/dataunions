@@ -1,7 +1,7 @@
 {
   "name": "data-union",
   "description": "Smart contracts for Data Union with sidechain accounting and theGraph subgraph",
-  "version": "0.0.1",
+  "version": "2.1.0",
   "author": "Streamr Network AG",
   "license": "AGPL-3.0",
   "workspaces": [

@@ -1,7 +1,7 @@
 {
   "name": "data-union-solidity",
   "description": "Smart contracts for Data Union with sidechain accounting",
-  "version": "0.0.1",
+  "version": "2.1.0",
   "scripts": {
     "build": "hardhat compile",
     "clean": "rm -rf artifacts cache coverage typechain deployments",
