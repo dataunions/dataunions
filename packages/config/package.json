@@ -1,7 +1,7 @@
 {
   "name": "data-union-config",
-  "version": "1.0.0",
-  "description": "Addresses of deployed contracts and other configuration data for different environments",
+  "version": "2.1.0",
+  "description": "Addresses of deployed Data Union contracts and other configuration data for different environments",
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
