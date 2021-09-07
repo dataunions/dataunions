@@ -1,6 +1,8 @@
 # data-union-solidity
 
-[![Discord Chat](https://img.shields.io/discord/801574432350928907.svg?label=Discord&logo=Discord&colorB=7289da)](https://discord.gg/FVtAph9cvz)
+[![Discord Chat](https://img.shields.io/discord/801574432350928907.svg?label=Streamr Discord&logo=Discord&colorB=7289da)](https://discord.gg/FVtAph9cvz)
+
+[![Discord Chat](https://img.shields.io/discord/853941437602070549.svg?label=Data Union Discord&logo=Discord&colorB=7289da)](https://discord.gg/FVtAph9cvz)
 
 A Data Union (DU) is a collection of "members" that split token revenue sent to a single mainnet contract. This DU implementation uses the following components:
 
@@ -11,9 +13,9 @@ A Data Union (DU) is a collection of "members" that split token revenue sent to 
 The purpose of the sidechain is to **facilitate cheap join and part operations**. The basic workflow looks like this:
 
 0. Deploy factory contracts if needed. They are pre-baked into supplied docker images. See [Getting Started](#getting-started)
-1. create a [DataUnionMainnet](https://github.com/streamr-dev/data-union-solidity/blob/master/contracts/DataUnionMainnet.sol) using [mainnetFactory.deployNewDataUnion()](https://github.com/streamr-dev/data-union-solidity/blob/b703721ad0b4aff0bde297b88293365ea2d37022/contracts/DataUnionFactoryMainnet.sol#L114)
-    1. this will automatically create [DataUnionSidechain](https://github.com/streamr-dev/data-union-solidity/blob/master/contracts/DataUnionSidechain.sol) via the bridge. The address of the sidechain contract is [predictable](#note-about-addresses).
-2. `addMembers()` on [DataUnionSidechain](https://github.com/streamr-dev/data-union-solidity/blob/master/contracts/DataUnionSidechain.sol)
+1. create a [DataUnionMainnet](https://github.com/streamr-dev/data-union/blob/master/packages/data-union-solidity/contracts/DataUnionMainnet.sol) using [mainnetFactory.deployNewDataUnion()](https://github.com/streamr-dev/data-union-solidity/blob/b703721ad0b4aff0bde297b88293365ea2d37022/contracts/DataUnionFactoryMainnet.sol#L114)
+    1. this will automatically create [DataUnionSidechain](https://github.com/streamr-dev/data-union/blob/master/packages/data-union-solidity/contracts/DataUnionSidechain.sol) via the bridge. The address of the sidechain contract is [predictable](#note-about-addresses).
+2. `addMembers()` on [DataUnionSidechain](https://github.com/streamr-dev/data-union/blob/master/packages/data-union-solidity/contracts/DataUnionSidechain.sol)
 3. send tokens to DataUnionMainnet and call `sendTokensToBridge()`
     1. this will "send" the tokens across the bridge to the sidechain DataUnionSidechain using the token mediator contracts
 4. `withdraw()` members on DataUnionSidechain
@@ -59,13 +61,13 @@ For each active member we store `member address -> LME(join time)`. The earnings
 ## The Bridge
 The bridge has 3 main components:
 1. Arbitrary Message Bridge (AMB): smart contracts on main and side chains that pass arbitrary function calls between the chains.
-2. ERC677 token mediator: contracts that talk to the AMB in order to facilitate token transfers across the bridge. Mainnet tokens can be transferred to the mainnet mediator contract and "passed" to sidechain by minting [corresponding ERC677 tokens](https://github.com/poanetwork/tokenbridge-contracts/blob/master/contracts/upgradeable_contracts/amb_erc677_to_erc677/BasicStakeTokenMediator.sol). This sidenet ERC677 can be "passed" back to mainnet by transferring to the sidechain mediator, which burns sidechain tokens, triggering mainnet token transfer.
+2. ERC677 token mediator: contracts that talk to the AMB in order to facilitate token transfers across the bridge. Mainnet tokens can be transferred to the mainnet mediator contract and "passed" to sidechain by minting [corresponding ERC677 tokens](https://github.com/poanetwork/tokenbridge-contracts/blob/master/contracts/ERC677BridgeToken.sol). This sidenet ERC677 can be "passed" back to mainnet by transferring to the sidechain mediator, which burns sidechain tokens, triggering mainnet token transfer.
 3. Oracles: Each oracle node runs a set of processes in Docker. The oracles attest to transactions submitted to the AMB and pass verified transactions across the bridge in both directions. A production setup includes multiple oracles and a majority of oracle votes is needed to verify a transaction. The rules for oracle voting can be setup in TokenBridge.
 
 [See TokenBridge documentation](https://docs.tokenbridge.net/amb-bridge/about-amb-bridge) for detailed info about the bridge.
 
 # Getting Started
-The easiest way to get started running and testing Data Unions is to use the preloaded test images baked into https://github.com/streamr-dev/streamr-docker-dev:
+The easiest way to get started running and testing Data Unions is to use the preloaded test images baked into https://github.com/streamr-dev/streamr-docker-dev :
 
 0. `cd streamr-docker-dev`
 1. `sudo ifconfig lo:0 10.200.10.1/24` (must link 10.200.10.1 to loopback so containers can communicate)
@@ -84,7 +86,7 @@ Alternatively, you can build this setup from scratch. See https://github.com/str
 
 # Code Samples
 
-Use [libDU](https://github.com/streamr-dev/data-union-solidity/blob/DU-12-move-adminfee-mainnet/test/utils/libDU.js) to deploy DU components:
+Use [libDU](https://github.com/streamr-dev/data-union/blob/master/packages/data-union-solidity/test/utils/libDU.js) to deploy DU components:
   - `deployDataUnionFactorySidechain`
   - `deployDataUnionFactoryMainnet`
   - `getTemplateSidechain`
@@ -100,4 +102,4 @@ To deploy DU:
 
 Interact with DataUnionMainnet and DataUnionSidechain contracts using Solidity calls once they are deployed.
 
-See the [end-to-end test](https://github.com/streamr-dev/data-union-solidity/blob/master/test/e2e/usingPlainEthers.js) that shows how to use all major features from factory creation to withdrawal. The test runs against the docker setup described above.
+See the [end-to-end test](https://github.com/streamr-dev/data-union/blob/master/packages/data-union-solidity/test/e2e/usingPlainEthers.js) that shows how to use all major features from factory creation to withdrawal. The test runs against the docker setup described above.
