@@ -6,7 +6,7 @@
     "build": "hardhat compile",
     "clean": "rm -rf artifacts cache coverage typechain deployments",
     "coverage": "hardhat coverage",
-    "lint": "eslint test/*.* && solhint contracts/*/*.sol",
+    "lint": "eslint test/**/*.ts scripts/*.ts && solhint contracts/*/*.sol",
     "format": "prettier --no-color --config .prettierrc --write contracts/**/*.sol",
     "format-check": "prettier --no-color --config .prettierrc --check contracts/**/*.sol",
     "unit-test": "hardhat test test/contracts/*",

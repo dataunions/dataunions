@@ -1,6 +1,6 @@
-import { expect, use } from 'chai'
-import { waffle } from 'hardhat'
-import { BigNumber, Wallet, Contract, Signer, utils } from 'ethers'
+import { expect, use } from "chai"
+import { waffle } from "hardhat"
+import { BigNumber, Wallet, Contract, utils } from "ethers"
 
 import DataUnionSidechainJson from "../../artifacts/contracts/DataUnionSidechain.sol/DataUnionSidechain.json"
 import MockTokenMediatorJson from "../../artifacts/contracts/MockTokenMediator.sol/MockTokenMediator.json"
@@ -15,7 +15,7 @@ import UniswapV2Router02Json from "../utils/UniswapV2Router02.json"
 import WETH9Json from "../utils/WETH9.json"
 
 import Debug from "debug"
-import { DataUnionSidechain, TestToken, BinanceAdapter, MockTokenMediator } from '../../typechain'
+import { DataUnionSidechain, TestToken, BinanceAdapter, MockTokenMediator } from "../../typechain"
 const log = Debug("Streamr:du:test:BinanceAdapter")
 
 use(waffle.solidity)
@@ -47,7 +47,7 @@ describe("BinanceAdapter", (): void => {
 
     const m = members.map(member => member.address)
     const a = agents.map(agent => agent.address)
-    const o = others.map(outsider => outsider.address)
+    // const o = others.map(outsider => outsider.address)
 
     let testToken: TestToken
     let otherToken: TestToken

@@ -1,6 +1,6 @@
-import { assert, expect, use } from 'chai'
-import { waffle } from 'hardhat'
-import { BigNumber, Wallet, Contract, Signer, utils, BigNumberish } from 'ethers'
+import { assert, expect, use } from "chai"
+import { waffle } from "hardhat"
+import { BigNumber, Wallet, Contract, utils, BigNumberish } from "ethers"
 
 import Debug from "debug"
 const log = Debug("Streamr:du:test:DataUnionSidechain")
