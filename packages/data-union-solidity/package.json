@@ -21,7 +21,7 @@
     "@types/chai": "^4.2.21",
     "@types/debug": "^4.1.7",
     "@types/mocha": "^9.0.0",
-    "@types/node": "^10.17.54",
+    "@types/node": "^16.9.1",
     "chai": "^4.3.4",
     "chai-bignumber": "^3.0.0",
     "debug": "4.1.1",
