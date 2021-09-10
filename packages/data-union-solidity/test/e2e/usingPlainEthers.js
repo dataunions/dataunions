@@ -7,6 +7,7 @@ const HOME_ERC677 = "0x73Be21733CC5D08e1a14Ea9a399fb27DB3BEf8fF"
 // const HOME_MULTIMEDIATOR = "0x41B89Db86BE735c03A9296437E39F5FDAdC4c678"
 // const FOREIGN_MULTIMEDIATOR = "0x6346Ed242adE018Bd9320D5E3371c377BAB29c31"
 
+/* eslint-disable @typescript-eslint/no-var-requires */
 const Token = require("../../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json")
 const DataUnionSidechain = require("../../artifacts/contracts/DataUnionSidechain.sol/DataUnionSidechain.json")
 const DataUnionMainnet = require("../../artifacts/contracts/DataUnionMainnet.sol/DataUnionMainnet.json")
