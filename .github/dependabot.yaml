@@ -14,10 +14,9 @@ updates:
       prefix: ci
       include: scope
     assignees:
-      - jtakalai
+      - kare
     labels:
-      - github-actions
-      - dependencies
+      - ci
   - package-ecosystem: docker
     directory: /
     open-pull-requests-limit: 3
@@ -29,10 +28,9 @@ updates:
       prefix: build
       include: scope
     assignees:
-      - jtakalai
+      - kare
     labels:
-      - javascript
-      - dependencies
+      - build
   - package-ecosystem: npm
     directory: /
     open-pull-requests-limit: 3
@@ -45,7 +43,4 @@ updates:
       include: scope
     assignees:
       - jtakalai
-    labels:
-      - javascript
-      - dependencies
 
