@@ -11,8 +11,8 @@ import {
     Overrides,
 } from "ethers"
 
-import { statSync } from 'fs'
-import path from 'path'
+import { statSync } from "fs"
+import path from "path"
 
 const { JsonRpcProvider } = ethersProviders
 const { parseUnits, formatUnits } = ethersUtils
@@ -61,13 +61,13 @@ const log = Debug("Streamr:du:script:deploy")
 const ethersOptions: Overrides = { gasLimit: 3000000 }
 if (GASPRICE_GWEI) { ethersOptions.gasPrice = parseUnits(GASPRICE_GWEI, "gwei") }
 
-const mainnetProvider = mainnet.url ? new JsonRpcProvider(mainnet.url) : getDefaultProvider();
-const sidechainProvider = new JsonRpcProvider(xdai.url ?? 'https://rpc.xdaichain.com/');
+const mainnetProvider = mainnet.url ? new JsonRpcProvider(mainnet.url) : getDefaultProvider()
+const sidechainProvider = new JsonRpcProvider(xdai.url ?? "https://rpc.xdaichain.com/")
 
 const sidechainWallet = new Wallet(KEY, sidechainProvider)
 const mainnetWallet = new Wallet(KEY, mainnetProvider)
 
-async function deploy(factory: ContractFactory, args: any[]) {
+async function deploy(factory: ContractFactory, args: any[]) { // eslint-disable-line @typescript-eslint/no-explicit-any
     const contract = await factory.deploy(...args, ethersOptions)
     log("Transaction hash:    %s", contract.deployTransaction.hash)
     log("Gas price:           %s Gwei", contract.deployTransaction.gasPrice ? formatUnits(contract.deployTransaction.gasPrice, "gwei") : "?")

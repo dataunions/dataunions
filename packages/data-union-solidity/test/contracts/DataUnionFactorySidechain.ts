@@ -1,6 +1,6 @@
-import { expect, use } from 'chai'
-import { waffle } from 'hardhat'
-import { Contract, utils, BigNumber } from 'ethers'
+import { expect, use } from "chai"
+import { waffle } from "hardhat"
+import { Contract, utils, BigNumber } from "ethers"
 const { parseEther } = utils
 
 import DataUnionFactorySidechainJson from "../../artifacts/contracts/DataUnionFactorySidechain.sol/DataUnionFactorySidechain.json"
@@ -9,7 +9,7 @@ import MockTokenMediatorJson from "../../artifacts/contracts/MockTokenMediator.s
 import TestTokenJson from "../../artifacts/contracts/TestToken.sol/TestToken.json"
 import MockAMBJson from "../../artifacts/contracts/MockAMB.sol/MockAMB.json"
 
-import { DataUnionSidechain, DataUnionFactorySidechain, TestToken, MockAMB, MockTokenMediator } from '../../typechain'
+import { DataUnionFactorySidechain, TestToken, MockAMB, MockTokenMediator } from "../../typechain"
 
 import Debug from "debug"
 const log = Debug("Streamr:du:test:BinanceAdapter")
@@ -28,7 +28,7 @@ describe("DataUnionFactorySidechain", (): void => {
     const others = accounts.slice(6)
 
     const m = members.map(member => member.address)
-    const a = agents.map(agent => agent.address)
+    // const a = agents.map(agent => agent.address)
     const o = others.map(outsider => outsider.address)
 
     let factory: DataUnionFactorySidechain
@@ -82,29 +82,29 @@ describe("DataUnionFactorySidechain", (): void => {
             parseEther("0.1"),
             others[0].address
         ]
-        log('deployNewDUSidechain args: %o', args)
+        log("deployNewDUSidechain args: %o", args)
 
         // this should fail because deployNewDUSidechain must be called by AMB
         await expect(factoryOutsider.deployNewDUSidechain(...args)).to.be.reverted
 
         const deployMessage = await factory.interface.encodeFunctionData("deployNewDUSidechain", args)
-        log('deploy: %o', deployMessage)
+        log("deploy: %o", deployMessage)
         // MockAMB "message passing" happens instantly, so no need to wait
         const tx = await mockAMB.requireToPassMessage(factory.address, deployMessage, "2000000", { gasLimit: "3000000" })
         const tr = await tx.wait()
-        log('Receipt: %o', tr)
+        log("Receipt: %o", tr)
 
         // since creator was msg.sender of mockAMB.requireToPassMessage, it's assumed to be the "mainnet DU", too,
         //   because the real setting is that mainnetDU.initialize calls the AMB
         const newDuAddress = await factory.sidechainAddress(creator.address)
-        log('%s code: %s', newDuAddress, await provider.getCode(newDuAddress))
+        log("%s code: %s", newDuAddress, await provider.getCode(newDuAddress))
         expect(await provider.getCode(newDuAddress)).not.equal("0x")
 
         const newDuCreator = new Contract(newDuAddress, DataUnionSidechainJson.abi, creator)
         const newDuAgent = new Contract(newDuAddress, DataUnionSidechainJson.abi, agents[0])
         const newDuOutsider = new Contract(newDuAddress, DataUnionSidechainJson.abi, others[0])
         const newDuBalance = await provider.getBalance(newDuAddress)
-        log('newdu_address: %s, balance %s', newDuAddress, newDuBalance)
+        log("newdu_address: %s, balance %s", newDuAddress, newDuBalance)
 
         // TODO: move asserts to the end
 

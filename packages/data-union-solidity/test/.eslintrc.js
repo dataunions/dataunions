@@ -1,11 +1,5 @@
 module.exports = {
     globals: {
-        // truffle
-        contract: "readonly",
-        web3: "readonly",
-        artifacts: "readonly",
-        assert: "readonly",
-
         // mocha
         describe: "readonly",
         it: "readonly",
