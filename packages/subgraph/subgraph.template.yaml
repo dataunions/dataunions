@@ -1,6 +1,8 @@
+# https://thegraph.com/docs/developer/create-subgraph-hosted#the-subgraph-manifest
+
 specVersion: 0.0.2
 description: Subgraph definitions for sidechain data unions
-repository: 
+repository:
 schema:
   file: ./schema.graphql
 dataSources:
@@ -8,9 +10,9 @@ dataSources:
     name: DataUnionFactorySidechain
     network: xDai
     source:
-      address: '{{DataUnionFactoryAddress}}'
+      address: $DATA_UNION_FACTORY_SIDECHAIN_ADDRESS
       abi: DataUnionFactorySidechain
-      startBlock: {{DataUnionFactoryStartBlock}}
+      startBlock: $INDEXING_STARTING_BLOCK
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -24,6 +26,8 @@ dataSources:
       eventHandlers:
         - event: SidechainDUCreated(indexed address,indexed address,indexed address,address)
           handler: handleDUCreated
+
+# https://thegraph.com/docs/developer/create-subgraph-hosted#data-source-templates
 templates:
   - name: DataUnionSidechain
     kind: ethereum/contract

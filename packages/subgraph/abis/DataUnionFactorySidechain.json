@@ -126,6 +126,25 @@
     "type": "event"
   },
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_mediator",
+        "type": "address"
+      }
+    ],
+    "name": "amb",
+    "outputs": [
+      {
+        "internalType": "contract IAMB",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "claimOwnership",
     "outputs": [],
@@ -156,6 +175,55 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "mediator",
+        "type": "address"
+      },
+      {
+        "internalType": "address payable",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address[]",
+        "name": "agents",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "initialAdminFeeFraction",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "initialDataUnionFeeFraction",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "initialDataUnionBeneficiary",
+        "type": "address"
+      }
+    ],
+    "name": "deployNewDUSidechain",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -209,23 +277,6 @@
     ],
     "stateMutability": "view",
     "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "stateMutability": "payable",
-    "type": "receive"
   },
   {
     "inputs": [
@@ -289,53 +340,17 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_mediator",
+        "name": "newOwner",
         "type": "address"
       }
     ],
-    "name": "amb",
-    "outputs": [
-      {
-        "internalType": "contract IAMB",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "mediator",
-        "type": "address"
-      },
-      {
-        "internalType": "address payable",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "internalType": "address[]",
-        "name": "agents",
-        "type": "address[]"
-      }
-    ],
-    "name": "deployNewDUSidechain",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "payable",
+    "type": "receive"
   }
 ]

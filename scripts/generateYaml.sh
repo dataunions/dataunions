@@ -6,10 +6,10 @@ cd "$(dirname "$0")"
 
 cd ../packages/smartcontracts
 
-export STREAM_REGISTRY_ADDRESS=$(jq .address deployments/localsidechain/StreamRegistry.json)
-export NODE_REGISTRY_ADDRESS=$(jq .address deployments/localsidechain/NodeRegistry.json)
-export STREAM_STORAGE_REGISTRY_ADDRESS=$(jq .address deployments/localsidechain/StreamStorageRegistry.json)
+# default to sync from genesis (useful for test nets but not mainnet!)
+export INDEXING_STARTING_BLOCK="${INDEXING_STARTING_BLOCK:-0}"
+export DATA_UNION_FACTORY_SIDECHAIN_ADDRESS=$(jq .address deployments/docker_dev_env/StreamRegistry.json)
 
-cd ../streamregistry-thegraph-subgraph
+cd ../subgraph
 
 cat subgraph.template.yaml |envsubst > subgraph.yaml

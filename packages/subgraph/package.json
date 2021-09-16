@@ -1,18 +1,16 @@
 {
-  "name": "dataunion-thegraph-subgraph",
+  "name": "subgraph",
   "version": "2.1.0",
   "description": "Subgraph definitions for sidechain data unions",
   "scripts": {
     "clean": "rm -rf build generated",
     "codegen": "graph codegen",
     "graphbuild": "graph build",
-    "build": "npm run prepare:local && npm run codegen && npm run graphbuild",
-    "build-production": "npm run prepare:mainnet && npm run codegen && npm run graphbuild",
+    "build": "npm run codegen && npm run graphbuild",
+    "build-production": "npm run codegen && npm run graphbuild",
     "lint": "eslint ./src/*.ts",
     "docker:build": "npm run build && docker build . -t streamr/graph-deploy-dataunion-subgraph:dev",
     "docker:publish": "docker image push streamr/graph-deploy-dataunion-subgraph:dev",
-    "prepare:mainnet": "npx mustache config/mainnet.json subgraph.template.yaml > subgraph.yaml",
-    "prepare:local": "npx mustache config/local.json subgraph.template.yaml > subgraph.yaml",
     "create-local": "graph create streamr-dev/dataunion --node http://localhost:8020",
     "deploy-local": "graph deploy streamr-dev/dataunion --ipfs http://localhost:5001 --node http://localhost:8020",
     "create-production": "graph create streamr-dev/dataunion --node https://api.thegraph.com/deploy/",
@@ -32,7 +30,6 @@
   },
   "dependencies": {
     "@graphprotocol/graph-ts": "^0.20.0",
-    "lodash.merge": "^4.6.2",
-    "mustache": "^4.2.0"
+    "lodash.merge": "^4.6.2"
   }
 }
