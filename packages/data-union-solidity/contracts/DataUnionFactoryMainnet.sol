@@ -57,9 +57,7 @@ contract DataUnionFactoryMainnet {
             bytes32(uint256(uint160(mainetAddress)))
         );
     }
-    /*
 
-    */
     function mainnetAddress(address deployer, string memory name)
         public view
         returns (address)
