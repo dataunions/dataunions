@@ -1,7 +1,7 @@
 import { HardhatUserConfig } from "hardhat/types"
-import '@nomiclabs/hardhat-waffle'
+import "@nomiclabs/hardhat-waffle"
 
-import 'hardhat-typechain'
+import "hardhat-typechain"
 import "solidity-coverage"
 
 const config: HardhatUserConfig = {
@@ -16,8 +16,8 @@ const config: HardhatUserConfig = {
         }
     },
     typechain: {
-        outDir: './typechain',
-        target: 'ethers-v5',
+        outDir: "./typechain",
+        target: "ethers-v5",
     }
 }
 export default config
