@@ -7,9 +7,10 @@ const log = Debug("Streamr:du:test:DataUnionSidechain")
 //const log = console.log  // for debugging?
 
 import DataUnionSidechainJson from "../../artifacts/contracts/DataUnionSidechain.sol/DataUnionSidechain.json"
-import MockTokenMediatorJson from "../../artifacts/contracts/MockTokenMediator.sol/MockTokenMediator.json"
-import TestTokenJson from "../../artifacts/contracts/TestToken.sol/TestToken.json"
-import MockAMBJson from "../../artifacts/contracts/MockAMB.sol/MockAMB.json"
+
+import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
+import MockTokenMediatorJson from "../../artifacts/contracts/test/MockTokenMediator.sol/MockTokenMediator.json"
+import MockAMBJson from "../../artifacts/contracts/test/MockAMB.sol/MockAMB.json"
 
 import type { DataUnionSidechain, MockTokenMediator, TestToken, MockAMB } from "../../typechain"
 
@@ -47,7 +48,7 @@ async function getWithdrawSignature(
     return signer.signMessage(arrayify(message))
 }
 
-describe("DataUnionSidechain", (): void => {
+describe("DataUnionSidechain", () => {
     const accounts = provider.getWallets()
     const creator = accounts[0]
     const duBeneficiary = accounts[1]
