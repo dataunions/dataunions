@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.6;
 
-// TODO: replace this with OpenZeppelin ownable if we give up the factory pattern
+// TODO: maybe replace this with OpenZeppelin ownable if we give up the factory pattern: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol
 
 /**
  * @title Ownable
@@ -36,7 +36,7 @@ contract Ownable {
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
-        require(msg.sender == owner, "onlyOwner");
+        require(msg.sender == owner, "error_onlyOwner");
         _;
     }
 

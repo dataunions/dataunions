@@ -519,7 +519,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
         if (address(withdrawModule) != address(0)) {
             require(token.transfer(address(withdrawModule), amount), "error_transfer");
-            withdrawModule.onWithdraw(from, to, amount);
+            withdrawModule.onWithdraw(from, to, token, amount);
         } else {
             _defaultWithdraw(from, to, amount, sendToMainnet);
         }
