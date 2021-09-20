@@ -4,7 +4,6 @@ pragma solidity 0.8.6;
 
 import "./uniswap-v2-periphery/IUniswapV2Router02.sol";
 import "./IERC677.sol";
-import "./BytesLib.sol";
 import "./IERC677Receiver.sol";
 
 contract BinanceAdapter is IERC677Receiver {
@@ -94,12 +93,23 @@ contract BinanceAdapter is IERC677Receiver {
         return path;
     }
 
+    // from https://github.com/GNSPS/solidity-bytes-utils/blob/6458fb2780a3092bc756e737f246be1de6d3d362/contracts/BytesLib.sol#L297
+    function toAddress(bytes memory _bytes) internal pure returns (address) {
+        require(_bytes.length >= 20, "toAddress_outOfBounds");
+        address tempAddress;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            tempAddress := div(mload(add(_bytes, 0x20)), 0x1000000000000000000000000)
+        }
+        return tempAddress;
+    }
+
     /**
      * ERC677 callback
      */
     function onTokenTransfer(address, uint256 amount, bytes calldata data) override external {
         uint256 maxint = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
-        address member = BytesLib.toAddress(data);
+        address member = toAddress(data);
         UserData storage userdata = binanceRecipient[member];
         address recipient = userdata.binanceAddress;
         require(recipient != address(0), "recipient_undefined");

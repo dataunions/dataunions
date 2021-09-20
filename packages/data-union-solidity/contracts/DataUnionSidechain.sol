@@ -6,8 +6,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IERC677.sol";
 // TODO: switch to "@openzeppelin/contracts/access/Ownable.sol";
 import "./Ownable.sol";
-import "./IERC20Receiver.sol";
+import "./xdai-mainnet-bridge/IERC20Receiver.sol";
 import "./IERC677Receiver.sol";
+import "./IWithdrawModule.sol";
 
 contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
@@ -50,6 +51,9 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     address public tokenMediator;
     address public dataUnionMainnet;
 
+    // Modules
+    IWithdrawModule public withdrawModule;
+
     // Variable properties
     uint256 public newMemberEth;
     uint256 public adminFeeFraction;
@@ -69,11 +73,6 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
     mapping(address => MemberInfo) public memberData;
     mapping(address => ActiveStatus) public joinPartAgents;
-
-    modifier onlyJoinPartAgent() {
-        require(joinPartAgents[msg.sender] == ActiveStatus.ACTIVE, "error_onlyJoinPartAgent");
-        _;
-    }
 
     // owner will be set by initialize()
     constructor() Ownable(address(0)) {}
@@ -207,7 +206,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     }
 
     //------------------------------------------------------------
-    // MEMBER MANAGEMENT / VIEW FUNCTIONS
+    // EARNINGS VIEW FUNCTIONS
     //------------------------------------------------------------
 
     function getEarnings(address member) public view returns (uint256) {
@@ -237,6 +236,23 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         return totalRevenue - totalWithdrawn;
     }
 
+    //------------------------------------------------------------
+    // MEMBER MANAGEMENT / VIEW FUNCTIONS
+    //------------------------------------------------------------
+
+    function isMember(address member) public view returns (bool) {
+        return memberData[member].status == ActiveStatus.ACTIVE;
+    }
+
+    function isJoinPartAgent(address agent) public view returns (bool) {
+        return joinPartAgents[agent] == ActiveStatus.ACTIVE;
+    }
+
+    modifier onlyJoinPartAgent() {
+        require(isJoinPartAgent(msg.sender), "error_onlyJoinPartAgent");
+        _;
+    }
+
     function addJoinPartAgents(address[] memory agents) public onlyOwner {
         for (uint256 i = 0; i < agents.length; i++) {
             addJoinPartAgent(agents[i]);
@@ -259,8 +275,8 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
     function addMember(address payable member) public onlyJoinPartAgent {
         MemberInfo storage info = memberData[member];
-        require(info.status != ActiveStatus.ACTIVE, "error_alreadyMember");
-        if(info.status == ActiveStatus.INACTIVE){
+        require(!isMember(member), "error_alreadyMember");
+        if (info.status == ActiveStatus.INACTIVE) {
             inactiveMemberCount = --inactiveMemberCount;
         }
         bool sendEth = info.status == ActiveStatus.NONE && newMemberEth != 0 && address(this).balance >= newMemberEth;
@@ -280,7 +296,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     function partMember(address member) public {
         require(msg.sender == member || joinPartAgents[msg.sender] == ActiveStatus.ACTIVE, "error_notPermitted");
         MemberInfo storage info = memberData[member];
-        require(info.status == ActiveStatus.ACTIVE, "error_notActiveMember");
+        require(isMember(member), "error_notActiveMember");
         info.earningsBeforeLastJoin = getEarnings(member);
         info.status = ActiveStatus.INACTIVE;
         activeMemberCount = --activeMemberCount;
@@ -501,6 +517,23 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         info.withdrawnEarnings += amount;
         totalWithdrawn += amount;
 
+        if (address(withdrawModule) != address(0)) {
+            require(token.transfer(address(withdrawModule), amount), "error_transfer");
+            withdrawModule.onWithdraw(from, to, amount);
+        } else {
+            _defaultWithdraw(from, to, amount, sendToMainnet);
+        }
+
+        emit EarningsWithdrawn(from, amount);
+        return amount;
+    }
+
+    /**
+     * "Default" withdraw functionality, can be overridden with a withdrawModule.
+     */
+    function _defaultWithdraw(address from, address to, uint amount, bool sendToMainnet)
+        internal
+    {
         if (sendToMainnet) {
             // tokenMediator sends tokens over the bridge it's assigned to
             require(token.transferAndCall(tokenMediator, amount, abi.encodePacked(to)), "error_transfer");
@@ -511,8 +544,14 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
             // in case transferAndCall recipient is not a tokenMediator, the data can be ignored (it contains the DU member's address)
             require(token.transferAndCall(to, amount, abi.encodePacked(from)), "error_transfer");
         }
-        emit EarningsWithdrawn(from, amount);
-        return amount;
     }
 
+    //------------------------------------------------------------
+    // MODULE MANAGEMENT
+    //------------------------------------------------------------
+
+    function setWithdrawModule(address newWithdrawModule) public onlyOwner {
+        // TODO: check EIP-165?
+        withdrawModule = IWithdrawModule(newWithdrawModule);
+    }
 }
