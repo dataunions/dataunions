@@ -146,4 +146,14 @@ describe("LimitWithdrawModule", () => {
         await provider.send("evm_mine", [])
         await expect(dataUnionSidechain.withdraw(member0.address, parseEther("100"), false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
     })
+
+    it("adds tracking for members that were added 'the wrong way' directly to the data union previously", async () => {
+        await expect(dataUnionSidechain.addMember(otherAddresses[5])).to.emit(dataUnionSidechain, "MemberJoined")
+        expect(await limitWithdrawModule.memberJoinTimestamp(otherAddresses[5])).to.eq(0)
+        await expect(limitWithdrawModule.addMember(otherAddresses[5])).not.to.emit(dataUnionSidechain, "MemberJoined")
+        expect(await limitWithdrawModule.memberJoinTimestamp(otherAddresses[5])).not.to.eq(0)
+
+        // for coverage completeness: re-doing the addition won't emit events either
+        await expect(limitWithdrawModule.addMember(otherAddresses[5])).not.to.emit(dataUnionSidechain, "MemberJoined")
+    })
 })

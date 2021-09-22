@@ -57,21 +57,25 @@ contract LimitWithdrawModule is IWithdrawModule {
 
     /**
      * Use this function to add members instead of the usual DataUnionSidechain.addMember function
+     * NOTE: Will simply do nothing if the member is already in the Data Union
      */
     function addMember(address payable newMember) public {
-        require(address(dataUnion) != address(0), "error_notInitialized");
         require(dataUnion.isJoinPartAgent(msg.sender), "error_onlyJoinPartAgent");
 
-        if (!dataUnion.isMember(newMember)) {
-            dataUnion.addMember(newMember);
+        // members that have been added previously "the wrong way" to the DU directly will be simply added to tracking
+        if (dataUnion.isMember(newMember)) {
+            if (memberJoinTimestamp[newMember] == 0) {
+                memberJoinTimestamp[newMember] = block.timestamp;
+            }
         } else {
-            if (memberJoinTimestamp[newMember] > 0) { return; }
+            dataUnion.addMember(newMember);
+            memberJoinTimestamp[newMember] = block.timestamp;
         }
-        memberJoinTimestamp[newMember] = block.timestamp;
     }
 
     /**
      * Use this function to batch add members instead of the usual DataUnionSidechain.addMembers function
+     * NOTE: Will simply do nothing for members that are already in the Data Union
      */
     function addMembers(address payable[] memory newMembers) external {
         for (uint256 i = 0; i < newMembers.length; i++) {
