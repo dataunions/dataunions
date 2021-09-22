@@ -1,6 +1,7 @@
 {
     "extends": "solhint:recommended",
     "rules": {
+        "max-states-count": "off",
         "code-complexity": [
             "error",
             7
