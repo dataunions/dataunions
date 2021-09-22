@@ -46,7 +46,6 @@ contract DataUnionFactorySidechain is Ownable {
         emit UpdateDefaultNewMemberInitialEth(val);
     }
 
-
     function sidechainAddress(address mainnetAddress)
         public view
         returns (address proxy)
@@ -57,7 +56,6 @@ contract DataUnionFactorySidechain is Ownable {
     function amb(address _mediator) public view returns (IAMB) {
         return IAMB(ITokenMediator(_mediator).bridgeContract());
     }
-
 
     /**
      * @dev This function is called over the bridge by the DataUnionMainnet.initialize function

@@ -262,26 +262,26 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         require(joinPartAgents[agent] != ActiveStatus.ACTIVE, "error_alreadyActiveAgent");
         joinPartAgents[agent] = ActiveStatus.ACTIVE;
         emit JoinPartAgentAdded(agent);
-        joinPartAgentCount = ++joinPartAgentCount;
+        joinPartAgentCount += 1;
     }
 
     function removeJoinPartAgent(address agent) public onlyOwner {
         require(joinPartAgents[agent] == ActiveStatus.ACTIVE, "error_notActiveAgent");
         joinPartAgents[agent] = ActiveStatus.INACTIVE;
         emit JoinPartAgentRemoved(agent);
-        joinPartAgentCount = --joinPartAgentCount;
+        joinPartAgentCount -= 1;
     }
 
     function addMember(address payable member) public onlyJoinPartAgent {
         MemberInfo storage info = memberData[member];
         require(!isMember(member), "error_alreadyMember");
         if (info.status == ActiveStatus.INACTIVE) {
-            inactiveMemberCount = --inactiveMemberCount;
+            inactiveMemberCount -= 1;
         }
         bool sendEth = info.status == ActiveStatus.NONE && newMemberEth != 0 && address(this).balance >= newMemberEth;
         info.status = ActiveStatus.ACTIVE;
         info.lmeAtJoin = lifetimeMemberEarnings;
-        activeMemberCount = ++activeMemberCount;
+        activeMemberCount += 1;
         emit MemberJoined(member);
 
         // give new members ETH. continue even if transfer fails
@@ -298,8 +298,8 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         require(isMember(member), "error_notActiveMember");
         info.earningsBeforeLastJoin = getEarnings(member);
         info.status = ActiveStatus.INACTIVE;
-        activeMemberCount = --activeMemberCount;
-        inactiveMemberCount = ++inactiveMemberCount;
+        activeMemberCount -= 1;
+        inactiveMemberCount += 1;
         emit MemberParted(member);
     }
 
@@ -361,7 +361,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         // allow seeing and withdrawing earnings
         if (info.status == ActiveStatus.NONE) {
             info.status = ActiveStatus.INACTIVE;
-            inactiveMemberCount = ++inactiveMemberCount;
+            inactiveMemberCount += 1;
         }
     }
 
