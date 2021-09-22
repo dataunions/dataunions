@@ -32,19 +32,16 @@ contract DataUnionFactorySidechain is Ownable {
     receive() external payable {}
 
     function setNewDUInitialEth(uint val) public onlyOwner {
-        if(val == newDUInitialEth) return;
         newDUInitialEth = val;
         emit UpdateNewDUInitialEth(val);
     }
 
     function setNewDUOwnerInitialEth(uint val) public onlyOwner {
-        if(val == newDUOwnerInitialEth) return;
         newDUOwnerInitialEth = val;
         emit UpdateNewDUOwnerInitialEth(val);
     }
 
     function setNewMemberInitialEth(uint val) public onlyOwner {
-        if(val == defaultNewMemberEth) return;
         defaultNewMemberEth = val;
         emit UpdateDefaultNewMemberInitialEth(val);
     }

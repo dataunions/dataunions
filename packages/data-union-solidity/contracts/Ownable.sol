@@ -52,7 +52,7 @@ contract Ownable {
      * @dev Allows the pendingOwner address to finalize the transfer.
      */
     function claimOwnership() public {
-        require(msg.sender == pendingOwner, "onlyPendingOwner");
+        require(msg.sender == pendingOwner, "error_onlyPendingOwner");
         emit OwnershipTransferred(owner, pendingOwner);
         owner = pendingOwner;
         pendingOwner = address(0);

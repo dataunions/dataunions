@@ -5,7 +5,7 @@
   "scripts": {
     "build": "hardhat compile",
     "clean": "rm -rf artifacts cache coverage typechain deployments",
-    "coverage": "hardhat coverage",
+    "coverage": "hardhat coverage --testfiles 'test/contracts/*'",
     "lint": "eslint test/**/*.ts scripts/*.ts && solhint contracts/*/*.sol",
     "format": "prettier --no-color --config .prettierrc --write contracts/**/*.sol",
     "format-check": "prettier --no-color --config .prettierrc --check contracts/**/*.sol",

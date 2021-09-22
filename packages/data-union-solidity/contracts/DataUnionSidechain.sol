@@ -134,20 +134,18 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
      * @param newDataUnionFee fee that goes to the DU beneficiary
      */
     function setFees(uint256 newAdminFee, uint256 newDataUnionFee) public onlyOwner {
-        require((newAdminFee + newDataUnionFee) <= 1 ether, "error_Fees");
+        require((newAdminFee + newDataUnionFee) <= 1 ether, "error_fees");
         adminFeeFraction = newAdminFee;
         dataUnionFeeFraction = newDataUnionFee;
         emit FeesSet(adminFeeFraction, dataUnionFeeFraction);
     }
 
-    function setDataUnionBeneficiary(address _dataUnionBeneficiary) public onlyOwner {
-        require(_dataUnionBeneficiary != address(0), "invalid_address");
-        dataUnionBeneficiary = _dataUnionBeneficiary;
-        emit DataUnionBeneficiaryChanged(dataUnionBeneficiary, _dataUnionBeneficiary);
+    function setDataUnionBeneficiary(address newDataUnionBeneficiary) public onlyOwner {
+        dataUnionBeneficiary = newDataUnionBeneficiary;
+        emit DataUnionBeneficiaryChanged(dataUnionBeneficiary, newDataUnionBeneficiary);
     }
 
     function setNewMemberEth(uint val) public onlyOwner {
-        if (val == newMemberEth) { return; }
         newMemberEth = val;
         emit UpdateNewMemberEth(val);
     }
@@ -194,6 +192,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
      * Only the token contract is authorized to call this function
      */
     function onTokenTransfer(address, uint256, bytes calldata) override external {
+        // guarding refreshRevenue is pointless, but this prevents DU from receiving unexpected ERC677 tokens
         require(msg.sender == address(token), "error_onlyTokenContract");
         refreshRevenue();
     }
