@@ -24,6 +24,7 @@
     "@types/node": "^10.17.54",
     "chai": "^4.3.4",
     "chai-bignumber": "^3.0.0",
+    "data-union-config": "2.1.0",
     "debug": "4.1.1",
     "eslint": "7.22.0",
     "ethereum-waffle": "^3.4.0",

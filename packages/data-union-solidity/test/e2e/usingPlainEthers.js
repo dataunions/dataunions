@@ -1,24 +1,31 @@
-//addresses from docker setup
+/* eslint-disable @typescript-eslint/no-var-requires */
+
+const {
+    dev: {
+        mainnet: {
+            token: DATACOIN_ADDRESS,
+            tokenMediator: FOREIGN_ERC677_MEDIATOR,
+        },
+        xdai: {
+            token: HOME_ERC677,
+            tokenMediator: HOME_ERC677_MEDIATOR,
+        }
+    }
+} = require("data-union-config")
 const ORACLE_VALIDATOR_ADDRESS_PRIVATE_KEY = "5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0"
-const DATACOIN_ADDRESS = "0xbAA81A0179015bE47Ad439566374F2Bae098686F"
-const HOME_ERC677_MEDIATOR = "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F"
-const FOREIGN_ERC677_MEDIATOR = "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F"
-const HOME_ERC677 = "0x73Be21733CC5D08e1a14Ea9a399fb27DB3BEf8fF"
 // const HOME_MULTIMEDIATOR = "0x41B89Db86BE735c03A9296437E39F5FDAdC4c678"
 // const FOREIGN_MULTIMEDIATOR = "0x6346Ed242adE018Bd9320D5E3371c377BAB29c31"
 
-/* eslint-disable @typescript-eslint/no-var-requires */
 const Token = require("../../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json")
 const DataUnionSidechain = require("../../artifacts/contracts/DataUnionSidechain.sol/DataUnionSidechain.json")
 const DataUnionMainnet = require("../../artifacts/contracts/DataUnionMainnet.sol/DataUnionMainnet.json")
 
-const ITokenMediator = require("../../artifacts/contracts/ITokenMediator.sol/ITokenMediator.json")
+const ITokenMediator = require("../../artifacts/contracts/xdai-mainnet-bridge/ITokenMediator.sol/ITokenMediator.json")
 // const IMultiTokenMediator = require("../../artifacts/contracts/IMultiTokenMediator.sol/IMultiTokenMediator.json")
-const IAMB = require("../../artifacts/contracts/IAMB.sol/IAMB.json")
-// const TestToken = require("../../artifacts/contracts/TestToken.sol/TestToken.json")
+const IAMB = require("../../artifacts/contracts/xdai-mainnet-bridge/IAMB.sol/IAMB.json")
+
 const {
     Contract,
-    // ContractFactory,
     Wallet,
     BigNumber,
     providers: { JsonRpcProvider },
