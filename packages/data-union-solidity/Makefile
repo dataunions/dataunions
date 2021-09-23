@@ -26,7 +26,7 @@ $(OPENZEPPELIN_REPO_DIR):
 		--config advice.detachedHead=false \
 		--depth 1 \
 		--branch v$(OPENZEPPELIN_VERSION) \
-		git@github.com:OpenZeppelin/openzeppelin-contracts.git $(OPENZEPPELIN_REPO_DIR)
+		https://github.com/OpenZeppelin/openzeppelin-contracts.git $(OPENZEPPELIN_REPO_DIR)
 
 SRC_DIR := contracts
 SRCS := $(wildcard $(SRC_DIR)/*.sol) $(wildcard $(SRC_DIR)/*/*.sol)
