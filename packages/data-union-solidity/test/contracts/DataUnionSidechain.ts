@@ -118,6 +118,51 @@ describe("DataUnionSidechain", () => {
         log(`DataUnionSidechain initialized at ${dataUnionSidechain.address}`)
     })
 
+    it("distributes earnings correctly", async () => {
+        const randomOutsider = others[1]
+        const newMember = others[0]
+
+        // send and distribute a batch of revenue to members
+        await expect(testToken.transfer(dataUnionSidechain.address, "3000")).to.emit(testToken, "Transfer(address,address,uint256)")
+        await expect(dataUnionSidechain.connect(randomOutsider).refreshRevenue()).to.emit(dataUnionSidechain, "RevenueReceived")
+
+        // repeating it should do nothing (also not throw)
+        await dataUnionSidechain.connect(randomOutsider).refreshRevenue()
+
+        expect(await dataUnionSidechain.totalEarnings()).to.equal(2400)
+        expect(await dataUnionSidechain.totalAdminFees()).to.equal(300)
+        expect(await dataUnionSidechain.totalDataUnionFees()).to.equal(300)
+        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(800)
+        expect(await dataUnionSidechain.getEarnings(m[1])).to.equal(800)
+        expect(await dataUnionSidechain.getEarnings(m[2])).to.equal(800)
+
+        // drop a member, send more tokens, check accounting
+        await expect(dataUnionSidechainAgent.partMember(m[0])).to.emit(dataUnionSidechain, "MemberParted")
+        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(800)
+        await testToken.transfer(dataUnionSidechain.address, "2000")
+        await dataUnionSidechain.connect(randomOutsider).refreshRevenue()
+        expect(await dataUnionSidechain.totalEarnings()).to.equal(4000)
+        expect(await dataUnionSidechain.totalAdminFees()).to.equal(500)
+        expect(await dataUnionSidechain.totalDataUnionFees()).to.equal(500)
+        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(800)
+        expect(await dataUnionSidechain.getEarnings(m[1])).to.equal(1600)
+        expect(await dataUnionSidechain.getEarnings(m[2])).to.equal(1600)
+        await expect(dataUnionSidechainAgent.addMember(m[0])).to.emit(dataUnionSidechain, "MemberJoined")
+
+        // add a member, send tokens, check accounting
+        await expect(dataUnionSidechainAgent.addMember(newMember.address)).to.emit(dataUnionSidechain, "MemberJoined")
+        await testToken.transfer(dataUnionSidechain.address, "4000")
+        await dataUnionSidechain.connect(randomOutsider).refreshRevenue()
+        expect(await dataUnionSidechain.totalEarnings()).to.equal(7200)
+        expect(await dataUnionSidechain.totalAdminFees()).to.equal(900)
+        expect(await dataUnionSidechain.totalDataUnionFees()).to.equal(900)
+        expect(await dataUnionSidechain.getEarnings(newMember.address)).to.equal(800)
+        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(1600)
+        expect(await dataUnionSidechain.getEarnings(m[1])).to.equal(2400)
+        expect(await dataUnionSidechain.getEarnings(m[2])).to.equal(2400)
+        await expect(dataUnionSidechainAgent.partMember(newMember.address)).to.emit(dataUnionSidechain, "MemberParted")
+    })
+
     it("addMembers partMembers", async () => {
         const memberCountBeforeBN = await dataUnionSidechain.activeMemberCount()
         expect(memberCountBeforeBN).to.equal(members.length)
@@ -166,6 +211,20 @@ describe("DataUnionSidechain", () => {
         const agentCountAfterRemoveBN = await dataUnionSidechain.joinPartAgentCount()
         expect(agentCountAfterRemoveBN).to.equal(agents.length)
         await expect(dataUnionSidechain.connect(newAgent).addMember(newMember.address)).to.be.revertedWith("error_onlyJoinPartAgent")
+    })
+
+    it("getEarnings", async () => {
+        await expect(dataUnionSidechain.getEarnings(o[0])).to.be.revertedWith("error_notMember")
+        await expect(dataUnionSidechain.getEarnings(a[0])).to.be.revertedWith("error_notMember")
+        await expect(dataUnionSidechain.getEarnings(creator.address)).to.be.revertedWith("error_notMember")
+        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(0)
+
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await dataUnionSidechain.refreshRevenue()
+
+        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(800)
+        expect(await dataUnionSidechain.getEarnings(creator.address)).to.equal(300)
+        expect(await dataUnionSidechain.getEarnings(duBeneficiary.address)).to.equal(300)
     })
 
     async function getBalances(addresses: EthereumAddress[]) {
@@ -306,70 +365,12 @@ describe("DataUnionSidechain", () => {
         expect(joinPartAgentCount).to.equal(2)
     })
 
-    it("getEarnings", async () => {
-        await expect(dataUnionSidechain.getEarnings(o[0])).to.be.revertedWith("error_notMember")
-        await expect(dataUnionSidechain.getEarnings(a[0])).to.be.revertedWith("error_notMember")
-        await expect(dataUnionSidechain.getEarnings(creator.address)).to.be.revertedWith("error_notMember")
-        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(0)
-
-        await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.refreshRevenue()
-
-        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(800)
-        expect(await dataUnionSidechain.getEarnings(creator.address)).to.equal(300)
-        expect(await dataUnionSidechain.getEarnings(duBeneficiary.address)).to.equal(300)
-    })
-
-    it("distributes earnings correctly", async () => {
-        const randomOutsider = others[1]
-        const newMember = others[0]
-
-        // send and distribute a batch of revenue to members
-        await expect(testToken.transfer(dataUnionSidechain.address, "3000")).to.emit(testToken, "Transfer(address,address,uint256)")
-        await expect(dataUnionSidechain.connect(randomOutsider).refreshRevenue()).to.emit(dataUnionSidechain, "RevenueReceived")
-
-        // repeating it should do nothing (also not throw)
-        await dataUnionSidechain.connect(randomOutsider).refreshRevenue()
-
-        expect(await dataUnionSidechain.totalEarnings()).to.equal(2400)
-        expect(await dataUnionSidechain.totalAdminFees()).to.equal(300)
-        expect(await dataUnionSidechain.totalDataUnionFees()).to.equal(300)
-        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(800)
-        expect(await dataUnionSidechain.getEarnings(m[1])).to.equal(800)
-        expect(await dataUnionSidechain.getEarnings(m[2])).to.equal(800)
-
-        // drop a member, send more tokens, check accounting
-        await expect(dataUnionSidechainAgent.partMember(m[0])).to.emit(dataUnionSidechain, "MemberParted")
-        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(800)
-        await testToken.transfer(dataUnionSidechain.address, "2000")
-        await dataUnionSidechain.connect(randomOutsider).refreshRevenue()
-        expect(await dataUnionSidechain.totalEarnings()).to.equal(4000)
-        expect(await dataUnionSidechain.totalAdminFees()).to.equal(500)
-        expect(await dataUnionSidechain.totalDataUnionFees()).to.equal(500)
-        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(800)
-        expect(await dataUnionSidechain.getEarnings(m[1])).to.equal(1600)
-        expect(await dataUnionSidechain.getEarnings(m[2])).to.equal(1600)
-        await expect(dataUnionSidechainAgent.addMember(m[0])).to.emit(dataUnionSidechain, "MemberJoined")
-
-        // add a member, send tokens, check accounting
-        await expect(dataUnionSidechainAgent.addMember(newMember.address)).to.emit(dataUnionSidechain, "MemberJoined")
-        await testToken.transfer(dataUnionSidechain.address, "4000")
-        await dataUnionSidechain.connect(randomOutsider).refreshRevenue()
-        expect(await dataUnionSidechain.totalEarnings()).to.equal(7200)
-        expect(await dataUnionSidechain.totalAdminFees()).to.equal(900)
-        expect(await dataUnionSidechain.totalDataUnionFees()).to.equal(900)
-        expect(await dataUnionSidechain.getEarnings(newMember.address)).to.equal(800)
-        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(1600)
-        expect(await dataUnionSidechain.getEarnings(m[1])).to.equal(2400)
-        expect(await dataUnionSidechain.getEarnings(m[2])).to.equal(2400)
-        await expect(dataUnionSidechainAgent.partMember(newMember.address)).to.emit(dataUnionSidechain, "MemberParted")
-    })
-
     // Of course there is no "withdraw to mainnet" in test.
     // Instead what happens in DataUnionSidechain is a call to TokenMediator
     it("withdraw to mainnet", async () => {
         await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.refreshRevenue()
+        // for coverage completeness: also exercise the bridge's token transfer callback. Simply calls refreshRevenue.
+        await dataUnionSidechain.onTokenBridged(testToken.address, "3000", "0x")
         await expect(dataUnionSidechainMember0.withdraw(m[0], "100", true)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
 
         // TestToken blocks transfers with this magic amount
@@ -418,5 +419,29 @@ describe("DataUnionSidechain", () => {
         await expect(dataUnionSidechain.signatureIsValid(m[1], r, "100", truncatedSig)).to.be.revertedWith("error_badSignatureLength")
         await expect(dataUnionSidechain.signatureIsValid(m[1], r, "100", badVersionSig)).to.be.revertedWith("error_badSignatureVersion")
         assert(!await dataUnionSidechain.signatureIsValid(m[1], r, "200", signature), "Bad signature was accepted as valid :(")
+    })
+
+    it("can transfer ownership", async () => {
+        await expect(dataUnionSidechain.connect(others[0]).transferOwnership(o[0])).to.be.revertedWith("error_onlyOwner")
+        await expect(dataUnionSidechain.connect(others[0]).claimOwnership()).to.be.revertedWith("error_onlyPendingOwner")
+
+        await dataUnionSidechain.transferOwnership(o[0])
+        await expect(dataUnionSidechain.connect(others[0]).claimOwnership()).to.emit(dataUnionSidechain, "OwnershipTransferred")
+        expect(await dataUnionSidechain.owner()).to.equal(o[0])
+
+        await expect(dataUnionSidechain.transferOwnership(o[0])).to.be.revertedWith("error_onlyOwner")
+        await dataUnionSidechain.connect(others[0]).transferOwnership(creator.address)
+        await expect(dataUnionSidechain.claimOwnership()).to.emit(dataUnionSidechain, "OwnershipTransferred")
+        expect(await dataUnionSidechain.owner()).to.equal(creator.address)
+    })
+
+    it("rejects unexpected ERC677 tokens", async () => {
+        const randomToken = await deployContract(creator, TestTokenJson, ["random", "RND"]) as TestToken
+        await randomToken.mint(creator.address, parseEther("10000"))
+        await expect(randomToken.transferAndCall(dataUnionSidechain.address, "1000", "0x")).to.be.revertedWith("error_onlyTokenContract")
+    })
+
+    it("rejects fees that sum above 1.0", async () => {
+        await expect(dataUnionSidechain.setFees(parseEther("0.5"), parseEther("0.6"))).to.be.revertedWith("error_fees")
     })
 })

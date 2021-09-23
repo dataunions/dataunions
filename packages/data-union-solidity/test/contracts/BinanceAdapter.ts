@@ -58,8 +58,6 @@ describe("BinanceAdapter", (): void => {
     let mockBinanceMediator: MockTokenMediator
     let uniswapRouter: Contract
 
-    const dummyAddress = "0x0000000000000000000000000000000000001234"
-
     before(async () => {
         const weth = await deployContract(creator, WETH9Json, [])
         log(`WETH deployed to ${weth.address}`)
@@ -96,8 +94,6 @@ describe("BinanceAdapter", (): void => {
     })
 
     beforeEach(async () => {
-        const dummyAddress = a[0]
-
         dataUnionSidechain = await deployContract(creator, DataUnionSidechainJson, []) as DataUnionSidechain
         dataUnionSidechainAgent = dataUnionSidechain.connect(agents[1])
         dataUnionSidechainMember0 = dataUnionSidechain.connect(members[0])
@@ -118,11 +114,11 @@ describe("BinanceAdapter", (): void => {
             testToken.address,
             mockBinanceMediator.address,
             a,
-            dummyAddress,
+            a[0], // dummy address
             "1",
             parseEther("0.1"),
             parseEther("0.1"),
-            dummyAddress
+            a[0] // dummy address
         )
         await dataUnionSidechainAgent.addMembers(m)
 
@@ -130,7 +126,14 @@ describe("BinanceAdapter", (): void => {
     })
 
     it("can set Binance recipient", async () => {
-        const adapter = await deployContract(creator, BinanceAdapterJson, [testToken.address, dummyAddress, mockBinanceMediator.address, dummyAddress, dummyAddress]) as BinanceAdapter
+        // constructor(address dataCoin_, address honeyswapRouter_, address bscBridge_, address convertToCoin_, address liquidityToken_)
+        const adapter = await deployContract(creator, BinanceAdapterJson, [
+            testToken.address,
+            "0x0000000000000000000000000000000000000000",
+            mockBinanceMediator.address,
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000"
+        ]) as BinanceAdapter
         const adapterMember0 = adapter.connect(members[0])
 
         await expect(adapterMember0.setBinanceRecipient(m[1])).emit(adapter, "SetBinanceRecipient")
@@ -153,7 +156,7 @@ describe("BinanceAdapter", (): void => {
         // constructor(address dataCoin_, address honeyswapRouter_, address bscBridge_, address convertToCoin_, address liquidityToken_)
         const adapter = await deployContract(creator, BinanceAdapterJson, [
             testToken.address,
-            dummyAddress,                                   // no conversion => no router needed
+            "0x0000000000000000000000000000000000000000",   // no conversion => no router needed
             mockBinanceMediator.address,
             testToken.address,                              // no conversion
             "0x0000000000000000000000000000000000000000"    // no intermediate liquidity token, see _honeyswapPath
@@ -198,5 +201,9 @@ describe("BinanceAdapter", (): void => {
 
         // the received otherToken amount is actually a bit less than testToken / 10
         expect(await otherToken.balanceOf(m[1])).to.equal(7)
+    })
+
+    it("can withdraw to mediator with conversion using liquidity token", async () => {
+        // TODO
     })
 })

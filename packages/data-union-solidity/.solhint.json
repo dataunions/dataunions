@@ -1,17 +1,10 @@
 {
     "extends": "solhint:recommended",
     "rules": {
+        "max-states-count": "off",
         "code-complexity": [
             "error",
             7
-        ],
-        "function-max-lines": [
-            "error",
-            35
-        ],
-        "max-states-count": [
-            "error",
-            15
         ],
         "no-empty-blocks": "off",
         "no-unused-vars": "error",
