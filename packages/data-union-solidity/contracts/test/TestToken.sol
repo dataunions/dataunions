@@ -44,7 +44,7 @@ contract TestToken is ERC20, Ownable, IERC677 {
         }
 
         uint256 recipientCodeSize;
-        assembly {
+        assembly { // solhint-disable-line no-inline-assembly
             recipientCodeSize := extcodesize(to)
         }
         if (recipientCodeSize > 0) {
