@@ -4,8 +4,8 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./CloneLib.sol";
-import "./IAMB.sol";
-import "./ITokenMediator.sol";
+import "./xdai-mainnet-bridge/IAMB.sol";
+import "./xdai-mainnet-bridge/ITokenMediator.sol";
 
 interface IDataUnionMainnet {
     function sidechainAddress() external view returns (address proxy);
@@ -57,9 +57,7 @@ contract DataUnionFactoryMainnet {
             bytes32(uint256(uint160(mainetAddress)))
         );
     }
-    /*
 
-    */
     function mainnetAddress(address deployer, string memory name)
         public view
         returns (address)

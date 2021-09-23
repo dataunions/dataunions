@@ -3,10 +3,11 @@ import { waffle } from "hardhat"
 import { BigNumber, Wallet, Contract, utils } from "ethers"
 
 import DataUnionSidechainJson from "../../artifacts/contracts/DataUnionSidechain.sol/DataUnionSidechain.json"
-import MockTokenMediatorJson from "../../artifacts/contracts/MockTokenMediator.sol/MockTokenMediator.json"
-import TestTokenJson from "../../artifacts/contracts/TestToken.sol/TestToken.json"
 import BinanceAdapterJson from "../../artifacts/contracts/BinanceAdapter.sol/BinanceAdapter.json"
-import MockAMBJson from "../../artifacts/contracts/MockAMB.sol/MockAMB.json"
+
+import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
+import MockTokenMediatorJson from "../../artifacts/contracts/test/MockTokenMediator.sol/MockTokenMediator.json"
+import MockAMBJson from "../../artifacts/contracts/test/MockAMB.sol/MockAMB.json"
 
 // Uniswap v2, originally from @uniswap/v2-periphery/build
 import UniswapV2FactoryJson from "../utils/UniswapV2Factory.json"
@@ -45,8 +46,8 @@ describe("BinanceAdapter", (): void => {
     const members = accounts.slice(3, 6)
     const others = accounts.slice(6)
 
-    const m = members.map(member => member.address)
-    const a = agents.map(agent => agent.address)
+    const m = members.map((member: Wallet) => member.address)
+    const a = agents.map((agent: Wallet) => agent.address)
     // const o = others.map(outsider => outsider.address)
 
     let testToken: TestToken
@@ -91,7 +92,7 @@ describe("BinanceAdapter", (): void => {
         log("  creator: ", creator.address)
         log("  agents: %o", a)
         log("  members: %o", m)
-        log("  outsider addresses used in tests: %o", others.map(x => x.address))
+        log("  outsider addresses used in tests: %o", others.map((x: Wallet) => x.address))
     })
 
     beforeEach(async () => {
@@ -132,7 +133,7 @@ describe("BinanceAdapter", (): void => {
         const adapter = await deployContract(creator, BinanceAdapterJson, [testToken.address, dummyAddress, mockBinanceMediator.address, dummyAddress, dummyAddress]) as BinanceAdapter
         const adapterMember0 = adapter.connect(members[0])
 
-        await expect(adapterMember0.setBinanceRecipient(m[1])).to.emit(adapter, "SetBinanceRecipient")
+        await expect(adapterMember0.setBinanceRecipient(m[1])).emit(adapter, "SetBinanceRecipient")
         const newRecipient0 = (await adapter.binanceRecipient(m[0]))[0]
         expect(m[1]).to.equal(newRecipient0)
 
@@ -145,7 +146,7 @@ describe("BinanceAdapter", (): void => {
         expect(m[2]).to.equal(newRecipient1)
 
         //replay should fail
-        await expect(adapter.setBinanceRecipientFromSig(m[1], m[2], sig)).to.be.reverted
+        await expect(adapter.setBinanceRecipientFromSig(m[1], m[2], sig)).reverted
     })
 
     it("can withdraw to mediator without conversion", async () => {

@@ -5,9 +5,10 @@ const { parseEther } = utils
 
 import DataUnionFactorySidechainJson from "../../artifacts/contracts/DataUnionFactorySidechain.sol/DataUnionFactorySidechain.json"
 import DataUnionSidechainJson from "../../artifacts/contracts/DataUnionSidechain.sol/DataUnionSidechain.json"
-import MockTokenMediatorJson from "../../artifacts/contracts/MockTokenMediator.sol/MockTokenMediator.json"
-import TestTokenJson from "../../artifacts/contracts/TestToken.sol/TestToken.json"
-import MockAMBJson from "../../artifacts/contracts/MockAMB.sol/MockAMB.json"
+
+import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
+import MockTokenMediatorJson from "../../artifacts/contracts/test/MockTokenMediator.sol/MockTokenMediator.json"
+import MockAMBJson from "../../artifacts/contracts/test/MockAMB.sol/MockAMB.json"
 
 import { DataUnionFactorySidechain, TestToken, MockAMB, MockTokenMediator } from "../../typechain"
 

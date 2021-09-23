@@ -2,9 +2,8 @@
 
 pragma solidity 0.8.6;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "./ISingleTokenMediator.sol";
-import "./BytesLib.sol";
-import "./IERC677Receiver.sol";
+import "../xdai-mainnet-bridge/ISingleTokenMediator.sol";
+import "../IERC677Receiver.sol";
 
 contract MockTokenMediator is ISingleTokenMediator, IERC677Receiver {
 
@@ -40,12 +39,23 @@ contract MockTokenMediator is ISingleTokenMediator, IERC677Receiver {
         relayTokens(_receiver, _value);
     }
 
+    // from https://github.com/GNSPS/solidity-bytes-utils/blob/6458fb2780a3092bc756e737f246be1de6d3d362/contracts/BytesLib.sol#L297
+    function toAddress(bytes memory _bytes) internal pure returns (address) {
+        require(_bytes.length >= 20, "toAddress_outOfBounds");
+        address tempAddress;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            tempAddress := div(mload(add(_bytes, 0x20)), 0x1000000000000000000000000)
+        }
+        return tempAddress;
+    }
+
     /**
      * ERC677 callback
      * Mock: instead of going over the bridge, just send the tokens forward to the recipient
      */
     function onTokenTransfer(address, uint256 amount, bytes calldata data) override external {
-        address recipient = BytesLib.toAddress(data);
+        address recipient = toAddress(data);
         require(ERC20(msg.sender).transfer(recipient, amount), "transfer_rejected_in_mock");
     }
 }

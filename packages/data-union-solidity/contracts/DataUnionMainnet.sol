@@ -7,8 +7,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./Ownable.sol";
 import "./PurchaseListener.sol";
 import "./CloneLib.sol";
-import "./IAMB.sol";
-import "./ITokenMediator.sol";
+import "./xdai-mainnet-bridge/IAMB.sol";
+import "./xdai-mainnet-bridge/ITokenMediator.sol";
 import "./IERC677Receiver.sol";
 
 contract DataUnionMainnet is Ownable, PurchaseListener, IERC677Receiver {
