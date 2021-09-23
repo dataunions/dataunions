@@ -37,7 +37,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     // Variable properties change events
     event UpdateNewMemberEth(uint value);
     event FeesSet(uint256 adminFee, uint256 dataUnionFee);
-    event DataUnionBeneficiaryChanged(address current, address old);
+    event DataUnionBeneficiaryChanged(address indexed current, address indexed old);
 
     struct MemberInfo {
         ActiveStatus status;
@@ -141,8 +141,8 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     }
 
     function setDataUnionBeneficiary(address newDataUnionBeneficiary) public onlyOwner {
+        emit DataUnionBeneficiaryChanged(newDataUnionBeneficiary, dataUnionBeneficiary);
         dataUnionBeneficiary = newDataUnionBeneficiary;
-        emit DataUnionBeneficiaryChanged(dataUnionBeneficiary, newDataUnionBeneficiary);
     }
 
     function setNewMemberEth(uint val) public onlyOwner {
