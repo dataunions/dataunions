@@ -26,7 +26,7 @@
     "chai-bignumber": "^3.0.0",
     "data-union-config": "2.1.0",
     "debug": "4.1.1",
-    "eslint": "7.22.0",
+    "eslint": "7.32.0",
     "ethereum-waffle": "^3.4.0",
     "hardhat": "^2.6.1",
     "hardhat-typechain": "^0.3.5",
