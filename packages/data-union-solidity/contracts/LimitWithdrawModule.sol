@@ -6,12 +6,13 @@ pragma solidity 0.8.6;
 import "./IERC677.sol";
 import "./DataUnionSidechain.sol";
 import "./IWithdrawModule.sol";
+import "./IJoinPartListener.sol";
 
 /**
  * @title Data Union module that limits per-user withdraws to given amount per period
  * @dev Set this module as joinPartAgent in the Data Union contract and do your joins and parts through here.
  */
-contract LimitWithdrawModule is IWithdrawModule {
+contract LimitWithdrawModule is IWithdrawModule, IJoinPartListener {
     uint public requiredMemberAgeSeconds;
     uint public withdrawLimitPeriodSeconds;
     uint public withdrawLimitDuringPeriod;
@@ -22,6 +23,11 @@ contract LimitWithdrawModule is IWithdrawModule {
     mapping (address => uint) public withdrawnDuringPeriod;
 
     DataUnionSidechain public dataUnion;
+
+    modifier onlyDataUnion() {
+        require(msg.sender == address(dataUnion), "error_onlyDataUnionContract");
+        _;
+    }
 
     event ModuleReset(DataUnionSidechain newDataUnion, uint newRequiredMemberAgeSeconds, uint newWithdrawLimitPeriodSeconds, uint newWithdrawLimitDuringPeriod, uint newMinimumWithdrawTokenWei);
 
@@ -55,39 +61,21 @@ contract LimitWithdrawModule is IWithdrawModule {
         emit ModuleReset(dataUnion, requiredMemberAgeSeconds, withdrawLimitPeriodSeconds, withdrawLimitDuringPeriod, minimumWithdrawTokenWei);
     }
 
-    /**
-     * Use this function to add members instead of the usual DataUnionSidechain.addMember function
-     * NOTE: Will simply do nothing if the member is already in the Data Union
-     */
-    function addMember(address payable newMember) public {
-        require(dataUnion.isJoinPartAgent(msg.sender), "error_onlyJoinPartAgent");
-
-        // members that have been added previously "the wrong way" to the DU directly will be simply added to tracking
-        if (dataUnion.isMember(newMember)) {
-            if (memberJoinTimestamp[newMember] == 0) {
-                memberJoinTimestamp[newMember] = block.timestamp;
-            }
-        } else {
-            dataUnion.addMember(newMember);
-            memberJoinTimestamp[newMember] = block.timestamp;
-        }
+    function onJoin(address newMember) override external onlyDataUnion {
+        require(msg.sender == address(dataUnion), "error_onlyDataUnionContract");
+        memberJoinTimestamp[newMember] = block.timestamp;
     }
 
-    /**
-     * Use this function to batch add members instead of the usual DataUnionSidechain.addMembers function
-     * NOTE: Will simply do nothing for members that are already in the Data Union
-     */
-    function addMembers(address payable[] memory newMembers) external {
-        for (uint256 i = 0; i < newMembers.length; i++) {
-            addMember(newMembers[i]);
-        }
+    function onPart(address leavingMember) override external onlyDataUnion {
+        require(msg.sender == address(dataUnion), "error_onlyDataUnionContract");
+        delete memberJoinTimestamp[leavingMember];
     }
 
     /**
      * When a withdraw happens in the DU, tokens are transferred to the withdrawModule, then this function is called.
      * When we revert here, the whole withdraw transaction is reverted.
      */
-    function onWithdraw(address member, address to, IERC677 token, uint amountWei) external override {
+    function onWithdraw(address member, address to, IERC677 token, uint amountWei) override external onlyDataUnion {
         require(amountWei >= minimumWithdrawTokenWei, "error_withdrawAmountBelowMinimum");
         require(block.timestamp >= memberJoinTimestamp[member] + requiredMemberAgeSeconds, "error_memberTooNew");
 

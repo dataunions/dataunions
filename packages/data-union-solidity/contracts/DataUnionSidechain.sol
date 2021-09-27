@@ -9,6 +9,7 @@ import "./Ownable.sol";
 import "./xdai-mainnet-bridge/IERC20Receiver.sol";
 import "./IERC677Receiver.sol";
 import "./IWithdrawModule.sol";
+import "./IJoinPartListener.sol";
 
 contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
@@ -30,8 +31,10 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     // Withdrawals
     event EarningsWithdrawn(address indexed member, uint256 amount);
 
-    // Modules
-    event WithdrawModuleChanged(address indexed withdrawModule);
+    // Modules and hooks
+    event WithdrawModuleChanged(IWithdrawModule indexed withdrawModule);
+    event JoinPartListenerAdded(IJoinPartListener indexed listener);
+    event JoinPartListenerRemoved(IJoinPartListener indexed listener);
 
     // In-contract transfers
     event TransferWithinContract(address indexed from, address indexed to, uint amount);
@@ -56,6 +59,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
     // Modules
     IWithdrawModule public withdrawModule;
+    IJoinPartListener[] public joinPartListeners;
     bool public modulesLocked;
 
     // Variable properties
@@ -276,21 +280,27 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         joinPartAgentCount -= 1;
     }
 
-    function addMember(address payable member) public onlyJoinPartAgent {
-        MemberInfo storage info = memberData[member];
-        require(!isMember(member), "error_alreadyMember");
+    function addMember(address payable newMember) public onlyJoinPartAgent {
+        MemberInfo storage info = memberData[newMember];
+        require(!isMember(newMember), "error_alreadyMember");
         if (info.status == ActiveStatus.INACTIVE) {
             inactiveMemberCount -= 1;
         }
-        bool sendEth = info.status == ActiveStatus.NONE && newMemberEth != 0 && address(this).balance >= newMemberEth;
+        bool sendEth = info.status == ActiveStatus.NONE && newMemberEth > 0 && address(this).balance >= newMemberEth;
         info.status = ActiveStatus.ACTIVE;
         info.lmeAtJoin = lifetimeMemberEarnings;
         activeMemberCount += 1;
-        emit MemberJoined(member);
+        emit MemberJoined(newMember);
+
+        // listeners get a chance to reject the new member by reverting
+        for (uint i = 0; i < joinPartListeners.length; i++) {
+            IJoinPartListener listener = joinPartListeners[i];
+            listener.onJoin(newMember); // may revert
+        }
 
         // give new members ETH. continue even if transfer fails
         if (sendEth) {
-            if (member.send(newMemberEth)) {
+            if (newMember.send(newMemberEth)) {
                 emit NewMemberEthSent(newMemberEth);
             }
         }
@@ -305,6 +315,12 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         activeMemberCount -= 1;
         inactiveMemberCount += 1;
         emit MemberParted(member);
+
+        // listeners do NOT get a chance to prevent parting by reverting
+        for (uint i = 0; i < joinPartListeners.length; i++) {
+            IJoinPartListener listener = joinPartListeners[i];
+            try listener.onPart(member) { } catch { }
+        }
     }
 
     function addMembers(address payable[] memory members) public onlyJoinPartAgent {
@@ -553,11 +569,35 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     // MODULE MANAGEMENT
     //------------------------------------------------------------
 
-    function setWithdrawModule(address newWithdrawModule) public onlyOwner {
+    /**
+     * @param newWithdrawModule set to zero to return to the default withdraw functionality
+     */
+    function setWithdrawModule(IWithdrawModule newWithdrawModule) public onlyOwner {
         require(!modulesLocked, "error_modulesLocked");
         // TODO: check EIP-165?
-        withdrawModule = IWithdrawModule(newWithdrawModule);
+        withdrawModule = newWithdrawModule;
         emit WithdrawModuleChanged(newWithdrawModule);
+    }
+
+    function addJoinPartListener(IJoinPartListener newListener) public onlyOwner {
+        // TODO: check EIP-165?
+        joinPartListeners.push(newListener);
+        emit JoinPartListenerAdded(newListener);
+    }
+
+    /**
+     * Remove the given IJoinPartListener by copying the last element into its place so that the array stays compact
+     */
+    function removeJoinPartListener(IJoinPartListener listener) public onlyOwner {
+        uint i = 0;
+        while (i < joinPartListeners.length && joinPartListeners[i] == listener) { i += 1; }
+        require(i < joinPartListeners.length, "error_joinPartListenerNotFound");
+
+        if (i < joinPartListeners.length - 1) {
+            joinPartListeners[i] = joinPartListeners[joinPartListeners.length - 1];
+        }
+        joinPartListeners.pop();
+        emit JoinPartListenerRemoved(listener);
     }
 
     function lockModules() public onlyOwner {
