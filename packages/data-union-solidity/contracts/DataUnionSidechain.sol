@@ -30,6 +30,9 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     // Withdrawals
     event EarningsWithdrawn(address indexed member, uint256 amount);
 
+    // Modules
+    event WithdrawModuleChanged(address indexed withdrawModule);
+
     // In-contract transfers
     event TransferWithinContract(address indexed from, address indexed to, uint amount);
     event TransferToAddressInContract(address indexed from, address indexed to, uint amount);
@@ -53,6 +56,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
     // Modules
     IWithdrawModule public withdrawModule;
+    bool public modulesLocked;
 
     // Variable properties
     uint256 public newMemberEth;
@@ -550,7 +554,13 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     //------------------------------------------------------------
 
     function setWithdrawModule(address newWithdrawModule) public onlyOwner {
+        require(!modulesLocked, "error_modulesLocked");
         // TODO: check EIP-165?
         withdrawModule = IWithdrawModule(newWithdrawModule);
+        emit WithdrawModuleChanged(newWithdrawModule);
+    }
+
+    function lockModules() public onlyOwner {
+        modulesLocked = true;
     }
 }
