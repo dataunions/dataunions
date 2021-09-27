@@ -62,12 +62,10 @@ contract LimitWithdrawModule is IWithdrawModule, IJoinPartListener {
     }
 
     function onJoin(address newMember) override external onlyDataUnion {
-        require(msg.sender == address(dataUnion), "error_onlyDataUnionContract");
         memberJoinTimestamp[newMember] = block.timestamp;
     }
 
     function onPart(address leavingMember) override external onlyDataUnion {
-        require(msg.sender == address(dataUnion), "error_onlyDataUnionContract");
         delete memberJoinTimestamp[leavingMember];
     }
 
