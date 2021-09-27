@@ -108,13 +108,10 @@ describe("LimitWithdrawModule", () => {
         await dataUnionSidechain.partMembers(otherAddresses.slice(0, 2))
     })
 
-    it("only lets joinPartAgents add members", async () => {
-        await dataUnionSidechain.removeJoinPartAgent(creator.address)
-        await expect(dataUnionSidechain.addMembers(otherAddresses.slice(0, 2))).to.be.revertedWith("error_onlyJoinPartAgent")
-        await expect(dataUnionSidechain.addMember(otherAddresses[0])).to.be.revertedWith("error_onlyJoinPartAgent")
-
-        // cleanup, TODO: not necessary after hardhat-deploy unit test fixtures are in place
-        await dataUnionSidechain.addJoinPartAgent(creator.address)
+    it("only lets data union contract call the methods", async () => {
+        await expect(limitWithdrawModule.onJoin(otherAddresses[0])).to.be.revertedWith("error_onlyDataUnionContract")
+        await expect(limitWithdrawModule.onPart(otherAddresses[0])).to.be.revertedWith("error_onlyDataUnionContract")
+        await expect(limitWithdrawModule.onWithdraw(member0.address, otherAddresses[0], testToken.address, "0")).to.be.revertedWith("error_onlyDataUnionContract")
     })
 
     it("only lets admin reset the module", async () => {
