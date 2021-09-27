@@ -444,4 +444,11 @@ describe("DataUnionSidechain", () => {
     it("rejects fees that sum above 1.0", async () => {
         await expect(dataUnionSidechain.setFees(parseEther("0.5"), parseEther("0.6"))).to.be.revertedWith("error_fees")
     })
+
+    it("cannot swap modules after locking", async () => {
+        const dummyAddress = "0x1234567890123456789012345678901234567890"
+        await expect(dataUnionSidechain.setWithdrawModule(dummyAddress)).to.emit(dataUnionSidechain, "WithdrawModuleChanged")
+        await dataUnionSidechain.lockModules()
+        await expect(dataUnionSidechain.setWithdrawModule(dummyAddress)).to.be.revertedWith("error_modulesLocked")
+    })
 })
