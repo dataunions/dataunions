@@ -82,14 +82,15 @@ describe("LimitWithdrawModule", () => {
         ]
         limitWithdrawModule = await deployContract(creator, LimitWithdrawModuleJson, limitWithdrawModuleArgs) as LimitWithdrawModule
         await dataUnionSidechain.setWithdrawModule(limitWithdrawModule.address)
-        await dataUnionSidechain.addJoinPartListener(limitWithdrawModule.address)
+        await dataUnionSidechain.addJoinListener(limitWithdrawModule.address)
+        await dataUnionSidechain.addPartListener(limitWithdrawModule.address)
         log("LimitWithdrawModule %s set up successfully", limitWithdrawModule.address)
 
         await dataUnionSidechain.addJoinPartAgent(creator.address)
         await dataUnionSidechain.addMember(member0.address)
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
         await provider.send("evm_mine", [])
-        log("%s was added to data union and is now 'old' enough to withdraw", member0.address)
+        log("Member %s was added to data union and is now 'old' enough to withdraw", member0.address)
     })
 
     it("only lets members withdraw after they've been in the DU long enough", async () => {

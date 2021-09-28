@@ -4,15 +4,16 @@
 pragma solidity 0.8.6;
 
 import "./IERC677.sol";
-import "./DataUnionSidechain.sol";
+import "./DataUnionModule.sol";
 import "./IWithdrawModule.sol";
-import "./IJoinPartListener.sol";
+import "./IJoinListener.sol";
+import "./IPartListener.sol";
 
 /**
  * @title Data Union module that limits per-user withdraws to given amount per period
- * @dev Set this module as joinPartAgent in the Data Union contract and do your joins and parts through here.
+ * @dev Setup: dataUnion.setWithdrawModule(this); dataUnion.addJoinListener(this); dataUnion.addPartListener(this)
  */
-contract LimitWithdrawModule is IWithdrawModule, IJoinPartListener {
+contract LimitWithdrawModule is DataUnionModule, IWithdrawModule, IJoinListener, IPartListener {
     uint public requiredMemberAgeSeconds;
     uint public withdrawLimitPeriodSeconds;
     uint public withdrawLimitDuringPeriod;
@@ -22,23 +23,15 @@ contract LimitWithdrawModule is IWithdrawModule, IJoinPartListener {
     mapping (address => uint) public lastWithdrawTimestamp;
     mapping (address => uint) public withdrawnDuringPeriod;
 
-    DataUnionSidechain public dataUnion;
-
-    modifier onlyDataUnion() {
-        require(msg.sender == address(dataUnion), "error_onlyDataUnionContract");
-        _;
-    }
-
-    event ModuleReset(DataUnionSidechain newDataUnion, uint newRequiredMemberAgeSeconds, uint newWithdrawLimitPeriodSeconds, uint newWithdrawLimitDuringPeriod, uint newMinimumWithdrawTokenWei);
+    event ModuleReset(address newDataUnion, uint newRequiredMemberAgeSeconds, uint newWithdrawLimitPeriodSeconds, uint newWithdrawLimitDuringPeriod, uint newMinimumWithdrawTokenWei);
 
     constructor(
-        DataUnionSidechain dataUnionAddress,
+        address dataUnionAddress,
         uint newRequiredMemberAgeSeconds,
         uint newWithdrawLimitPeriodSeconds,
         uint newWithdrawLimitDuringPeriod,
         uint newMinimumWithdrawTokenWei
-    ) {
-        dataUnion = DataUnionSidechain(dataUnionAddress);
+    ) DataUnionModule(dataUnionAddress) {
         requiredMemberAgeSeconds = newRequiredMemberAgeSeconds;
         withdrawLimitPeriodSeconds = newWithdrawLimitPeriodSeconds;
         withdrawLimitDuringPeriod = newWithdrawLimitDuringPeriod;
@@ -46,14 +39,13 @@ contract LimitWithdrawModule is IWithdrawModule, IJoinPartListener {
     }
 
     function setParameters(
-        DataUnionSidechain dataUnionAddress,
+        address dataUnionAddress,
         uint newRequiredMemberAgeSeconds,
         uint newWithdrawLimitPeriodSeconds,
         uint newWithdrawLimitDuringPeriod,
         uint newMinimumWithdrawTokenWei
-    ) external {
-        require(msg.sender == dataUnion.owner(), "error_onlyOwner");
-        dataUnion = DataUnionSidechain(dataUnionAddress);
+    ) external onlyOwner {
+        dataUnion = dataUnionAddress;
         requiredMemberAgeSeconds = newRequiredMemberAgeSeconds;
         withdrawLimitPeriodSeconds = newWithdrawLimitPeriodSeconds;
         withdrawLimitDuringPeriod = newWithdrawLimitDuringPeriod;
