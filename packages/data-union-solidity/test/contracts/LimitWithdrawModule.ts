@@ -82,18 +82,18 @@ describe("LimitWithdrawModule", () => {
         ]
         limitWithdrawModule = await deployContract(creator, LimitWithdrawModuleJson, limitWithdrawModuleArgs) as LimitWithdrawModule
         await dataUnionSidechain.setWithdrawModule(limitWithdrawModule.address)
-        await dataUnionSidechain.addJoinPartAgent(limitWithdrawModule.address)
+        await dataUnionSidechain.addJoinPartListener(limitWithdrawModule.address)
         log("LimitWithdrawModule %s set up successfully", limitWithdrawModule.address)
 
         await dataUnionSidechain.addJoinPartAgent(creator.address)
-        await limitWithdrawModule.addMember(member0.address)
+        await dataUnionSidechain.addMember(member0.address)
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
         await provider.send("evm_mine", [])
         log("%s was added to data union and is now 'old' enough to withdraw", member0.address)
     })
 
     it("only lets members withdraw after they've been in the DU long enough", async () => {
-        await expect(limitWithdrawModule.addMembers(otherAddresses.slice(0, 2))).to.emit(dataUnionSidechain, "MemberJoined")
+        await expect(dataUnionSidechain.addMembers(otherAddresses.slice(0, 2))).to.emit(dataUnionSidechain, "MemberJoined")
         await expect(testToken.transferAndCall(dataUnionSidechain.address, parseEther("10"), "0x")).to.emit(dataUnionSidechain, "RevenueReceived")
 
         await expect(dataUnionSidechain.withdrawAll(otherAddresses[0], false)).to.be.revertedWith("error_memberTooNew")
@@ -108,13 +108,10 @@ describe("LimitWithdrawModule", () => {
         await dataUnionSidechain.partMembers(otherAddresses.slice(0, 2))
     })
 
-    it("only lets joinPartAgents add members", async () => {
-        await dataUnionSidechain.removeJoinPartAgent(creator.address)
-        await expect(limitWithdrawModule.addMembers(otherAddresses.slice(0, 2))).to.be.revertedWith("error_onlyJoinPartAgent")
-        await expect(limitWithdrawModule.addMember(otherAddresses[0])).to.be.revertedWith("error_onlyJoinPartAgent")
-
-        // cleanup, TODO: not necessary after hardhat-deploy unit test fixtures are in place
-        await dataUnionSidechain.addJoinPartAgent(creator.address)
+    it("only lets data union contract call the methods", async () => {
+        await expect(limitWithdrawModule.onJoin(otherAddresses[0])).to.be.revertedWith("error_onlyDataUnionContract")
+        await expect(limitWithdrawModule.onPart(otherAddresses[0])).to.be.revertedWith("error_onlyDataUnionContract")
+        await expect(limitWithdrawModule.onWithdraw(member0.address, otherAddresses[0], testToken.address, "0")).to.be.revertedWith("error_onlyDataUnionContract")
     })
 
     it("only lets admin reset the module", async () => {
@@ -145,15 +142,5 @@ describe("LimitWithdrawModule", () => {
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.withdrawLimitPeriodSeconds()])
         await provider.send("evm_mine", [])
         await expect(dataUnionSidechain.withdraw(member0.address, parseEther("100"), false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
-    })
-
-    it("adds tracking for members that were added 'the wrong way' directly to the data union previously", async () => {
-        await expect(dataUnionSidechain.addMember(otherAddresses[5])).to.emit(dataUnionSidechain, "MemberJoined")
-        expect(await limitWithdrawModule.memberJoinTimestamp(otherAddresses[5])).to.eq(0)
-        await expect(limitWithdrawModule.addMember(otherAddresses[5])).not.to.emit(dataUnionSidechain, "MemberJoined")
-        expect(await limitWithdrawModule.memberJoinTimestamp(otherAddresses[5])).not.to.eq(0)
-
-        // for coverage completeness: re-doing the addition won't emit events either
-        await expect(limitWithdrawModule.addMember(otherAddresses[5])).not.to.emit(dataUnionSidechain, "MemberJoined")
     })
 })
