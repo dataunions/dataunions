@@ -22,7 +22,7 @@ jobs:
         node_version:
           - 16.6.1
         os:
-          - ubuntu-18.04
+          - ubuntu-20.04
         experimental: [false]
     steps:
       - uses: actions/checkout@v2.3.4
@@ -33,7 +33,7 @@ jobs:
         run: |
            make build
       - name: Node ${{ matrix.node_version }} - x64 on ${{ matrix.os }}
-        uses: actions/setup-node@v2.4.0
+        uses: actions/setup-node@v2.4.1
         with:
           node-version: ${{ matrix.node_version }}
       - uses: actions/cache@v2.1.6
