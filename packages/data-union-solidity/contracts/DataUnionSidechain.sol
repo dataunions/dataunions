@@ -403,8 +403,8 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     // WITHDRAW FUNCTIONS
     //------------------------------------------------------------
 
-    function withdrawMembers(address[] memory members, bool sendToMainnet)
-        public
+    function withdrawMembers(address[] calldata members, bool sendToMainnet)
+        external
         returns (uint256)
     {
         uint256 withdrawn = 0;
@@ -430,7 +430,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     }
 
     function withdrawAllTo(address to, bool sendToMainnet)
-        public
+        external
         returns (uint256)
     {
         return withdrawTo(to, getWithdrawableEarnings(msg.sender), sendToMainnet);
@@ -503,9 +503,9 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         address fromSigner,
         address to,
         bool sendToMainnet,
-        bytes memory signature
+        bytes calldata signature
     )
-        public
+        external
         returns (uint withdrawn)
     {
         require(signatureIsValid(fromSigner, to, 0, signature), "error_badSignature");
@@ -527,9 +527,9 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         address to,
         uint amount,
         bool sendToMainnet,
-        bytes memory signature
+        bytes calldata signature
     )
-        public
+        external
         returns (uint withdrawn)
     {
         require(signatureIsValid(fromSigner, to, amount, signature), "error_badSignature");
@@ -586,31 +586,31 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     /**
      * @param newWithdrawModule set to zero to return to the default withdraw functionality
      */
-    function setWithdrawModule(IWithdrawModule newWithdrawModule) public onlyOwner {
+    function setWithdrawModule(IWithdrawModule newWithdrawModule) external onlyOwner {
         require(!modulesLocked, "error_modulesLocked");
         // TODO: check EIP-165?
         withdrawModule = newWithdrawModule;
         emit WithdrawModuleChanged(newWithdrawModule);
     }
 
-    function addJoinListener(IJoinListener newListener) public onlyOwner {
+    function addJoinListener(IJoinListener newListener) external onlyOwner {
         // TODO: check EIP-165?
         joinListeners.push(address(newListener));
         emit JoinListenerAdded(newListener);
     }
 
-    function addPartListener(IPartListener newListener) public onlyOwner {
+    function addPartListener(IPartListener newListener) external onlyOwner {
         // TODO: check EIP-165?
         partListeners.push(address(newListener));
         emit PartListenerAdded(newListener);
     }
 
-    function removeJoinListener(IJoinListener listener) public onlyOwner {
+    function removeJoinListener(IJoinListener listener) external onlyOwner {
         require(removeFromAddressArray(joinListeners, address(listener)), "error_joinListenerNotFound");
         emit JoinListenerRemoved(listener);
     }
 
-    function removePartListener(IPartListener listener) public onlyOwner {
+    function removePartListener(IPartListener listener) external onlyOwner {
         require(removeFromAddressArray(partListeners, address(listener)), "error_partListenerNotFound");
         emit PartListenerRemoved(listener);
     }
