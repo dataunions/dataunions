@@ -3,10 +3,11 @@
 pragma solidity 0.8.6;
 
 import "./IERC677.sol";
+import "./LeaveConditionCode.sol";
 
 interface IDataUnion {
     function owner() external returns (address);
-    function partMember(address member) external;
+    function removeMember(address member, LeaveConditionCode leaveCondition) external;
     function addMember(address newMember) external;
     function isMember(address member) external view returns (bool);
 }

@@ -3,7 +3,6 @@
 
 pragma solidity 0.8.6;
 
-import "./IERC677.sol";
 import "./DataUnionModule.sol";
 import "./IJoinListener.sol";
 
@@ -28,7 +27,7 @@ contract BanModule is DataUnionModule, IJoinListener {
     function ban(address member) public onlyOwner {
         bannedUntilTimestamp[member] = type(uint).max;
         if (IDataUnion(dataUnion).isMember(member)) {
-            IDataUnion(dataUnion).partMember(member);
+            IDataUnion(dataUnion).removeMember(member, LeaveConditionCode.BANNED);
         }
         emit MemberBanned(member);
     }
