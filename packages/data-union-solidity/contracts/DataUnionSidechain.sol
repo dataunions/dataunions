@@ -9,7 +9,9 @@ import "./Ownable.sol";
 import "./xdai-mainnet-bridge/IERC20Receiver.sol";
 import "./IERC677Receiver.sol";
 import "./IWithdrawModule.sol";
-import "./IJoinPartListener.sol";
+import "./IJoinListener.sol";
+import "./IPartListener.sol";
+import "./LeaveConditionCode.sol";
 
 contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
@@ -18,7 +20,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
     // Members
     event MemberJoined(address indexed member);
-    event MemberParted(address indexed member);
+    event MemberParted(address indexed member, LeaveConditionCode indexed leaveConditionCode);
     event JoinPartAgentAdded(address indexed agent);
     event JoinPartAgentRemoved(address indexed agent);
     event NewMemberEthSent(uint amountWei);
@@ -33,8 +35,10 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
     // Modules and hooks
     event WithdrawModuleChanged(IWithdrawModule indexed withdrawModule);
-    event JoinPartListenerAdded(IJoinPartListener indexed listener);
-    event JoinPartListenerRemoved(IJoinPartListener indexed listener);
+    event JoinListenerAdded(IJoinListener indexed listener);
+    event JoinListenerRemoved(IJoinListener indexed listener);
+    event PartListenerAdded(IPartListener indexed listener);
+    event PartListenerRemoved(IPartListener indexed listener);
 
     // In-contract transfers
     event TransferWithinContract(address indexed from, address indexed to, uint amount);
@@ -59,7 +63,11 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
     // Modules
     IWithdrawModule public withdrawModule;
-    IJoinPartListener[] public joinPartListeners;
+    // TODO: once we can cast  address[] storage listeners = joinListeners;  then use these interface types
+    // IJoinListener[] public joinListeners;
+    // IPartListener[] public partListeners;
+    address[] public joinListeners;
+    address[] public partListeners;
     bool public modulesLocked;
 
     // Variable properties
@@ -293,9 +301,9 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         emit MemberJoined(newMember);
 
         // listeners get a chance to reject the new member by reverting
-        for (uint i = 0; i < joinPartListeners.length; i++) {
-            IJoinPartListener listener = joinPartListeners[i];
-            listener.onJoin(newMember); // may revert
+        for (uint i = 0; i < joinListeners.length; i++) {
+            address listener = joinListeners[i];
+            IJoinListener(listener).onJoin(newMember); // may revert
         }
 
         // give new members ETH. continue even if transfer fails
@@ -306,31 +314,37 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         }
     }
 
-    function partMember(address member) public {
+    function removeMember(address member, LeaveConditionCode leaveConditionCode) public {
         require(msg.sender == member || joinPartAgents[msg.sender] == ActiveStatus.ACTIVE, "error_notPermitted");
-        MemberInfo storage info = memberData[member];
         require(isMember(member), "error_notActiveMember");
-        info.earningsBeforeLastJoin = getEarnings(member);
-        info.status = ActiveStatus.INACTIVE;
+
+        memberData[member].earningsBeforeLastJoin = getEarnings(member);
+        memberData[member].status = ActiveStatus.INACTIVE;
         activeMemberCount -= 1;
         inactiveMemberCount += 1;
-        emit MemberParted(member);
+        emit MemberParted(member, leaveConditionCode);
 
         // listeners do NOT get a chance to prevent parting by reverting
-        for (uint i = 0; i < joinPartListeners.length; i++) {
-            IJoinPartListener listener = joinPartListeners[i];
-            try listener.onPart(member) { } catch { }
+        for (uint i = 0; i < partListeners.length; i++) {
+            address listener = partListeners[i];
+            try IPartListener(listener).onPart(member, leaveConditionCode) { } catch { }
         }
     }
 
-    function addMembers(address payable[] memory members) public onlyJoinPartAgent {
+    // access checked in removeMember
+    function partMember(address member) public {
+        removeMember(member, msg.sender == member ? LeaveConditionCode.SELF : LeaveConditionCode.AGENT);
+    }
+
+    // access checked in addMember
+    function addMembers(address payable[] calldata members) external {
         for (uint256 i = 0; i < members.length; i++) {
             addMember(members[i]);
         }
     }
 
-    //access checked in partMember
-    function partMembers(address[] memory members) public {
+    // access checked in removeMember
+    function partMembers(address[] calldata members) external {
         for (uint256 i = 0; i < members.length; i++) {
             partMember(members[i]);
         }
@@ -389,8 +403,8 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     // WITHDRAW FUNCTIONS
     //------------------------------------------------------------
 
-    function withdrawMembers(address[] memory members, bool sendToMainnet)
-        public
+    function withdrawMembers(address[] calldata members, bool sendToMainnet)
+        external
         returns (uint256)
     {
         uint256 withdrawn = 0;
@@ -416,7 +430,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     }
 
     function withdrawAllTo(address to, bool sendToMainnet)
-        public
+        external
         returns (uint256)
     {
         return withdrawTo(to, getWithdrawableEarnings(msg.sender), sendToMainnet);
@@ -489,9 +503,9 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         address fromSigner,
         address to,
         bool sendToMainnet,
-        bytes memory signature
+        bytes calldata signature
     )
-        public
+        external
         returns (uint withdrawn)
     {
         require(signatureIsValid(fromSigner, to, 0, signature), "error_badSignature");
@@ -513,9 +527,9 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         address to,
         uint amount,
         bool sendToMainnet,
-        bytes memory signature
+        bytes calldata signature
     )
-        public
+        external
         returns (uint withdrawn)
     {
         require(signatureIsValid(fromSigner, to, amount, signature), "error_badSignature");
@@ -572,32 +586,48 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     /**
      * @param newWithdrawModule set to zero to return to the default withdraw functionality
      */
-    function setWithdrawModule(IWithdrawModule newWithdrawModule) public onlyOwner {
+    function setWithdrawModule(IWithdrawModule newWithdrawModule) external onlyOwner {
         require(!modulesLocked, "error_modulesLocked");
         // TODO: check EIP-165?
         withdrawModule = newWithdrawModule;
         emit WithdrawModuleChanged(newWithdrawModule);
     }
 
-    function addJoinPartListener(IJoinPartListener newListener) public onlyOwner {
+    function addJoinListener(IJoinListener newListener) external onlyOwner {
         // TODO: check EIP-165?
-        joinPartListeners.push(newListener);
-        emit JoinPartListenerAdded(newListener);
+        joinListeners.push(address(newListener));
+        emit JoinListenerAdded(newListener);
+    }
+
+    function addPartListener(IPartListener newListener) external onlyOwner {
+        // TODO: check EIP-165?
+        partListeners.push(address(newListener));
+        emit PartListenerAdded(newListener);
+    }
+
+    function removeJoinListener(IJoinListener listener) external onlyOwner {
+        require(removeFromAddressArray(joinListeners, address(listener)), "error_joinListenerNotFound");
+        emit JoinListenerRemoved(listener);
+    }
+
+    function removePartListener(IPartListener listener) external onlyOwner {
+        require(removeFromAddressArray(partListeners, address(listener)), "error_partListenerNotFound");
+        emit PartListenerRemoved(listener);
     }
 
     /**
-     * Remove the given IJoinPartListener by copying the last element into its place so that the array stays compact
+     * Remove the listener from array by copying the last element into its place so that the arrays stay compact
      */
-    function removeJoinPartListener(IJoinPartListener listener) public onlyOwner {
+    function removeFromAddressArray(address[] storage array, address element) internal returns (bool success) {
         uint i = 0;
-        while (i < joinPartListeners.length && joinPartListeners[i] == listener) { i += 1; }
-        require(i < joinPartListeners.length, "error_joinPartListenerNotFound");
+        while (i < array.length && array[i] != element) { i += 1; }
+        if (i == array.length) return false;
 
-        if (i < joinPartListeners.length - 1) {
-            joinPartListeners[i] = joinPartListeners[joinPartListeners.length - 1];
+        if (i < array.length - 1) {
+            array[i] = array[array.length - 1];
         }
-        joinPartListeners.pop();
-        emit JoinPartListenerRemoved(listener);
+        array.pop();
+        return true;
     }
 
     function lockModules() public onlyOwner {

@@ -4,15 +4,16 @@
 pragma solidity 0.8.6;
 
 import "./IERC677.sol";
-import "./DataUnionSidechain.sol";
+import "./DataUnionModule.sol";
 import "./IWithdrawModule.sol";
-import "./IJoinPartListener.sol";
+import "./IJoinListener.sol";
+import "./IPartListener.sol";
 
 /**
  * @title Data Union module that limits per-user withdraws to given amount per period
- * @dev Set this module as joinPartAgent in the Data Union contract and do your joins and parts through here.
+ * @dev Setup: dataUnion.setWithdrawModule(this); dataUnion.addJoinListener(this); dataUnion.addPartListener(this)
  */
-contract LimitWithdrawModule is IWithdrawModule, IJoinPartListener {
+contract LimitWithdrawModule is DataUnionModule, IWithdrawModule, IJoinListener, IPartListener {
     uint public requiredMemberAgeSeconds;
     uint public withdrawLimitPeriodSeconds;
     uint public withdrawLimitDuringPeriod;
@@ -22,23 +23,15 @@ contract LimitWithdrawModule is IWithdrawModule, IJoinPartListener {
     mapping (address => uint) public lastWithdrawTimestamp;
     mapping (address => uint) public withdrawnDuringPeriod;
 
-    DataUnionSidechain public dataUnion;
-
-    modifier onlyDataUnion() {
-        require(msg.sender == address(dataUnion), "error_onlyDataUnionContract");
-        _;
-    }
-
-    event ModuleReset(DataUnionSidechain newDataUnion, uint newRequiredMemberAgeSeconds, uint newWithdrawLimitPeriodSeconds, uint newWithdrawLimitDuringPeriod, uint newMinimumWithdrawTokenWei);
+    event ModuleReset(address newDataUnion, uint newRequiredMemberAgeSeconds, uint newWithdrawLimitPeriodSeconds, uint newWithdrawLimitDuringPeriod, uint newMinimumWithdrawTokenWei);
 
     constructor(
-        DataUnionSidechain dataUnionAddress,
+        address dataUnionAddress,
         uint newRequiredMemberAgeSeconds,
         uint newWithdrawLimitPeriodSeconds,
         uint newWithdrawLimitDuringPeriod,
         uint newMinimumWithdrawTokenWei
-    ) {
-        dataUnion = DataUnionSidechain(dataUnionAddress);
+    ) DataUnionModule(dataUnionAddress) {
         requiredMemberAgeSeconds = newRequiredMemberAgeSeconds;
         withdrawLimitPeriodSeconds = newWithdrawLimitPeriodSeconds;
         withdrawLimitDuringPeriod = newWithdrawLimitDuringPeriod;
@@ -46,14 +39,13 @@ contract LimitWithdrawModule is IWithdrawModule, IJoinPartListener {
     }
 
     function setParameters(
-        DataUnionSidechain dataUnionAddress,
+        address dataUnionAddress,
         uint newRequiredMemberAgeSeconds,
         uint newWithdrawLimitPeriodSeconds,
         uint newWithdrawLimitDuringPeriod,
         uint newMinimumWithdrawTokenWei
-    ) external {
-        require(msg.sender == dataUnion.owner(), "error_onlyOwner");
-        dataUnion = DataUnionSidechain(dataUnionAddress);
+    ) external onlyOwner {
+        dataUnion = dataUnionAddress;
         requiredMemberAgeSeconds = newRequiredMemberAgeSeconds;
         withdrawLimitPeriodSeconds = newWithdrawLimitPeriodSeconds;
         withdrawLimitDuringPeriod = newWithdrawLimitDuringPeriod;
@@ -61,12 +53,30 @@ contract LimitWithdrawModule is IWithdrawModule, IJoinPartListener {
         emit ModuleReset(dataUnion, requiredMemberAgeSeconds, withdrawLimitPeriodSeconds, withdrawLimitDuringPeriod, minimumWithdrawTokenWei);
     }
 
+    /**
+     * (Re-)start the "age counter" for new members
+     * Design choice: restart it also for those who have been members before (and thus maybe already previously waited the cooldown period).
+     * Reasoning: after re-joining, the member has accumulated new earnings, and those new earnings should have the limitation period.
+     *   Anyway, the member has the chance to withdraw BEFORE joining again, so restarting the "age counter" doesn't prevent withdrawing the old earnings (before re-join).
+     */
     function onJoin(address newMember) override external onlyDataUnion {
         memberJoinTimestamp[newMember] = block.timestamp;
+
+        // undo a previously banned member's withdraw limitation, see onPart
+        delete lastWithdrawTimestamp[newMember];
+        delete withdrawnDuringPeriod[newMember];
     }
 
-    function onPart(address leavingMember) override external onlyDataUnion {
-        delete memberJoinTimestamp[leavingMember];
+    /**
+     * Design choice: banned members will not be able to withdraw until they re-join.
+     *   Just removing the ban isn't enough because this module won't know about it.
+     *   However, BanModule.restore causes a re-join, so it works fine.
+     */
+    function onPart(address leavingMember, LeaveConditionCode leaveConditionCode) override external onlyDataUnion {
+        if (leaveConditionCode == LeaveConditionCode.BANNED) {
+            lastWithdrawTimestamp[leavingMember] = type(uint).max / 2; // divide to avoid overflow
+            withdrawnDuringPeriod[leavingMember] = type(uint).max / 2;
+        }
     }
 
     /**

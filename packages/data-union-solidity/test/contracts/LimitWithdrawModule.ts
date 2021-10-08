@@ -23,7 +23,6 @@ const { parseEther } = utils
 
 describe("LimitWithdrawModule", () => {
     const [creator, member0, ...others] = provider.getWallets()
-    const otherAddresses = others.map(o => o.address)
 
     let testToken: TestToken
     let dataUnionSidechain: DataUnionSidechain
@@ -82,36 +81,38 @@ describe("LimitWithdrawModule", () => {
         ]
         limitWithdrawModule = await deployContract(creator, LimitWithdrawModuleJson, limitWithdrawModuleArgs) as LimitWithdrawModule
         await dataUnionSidechain.setWithdrawModule(limitWithdrawModule.address)
-        await dataUnionSidechain.addJoinPartListener(limitWithdrawModule.address)
+        await dataUnionSidechain.addJoinListener(limitWithdrawModule.address)
+        await dataUnionSidechain.addPartListener(limitWithdrawModule.address)
         log("LimitWithdrawModule %s set up successfully", limitWithdrawModule.address)
 
         await dataUnionSidechain.addJoinPartAgent(creator.address)
         await dataUnionSidechain.addMember(member0.address)
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
         await provider.send("evm_mine", [])
-        log("%s was added to data union and is now 'old' enough to withdraw", member0.address)
+        log("Member %s was added to data union and is now 'old' enough to withdraw", member0.address)
     })
 
     it("only lets members withdraw after they've been in the DU long enough", async () => {
-        await expect(dataUnionSidechain.addMembers(otherAddresses.slice(0, 2))).to.emit(dataUnionSidechain, "MemberJoined")
+        const newMembers = others.slice(0, 2).map(w => w.address)
+        await expect(dataUnionSidechain.addMembers(newMembers)).to.emit(dataUnionSidechain, "MemberJoined")
         await expect(testToken.transferAndCall(dataUnionSidechain.address, parseEther("10"), "0x")).to.emit(dataUnionSidechain, "RevenueReceived")
 
-        await expect(dataUnionSidechain.withdrawAll(otherAddresses[0], false)).to.be.revertedWith("error_memberTooNew")
-        await expect(dataUnionSidechain.connect(others[1]).withdrawAllTo(otherAddresses[2], false)).to.be.revertedWith("error_memberTooNew")
+        await expect(dataUnionSidechain.withdrawAll(newMembers[0], false)).to.be.revertedWith("error_memberTooNew")
+        await expect(dataUnionSidechain.connect(others[1]).withdrawAllTo(others[2].address, false)).to.be.revertedWith("error_memberTooNew")
 
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
         await provider.send("evm_mine", [])
-        await expect(dataUnionSidechain.withdrawAll(otherAddresses[0], false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
-        await expect(dataUnionSidechain.connect(others[1]).withdrawAllTo(otherAddresses[2], false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
+        await expect(dataUnionSidechain.withdrawAll(newMembers[0], false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
+        await expect(dataUnionSidechain.connect(others[1]).withdrawAllTo(others[2].address, false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
 
         // cleanup, TODO: not necessary after hardhat-deploy unit test fixtures are in place
-        await dataUnionSidechain.partMembers(otherAddresses.slice(0, 2))
+        await dataUnionSidechain.partMembers(newMembers)
     })
 
     it("only lets data union contract call the methods", async () => {
-        await expect(limitWithdrawModule.onJoin(otherAddresses[0])).to.be.revertedWith("error_onlyDataUnionContract")
-        await expect(limitWithdrawModule.onPart(otherAddresses[0])).to.be.revertedWith("error_onlyDataUnionContract")
-        await expect(limitWithdrawModule.onWithdraw(member0.address, otherAddresses[0], testToken.address, "0")).to.be.revertedWith("error_onlyDataUnionContract")
+        await expect(limitWithdrawModule.onJoin(others[0].address)).to.be.revertedWith("error_onlyDataUnionContract")
+        await expect(limitWithdrawModule.onPart(others[0].address, "0")).to.be.revertedWith("error_onlyDataUnionContract")
+        await expect(limitWithdrawModule.onWithdraw(member0.address, others[0].address, testToken.address, "0")).to.be.revertedWith("error_onlyDataUnionContract")
     })
 
     it("only lets admin reset the module", async () => {
@@ -130,7 +131,7 @@ describe("LimitWithdrawModule", () => {
         await expect(dataUnionSidechain.withdraw(member0.address, parseEther("200"), false)).to.be.revertedWith("error_withdrawLimit")
 
         await expect(dataUnionSidechain.withdraw(member0.address, parseEther("50"), false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
-        await expect(dataUnionSidechain.connect(member0).withdrawTo(otherAddresses[1], parseEther("50"), false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
+        await expect(dataUnionSidechain.connect(member0).withdrawTo(others[2].address, parseEther("50"), false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
         await expect(dataUnionSidechain.withdraw(member0.address, parseEther("1"), false)).to.be.revertedWith("error_withdrawLimit")
 
         // can not yet withdraw again
@@ -142,5 +143,41 @@ describe("LimitWithdrawModule", () => {
         await provider.send("evm_increaseTime", [+await limitWithdrawModule.withdrawLimitPeriodSeconds()])
         await provider.send("evm_mine", [])
         await expect(dataUnionSidechain.withdraw(member0.address, parseEther("100"), false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
+    })
+
+    it("denies withdraw from those members withdraw who have been banned", async () => {
+        await dataUnionSidechain.addMember(others[3].address)
+        await expect(testToken.transferAndCall(dataUnionSidechain.address, parseEther("10"), "0x")).to.emit(dataUnionSidechain, "RevenueReceived")
+        await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
+        await provider.send("evm_mine", [])
+
+        // 2 = LeaveConditionCode.BANNED
+        const gasLimit = 130000 // TODO: find out if this gas estimation fail happens in dev and real network as well
+        await expect(dataUnionSidechain.removeMember(others[3].address, "2", { gasLimit })).to.emit(dataUnionSidechain, "MemberParted")
+        await expect(dataUnionSidechain.withdrawAll(others[3].address, false)).to.be.revertedWith("error_withdrawLimit")
+    })
+
+    it("lets those members withdraw who have left (without getting banned)", async () => {
+        await dataUnionSidechain.addMember(others[4].address)
+        await expect(testToken.transferAndCall(dataUnionSidechain.address, parseEther("10"), "0x")).to.emit(dataUnionSidechain, "RevenueReceived")
+        await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
+        await provider.send("evm_mine", [])
+
+        await expect(dataUnionSidechain.partMember(others[4].address)).to.emit(dataUnionSidechain, "MemberParted")
+        await expect(dataUnionSidechain.withdrawAll(others[4].address, false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
+    })
+
+    it("lets those members withdraw who have been restored after getting banned", async () => {
+        await dataUnionSidechain.addMember(others[5].address)
+        await expect(testToken.transferAndCall(dataUnionSidechain.address, parseEther("10"), "0x")).to.emit(dataUnionSidechain, "RevenueReceived")
+
+        const gasLimit = 130000 // TODO: find out if this gas estimation fail happens in dev and real network as well
+        await expect(dataUnionSidechain.removeMember(others[5].address, "2", { gasLimit })).to.emit(dataUnionSidechain, "MemberParted")
+
+        // "restoring" means removing the ban and re-adding the member. See what BanModule does.
+        await dataUnionSidechain.addMember(others[5].address)
+        await provider.send("evm_increaseTime", [+await limitWithdrawModule.requiredMemberAgeSeconds()])
+        await provider.send("evm_mine", [])
+        await expect(dataUnionSidechain.withdrawAll(others[5].address, false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
     })
 })
