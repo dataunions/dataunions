@@ -562,7 +562,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     }
 
     /**
-     * "Default" withdraw functionality, can be overridden with a withdrawModule.
+     * Default DU 2.1 withdraw functionality, can be overridden with a withdrawModule.
      */
     function _defaultWithdraw(address from, address to, uint amount, bool sendToMainnet)
         internal
