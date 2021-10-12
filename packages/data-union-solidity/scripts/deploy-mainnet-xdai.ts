@@ -15,13 +15,15 @@ import { statSync } from "fs"
 import path from "path"
 
 const { JsonRpcProvider } = ethersProviders
-const { parseUnits, formatUnits } = ethersUtils
+const { parseUnits, formatUnits, getAddress } = ethersUtils
 
 const {
     ENV,
     KEY,
     SKIP = "",
     GASPRICE_GWEI,
+    SIDECHAIN_TEMPLATE_ADDRESS = "",
+    MAINNET_TEMPLATE_ADDRESS = "",
 } = process.env
 
 import config from "../../config"
@@ -46,6 +48,7 @@ import DataUnionFactoryMainnetJson from "../artifacts/contracts/DataUnionFactory
 // import { DataUnionSidechain, TestToken, BinanceAdapter, MockTokenMediator } from '../typechain'
 
 import Debug from "debug"
+import { DataUnionFactoryMainnet, DataUnionFactorySidechain } from "../typechain"
 const log = Debug("Streamr:du:script:deploy")
 
 // class LoggingProvider extends JsonRpcProvider {
@@ -67,41 +70,32 @@ const sidechainProvider = new JsonRpcProvider(xdai.url ?? "https://rpc.xdaichain
 const sidechainWallet = new Wallet(KEY, sidechainProvider)
 const mainnetWallet = new Wallet(KEY, mainnetProvider)
 
-async function deploy(factory: ContractFactory, args: any[]) { // eslint-disable-line @typescript-eslint/no-explicit-any
+async function deploy({ abi, bytecode, contractName }: { abi: any, bytecode: string, contractName: string }, wallet: Wallet, args: any[] = []) { // eslint-disable-line @typescript-eslint/no-explicit-any
+    log(`Deploying ${contractName} from ${wallet.address}, bytecode size = ${bytecode.length / 2 - 1} bytes`)
+    const factory = new ContractFactory(abi, bytecode, wallet)
     const contract = await factory.deploy(...args, ethersOptions)
     log("Transaction hash:    %s", contract.deployTransaction.hash)
     log("Gas price:           %s Gwei", contract.deployTransaction.gasPrice ? formatUnits(contract.deployTransaction.gasPrice, "gwei") : "?")
     const receipt = await contract.deployTransaction.wait()
     log("Gas used:            %s", receipt.gasUsed)
     log("Cumulative gas used: %s", receipt.cumulativeGasUsed)
+    log("Deployed code size:  %s", (await wallet.provider.getCode(contract.address)).length / 2 - 1)
     // log("Effective gas price: %s", receipt.effectiveGasPrice)
     // log("Cost in ETH:         %s", formatEther(receipt.cumulativeGasUsed.mul(receipt.effectiveGasPrice)))
     return contract
 }
 
 async function deployDUFactories() {
-    log(`Deploying template DU home contract from ${sidechainWallet.address}`)
-    const duTemplateSidechain = await deploy(
-        new ContractFactory(DataUnionSidechainJson.abi, DataUnionSidechainJson.bytecode, sidechainWallet),
-        []
-    )
+    const duTemplateSidechain = SIDECHAIN_TEMPLATE_ADDRESS ? { address: getAddress(SIDECHAIN_TEMPLATE_ADDRESS) } : await deploy(DataUnionSidechainJson, sidechainWallet)
     console.log(`Data Union template sidechain: ${duTemplateSidechain.address}`)
 
-    log(`Deploying template DU mainnet contract from ${mainnetWallet.address}`)
-    const duTemplateMainnet = await deploy(
-        new ContractFactory(DataUnionMainnetJson.abi, DataUnionMainnetJson.bytecode, mainnetWallet),
-        []
-    )
+    const duTemplateMainnet = MAINNET_TEMPLATE_ADDRESS ? { address: getAddress(MAINNET_TEMPLATE_ADDRESS) } : await deploy(DataUnionMainnetJson, mainnetWallet)
     console.log(`Data Union template mainnet: ${duTemplateMainnet.address}`)
 
     // constructor(address _dataUnionSidechainTemplate)
-    log(`Deploying sidechain DU factory contract from ${sidechainWallet.address}`)
-    const duFactorySidechain = await deploy(
-        new ContractFactory(DataUnionFactorySidechainJson.abi, DataUnionFactorySidechainJson.bytecode, sidechainWallet),
-        [
-            duTemplateSidechain.address
-        ]
-    )
+    const duFactorySidechain = await deploy(DataUnionFactorySidechainJson, sidechainWallet, [
+        duTemplateSidechain.address
+    ])
     console.log(`Data Union factory sidechain: ${duFactorySidechain.address}`)
 
     // constructor(
@@ -114,20 +108,16 @@ async function deployDUFactories() {
     //      address _defaultTokenMediatorSidechain,
     //      uint256 _sidechainMaxGas
     // )
-    log(`Deploying DU mainnet factory contract from ${mainnetWallet.address}`)
-    const duFactoryMainnet = await deploy(
-        new ContractFactory(DataUnionFactoryMainnetJson.abi, DataUnionFactoryMainnetJson.bytecode, mainnetWallet),
-        [
-            duTemplateMainnet.address,
-            duTemplateSidechain.address,
-            duFactorySidechain.address,
-            mainnet.token,
-            mainnet.tokenMediator,
-            xdai.token,
-            xdai.tokenMediator,
-            2000000,
-        ]
-    )
+    const duFactoryMainnet = await deploy(DataUnionFactoryMainnetJson, mainnetWallet, [
+        duTemplateMainnet.address,
+        duTemplateSidechain.address,
+        duFactorySidechain.address,
+        mainnet.token,
+        mainnet.tokenMediator,
+        xdai.token,
+        xdai.tokenMediator,
+        2000000,
+    ])
     console.log(`Data Union factory mainnet: ${duFactoryMainnet.address}`)
     console.log("Don't forget to update the addresses in data-union/packages/config/index.js")
 }
