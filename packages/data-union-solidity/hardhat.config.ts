@@ -15,6 +15,14 @@ const config: HardhatUserConfig = {
             evmVersion: "berlin",
         }
     },
+    networks: {
+        hardhat: {},
+        localsidechain: {
+            chainId: 8997,
+            url: 'http://localhost:8546',
+            accounts: ['0x0000000000000000000000000000000000000000000000000000000000000008']
+        }
+    },
     typechain: {
         outDir: "./typechain",
         target: "ethers-v5",
