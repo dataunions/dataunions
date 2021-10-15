@@ -1,7 +1,7 @@
 {
   "name": "data-union-solidity",
   "description": "Smart contracts for Data Union with sidechain accounting",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "scripts": {
     "build": "hardhat compile",
     "clean": "rm -rf artifacts cache coverage typechain deployments",
@@ -24,7 +24,7 @@
     "@types/node": "^16.9.6",
     "chai": "^4.3.4",
     "chai-bignumber": "^3.0.0",
-    "data-union-config": "2.1.0",
+    "data-union-config": "2.2.0",
     "debug": "4.1.1",
     "eslint": "7.32.0",
     "ethereum-waffle": "^3.4.0",
