@@ -176,7 +176,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
      */
     function refreshRevenue() public returns (uint256) {
         uint256 balance = token.balanceOf(address(this));
-        uint256 newTokens = balance - totalWithdrawable(); // solidity 0.8: a - b errors if b > a
+        uint256 newTokens = balance - totalWithdrawable(); // since 0.8.0 version of solidity, a - b errors if b > a
         if (newTokens == 0 || activeMemberCount == 0) { return 0; }
         totalRevenue += newTokens;
         emit RevenueReceived(newTokens);
