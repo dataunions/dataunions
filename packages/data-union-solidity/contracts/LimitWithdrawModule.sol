@@ -22,6 +22,7 @@ contract LimitWithdrawModule is DataUnionModule, IWithdrawModule, IJoinListener,
     mapping (address => uint) public memberJoinTimestamp;
     mapping (address => uint) public lastWithdrawTimestamp;
     mapping (address => uint) public withdrawnDuringPeriod;
+    mapping (address => bool) public blackListed;
 
     event ModuleReset(address newDataUnion, uint newRequiredMemberAgeSeconds, uint newWithdrawLimitPeriodSeconds, uint newWithdrawLimitDuringPeriod, uint newMinimumWithdrawTokenWei);
 
@@ -63,8 +64,7 @@ contract LimitWithdrawModule is DataUnionModule, IWithdrawModule, IJoinListener,
         memberJoinTimestamp[newMember] = block.timestamp;
 
         // undo a previously banned member's withdraw limitation, see onPart
-        delete lastWithdrawTimestamp[newMember];
-        delete withdrawnDuringPeriod[newMember];
+        delete blackListed[newMember];
     }
 
     /**
@@ -74,9 +74,12 @@ contract LimitWithdrawModule is DataUnionModule, IWithdrawModule, IJoinListener,
      */
     function onPart(address leavingMember, LeaveConditionCode leaveConditionCode) override external onlyDataUnion {
         if (leaveConditionCode == LeaveConditionCode.BANNED) {
-            lastWithdrawTimestamp[leavingMember] = type(uint).max / 2; // divide to avoid overflow
-            withdrawnDuringPeriod[leavingMember] = type(uint).max / 2;
+            blackListed[leavingMember] = true;
         }
+    }
+
+    function getWithdrawLimit(address member, uint maxWithdrawable) override external view returns (uint256) {
+        return blackListed[member] ? 0 : maxWithdrawable;
     }
 
     /**
