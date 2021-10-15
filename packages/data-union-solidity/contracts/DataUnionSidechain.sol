@@ -243,7 +243,12 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     }
 
     function getWithdrawableEarnings(address member) public view returns (uint256) {
-        return getEarnings(member) - getWithdrawn(member);
+        uint maxWithdraw = getEarnings(member) - getWithdrawn(member);
+        if (address(withdrawModule) != address(0)) {
+            uint moduleLimit = withdrawModule.getWithdrawLimit(member, maxWithdraw);
+            if (moduleLimit < maxWithdraw) { maxWithdraw = moduleLimit; }
+        }
+        return maxWithdraw;
     }
 
     // this includes the fees paid to admins and the DU beneficiary
