@@ -8,8 +8,8 @@
             "amb": "0x4C36d2919e407f0Cc2Ee3c993ccF8ac26d9CE64e",
             "ens": "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e",
             "coreApi": "0xf3E5A65851C3779f468c9EcB32E6f25D9D68601a",
-            "dataUnionFactory": "0x6d201374D7c28EF1c3cc1b6FA300f06110B597A3",
-            "dataUnionTemplate": "0x93965Af01C326F2308AAcB778EF96d7e29dEf515",
+            "dataUnionFactory": "0xE41439BF434F9CfBF0153f5231C205d4ae0C22e3",
+            "dataUnionTemplate": "0x67352e3F7dBA907aF877020aE7E9450C0029C70c",
             "uniswapAdapter": "0xbe99db4ea1964ea9a9e80de41517901da6ef9307",
             "chainId": 1
         },
@@ -19,8 +19,8 @@
             "oldToken": "0xE4a2620edE1058D61BEe5F45F6414314fdf10548",
             "oldTokenMediator": "0x7d55f9981d4E10A193314E001b96f72FCc901e40",
             "amb": "0x75Df5AF045d91108662D8080fD1FEFAd6aA0bb59",
-            "dataUnionFactory": "0xCda36b4A69f4349052D995d2D8B4f3E8A70Aa3Af",
-            "dataUnionTemplate": "0xD0C720e99Bd39311614f292d8B0B4e351Bde157c",
+            "dataUnionFactory": "0xFCE1FBFAaE61861B011B379442c8eE1DC868ABd0",
+            "dataUnionTemplate": "0xaCF9e8134047eDc671162D9404BF63a587435bAa",
             "url": "https://rpc.xdaichain.com/",
             "chainId": 100
         }
