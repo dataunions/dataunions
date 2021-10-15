@@ -176,7 +176,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
      */
     function refreshRevenue() public returns (uint256) {
         uint256 balance = token.balanceOf(address(this));
-        uint256 newTokens = balance - totalWithdrawable(); // solidity 0.8: a - b errors if b > a
+        uint256 newTokens = balance - totalWithdrawable(); // since 0.8.0 version of solidity, a - b errors if b > a
         if (newTokens == 0 || activeMemberCount == 0) { return 0; }
         totalRevenue += newTokens;
         emit RevenueReceived(newTokens);
@@ -317,6 +317,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
                 emit NewMemberEthSent(newMemberEth);
             }
         }
+        refreshRevenue();
     }
 
     function removeMember(address member, LeaveConditionCode leaveConditionCode) public {
@@ -334,6 +335,8 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
             address listener = partListeners[i];
             try IPartListener(listener).onPart(member, leaveConditionCode) { } catch { }
         }
+
+        refreshRevenue();
     }
 
     // access checked in removeMember
@@ -360,19 +363,21 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     //------------------------------------------------------------
 
     /**
-     * Transfer tokens from outside contract, add to a recipient's in-contract balance
+     * Transfer tokens from outside contract, add to a recipient's in-contract balance. Skip admin and DU fees etc.
      */
     function transferToMemberInContract(address recipient, uint amount) public {
         // this is done first, so that in case token implementation calls the onTokenTransfer in its transferFrom (which by ERC677 it should NOT),
         //   transferred tokens will still not count as earnings (distributed to all) but a simple earnings increase to this particular member
         _increaseBalance(recipient, amount);
-        totalEarnings = totalEarnings + amount;
-        emit TransferToAddressInContract(msg.sender, recipient,  amount);
+        totalRevenue += amount;
+        emit TransferToAddressInContract(msg.sender, recipient, amount);
 
         uint balanceBefore = token.balanceOf(address(this));
         require(token.transferFrom(msg.sender, address(this), amount), "error_transfer");
         uint balanceAfter = token.balanceOf(address(this));
         require((balanceAfter - balanceBefore) >= amount, "error_transfer");
+
+        refreshRevenue();
     }
 
     /**
@@ -388,6 +393,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         info.withdrawnEarnings = info.withdrawnEarnings + amount;
         _increaseBalance(recipient, amount);
         emit TransferWithinContract(msg.sender, recipient, amount);
+        refreshRevenue();
     }
 
     /**
@@ -423,6 +429,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         public
         returns (uint256)
     {
+        refreshRevenue();
         return withdraw(member, getWithdrawableEarnings(member), sendToMainnet);
     }
 
@@ -438,6 +445,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         external
         returns (uint256)
     {
+        refreshRevenue();
         return withdrawTo(to, getWithdrawableEarnings(msg.sender), sendToMainnet);
     }
 
@@ -514,6 +522,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         returns (uint withdrawn)
     {
         require(signatureIsValid(fromSigner, to, 0, signature), "error_badSignature");
+        refreshRevenue();
         return _withdraw(fromSigner, to, getWithdrawableEarnings(fromSigner), sendToMainnet);
     }
 
@@ -550,6 +559,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         returns (uint256)
     {
         if (amount == 0) { return 0; }
+        refreshRevenue();
         require(amount <= getWithdrawableEarnings(from), "error_insufficientBalance");
         MemberInfo storage info = memberData[from];
         info.withdrawnEarnings += amount;
