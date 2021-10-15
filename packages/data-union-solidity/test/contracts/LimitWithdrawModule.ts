@@ -154,7 +154,10 @@ describe("LimitWithdrawModule", () => {
         // 2 = LeaveConditionCode.BANNED
         const gasLimit = 130000 // TODO: find out if this gas estimation fail happens in dev and real network as well
         await expect(dataUnionSidechain.removeMember(others[3].address, "2", { gasLimit })).to.emit(dataUnionSidechain, "MemberParted")
-        await expect(dataUnionSidechain.withdrawAll(others[3].address, false)).to.be.revertedWith("error_withdrawLimit")
+        const balanceBefore = await testToken.balanceOf(others[3].address)
+        await expect(dataUnionSidechain.withdrawAll(others[3].address, false)).to.not.emit(dataUnionSidechain, "EarningsWithdrawn")
+        const balanceIncrease = (await testToken.balanceOf(others[3].address)).sub(balanceBefore)
+        expect(+balanceIncrease).to.eq(0)
     })
 
     it("lets those members withdraw who have left (without getting banned)", async () => {
