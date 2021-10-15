@@ -152,8 +152,7 @@ describe("LimitWithdrawModule", () => {
         await provider.send("evm_mine", [])
 
         // 2 = LeaveConditionCode.BANNED
-        const gasLimit = 130000 // TODO: find out if this gas estimation fail happens in dev and real network as well
-        await expect(dataUnionSidechain.removeMember(others[3].address, "2", { gasLimit })).to.emit(dataUnionSidechain, "MemberParted")
+        await expect(dataUnionSidechain.removeMember(others[3].address, "2")).to.emit(dataUnionSidechain, "MemberParted")
         await expect(dataUnionSidechain.withdrawAll(others[3].address, false)).to.be.revertedWith("error_withdrawLimit")
     })
 
@@ -171,8 +170,7 @@ describe("LimitWithdrawModule", () => {
         await dataUnionSidechain.addMember(others[5].address)
         await expect(testToken.transferAndCall(dataUnionSidechain.address, parseEther("10"), "0x")).to.emit(dataUnionSidechain, "RevenueReceived")
 
-        const gasLimit = 130000 // TODO: find out if this gas estimation fail happens in dev and real network as well
-        await expect(dataUnionSidechain.removeMember(others[5].address, "2", { gasLimit })).to.emit(dataUnionSidechain, "MemberParted")
+        await expect(dataUnionSidechain.removeMember(others[5].address, "2")).to.emit(dataUnionSidechain, "MemberParted")
 
         // "restoring" means removing the ban and re-adding the member. See what BanModule does.
         await dataUnionSidechain.addMember(others[5].address)
