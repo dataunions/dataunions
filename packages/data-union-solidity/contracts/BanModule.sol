@@ -33,7 +33,7 @@ contract BanModule is DataUnionModule, IJoinListener {
     }
 
     /** Ban a member indefinitely */
-    function ban(address member) public onlyOwner {
+    function ban(address member) public onlyJoinPartAgent {
         bannedUntilTimestamp[member] = type(uint).max;
         if (IDataUnion(dataUnion).isMember(member)) {
             IDataUnion(dataUnion).removeMember(member, LeaveConditionCode.BANNED);
@@ -42,7 +42,7 @@ contract BanModule is DataUnionModule, IJoinListener {
     }
 
     /** Ban members indefinitely */
-    function banMembers(address[] members) public onlyOwner {
+    function banMembers(address[] members) public onlyJoinPartAgent {
         for (uint8 i = 0; i < members.length; ++i) {
             ban(members[i]);
         }
@@ -50,48 +50,48 @@ contract BanModule is DataUnionModule, IJoinListener {
 
 
     /** Ban a member for a specific time period (given in seconds) */
-    function banSeconds(address member, uint banLengthSeconds) public onlyOwner {
+    function banSeconds(address member, uint banLengthSeconds) public onlyJoinPartAgent {
         ban(member);
         bannedUntilTimestamp[member] = block.timestamp + banLengthSeconds;
         emit BanWillEnd(member, bannedUntilTimestamp[member]);
     }
 
     /** Ban members for a specific time period (given in seconds) */
-    function banMembersForSpecificSeconds(address[] members, uint banLengthSeconds) public onlyOwner {
+    function banMembersForSpecificSeconds(address[] members, uint banLengthSeconds) public onlyJoinPartAgent {
         for (uint8 i = 0; i < members.length; ++i) {
             banSeconds(members[i], banLengthSeconds);
         }
     }
 
     /** Ban members for a specific time period (given in seconds for each user) */
-    function banMembersSeconds(address[] members, uint[] banLengthSeconds) public onlyOwner {
+    function banMembersSeconds(address[] members, uint[] banLengthSeconds) public onlyJoinPartAgent {
         for (uint8 i = 0; i < members.length; ++i) {
             banSeconds(members[i], banLengthSeconds[i]);
         }
     }
 
     /** Reverse a ban and re-join the member to the data union */
-    function restore(address member) public onlyOwner {
+    function restore(address member) public onlyJoinPartAgent {
         require(isBanned(member), "error_memberNotBanned");
         removeBan(member);
         IDataUnion(dataUnion).addMember(member);
     }
 
     /** Reverse ban and re-join the members to the data union */
-    function restoreMembers(address[] members) public onlyOwner {
+    function restoreMembers(address[] members) public onlyJoinPartAgent {
         for (uint8 i = 0; i < members.length; ++i) {
             restore(members[i]);
         }
     }
 
     /** Remove a ban without re-joining the member */
-    function removeBan(address member) public onlyOwner {
+    function removeBan(address member) public onlyJoinPartAgent {
         delete bannedUntilTimestamp[member];
         emit BanRemoved(member);
     }
 
     /** Remove ban without re-joining the members */
-    function removeBanMembers(address[] members) public onlyOwner {
+    function removeBanMembers(address[] members) public onlyJoinPartAgent {
         for (uint8 i = 0; i < members.length; ++i) {
             removeBan(members[i]);
         }
