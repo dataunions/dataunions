@@ -11,7 +11,7 @@ import "./IJoinListener.sol";
  * @dev Setup: dataUnion.setJoinListener(this); dataUnion.addJoinPartAgent(this);
  */
 contract BanModule is DataUnionModule, IJoinListener {
-    mapping (address => uint) public bannedUntilTimestamp;
+    mapping(address => uint) public bannedUntilTimestamp;
 
     event MemberBanned(address indexed member);
     event BanWillEnd(address indexed member, uint banEndTimestamp);
@@ -23,6 +23,15 @@ contract BanModule is DataUnionModule, IJoinListener {
         return block.timestamp < bannedUntilTimestamp[member];
     }
 
+    /** CHeck if these members are banned */
+    function AreBanned(address[] members) public view returns (bool[]) {
+        bool[] ret;
+        for (uint8 i = 0; i < members.length; ++i) {
+            ret.push(isBanned(members[i]));
+        }
+        return ret;
+    }
+
     /** Ban a member indefinitely */
     function ban(address member) public onlyOwner {
         bannedUntilTimestamp[member] = type(uint).max;
@@ -32,11 +41,33 @@ contract BanModule is DataUnionModule, IJoinListener {
         emit MemberBanned(member);
     }
 
+    /** Ban members indefinitely */
+    function banMembers(address[] members) public onlyOwner {
+        for (uint8 i = 0; i < members.length; ++i) {
+            ban(members[i]);
+        }
+    }
+
+
     /** Ban a member for a specific time period (given in seconds) */
     function banSeconds(address member, uint banLengthSeconds) public onlyOwner {
         ban(member);
         bannedUntilTimestamp[member] = block.timestamp + banLengthSeconds;
         emit BanWillEnd(member, bannedUntilTimestamp[member]);
+    }
+
+    /** Ban members for a specific time period (given in seconds) */
+    function banMembersForSpecificSeconds(address[] members, uint banLengthSeconds) public onlyOwner {
+        for (uint8 i = 0; i < members.length; ++i) {
+            banSeconds(members[i], banLengthSeconds);
+        }
+    }
+
+    /** Ban members for a specific time period (given in seconds for each user) */
+    function banSecondsMembers(address[] members, uint[] banLengthSeconds) public onlyOwner {
+        for (uint8 i = 0; i < members.length; ++i) {
+            banSeconds(members[i], banLengthSeconds[i]);
+        }
     }
 
     /** Reverse a ban and re-join the member to the data union */
@@ -46,10 +77,24 @@ contract BanModule is DataUnionModule, IJoinListener {
         IDataUnion(dataUnion).addMember(member);
     }
 
+    /** Reverse ban and re-join the members to the data union */
+    function restoreMembers(address[] members) public onlyOwner {
+        for (uint8 i = 0; i < members.length; ++i) {
+            restore(members[i]);
+        }
+    }
+
     /** Remove a ban without re-joining the member */
     function removeBan(address member) public onlyOwner {
         delete bannedUntilTimestamp[member];
         emit BanRemoved(member);
+    }
+
+    /** Remove ban without re-joining the members */
+    function removeBanMembers(address[] members) public onlyOwner {
+        for (uint8 i = 0; i < members.length; ++i) {
+            removeBan(members[i]);
+        }
     }
 
     /** Callback that gets called when a member wants to join */
