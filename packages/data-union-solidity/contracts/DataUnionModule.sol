@@ -10,6 +10,7 @@ interface IDataUnion {
     function removeMember(address member, LeaveConditionCode leaveCondition) external;
     function addMember(address newMember) external;
     function isMember(address member) external view returns (bool);
+    function isJoinPartAgent(address agent) public view returns (bool) ;
 }
 
 contract DataUnionModule {
@@ -17,6 +18,11 @@ contract DataUnionModule {
 
     modifier onlyOwner() {
         require(msg.sender == IDataUnion(dataUnion).owner(), "error_onlyOwner");
+        _;
+    }
+
+    modifier onlyJoinPartAgent() {
+        require(IDataUnion(dataUnion).isJoinPartAgent(msg.sender), "error_onlyJoinPartAgent");
         _;
     }
 
