@@ -14,7 +14,7 @@ contract BanModule is DataUnionModule, IJoinListener {
     mapping(address => uint) public bannedUntilTimestamp;
 
     event MemberBanned(address indexed member);
-    event BanWillEnd(address indexed member, uint banEndTimestamp);
+    event BanWillEnd(address indexed member, uint banEndTimestamp);`
     event BanRemoved(address indexed member);
 
     constructor(address dataUnionAddress) DataUnionModule(dataUnionAddress) {}
@@ -64,7 +64,7 @@ contract BanModule is DataUnionModule, IJoinListener {
     }
 
     /** Ban members for a specific time period (given in seconds for each user) */
-    function banSecondsMembers(address[] members, uint[] banLengthSeconds) public onlyOwner {
+    function banMembersSeconds(address[] members, uint[] banLengthSeconds) public onlyOwner {
         for (uint8 i = 0; i < members.length; ++i) {
             banSeconds(members[i], banLengthSeconds[i]);
         }
