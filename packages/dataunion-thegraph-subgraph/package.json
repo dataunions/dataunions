@@ -31,7 +31,7 @@
     "typescript": "^4.3.4"
   },
   "dependencies": {
-    "@graphprotocol/graph-ts": "^0.20.0",
+    "@graphprotocol/graph-ts": "^0.24.0",
     "lodash.merge": "^4.6.2",
     "mustache": "^4.2.0"
   }
