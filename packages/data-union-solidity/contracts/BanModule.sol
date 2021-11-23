@@ -14,7 +14,7 @@ contract BanModule is DataUnionModule, IJoinListener {
     mapping(address => uint) public bannedUntilTimestamp;
 
     event MemberBanned(address indexed member);
-    event BanWillEnd(address indexed member, uint banEndTimestamp);`
+    event BanWillEnd(address indexed member, uint banEndTimestamp);
     event BanRemoved(address indexed member);
 
     constructor(address dataUnionAddress) DataUnionModule(dataUnionAddress) {}
