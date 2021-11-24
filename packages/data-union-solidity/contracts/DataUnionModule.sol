@@ -10,7 +10,7 @@ interface IDataUnion {
     function removeMember(address member, LeaveConditionCode leaveCondition) external;
     function addMember(address newMember) external;
     function isMember(address member) external view returns (bool);
-    function isJoinPartAgent(address agent) public view returns (bool) ;
+    function isJoinPartAgent(address agent) external view returns (bool) ;
 }
 
 contract DataUnionModule {
