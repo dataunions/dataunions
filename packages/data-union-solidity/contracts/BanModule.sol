@@ -24,10 +24,10 @@ contract BanModule is DataUnionModule, IJoinListener {
     }
 
     /** CHeck if these members are banned */
-    function AreBanned(address[] members) public view returns (bool[]) {
-        bool[] ret;
+    function AreBanned(address[] memory members) public view returns (bool[] memory) {
+        bool[] memory ret = new bool[](members.length);
         for (uint8 i = 0; i < members.length; ++i) {
-            ret.push(isBanned(members[i]));
+            ret[i] = isBanned(members[i]);
         }
         return ret;
     }
@@ -42,7 +42,7 @@ contract BanModule is DataUnionModule, IJoinListener {
     }
 
     /** Ban members indefinitely */
-    function banMembers(address[] members) public onlyJoinPartAgent {
+    function banMembers(address[] memory members) public onlyJoinPartAgent {
         for (uint8 i = 0; i < members.length; ++i) {
             ban(members[i]);
         }
@@ -57,14 +57,14 @@ contract BanModule is DataUnionModule, IJoinListener {
     }
 
     /** Ban members for a specific time period (given in seconds) */
-    function banMembersForSpecificSeconds(address[] members, uint banLengthSeconds) public onlyJoinPartAgent {
+    function banMembersForSpecificSeconds(address[] memory members, uint banLengthSeconds) public onlyJoinPartAgent {
         for (uint8 i = 0; i < members.length; ++i) {
             banSeconds(members[i], banLengthSeconds);
         }
     }
 
     /** Ban members for a specific time period (given in seconds for each user) */
-    function banMembersSeconds(address[] members, uint[] banLengthSeconds) public onlyJoinPartAgent {
+    function banMembersSeconds(address[] memory members, uint[] memory banLengthSeconds) public onlyJoinPartAgent {
         for (uint8 i = 0; i < members.length; ++i) {
             banSeconds(members[i], banLengthSeconds[i]);
         }
@@ -78,7 +78,7 @@ contract BanModule is DataUnionModule, IJoinListener {
     }
 
     /** Reverse ban and re-join the members to the data union */
-    function restoreMembers(address[] members) public onlyJoinPartAgent {
+    function restoreMembers(address[] memory members) public onlyJoinPartAgent {
         for (uint8 i = 0; i < members.length; ++i) {
             restore(members[i]);
         }
@@ -91,7 +91,7 @@ contract BanModule is DataUnionModule, IJoinListener {
     }
 
     /** Remove ban without re-joining the members */
-    function removeBanMembers(address[] members) public onlyJoinPartAgent {
+    function removeBanMembers(address[] memory members) public onlyJoinPartAgent {
         for (uint8 i = 0; i < members.length; ++i) {
             removeBan(members[i]);
         }
