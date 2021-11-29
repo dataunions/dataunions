@@ -31,13 +31,25 @@
             "tokenMediator": "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F",
             "oldToken": "0x6d0F3bF9aD2455b4F62f22fFD21317e1E3eEFE5C",
             "url": "http://10.200.10.1:8545",
-            "chainId": 8995
+            "chainId": 8995,
+            "keys": [
+                "0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7",
+                "0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0",
+                "0x4059de411f15511a85ce332e7a428f36492ab4e87c7830099dadbf130f1896ae",
+                "0xe5af7834455b7239881b85be89d905d6881dcb4751063897f12be1b0dd546bdb"
+            ]
         },
         "xdai": {
             "token": "0x73Be21733CC5D08e1a14Ea9a399fb27DB3BEf8fF",
             "tokenMediator": "0xedD2aa644a6843F2e5133Fe3d6BD3F4080d97D9F",
             "url": "http://10.200.10.1:8546",
-            "chainId": 8997
+            "chainId": 8997,
+            "keys": [
+                "0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7",
+                "0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0",
+                "0x4059de411f15511a85ce332e7a428f36492ab4e87c7830099dadbf130f1896ae",
+                "0xe5af7834455b7239881b85be89d905d6881dcb4751063897f12be1b0dd546bdb"
+            ]
         }
     }
 }
