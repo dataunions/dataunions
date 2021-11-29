@@ -88,7 +88,7 @@ contract LimitWithdrawModule is DataUnionModule, IWithdrawModule, IJoinListener,
      */
     function onWithdraw(address member, address to, IERC677 token, uint amountWei) override external onlyDataUnion {
         require(amountWei >= minimumWithdrawTokenWei, "error_withdrawAmountBelowMinimum");
-        require(memberJoinTimestamp[member] > 0, "error_memberIsInactive");
+        require(memberJoinTimestamp[member] > 0, "error_mustJoinBeforeWithdraw");
         require(block.timestamp >= memberJoinTimestamp[member] + requiredMemberAgeSeconds, "error_memberTooNew");
 
         // if the withdraw period is over, we reset the counters
