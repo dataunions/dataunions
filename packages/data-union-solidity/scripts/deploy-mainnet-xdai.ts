@@ -28,8 +28,9 @@ const {
 
 import config from "../../config"
 const { mainnet, xdai } = (ENV === "production" ? config.production : config.dev)
+const key = KEY || mainnet.keys[0]
 
-if (!KEY) {
+if (!key) {
     throw new Error("Please set environment variable KEY to the private key that does the deployment")
 }
 
@@ -66,8 +67,8 @@ if (GASPRICE_GWEI) { ethersOptions.gasPrice = parseUnits(GASPRICE_GWEI, "gwei") 
 const mainnetProvider = mainnet.url ? new JsonRpcProvider(mainnet.url) : getDefaultProvider()
 const sidechainProvider = new JsonRpcProvider(xdai.url ?? "https://rpc.xdaichain.com/")
 
-const sidechainWallet = new Wallet(KEY, sidechainProvider)
-const mainnetWallet = new Wallet(KEY, mainnetProvider)
+const sidechainWallet = new Wallet(key, sidechainProvider)
+const mainnetWallet = new Wallet(key, mainnetProvider)
 
 async function deploy({ abi, bytecode, contractName }: { abi: any, bytecode: string, contractName: string }, wallet: Wallet, args: any[] = []) { // eslint-disable-line @typescript-eslint/no-explicit-any
     log(`Deploying ${contractName} from ${wallet.address}, bytecode size = ${bytecode.length / 2 - 1} bytes`)
