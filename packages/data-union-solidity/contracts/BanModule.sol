@@ -11,7 +11,7 @@ import "./IJoinListener.sol";
  * @dev Setup: dataUnion.setJoinListener(this); dataUnion.addJoinPartAgent(this);
  */
 contract BanModule is DataUnionModule, IJoinListener {
-    mapping(address => uint) public bannedUntilTimestamp;
+    mapping (address => uint) public bannedUntilTimestamp;
 
     event MemberBanned(address indexed member);
     event BanWillEnd(address indexed member, uint banEndTimestamp);
@@ -23,13 +23,30 @@ contract BanModule is DataUnionModule, IJoinListener {
         return block.timestamp < bannedUntilTimestamp[member];
     }
 
-    /** CHeck if these members are banned */
-    function AreBanned(address[] memory members) public view returns (bool[] memory) {
-        bool[] memory ret = new bool[](members.length);
+    /**
+     * Returns which members are banned in the given input list
+     *
+     * Example code snippets to read the result in TypeScript:
+     * ```
+     * async function areMembersBanned(members: EthereumAddress[]): Promise<boolean[]> {
+     *    const banBits = await banModuleAdmin.areBanned(members)
+     *    return members.map((_, i) => banBits.shr(i).and(1).eq(1))
+     * }
+     * async function selectBannedMembers(members: EthereumAddress[]): Promise<EthereumAddress[]> {
+     *    const banBits = await banModuleAdmin.areBanned(members)
+     *    return members.filter((_, i) => banBits.shr(i).and(1).eq(1))
+     * }
+     * ```
+     * @return membersBannedBitfield where least significant bit is the ban-state first address in input list etc.
+     */
+    function areBanned(address[] memory members) public view returns (uint256 membersBannedBitfield) {
+        uint bit = 1;
         for (uint8 i = 0; i < members.length; ++i) {
-            ret[i] = isBanned(members[i]);
+            if (isBanned(members[i])) {
+                membersBannedBitfield |= bit;
+            }
+            bit <<= 1;
         }
-        return ret;
     }
 
     /** Ban a member indefinitely */
@@ -41,30 +58,29 @@ contract BanModule is DataUnionModule, IJoinListener {
         emit MemberBanned(member);
     }
 
-    /** Ban members indefinitely */
+    /** Ban several members indefinitely */
     function banMembers(address[] memory members) public onlyJoinPartAgent {
         for (uint8 i = 0; i < members.length; ++i) {
             ban(members[i]);
         }
     }
 
-
-    /** Ban a member for a specific time period (given in seconds) */
+    /** Ban a member for the given time period (in seconds) */
     function banSeconds(address member, uint banLengthSeconds) public onlyJoinPartAgent {
         ban(member);
         bannedUntilTimestamp[member] = block.timestamp + banLengthSeconds;
         emit BanWillEnd(member, bannedUntilTimestamp[member]);
     }
 
-    /** Ban members for a specific time period (given in seconds) */
-    function banMembersForSpecificSeconds(address[] memory members, uint banLengthSeconds) public onlyJoinPartAgent {
+    /** Ban several members the given time period (in seconds) */
+    function banMembersSeconds(address[] memory members, uint banLengthSeconds) public onlyJoinPartAgent {
         for (uint8 i = 0; i < members.length; ++i) {
             banSeconds(members[i], banLengthSeconds);
         }
     }
 
-    /** Ban members for a specific time period (given in seconds for each user) */
-    function banMembersSeconds(address[] memory members, uint[] memory banLengthSeconds) public onlyJoinPartAgent {
+    /** Ban several members, each for a specific time period (in seconds, for each user) */
+    function banMembersSpecificSeconds(address[] memory members, uint[] memory banLengthSeconds) public onlyJoinPartAgent {
         for (uint8 i = 0; i < members.length; ++i) {
             banSeconds(members[i], banLengthSeconds[i]);
         }
