@@ -14,7 +14,7 @@ updates:
       prefix: ci
       include: scope
     assignees:
-      - kare
+      - DaisyDomergue
     labels:
       - ci
   - package-ecosystem: docker
