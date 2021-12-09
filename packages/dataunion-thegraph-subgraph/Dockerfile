@@ -12,4 +12,4 @@ COPY --chown=node:node . .
 
 RUN npm i
 RUN chmod +x start.sh
-CMD ./start.sh
+ENTRYPOINT [ "sh", "./start.sh" ]
