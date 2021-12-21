@@ -4,6 +4,8 @@ import "@nomiclabs/hardhat-waffle"
 import "hardhat-typechain"
 import "solidity-coverage"
 
+import '@openzeppelin/hardhat-upgrades';
+
 const config: HardhatUserConfig = {
     solidity: {
         version: "0.8.6",
