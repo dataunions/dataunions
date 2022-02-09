@@ -82,6 +82,11 @@ contract LimitWithdrawModule is DataUnionModule, IWithdrawModule, IJoinListener,
         return blackListed[member] ? 0 : maxWithdrawable;
     }
 
+    /** Admin function to set join timestamp, e.g. for migrating old users */
+    function setJoinTimestamp(address member, uint timestamp) external onlyOwner {
+        memberJoinTimestamp[member] = timestamp;
+    }
+
     /**
      * When a withdraw happens in the DU, tokens are transferred to the withdrawModule, then this function is called.
      * When we revert here, the whole withdraw transaction is reverted.
