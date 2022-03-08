@@ -584,6 +584,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     {
         if (sendToMainnet) {
             // tokenMediator sends tokens over the bridge it's assigned to
+            require(tokenMediator != address(0), "error_sendToMainnetNotAvailable");
             require(token.transferAndCall(tokenMediator, amount, abi.encodePacked(to)), "error_transfer");
         } else {
             // transferAndCall also enables transfers over another token bridge
