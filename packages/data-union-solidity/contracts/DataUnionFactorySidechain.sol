@@ -25,6 +25,10 @@ contract DataUnionFactorySidechain is Ownable {
     uint public defaultNewMemberEth;
 
     constructor(address _dataUnionSidechainTemplate) Ownable(msg.sender) {
+        setTemplate(_dataUnionSidechainTemplate);
+    }
+
+    function setTemplate(address _dataUnionSidechainTemplate) public onlyOwner {
         dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
     }
 
