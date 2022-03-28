@@ -61,9 +61,6 @@ contract DataUnionFactory is Ownable {
         uint256 initialDataUnionFeeFraction,
         address initialDataUnionBeneficiary
     ) public returns (address) {
-        require(msg.sender == address(amb(mediator)), "only_AMB");
-        address duMainnet = amb(mediator).messageSender();
-        bytes32 salt = bytes32(uint256(uint160(duMainnet)));
         bytes memory data = abi.encodeWithSignature(
             "initialize(address,address,address,address[],address,uint256,uint256,uint256,address)",
             owner,
@@ -76,7 +73,7 @@ contract DataUnionFactory is Ownable {
             initialDataUnionFeeFraction,
             initialDataUnionBeneficiary
         );
-        address payable du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(dataUnionTemplate), data, salt);
+        address payable du = CloneLib.deployCodeAndInitUsingCreate(CloneLib.cloneBytecode(dataUnionTemplate), data);
         emit DUCreated(duMainnet, du, owner, dataUnionTemplate);
 
         // continue whether or not send succeeds

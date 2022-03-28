@@ -3,15 +3,15 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./IERC677.sol";
+import "../IERC677.sol";
 // TODO: switch to "@openzeppelin/contracts/access/Ownable.sol";
-import "./Ownable.sol";
-import "./xdai-mainnet-bridge/IERC20Receiver.sol";
-import "./IERC677Receiver.sol";
-import "./IWithdrawModule.sol";
-import "./IJoinListener.sol";
-import "./IPartListener.sol";
-import "./LeaveConditionCode.sol";
+import "../Ownable.sol";
+import "../xdai-mainnet-bridge/IERC20Receiver.sol";
+import "../IERC677Receiver.sol";
+import "../IWithdrawModule.sol";
+import "../IJoinListener.sol";
+import "../IPartListener.sol";
+import "../LeaveConditionCode.sol";
 
 contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
@@ -100,7 +100,6 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         address tokenAddress,
         address tokenMediatorAddress,
         address[] memory initialJoinPartAgents,
-        address mainnetDataUnionAddress,
         uint256 defaultNewMemberEth,
         uint256 initialAdminFeeFraction,
         uint256 initialDataUnionFeeFraction,
@@ -111,7 +110,6 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         token = IERC677(tokenAddress);
         addJoinPartAgents(initialJoinPartAgents);
         tokenMediator = tokenMediatorAddress;
-        dataUnionMainnet = mainnetDataUnionAddress;
         setFees(initialAdminFeeFraction, initialDataUnionFeeFraction);
         setDataUnionBeneficiary(initialDataUnionBeneficiary);
         setNewMemberEth(defaultNewMemberEth);
