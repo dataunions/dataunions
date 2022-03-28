@@ -3,6 +3,7 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 import "../IERC677.sol";
 // TODO: switch to "@openzeppelin/contracts/access/Ownable.sol";
 import "../Ownable.sol";
@@ -58,7 +59,7 @@ contract DataUnionTemplate is Ownable, IERC20Receiver, IERC677Receiver {
     // Constant properties (only set in initialize)
     IERC677 public token;
     address public tokenMediator;
-    address public dataUnionMainnet;
+    /*address public dataUnionMainnet;*/
 
     // Modules
     IWithdrawModule public withdrawModule;
@@ -99,21 +100,27 @@ contract DataUnionTemplate is Ownable, IERC20Receiver, IERC677Receiver {
         address tokenAddress,
         address tokenMediatorAddress,
         address[] memory initialJoinPartAgents,
-        address mainnetDataUnionAddress,
+        /*address mainnetDataUnionAddress,*/
         uint256 defaultNewMemberEth,
         uint256 initialAdminFeeFraction,
         uint256 initialDataUnionFeeFraction,
         address initialDataUnionBeneficiary
     ) public {
         require(!isInitialized(), "error_alreadyInitialized");
+        console.log("AAA 1");
         owner = msg.sender; // set real owner at the end. During initialize, addJoinPartAgents can be called by owner only
         token = IERC677(tokenAddress);
+        console.log("AAA 2");
         addJoinPartAgents(initialJoinPartAgents);
+        console.log("AAA 3");
         tokenMediator = tokenMediatorAddress;
-        dataUnionMainnet = mainnetDataUnionAddress;
+        /*dataUnionMainnet = mainnetDataUnionAddress;*/
         setFees(initialAdminFeeFraction, initialDataUnionFeeFraction);
+        console.log("AAA 4");
         setDataUnionBeneficiary(initialDataUnionBeneficiary);
+        console.log("AAA 5");
         setNewMemberEth(defaultNewMemberEth);
+        console.log("AAA 6");
         owner = initialOwner;
     }
 

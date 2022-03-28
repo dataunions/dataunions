@@ -86,18 +86,21 @@ describe("DataUnionFactory", (): void => {
         log("deployNewDUSidechain args: %o", args)
 
         // this should fail because deployNewDUSidechain must be called by AMB
-        await expect(factoryOutsider.deployNewDUSidechain(...args)).to.be.reverted
-
-        const deployMessage = await factory.interface.encodeFunctionData("deployNewDUSidechain", args)
-        log("deploy: %o", deployMessage)
-        // MockAMB "message passing" happens instantly, so no need to wait
-        const tx = await mockAMB.requireToPassMessage(factory.address, deployMessage, "2000000", { gasLimit: "3000000" })
+        const tx = await factory.deployNewDUSidechain(...args)
         const tr = await tx.wait()
-        log("Receipt: %o", tr)
+        //const deployMessage = await factory.interface.encodeFunctionData("deployNewDUSidechain", args)
+        //log("deploy: %o", deployMessage)
+        //// MockAMB "message passing" happens instantly, so no need to wait
+        //const tx = await mockAMB.requireToPassMessage(factory.address, deployMessage, "2000000", { gasLimit: "3000000" })
+        //const tr = await tx.wait()
+        const [createdEvent] = tr?.events?.filter((evt) => evt?.event === "SidechainDUCreated") ?? []
+        if (!createdEvent || !createdEvent.args || !createdEvent.args.length) {
+            throw new Error("Missing SidechainDUCreated event")
+        }
+        const [newDuAddress] = createdEvent?.args
 
         // since creator was msg.sender of mockAMB.requireToPassMessage, it's assumed to be the "mainnet DU", too,
         //   because the real setting is that mainnetDU.initialize calls the AMB
-        const newDuAddress = await factory.sidechainAddress(creator.address)
         log("%s code: %s", newDuAddress, await provider.getCode(newDuAddress))
         expect(await provider.getCode(newDuAddress)).not.equal("0x")
 

@@ -3,6 +3,7 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 import "../CloneLib.sol";
 import "../xdai-mainnet-bridge/IAMB.sol";
 import "../xdai-mainnet-bridge/ITokenMediator.sol";
@@ -54,7 +55,7 @@ contract DataUnionFactory is Ownable {
         public view
         returns (address proxy)
     {
-        return CloneLib.predictCloneAddressCreate2(dataUnionSidechainTemplate, address(this), bytes32(uint256(uint160(mainnetAddress))));
+        return mainnetAddress;
     }
 
     function amb(address _mediator) public view returns (IAMB) {
@@ -75,36 +76,47 @@ contract DataUnionFactory is Ownable {
         uint256 initialDataUnionFeeFraction,
         address initialDataUnionBeneficiary
     ) public returns (address) {
-        require(msg.sender == address(amb(mediator)), "only_AMB");
-        address duMainnet = amb(mediator).messageSender();
-        bytes32 salt = bytes32(uint256(uint160(duMainnet)));
+        /*require(msg.sender == address(amb(mediator)), "only_AMB");*/
+        /*address duMainnet = amb(mediator).messageSender();*/
+        /*bytes32 salt = bytes32(uint256(uint160(duMainnet)));*/
+        console.log("ZZZ 1");
         bytes memory data = abi.encodeWithSignature(
-            "initialize(address,address,address,address[],address,uint256,uint256,uint256,address)",
+            "initialize(address,address,address,address[],uint256,uint256,uint256,address)",
             owner,
             token,
             mediator,
             agents,
-            duMainnet,
+            /*duMainnet,*/
             defaultNewMemberEth,
             initialAdminFeeFraction,
             initialDataUnionFeeFraction,
             initialDataUnionBeneficiary
         );
-        address payable du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(dataUnionSidechainTemplate), data, salt);
-        emit SidechainDUCreated(duMainnet, du, owner, dataUnionSidechainTemplate);
+        console.log("ZZZ 2");
+        address payable du = CloneLib.deployCodeAndInitUsingCreate(CloneLib.cloneBytecode(dataUnionSidechainTemplate), data);
+        console.log("ZZZ 3", du);
+        emit SidechainDUCreated(du, du, owner, dataUnionSidechainTemplate);
+        console.log("ZZZ 4");
 
         // continue whether or not send succeeds
         if (newDUInitialEth != 0 && address(this).balance >= newDUInitialEth) {
+            console.log("ZZZ 5");
             if (du.send(newDUInitialEth)) {
+                console.log("ZZZ 6");
                 emit DUInitialEthSent(newDUInitialEth);
             }
+            console.log("ZZZ 7");
         }
         if (newDUOwnerInitialEth != 0 && address(this).balance >= newDUOwnerInitialEth) {
+            console.log("ZZZ 8");
             // solhint-disable-next-line multiple-sends
             if (owner.send(newDUOwnerInitialEth)) {
+                console.log("ZZZ 9");
                 emit OwnerInitialEthSent(newDUOwnerInitialEth);
             }
+            console.log("ZZZ 10");
         }
+        console.log("ZZZ 11");
         return du;
     }
 }
