@@ -42,7 +42,8 @@ describe("DataUnionFactory", (): void => {
         mockAMB = await deployContract(creator, MockAMBJson, []) as MockAMB
         mockTokenMediator = await deployContract(creator, MockTokenMediatorJson, [testToken.address, mockAMB.address]) as MockTokenMediator
         const dataUnionSidechainTemplate = await deployContract(creator, DataUnionTemplateJson, [])
-        factory = await deployContract(creator, DataUnionFactoryJson, [dataUnionSidechainTemplate.address]) as DataUnionFactory
+        factory = await deployContract(creator, DataUnionFactoryJson,
+            [dataUnionSidechainTemplate.address, testToken.address, mockTokenMediator.address]) as DataUnionFactory
     })
 
     it("sidechain ETH flow", async () => {
@@ -74,26 +75,25 @@ describe("DataUnionFactory", (): void => {
         //     uint256 initialDataUnionFeeFraction,
         //     address initialDataUnionBeneficiary
         //  )
-        const args : [EthereumAddress, EthereumAddress, EthereumAddress, EthereumAddress[], BigNumber, BigNumber, EthereumAddress] = [
-            testToken.address,
-            mockTokenMediator.address,
+        const args : [EthereumAddress, BigNumber, BigNumber, EthereumAddress, EthereumAddress[], string] = [
             creator.address,
+            parseEther("0.1"),
+            parseEther("0.1"),
+            others[0].address,
             agents.map(a => a.address),
-            parseEther("0.1"),
-            parseEther("0.1"),
-            others[0].address
+            "DUname1"
         ]
         log("deployNewDUSidechain args: %o", args)
 
         // this should fail because deployNewDUSidechain must be called by AMB
-        const tx = await factory.deployNewDUSidechain(...args)
+        const tx = await factory.deployNewDataUnion(...args)
         const tr = await tx.wait()
         //const deployMessage = await factory.interface.encodeFunctionData("deployNewDUSidechain", args)
         //log("deploy: %o", deployMessage)
         //// MockAMB "message passing" happens instantly, so no need to wait
         //const tx = await mockAMB.requireToPassMessage(factory.address, deployMessage, "2000000", { gasLimit: "3000000" })
         //const tr = await tx.wait()
-        const [createdEvent] = tr?.events?.filter((evt) => evt?.event === "SidechainDUCreated") ?? []
+        const [createdEvent] = tr?.events?.filter((evt: any) => evt?.event === "SidechainDUCreated") ?? []
         if (!createdEvent || !createdEvent.args || !createdEvent.args.length) {
             throw new Error("Missing SidechainDUCreated event")
         }

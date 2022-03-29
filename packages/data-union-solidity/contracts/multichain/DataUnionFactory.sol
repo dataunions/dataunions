@@ -3,7 +3,6 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "hardhat/console.sol";
 import "../CloneLib.sol";
 import "../xdai-mainnet-bridge/IAMB.sol";
 import "../xdai-mainnet-bridge/ITokenMediator.sol";
@@ -19,14 +18,22 @@ contract DataUnionFactory is Ownable {
     event OwnerInitialEthSent(uint amountWei);
 
     address public dataUnionSidechainTemplate;
+    address public defaultToken;
+    address public defaultTokenMediator;
 
     // when sidechain DU is created, the factory sends a bit of sETH to the DU and the owner
     uint public newDUInitialEth;
     uint public newDUOwnerInitialEth;
     uint public defaultNewMemberEth;
 
-    constructor(address _dataUnionSidechainTemplate) Ownable(msg.sender) {
+    constructor(
+        address _dataUnionSidechainTemplate,
+        address _defaultToken,
+        address _defaultTokenMediator
+        ) Ownable(msg.sender) {
         setTemplate(_dataUnionSidechainTemplate);
+        defaultToken = _defaultToken;
+        defaultTokenMediator = _defaultTokenMediator;
     }
 
     function setTemplate(address _dataUnionSidechainTemplate) public onlyOwner {
@@ -62,61 +69,70 @@ contract DataUnionFactory is Ownable {
         return IAMB(ITokenMediator(_mediator).bridgeContract());
     }
 
+    function deployNewDataUnion(
+        address payable owner,
+        uint256 adminFeeFraction,
+        uint256 duFeeFraction,
+        address duBeneficiary,
+        address[] memory agents,
+        string memory name
+    )
+        public
+        returns (address)
+    {
+        return deployNewDataUnionUsingToken(
+            defaultToken,
+            defaultTokenMediator,
+            owner,
+            agents,
+            adminFeeFraction,
+            duFeeFraction,
+            duBeneficiary,
+            name
+        );
+    }
     /**
      * @dev This function is called over the bridge by the DataUnionMainnet.initialize function
      * @dev Hence must be called by the AMB. Use MockAMB for testing.
      * @dev CREATE2 salt = mainnet_address.
      */
-    function deployNewDUSidechain(
+    function deployNewDataUnionUsingToken(
         address token,
         address mediator,
         address payable owner,
         address[] memory agents,
         uint256 initialAdminFeeFraction,
         uint256 initialDataUnionFeeFraction,
-        address initialDataUnionBeneficiary
+        address initialDataUnionBeneficiary,
+        string memory name
     ) public returns (address) {
-        /*require(msg.sender == address(amb(mediator)), "only_AMB");*/
-        /*address duMainnet = amb(mediator).messageSender();*/
-        /*bytes32 salt = bytes32(uint256(uint160(duMainnet)));*/
-        console.log("ZZZ 1");
+        bytes32 salt = keccak256(abi.encode(bytes(name), msg.sender));
         bytes memory data = abi.encodeWithSignature(
             "initialize(address,address,address,address[],uint256,uint256,uint256,address)",
             owner,
             token,
             mediator,
             agents,
-            /*duMainnet,*/
             defaultNewMemberEth,
             initialAdminFeeFraction,
             initialDataUnionFeeFraction,
             initialDataUnionBeneficiary
         );
-        console.log("ZZZ 2");
-        address payable du = CloneLib.deployCodeAndInitUsingCreate(CloneLib.cloneBytecode(dataUnionSidechainTemplate), data);
-        console.log("ZZZ 3", du);
+        address payable du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(dataUnionSidechainTemplate), data, salt);
         emit SidechainDUCreated(du, du, owner, dataUnionSidechainTemplate);
-        console.log("ZZZ 4");
 
         // continue whether or not send succeeds
         if (newDUInitialEth != 0 && address(this).balance >= newDUInitialEth) {
-            console.log("ZZZ 5");
             if (du.send(newDUInitialEth)) {
-                console.log("ZZZ 6");
                 emit DUInitialEthSent(newDUInitialEth);
             }
-            console.log("ZZZ 7");
         }
         if (newDUOwnerInitialEth != 0 && address(this).balance >= newDUOwnerInitialEth) {
-            console.log("ZZZ 8");
             // solhint-disable-next-line multiple-sends
             if (owner.send(newDUOwnerInitialEth)) {
-                console.log("ZZZ 9");
                 emit OwnerInitialEthSent(newDUOwnerInitialEth);
             }
-            console.log("ZZZ 10");
         }
-        console.log("ZZZ 11");
         return du;
     }
 }
