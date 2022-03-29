@@ -11,6 +11,7 @@ import "../Ownable.sol";
 
 contract DataUnionFactory is Ownable {
     event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
+    event DUCreated(address indexed du, address indexed owner, address template);
     event UpdateNewDUInitialEth(uint amount);
     event UpdateNewDUOwnerInitialEth(uint amount);
     event UpdateDefaultNewMemberInitialEth(uint amount);
@@ -56,17 +57,6 @@ contract DataUnionFactory is Ownable {
     function setNewMemberInitialEth(uint val) public onlyOwner {
         defaultNewMemberEth = val;
         emit UpdateDefaultNewMemberInitialEth(val);
-    }
-
-    function sidechainAddress(address mainnetAddress)
-        public view
-        returns (address proxy)
-    {
-        return mainnetAddress;
-    }
-
-    function amb(address _mediator) public view returns (IAMB) {
-        return IAMB(ITokenMediator(_mediator).bridgeContract());
     }
 
     function deployNewDataUnion(
@@ -120,6 +110,7 @@ contract DataUnionFactory is Ownable {
         );
         address payable du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(dataUnionSidechainTemplate), data, salt);
         emit SidechainDUCreated(du, du, owner, dataUnionSidechainTemplate);
+        emit DUCreated(du, owner, dataUnionSidechainTemplate);
 
         // continue whether or not send succeeds
         if (newDUInitialEth != 0 && address(this).balance >= newDUInitialEth) {

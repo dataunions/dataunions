@@ -58,7 +58,6 @@ contract DataUnionTemplate is Ownable, IERC20Receiver, IERC677Receiver {
     // Constant properties (only set in initialize)
     IERC677 public token;
     address public tokenMediator;
-    /*address public dataUnionMainnet;*/
 
     // Modules
     IWithdrawModule public withdrawModule;
@@ -99,7 +98,6 @@ contract DataUnionTemplate is Ownable, IERC20Receiver, IERC677Receiver {
         address tokenAddress,
         address tokenMediatorAddress,
         address[] memory initialJoinPartAgents,
-        /*address mainnetDataUnionAddress,*/
         uint256 defaultNewMemberEth,
         uint256 initialAdminFeeFraction,
         uint256 initialDataUnionFeeFraction,

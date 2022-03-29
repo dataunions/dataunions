@@ -13,6 +13,7 @@ import MockAMBJson from "../../../artifacts/contracts/test/MockAMB.sol/MockAMB.j
 import { DataUnionFactory, TestToken, MockAMB, MockTokenMediator } from "../../../typechain"
 
 import Debug from "debug"
+import { assert } from "console"
 const log = Debug("Streamr:du:test:BinanceAdapter")
 
 use(waffle.solidity)
@@ -85,19 +86,14 @@ describe("DataUnionFactory", (): void => {
         ]
         log("deployNewDUSidechain args: %o", args)
 
-        // this should fail because deployNewDUSidechain must be called by AMB
         const tx = await factory.deployNewDataUnion(...args)
         const tr = await tx.wait()
-        //const deployMessage = await factory.interface.encodeFunctionData("deployNewDUSidechain", args)
-        //log("deploy: %o", deployMessage)
-        //// MockAMB "message passing" happens instantly, so no need to wait
-        //const tx = await mockAMB.requireToPassMessage(factory.address, deployMessage, "2000000", { gasLimit: "3000000" })
-        //const tr = await tx.wait()
-        const [createdEvent] = tr?.events?.filter((evt: any) => evt?.event === "SidechainDUCreated") ?? []
+        const [createdEvent] = tr?.events?.filter((evt: any) => evt?.event === "DUCreated") ?? []
         if (!createdEvent || !createdEvent.args || !createdEvent.args.length) {
-            throw new Error("Missing SidechainDUCreated event")
+            throw new Error("Missing DUCreated event")
         }
         const [newDuAddress] = createdEvent?.args
+        expect(tr?.events?.filter((evt: any) => evt?.event === "SidechainDUCreated") ?? []).to.have.length(1)
 
         // since creator was msg.sender of mockAMB.requireToPassMessage, it's assumed to be the "mainnet DU", too,
         //   because the real setting is that mainnetDU.initialize calls the AMB
