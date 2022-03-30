@@ -3,12 +3,12 @@ import { waffle } from "hardhat"
 import { Contract, utils, BigNumber } from "ethers"
 const { parseEther } = utils
 
-import DataUnionFactoryJson from "../../../artifacts/contracts/multichain/DataUnionFactory.sol/DataUnionFactory.json"
-import DataUnionTemplateJson from "../../../artifacts/contracts/multichain/DataUnionTemplate.sol/DataUnionTemplate.json"
+import DataUnionFactoryJson from "../../../artifacts/contracts/unichain/DataUnionFactory.sol/DataUnionFactory.json"
+import DataUnionTemplateJson from "../../../artifacts/contracts/unichain/DataUnionTemplate.sol/DataUnionTemplate.json"
 
 import TestTokenJson from "../../../artifacts/contracts/test/TestToken.sol/TestToken.json"
 
-import { DataUnionFactory, TestToken, MockAMB, MockTokenMediator } from "../../../typechain"
+import { DataUnionFactory, TestToken } from "../../../typechain"
 
 import Debug from "debug"
 const log = Debug("Streamr:du:test:BinanceAdapter")
@@ -27,7 +27,6 @@ describe("DataUnionFactory", (): void => {
     const others = accounts.slice(6)
 
     const m = members.map(member => member.address)
-    // const a = agents.map(agent => agent.address)
     const o = others.map(outsider => outsider.address)
 
     let factory: DataUnionFactory

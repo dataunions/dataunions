@@ -6,7 +6,7 @@ import Debug from "debug"
 const log = Debug("Streamr:du:test:DataUnionTemplate")
 //const log = console.log  // for debugging?
 
-import DataUnionTemplateJson from "../../../artifacts/contracts/multichain/DataUnionTemplate.sol/DataUnionTemplate.json"
+import DataUnionTemplateJson from "../../../artifacts/contracts/unichain/DataUnionTemplate.sol/DataUnionTemplate.json"
 
 import TestTokenJson from "../../../artifacts/contracts/test/TestToken.sol/TestToken.json"
 
