@@ -7,13 +7,10 @@ import DataUnionFactoryJson from "../../../artifacts/contracts/multichain/DataUn
 import DataUnionTemplateJson from "../../../artifacts/contracts/multichain/DataUnionTemplate.sol/DataUnionTemplate.json"
 
 import TestTokenJson from "../../../artifacts/contracts/test/TestToken.sol/TestToken.json"
-import MockTokenMediatorJson from "../../../artifacts/contracts/test/MockTokenMediator.sol/MockTokenMediator.json"
-import MockAMBJson from "../../../artifacts/contracts/test/MockAMB.sol/MockAMB.json"
 
 import { DataUnionFactory, TestToken, MockAMB, MockTokenMediator } from "../../../typechain"
 
 import Debug from "debug"
-import { assert } from "console"
 const log = Debug("Streamr:du:test:BinanceAdapter")
 
 use(waffle.solidity)
@@ -35,16 +32,12 @@ describe("DataUnionFactory", (): void => {
 
     let factory: DataUnionFactory
     let testToken: TestToken
-    let mockAMB: MockAMB
-    let mockTokenMediator: MockTokenMediator
 
     before(async () => {
         testToken = await deployContract(creator, TestTokenJson, ["name", "symbol"]) as TestToken
-        mockAMB = await deployContract(creator, MockAMBJson, []) as MockAMB
-        mockTokenMediator = await deployContract(creator, MockTokenMediatorJson, [testToken.address, mockAMB.address]) as MockTokenMediator
         const dataUnionSidechainTemplate = await deployContract(creator, DataUnionTemplateJson, [])
         factory = await deployContract(creator, DataUnionFactoryJson,
-            [dataUnionSidechainTemplate.address, testToken.address, mockTokenMediator.address]) as DataUnionFactory
+            [dataUnionSidechainTemplate.address, testToken.address]) as DataUnionFactory
     })
 
     it("sidechain ETH flow", async () => {
@@ -68,21 +61,18 @@ describe("DataUnionFactory", (): void => {
         const creatorBalanceBefore = await provider.getBalance(creator.address)
 
         //  function deployNewDUSidechain(
-        //     address token,
-        //     address mediator,
         //     address payable owner,
-        //     address[] memory agents,
         //     uint256 initialAdminFeeFraction,
         //     uint256 initialDataUnionFeeFraction,
         //     address initialDataUnionBeneficiary
+        //     address[] memory agents,
         //  )
-        const args : [EthereumAddress, BigNumber, BigNumber, EthereumAddress, EthereumAddress[], string] = [
+        const args : [EthereumAddress, BigNumber, BigNumber, EthereumAddress, EthereumAddress[]] = [
             creator.address,
             parseEther("0.1"),
             parseEther("0.1"),
             others[0].address,
             agents.map(a => a.address),
-            "DUname1"
         ]
         log("deployNewDUSidechain args: %o", args)
 
@@ -95,8 +85,6 @@ describe("DataUnionFactory", (): void => {
         const [newDuAddress] = createdEvent?.args
         expect(tr?.events?.filter((evt: any) => evt?.event === "SidechainDUCreated") ?? []).to.have.length(1)
 
-        // since creator was msg.sender of mockAMB.requireToPassMessage, it's assumed to be the "mainnet DU", too,
-        //   because the real setting is that mainnetDU.initialize calls the AMB
         log("%s code: %s", newDuAddress, await provider.getCode(newDuAddress))
         expect(await provider.getCode(newDuAddress)).not.equal("0x")
 

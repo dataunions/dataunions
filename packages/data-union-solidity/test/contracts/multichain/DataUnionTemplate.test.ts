@@ -9,8 +9,6 @@ const log = Debug("Streamr:du:test:DataUnionTemplate")
 import DataUnionTemplateJson from "../../../artifacts/contracts/multichain/DataUnionTemplate.sol/DataUnionTemplate.json"
 
 import TestTokenJson from "../../../artifacts/contracts/test/TestToken.sol/TestToken.json"
-import MockTokenMediatorJson from "../../../artifacts/contracts/test/MockTokenMediator.sol/MockTokenMediator.json"
-import MockAMBJson from "../../../artifacts/contracts/test/MockAMB.sol/MockAMB.json"
 
 import type { DataUnionTemplate, MockTokenMediator, TestToken, MockAMB } from "../../../typechain"
 
@@ -64,19 +62,12 @@ describe("DataUnionTemplate", () => {
     let dataUnionSidechain: DataUnionTemplate
     let dataUnionSidechainAgent: DataUnionTemplate
     let dataUnionSidechainMember0: DataUnionTemplate
-    let mockAMB: MockAMB
-    let mockTokenMediator: MockTokenMediator
 
     before(async () => {
         testToken = await deployContract(creator, TestTokenJson, ["name", "symbol"]) as TestToken
         await testToken.mint(creator.address, parseEther("10000"))
 
-        mockAMB = await deployContract(creator, MockAMBJson, []) as MockAMB
-        mockTokenMediator = await deployContract(creator, MockTokenMediatorJson, [testToken.address, mockAMB.address]) as MockTokenMediator
-
         log("List of relevant addresses:")
-        log("  mockTokenMediator: ", mockTokenMediator.address)
-        log("  mockAMB: ", mockAMB.address)
         log("  testToken: ", testToken.address)
         log("  creator: ", creator.address)
         log("  agents: %o", a)
@@ -105,9 +96,7 @@ describe("DataUnionTemplate", () => {
         await dataUnionSidechain.initialize(
             creator.address,
             testToken.address,
-            mockTokenMediator.address,
             a,
-            //dummyAddress,
             "1",
             parseEther("0.1"),
             parseEther("0.1"),
@@ -342,7 +331,7 @@ describe("DataUnionTemplate", () => {
         // test send with transferAndCall. refreshRevenue not needed in this case
         await testToken.transferAndCall(dataUnionSidechain.address, "3000", "0x")
 
-        await dataUnionSidechainMember0.withdraw(m[0], "500", true)
+        await dataUnionSidechainMember0.withdraw(m[0], "500", false)
         const [
             totalRevenue,
             totalEarnings,
@@ -365,16 +354,12 @@ describe("DataUnionTemplate", () => {
         expect(joinPartAgentCount).to.equal(2)
     })
 
-    // Of course there is no "withdraw to mainnet" in test.
-    // Instead what happens in DataUnionTemplate is a call to TokenMediator
-    it("withdraw to mainnet", async () => {
+    // withdraw to mainnet is deprecated
+    it("fails calls to withdraw to mainnet", async () => {
         await testToken.transfer(dataUnionSidechain.address, "3000")
-        // for coverage completeness: also exercise the bridge's token transfer callback. Simply calls refreshRevenue.
-        await dataUnionSidechain.onTokenBridged(testToken.address, "3000", "0x")
-        await expect(dataUnionSidechainMember0.withdraw(m[0], "100", true)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
 
         // TestToken blocks transfers with this magic amount
-        await expect(dataUnionSidechainMember0.withdraw(m[0], "666", true)).to.be.revertedWith("error_transfer")
+        await expect(dataUnionSidechainMember0.withdraw(m[0], "100", true)).to.be.revertedWith("error_sendToMainnetDeprecated")
     })
 
     it("fails to withdraw more than earnings", async () => {
@@ -388,13 +373,10 @@ describe("DataUnionTemplate", () => {
 
     it("fails to initialize twice", async () => {
         const a = agents.map(agent => agent.address)
-        const dummyAddress = a[0]
         await expect(dataUnionSidechain.initialize(
             creator.address,
             testToken.address,
-            mockTokenMediator.address,
             a,
-            //dummyAddress,
             "1",
             parseEther("0.1"),
             parseEther("0.1"),

@@ -5,7 +5,6 @@ pragma solidity 0.8.6;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../CloneLib.sol";
 import "../xdai-mainnet-bridge/IAMB.sol";
-import "../xdai-mainnet-bridge/ITokenMediator.sol";
 // TODO: switch to "@openzeppelin/contracts/access/Ownable.sol";
 import "../Ownable.sol";
 
@@ -20,7 +19,6 @@ contract DataUnionFactory is Ownable {
 
     address public dataUnionSidechainTemplate;
     address public defaultToken;
-    address public defaultTokenMediator;
 
     // when sidechain DU is created, the factory sends a bit of sETH to the DU and the owner
     uint public newDUInitialEth;
@@ -29,12 +27,10 @@ contract DataUnionFactory is Ownable {
 
     constructor(
         address _dataUnionSidechainTemplate,
-        address _defaultToken,
-        address _defaultTokenMediator
-        ) Ownable(msg.sender) {
+        address _defaultToken
+    ) Ownable(msg.sender) {
         setTemplate(_dataUnionSidechainTemplate);
         defaultToken = _defaultToken;
-        defaultTokenMediator = _defaultTokenMediator;
     }
 
     function setTemplate(address _dataUnionSidechainTemplate) public onlyOwner {
@@ -64,21 +60,18 @@ contract DataUnionFactory is Ownable {
         uint256 adminFeeFraction,
         uint256 duFeeFraction,
         address duBeneficiary,
-        address[] memory agents,
-        string memory name
+        address[] memory agents
     )
         public
         returns (address)
     {
         return deployNewDataUnionUsingToken(
             defaultToken,
-            defaultTokenMediator,
             owner,
             agents,
             adminFeeFraction,
             duFeeFraction,
-            duBeneficiary,
-            name
+            duBeneficiary
         );
     }
     /**
@@ -88,27 +81,23 @@ contract DataUnionFactory is Ownable {
      */
     function deployNewDataUnionUsingToken(
         address token,
-        address mediator,
         address payable owner,
         address[] memory agents,
         uint256 initialAdminFeeFraction,
         uint256 initialDataUnionFeeFraction,
-        address initialDataUnionBeneficiary,
-        string memory name
+        address initialDataUnionBeneficiary
     ) public returns (address) {
-        bytes32 salt = keccak256(abi.encode(bytes(name), msg.sender));
         bytes memory data = abi.encodeWithSignature(
-            "initialize(address,address,address,address[],uint256,uint256,uint256,address)",
+            "initialize(address,address,address[],uint256,uint256,uint256,address)",
             owner,
             token,
-            mediator,
             agents,
             defaultNewMemberEth,
             initialAdminFeeFraction,
             initialDataUnionFeeFraction,
             initialDataUnionBeneficiary
         );
-        address payable du = CloneLib.deployCodeAndInitUsingCreate2(CloneLib.cloneBytecode(dataUnionSidechainTemplate), data, salt);
+        address payable du = CloneLib.deployCodeAndInitUsingCreate(CloneLib.cloneBytecode(dataUnionSidechainTemplate), data);
         emit SidechainDUCreated(du, du, owner, dataUnionSidechainTemplate);
         emit DUCreated(du, owner, dataUnionSidechainTemplate);
 
