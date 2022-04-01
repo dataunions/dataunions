@@ -1,4 +1,6 @@
 {
     "DataUnionFactoryAddress": "0x4A4c4759eb3b7ABee079f832850cD3D0dC48D927",
-    "DataUnionFactoryStartBlock": 0
+    "UnichainSidechainDataUnionFactoryAddress": "0x586DA9aa97fF2652f341f05daaf60Ba956A9b5c9",
+    "DataUnionFactoryStartBlock": 0,
+    "UnichainSidechainDataUnionFactoryStartBlock": 0
 }

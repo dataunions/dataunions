@@ -3,8 +3,9 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../CloneLib.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
 import "../xdai-mainnet-bridge/IAMB.sol";
+import "./DataUnionTemplate.sol";
 // TODO: switch to "@openzeppelin/contracts/access/Ownable.sol";
 import "../Ownable.sol";
 
@@ -87,8 +88,8 @@ contract DataUnionFactory is Ownable {
         uint256 initialDataUnionFeeFraction,
         address initialDataUnionBeneficiary
     ) public returns (address) {
-        bytes memory data = abi.encodeWithSignature(
-            "initialize(address,address,address[],uint256,uint256,uint256,address)",
+        address payable du = payable(Clones.clone(dataUnionSidechainTemplate));
+        DataUnionTemplate(du).initialize(
             owner,
             token,
             agents,
@@ -97,7 +98,7 @@ contract DataUnionFactory is Ownable {
             initialDataUnionFeeFraction,
             initialDataUnionBeneficiary
         );
-        address payable du = CloneLib.deployCodeAndInitUsingCreate(CloneLib.cloneBytecode(dataUnionSidechainTemplate), data);
+        
         emit SidechainDUCreated(du, du, owner, dataUnionSidechainTemplate);
         emit DUCreated(du, owner, dataUnionSidechainTemplate);
 

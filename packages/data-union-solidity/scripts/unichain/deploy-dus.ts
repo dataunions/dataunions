@@ -11,7 +11,7 @@ async function main() {
 
     const tokenAddress = Chains.load("development").streamr.contracts.Token
     const factory = await ethers.getContractFactory("DataUnionFactory")
-    const contract = await factory.deploy(tokenAddress, contracttemplate.address)
+    const contract = await factory.deploy(contracttemplate.address, tokenAddress)
     await contract.deployed()
     console.log(contract.address)
 }

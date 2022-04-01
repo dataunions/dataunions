@@ -84,13 +84,7 @@ library CloneLib {
         }
         require(proxy != address(0), "error_create");
         if (initData.length != 0) {
-            (bool success, bytes memory returndata) = proxy.call(initData);
-            if (!success) {
-                if(returndata.length == 0) revert();
-                assembly {
-                    revert(add(32, returndata), mload(returndata))
-                }
-            }
+            (bool success, ) = proxy.call(initData);
             require(success, "error_initialization");
         }
     }
