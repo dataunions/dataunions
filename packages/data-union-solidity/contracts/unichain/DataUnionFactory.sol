@@ -18,7 +18,7 @@ contract DataUnionFactory is Ownable {
     event DUInitialEthSent(uint amountWei);
     event OwnerInitialEthSent(uint amountWei);
 
-    address public dataUnionSidechainTemplate;
+    address public dataUnionTemplate;
     address public defaultToken;
 
     // when sidechain DU is created, the factory sends a bit of sETH to the DU and the owner
@@ -27,15 +27,15 @@ contract DataUnionFactory is Ownable {
     uint public defaultNewMemberEth;
 
     constructor(
-        address _dataUnionSidechainTemplate,
+        address _dataUnionTemplate,
         address _defaultToken
     ) Ownable(msg.sender) {
-        setTemplate(_dataUnionSidechainTemplate);
+        setTemplate(_dataUnionTemplate);
         defaultToken = _defaultToken;
     }
 
-    function setTemplate(address _dataUnionSidechainTemplate) public onlyOwner {
-        dataUnionSidechainTemplate = _dataUnionSidechainTemplate;
+    function setTemplate(address _dataUnionTemplate) public onlyOwner {
+        dataUnionTemplate = _dataUnionTemplate;
     }
 
     // contract is payable so it can receive and hold the new member eth stipends
@@ -88,7 +88,7 @@ contract DataUnionFactory is Ownable {
         uint256 initialDataUnionFeeFraction,
         address initialDataUnionBeneficiary
     ) public returns (address) {
-        address payable du = payable(Clones.clone(dataUnionSidechainTemplate));
+        address payable du = payable(Clones.clone(dataUnionTemplate));
         DataUnionTemplate(du).initialize(
             owner,
             token,
@@ -99,8 +99,8 @@ contract DataUnionFactory is Ownable {
             initialDataUnionBeneficiary
         );
         
-        emit SidechainDUCreated(du, du, owner, dataUnionSidechainTemplate);
-        emit DUCreated(du, owner, dataUnionSidechainTemplate);
+        emit SidechainDUCreated(du, du, owner, dataUnionTemplate);
+        emit DUCreated(du, owner, dataUnionTemplate);
 
         // continue whether or not send succeeds
         if (newDUInitialEth != 0 && address(this).balance >= newDUInitialEth) {

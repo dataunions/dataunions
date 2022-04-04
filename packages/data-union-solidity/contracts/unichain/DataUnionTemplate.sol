@@ -400,6 +400,9 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
     // WITHDRAW FUNCTIONS
     //------------------------------------------------------------
 
+    /**
+     * @param sendToMainnet Deprecated
+     */
     function withdrawMembers(address[] calldata members, bool sendToMainnet)
         external
         returns (uint256)
@@ -411,6 +414,9 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
         return withdrawn;
     }
 
+    /**
+     * @param sendToMainnet Deprecated
+     */
     function withdrawAll(address member, bool sendToMainnet)
         public
         returns (uint256)
@@ -419,6 +425,9 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
         return withdraw(member, getWithdrawableEarnings(member), sendToMainnet);
     }
 
+    /**
+     * @param sendToMainnet Deprecated
+     */
     function withdraw(address member, uint amount, bool sendToMainnet)
         public
         returns (uint256)
@@ -427,6 +436,9 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
         return _withdraw(member, member, amount, sendToMainnet);
     }
 
+    /**
+     * @param sendToMainnet Deprecated
+     */
     function withdrawAllTo(address to, bool sendToMainnet)
         external
         returns (uint256)
@@ -435,6 +447,9 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
         return withdrawTo(to, getWithdrawableEarnings(msg.sender), sendToMainnet);
     }
 
+    /**
+     * @param sendToMainnet Deprecated
+     */
     function withdrawTo(address to, uint amount, bool sendToMainnet)
         public
         returns (uint256)
@@ -495,7 +510,7 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
      * A new signature needs to be obtained for each subsequent future withdraw.
      * @param fromSigner whose earnings are being withdrawn
      * @param to the address the tokens will be sent to (instead of `msg.sender`)
-     * @param sendToMainnet if the tokens should be sent to mainnet or only withdrawn into sidechain address
+     * @param sendToMainnet Deprecated
      * @param signature from the member, see `signatureIsValid` how signature generated for unlimited amount
      */
     function withdrawAllToSigned(
@@ -519,7 +534,7 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
      * @param fromSigner whose earnings are being withdrawn
      * @param to the address the tokens will be sent to (instead of `msg.sender`)
      * @param amount of tokens to withdraw
-     * @param sendToMainnet if the tokens should be sent to mainnet or only withdrawn into sidechain address
+     * @param sendToMainnet Deprecated
      * @param signature from the member, see `signatureIsValid` how signature generated for unlimited amount
      */
     function withdrawToSigned(
@@ -564,6 +579,7 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
 
     /**
      * Default DU 2.1 withdraw functionality, can be overridden with a withdrawModule.
+     * @param sendToMainnet Deprecated
      */
     function _defaultWithdraw(address from, address to, uint amount, bool sendToMainnet)
         internal
