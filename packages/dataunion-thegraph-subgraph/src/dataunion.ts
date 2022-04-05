@@ -28,6 +28,7 @@ export function handleMemberParted(event: MemberParted): void {
 
     let memberId = getMemberId(memberAddress, duAddress)
     let member = Member.load(memberId)
+
     member.status = 'INACTIVE'
     member.save()
 

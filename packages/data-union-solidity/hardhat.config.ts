@@ -16,7 +16,6 @@ const config: HardhatUserConfig = {
         }
     },
     networks: {
-        hardhat: {},
         dev_xdai: {
             chainId: 8997,
             url: "http://localhost:8546",

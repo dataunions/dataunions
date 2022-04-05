@@ -9,15 +9,16 @@
     "lint": "eslint test/**/*.ts scripts/*.ts && solhint contracts/*/*.sol",
     "format": "prettier --no-color --config .prettierrc --write contracts/**/*.sol",
     "format-check": "prettier --no-color --config .prettierrc --check contracts/**/*.sol",
-    "unit-test": "hardhat test test/contracts/*",
+    "unit-test": "hardhat test test/contracts/**/* test/contracts/*.ts",
     "integration-test": "mocha test/e2e --exit",
     "test": "npm run unit-test"
   },
   "author": "Streamr Network AG",
   "license": "AGPL-3.0",
   "devDependencies": {
-    "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@nomiclabs/hardhat-ethers": "^2.0.3",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "@streamr/config": "^0.0.3",
     "@typechain/ethers-v5": "^6.0.0",
     "@types/chai": "^4.2.22",
     "@types/debug": "^4.1.7",

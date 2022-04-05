@@ -24,6 +24,26 @@ dataSources:
       eventHandlers:
         - event: SidechainDUCreated(indexed address,indexed address,indexed address,address)
           handler: handleDUCreated
+  - kind: ethereum/contract
+    name: DataUnionFactory
+    network: xDai
+    source:
+      address: '{{UnichainSidechainDataUnionFactoryAddress}}'
+      abi: DataUnionFactory
+      startBlock: {{DataUnionFactoryStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      file: ./src/factory.ts
+      entities:
+        - DataUnion
+      abis:
+        - name: DataUnionFactory
+          file: ./abis/DataUnionFactory.json
+      eventHandlers:
+        - event: SidechainDUCreated(indexed address,indexed address,indexed address,address)
+          handler: handleDUCreated
 templates:
   - name: DataUnionSidechain
     kind: ethereum/contract
@@ -46,3 +66,25 @@ templates:
           handler: handleMemberJoined
         - event: MemberParted(indexed address)
           handler: handleMemberParted
+  - name: DataUnion
+    kind: ethereum/contract
+    network: xDai
+    source:
+      abi: DataUnionTemplate
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      file: ./src/dataunion.ts
+      entities:
+        - Member
+        - DataUnionStatsBucket
+      abis:
+        - name: DataUnionTemplate
+          file: ./abis/DataUnionTemplate.json
+      eventHandlers:
+        - event: MemberJoined(indexed address)
+          handler: handleMemberJoined
+        - event: MemberParted(indexed address,indexed uint8)
+          handler: handleMemberParted
+  
