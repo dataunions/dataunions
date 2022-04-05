@@ -14,7 +14,7 @@ const DEFAULTPRIVATEKEY = "0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86d
 type EthereumAddress = string
 
 // addresses localsidechain
-const DATAUNIONFACTORYADDRESS = "0x586DA9aa97fF2652f341f05daaf60Ba956A9b5c9"
+const DATAUNIONFACTORYADDRESS = "0xd1FA6C06E1D838Bb989640A2C4b8a499FD0ab187"
 
 // const SIDECHAINURL = "http://localhost:8545"
 const SIDECHAINURL = "http://localhost:8546"
