@@ -4,14 +4,14 @@ import { Chains } from "@streamr/config"
 const { ethers } = hhat
 
 async function main() {
-    const factorytemplate = await ethers.getContractFactory("DataUnionTemplate")
-    const contracttemplate = await factorytemplate.deploy()
-    await contracttemplate.deployed()
-    console.log(contracttemplate.address)
+    const factoryTemplate = await ethers.getContractFactory("DataUnionTemplate")
+    const contractTemplate = await factoryTemplate.deploy()
+    await contractTemplate.deployed()
+    console.log(contractTemplate.address)
 
     const tokenAddress = Chains.load("development").streamr.contracts.Token
     const factory = await ethers.getContractFactory("DataUnionFactory")
-    const contract = await factory.deploy(contracttemplate.address, tokenAddress)
+    const contract = await factory.deploy(contractTemplate.address, tokenAddress)
     await contract.deployed()
     console.log(contract.address)
 }
