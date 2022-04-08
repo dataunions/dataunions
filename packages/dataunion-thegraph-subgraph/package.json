@@ -4,21 +4,17 @@
   "description": "Subgraph definitions for sidechain data unions",
   "scripts": {
     "clean": "rm -rf build generated",
-    "codegen": "graph codegen",
-    "graphbuild": "graph build",
-    "build": "npm run prepare:local && npm run codegen && npm run graphbuild",
-    "build-production": "npm run prepare:mainnet && npm run codegen && npm run graphbuild",
+    "build": "graph codegen subgraph.development.yaml && graph build subgraph.development.yaml",
+    "build-production": "graph codegen subgraph.production.yaml && graph build subgraph.production.yaml",
     "lint": "eslint ./src/*.ts",
     "docker:build": "npm run build && docker build . -t streamr/graph-deploy-dataunion-subgraph:dev",
     "docker:publish": "docker image push streamr/graph-deploy-dataunion-subgraph:dev",
-    "prepare:mainnet": "npx mustache config/mainnet.json subgraph.template.yaml > subgraph.yaml",
-    "prepare:local": "npx mustache config/local.json subgraph.template.yaml > subgraph.yaml",
-    "create-docker-dev": "graph create streamr-dev/dataunion --node http://streamr-dev-thegraph-node:8020",
-    "deploy-docker-dev": "graph deploy streamr-dev/dataunion --version-label v0.0.1 --ipfs http://streamr-dev-ipfs:5001 --node http://streamr-dev-thegraph-node:8020",
-    "create-local": "graph create streamr-dev/dataunion --node http://localhost:8020",
-    "deploy-local": "graph deploy streamr-dev/dataunion --ipfs http://localhost:5001 --node http://localhost:8020",
-    "create-production": "graph create streamr-dev/dataunion --node https://api.thegraph.com/deploy/",
-    "deploy-production": "npm run build-production && graph deploy streamr-dev/dataunion --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/",
+    "create-docker-dev": "graph create streamr-dev/dataunion --node http://streamr-dev-thegraph-node:8020 subgraph.development.yaml",
+    "deploy-docker-dev": "graph deploy streamr-dev/dataunion --version-label v0.0.1 --ipfs http://streamr-dev-ipfs:5001 --node http://streamr-dev-thegraph-node:8020 subgraph.development.yaml",
+    "create-local": "graph create streamr-dev/dataunion --node http://localhost:8020 subgraph.development.yaml",
+    "deploy-local": "graph deploy streamr-dev/dataunion --ipfs http://localhost:5001 --node http://localhost:8020 subgraph.development.yaml",
+    "create-production": "graph create streamr-dev/dataunion --node https://api.thegraph.com/deploy/ subgraph.production.yaml",
+    "deploy-production": "npm run build-production && graph deploy streamr-dev/dataunion --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ subgraph.production.yaml",
     "doAll": "npm run build && npm run create-local && npm run deploy-local",
     "doAll-inside-docker-dev": "npm run build && npm run create-docker-dev && npm run deploy-docker-dev"
   },
@@ -35,7 +31,6 @@
   },
   "dependencies": {
     "@graphprotocol/graph-ts": "^0.20.0",
-    "lodash.merge": "^4.6.2",
-    "mustache": "^4.2.0"
+    "lodash.merge": "^4.6.2"
   }
 }
