@@ -5,7 +5,7 @@
   "scripts": {
     "clean": "rm -rf build generated",
     "build": "graph codegen subgraph.development.yaml && graph build subgraph.development.yaml",
-    "build-production": "graph codegen subgraph.production.yaml && graph build subgraph.production.yaml",
+    "build-production": "graph codegen $npm_config_config && graph build $npm_config_config",
     "lint": "eslint ./src/*.ts",
     "docker:build": "npm run build && docker build . -t streamr/graph-deploy-dataunion-subgraph:dev",
     "docker:publish": "docker image push streamr/graph-deploy-dataunion-subgraph:dev",
@@ -13,8 +13,7 @@
     "deploy-docker-dev": "graph deploy streamr-dev/dataunion --version-label v0.0.1 --ipfs http://streamr-dev-ipfs:5001 --node http://streamr-dev-thegraph-node:8020 subgraph.development.yaml",
     "create-local": "graph create streamr-dev/dataunion --node http://localhost:8020 subgraph.development.yaml",
     "deploy-local": "graph deploy streamr-dev/dataunion --ipfs http://localhost:5001 --node http://localhost:8020 subgraph.development.yaml",
-    "create-production": "graph create streamr-dev/dataunion --node https://api.thegraph.com/deploy/ subgraph.production.yaml",
-    "deploy-production": "npm run build-production && graph deploy streamr-dev/dataunion --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ subgraph.production.yaml",
+    "deploy-production": "npm run build-production && graph deploy $npm_config_subgraph --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ $npm_config_config",
     "doAll": "npm run build && npm run create-local && npm run deploy-local",
     "doAll-inside-docker-dev": "npm run build && npm run create-docker-dev && npm run deploy-docker-dev"
   },

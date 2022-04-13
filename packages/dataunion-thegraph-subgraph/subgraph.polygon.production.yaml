@@ -1,0 +1,53 @@
+specVersion: 0.0.2
+description: Subgraph definitions for sidechain data unions
+repository:
+schema:
+  file: ./schema.graphql
+dataSources:
+  # New DU polygon/matic >>
+  - kind: ethereum/contract
+    name: DataUnionFactory
+    network: matic
+    source:
+      address: '0x3dBDf6C439FC2C90F98C351c90682A7cCe3366E5'
+      abi: DataUnionFactory
+      startBlock: 26778390
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      file: ./src/factory.ts
+      entities:
+        - DataUnion
+      abis:
+        - name: DataUnionFactory
+          file: ./abis/DataUnionFactory.json
+      eventHandlers:
+        - event: SidechainDUCreated(indexed address,indexed address,indexed address,address)
+          handler: handleDUCreated
+  # New DU polygon/matic <<
+
+templates:
+  # New DU polygon/matic >>
+  - name: DataUnion
+    kind: ethereum/contract
+    network: matic
+    source:
+      abi: DataUnionTemplate
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      file: ./src/dataunion.ts
+      entities:
+        - Member
+        - DataUnionStatsBucket
+      abis:
+        - name: DataUnionTemplate
+          file: ./abis/DataUnionTemplate.json
+      eventHandlers:
+        - event: MemberJoined(indexed address)
+          handler: handleMemberJoined
+        - event: MemberParted(indexed address,indexed uint8)
+          handler: handleMemberParted
+  # New DU polygon/matic <<

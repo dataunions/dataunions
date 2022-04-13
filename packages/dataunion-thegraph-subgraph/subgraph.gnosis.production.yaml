@@ -7,11 +7,11 @@ dataSources:
   # Old DU gnosis/xdai >>
   - kind: ethereum/contract
     name: DataUnionFactorySidechain
-    network: xDai
+    network: xdai
     source:
       address: '0x1b55587Beea0b5Bc96Bb2ADa56bD692870522e9f'
       abi: DataUnionFactorySidechain
-      startBlock: 14924666
+      startBlock: 14924665
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -30,7 +30,7 @@ dataSources:
   # New DU gnosis/xdai >>
   - kind: ethereum/contract
     name: DataUnionFactory
-    network: xDai
+    network: xdai
     source:
       address: '0x82F1b8a9521933ecC41A9062f1eb597D0Ad6e12F'
       abi: DataUnionFactory
@@ -50,34 +50,11 @@ dataSources:
           handler: handleDUCreated
   # New DU gnosis/xdai <<
 
-  # New DU polygon/matic >>
-  - kind: ethereum/contract
-    name: DataUnionFactory
-    network: Matic
-    source:
-      address: '0x3dBDf6C439FC2C90F98C351c90682A7cCe3366E5'
-      abi: DataUnionFactory
-      startBlock: 26778390
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      file: ./src/factory.ts
-      entities:
-        - DataUnion
-      abis:
-        - name: DataUnionFactory
-          file: ./abis/DataUnionFactory.json
-      eventHandlers:
-        - event: SidechainDUCreated(indexed address,indexed address,indexed address,address)
-          handler: handleDUCreated
-  # New DU polygon/matic <<
-
 templates:
   # Old DU gnosis/xdai >>
   - name: DataUnionSidechain
     kind: ethereum/contract
-    network: xDai
+    network: xdai
     source:
       abi: DataUnionSidechain
     mapping:
@@ -101,7 +78,7 @@ templates:
   # New DU gnosis/xdai >>
   - name: DataUnion
     kind: ethereum/contract
-    network: xDai
+    network: xdai
     source:
       abi: DataUnionTemplate
     mapping:
@@ -121,27 +98,3 @@ templates:
         - event: MemberParted(indexed address,indexed uint8)
           handler: handleMemberParted
   # New DU gnosis/xdai <<
-
-  # New DU polygon/matic >>
-  - name: DataUnion
-    kind: ethereum/contract
-    network: Matic
-    source:
-      abi: DataUnionTemplate
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.4
-      language: wasm/assemblyscript
-      file: ./src/dataunion.ts
-      entities:
-        - Member
-        - DataUnionStatsBucket
-      abis:
-        - name: DataUnionTemplate
-          file: ./abis/DataUnionTemplate.json
-      eventHandlers:
-        - event: MemberJoined(indexed address)
-          handler: handleMemberJoined
-        - event: MemberParted(indexed address,indexed uint8)
-          handler: handleMemberParted
-  # New DU polygon/matic <<
