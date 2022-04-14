@@ -70,7 +70,7 @@ docker-setup: ## Setup Docker environment
 docker-clean: ## Clean Docker environment
 	docker network rm $(DOCKER_NETWORK)
 
-MONGO_VERSION:=5.0.6-focal
+MONGO_VERSION:=5.0.7-focal
 MONGO_USERNAME:=root
 MONGO_PASSWORD:=example
 MONGO_DATABASE:=dujsdb
