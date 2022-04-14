@@ -9,6 +9,8 @@ This project uses [`Makefile`](./blob/main/Makefile) instead of the usual `packa
 
 [Nvm](https://github.com/nvm-sh/nvm#readme) is used to install Node and npm. Node version is specified in [`.nvmrc`](./blob/main/.nvmrc).
 
+Project uses MongoDB as a database. MongoDB is deployed to [Mongo Cloud Atlas](https://cloud.mongodb.com).
+
 ### Common Commands
 
 Install dependencies from package.json to get started
