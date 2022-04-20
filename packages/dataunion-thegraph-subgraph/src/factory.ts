@@ -1,8 +1,8 @@
 import { log } from '@graphprotocol/graph-ts'
 
-import { SidechainDUCreated } from '../generated/DataUnionFactorySidechain/DataUnionFactorySidechain'
+import { SidechainDUCreated } from '../generated/DataUnionFactory/DataUnionFactory'
 import { DataUnion } from '../generated/schema'
-import { DataUnionSidechain } from '../generated/templates'
+import { DataUnion as DataUnion2 } from '../generated/templates'
 
 export function handleDUCreated(event: SidechainDUCreated): void {
     log.warning('handleDUCreated: sidechainaddress={} blockNumber={}', [event.params.sidenet.toHexString(), event.block.number.toString()])
@@ -14,5 +14,5 @@ export function handleDUCreated(event: SidechainDUCreated): void {
     dataunion.save()
 
     // Instantiate template
-    DataUnionSidechain.create(event.params.sidenet)
+    DataUnion2.create(event.params.sidenet)
 }
