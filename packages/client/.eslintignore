@@ -1,0 +1,10 @@
+node_modules/**
+coverage/**
+dist/**
+streamr-docker-dev/**
+vendor/**
+test/exports/**
+test/benchmarks/**
+test/memory/*
+docs/**
+.idea/**

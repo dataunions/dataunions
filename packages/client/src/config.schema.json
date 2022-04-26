@@ -1,0 +1,114 @@
+{
+  "$id": "config.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "DataUnion configuration format",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "dataUnion": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "minimumWithdrawTokenWei": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "payForTransport": {
+          "type": "boolean"
+        },
+        "factoryMainnetAddress": {
+          "type": "string",
+          "format": "ethereum-address"
+        },
+        "factorySidechainAddress": {
+          "type": "string",
+          "format": "ethereum-address"
+        },
+        "templateMainnetAddress": {
+          "type": "string",
+          "format": "ethereum-address"
+        },
+        "templateSidechainAddress": {
+          "type": "string",
+          "format": "ethereum-address"
+        }
+      }
+    },
+    "dataUnionBinanceWithdrawalChainRPCs": {
+      "$ref": "#/definitions/chainConnectionInfoList"
+    },
+    "dataUnionChainRPCs": {
+      "$ref": "#/definitions/chainConnectionInfoList"
+    },
+    "tokenAddress": {
+      "type": "string",
+      "format": "ethereum-address"
+    },
+    "tokenSidechainAddress": {
+      "type": "string",
+      "format": "ethereum-address"
+    }
+  },
+  "definitions": {
+    "rpcProviderConfig": {
+      "type": "object",
+      "required": [
+        "url"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "user": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "allowInsecureAuthentication": {
+          "type": "boolean"
+        },
+        "timeout": {
+          "type": "number",
+          "default": 120000
+        },
+        "headers": {
+          "type": "object"
+        }
+      }
+    },
+    "chainConnectionInfoList": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rpcs",
+        "chainId"
+      ],
+      "properties": {
+        "chainId": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "rpcs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/rpcProviderConfig"
+          }
+        }
+      }
+    }
+  }
+}
