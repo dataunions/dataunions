@@ -8,8 +8,8 @@
     "./packages/*"
   ],
   "scripts": {
-    "clean": "npm run clean -ws",
-    "build": "npm run build -ws",
+    "clean": "npm run clean -ws --if-present",
+    "build": "npm run build -ws --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "format-check": "npm run format-check -w=data-union-solidity",
     "test": "npm run test --workspaces --if-present",
