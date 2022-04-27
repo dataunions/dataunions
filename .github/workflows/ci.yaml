@@ -13,7 +13,6 @@ on:
 jobs:
   build:
     name: Build
-    timeout-minutes: 20
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.experimental }}
     strategy:
@@ -42,16 +41,17 @@ jobs:
             ${{ runner.os }}-node-
       - name: Install dependencies
         run: |
-          npm ci
-      - name: Run lint, build and unit test
+          npm ci --no-audit
+      - name: Run lint
+        run:  npm run lint
+      - name: Build and unit test
         run: |
-          npm run lint
           npm run build
           npm run test
       - name: Start Streamr Docker Stack
         uses: streamr-dev/streamr-docker-dev-action@v1.0.0
         with:
-          services-to-start: 'parity-sidechain-node0 parity-node0 bridge'
+          services-to-start: 'parity-sidechain-node0 parity-node0 bridge core-api'
       - name: Integration Test
         env:
           DEBUG: '*'

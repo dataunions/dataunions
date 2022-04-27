@@ -27,7 +27,7 @@
     "build-node": "npm run bootstrap-dist && tsc --build ./tsconfig.node.json",
     "postbuild-node": "npm run copy-package",
     "lint": "eslint --cache --cache-location=node_modules/.cache/.eslintcache/ '*/**/*.{js,ts}'",
-    "test": "jest --detectOpenHandles",
+    "test-integration": "jest --maxWorkers=1 test/end-to-end",
     "clean": "jest --clearCache || true; rm -rf dist vendor *.tsbuildinfo node_modules/.cache || true"
   },
   "engines": {
