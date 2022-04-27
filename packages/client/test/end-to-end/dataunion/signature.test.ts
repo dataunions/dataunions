@@ -4,15 +4,15 @@ import debug from 'debug'
 
 import { getEndpointUrl } from '../../../src/utils'
 import { DataUnionClient } from '../../../src/DataUnionClient'
-import Contracts from '../../../src/dataunion/Contracts'
+import Contracts from '../../../src/Contracts'
 import DataUnionAPI from '../../../src/DataUnionAPI'
 import * as Token from '../../../contracts/TestToken.json'
 import * as DataUnionSidechain from '../../../contracts/DataUnionSidechain.json'
 import { dataUnionAdminPrivateKey, providerSidechain } from '../devEnvironment'
 import { ConfigTest } from '../../../src/ConfigTest'
 import { authFetch } from '../../../src/authFetch'
-import { BrubeckConfig } from '../../../src/Config'
-import { DataUnion } from '../../../src'
+import { createStrictConfig } from '../../../src/Config'
+import { DataUnion } from '../../../src/DataUnion'
 
 const log = debug('DataUnionClient::DataUnion::integration-test-signature')
 
@@ -21,7 +21,12 @@ const adminWalletSidechain = new Wallet(dataUnionAdminPrivateKey, providerSidech
 describe('DataUnion signature', () => {
 
     it('check validity', async () => {
-        const adminClient = new DataUnionClient(ConfigTest)
+        const adminClient = new DataUnionClient({
+            ...ConfigTest,
+            auth: {
+                privateKey: dataUnionAdminPrivateKey
+            }
+        })
         const dataUnion = await adminClient.deployDataUnion()
         const dataUnionAddress = dataUnion.getAddress()
         const secret = await dataUnion.createSecret('test secret')
@@ -52,7 +57,12 @@ describe('DataUnion signature', () => {
         })
         await memberDataUnion.join(secret)
 
-        const contracts = new Contracts(new DataUnionAPI(adminClient, null!, BrubeckConfig(ConfigTest)))
+        const contracts = new Contracts(new DataUnionAPI(adminClient, null!, createStrictConfig({
+            ...ConfigTest,
+            auth: {
+                privateKey: dataUnionAdminPrivateKey
+            }
+        })))
         const contractMainnet = await contracts.getMainnetContract(dataUnion.getAddress())
         const sidechainContractLimited = await contracts.getSidechainContract(dataUnion.getAddress())
         const tokenSidechainAddress = await contractMainnet.tokenSidechain()
@@ -88,7 +98,12 @@ describe('DataUnion signature', () => {
         const dataUnion = new DataUnion(
             '0x2222222222222222222222222222222222222222',
             '0x2222222222222222222222222222222222222222',
-            new DataUnionAPI(client, null!, BrubeckConfig(ConfigTest))
+            new DataUnionAPI(client, null!, createStrictConfig({
+                ...ConfigTest,
+                auth: {
+                    privateKey: dataUnionAdminPrivateKey
+                }
+            }))
         )
         const to = '0x3333333333333333333333333333333333333333'
         const withdrawn = BigNumber.from('4000000000000000')

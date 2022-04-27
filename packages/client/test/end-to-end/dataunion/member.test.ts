@@ -2,13 +2,12 @@ import { utils, Wallet } from 'ethers'
 import debug from 'debug'
 
 import { DataUnionClient } from '../../../src/DataUnionClient'
-import { getSidechainTestWallet, tokenAdminWalletSidechain } from '../devEnvironment'
+import { dataUnionAdminPrivateKey, getSidechainTestWallet, tokenAdminWalletSidechain } from '../devEnvironment'
 import { ConfigTest } from '../../../src/ConfigTest'
 import { DataUnion, JoinRequestState } from '../../../src/DataUnion'
-import { createMockAddress, expectInvalidAddress } from '../../test-utils/utils'
+import { createMockAddress, expectInvalidAddress, fastWallet } from '../../test-utils/utils'
 import { authFetch } from '../../../src/authFetch'
 import { getEndpointUrl } from '../../../src/utils'
-import { fastWallet } from 'streamr-test-utils'
 
 const { parseEther } = utils
 
@@ -21,7 +20,12 @@ describe('DataUnion member', () => {
 
     beforeAll(async () => {
         log('clientOptions: %O', ConfigTest)
-        const adminClient = new DataUnionClient(ConfigTest)
+        const adminClient = new DataUnionClient({
+            ...ConfigTest,
+            auth: {
+                privateKey: dataUnionAdminPrivateKey
+            }
+        })
         dataUnion = await adminClient.deployDataUnion()
 
         // product is needed for join requests to analyze the DU version
@@ -118,7 +122,7 @@ describe('DataUnion member', () => {
         expect(isMember).toBe(false)
     }, 60000)
 
-    it('invalid address', () => {
+    it('invalid address', async () => {
         return Promise.all([
             expectInvalidAddress(() => dataUnion.addMembers(['invalid-address'])),
             expectInvalidAddress(() => dataUnion.removeMembers(['invalid-address'])),

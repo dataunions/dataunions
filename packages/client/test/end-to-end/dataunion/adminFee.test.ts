@@ -1,3 +1,5 @@
+import 'reflect-metadata'
+
 import { Contract, providers, Wallet } from 'ethers'
 import { parseEther, formatEther } from 'ethers/lib/utils'
 import debug from 'debug'
@@ -8,7 +10,8 @@ import Contracts from '../../../src/Contracts'
 import DataUnionAPI from '../../../src/DataUnionAPI'
 import { dataUnionAdminPrivateKey, tokenAdminPrivateKey } from '../devEnvironment'
 import { ConfigTest } from '../../../src/ConfigTest'
-import { BrubeckConfig } from '../../../src/Config'
+import { createStrictConfig } from '../../../src/Config'
+import { getCreateClient } from '../../test-utils/utils'
 
 const log = debug('DataUnionClient::DataUnion::integration-test-adminFee')
 
@@ -17,6 +20,7 @@ const providerMainnet = new providers.JsonRpcProvider(ConfigTest.mainChainRPCs.r
 const adminWalletMainnet = new Wallet(dataUnionAdminPrivateKey, providerMainnet)
 
 describe('DataUnion admin fee', () => {
+    const createClient = getCreateClient()
     let adminClient: DataUnionClient
 
     const tokenAdminWallet = new Wallet(tokenAdminPrivateKey, providerMainnet)
@@ -31,7 +35,11 @@ describe('DataUnion admin fee', () => {
         log(`Minting 100 tokens to ${adminWalletMainnet.address}`)
         const tx1 = await tokenMainnet.mint(adminWalletMainnet.address, parseEther('100'))
         await tx1.wait()
-        adminClient = new DataUnionClient(ConfigTest)
+        adminClient = await createClient({
+            auth: {
+                privateKey: dataUnionAdminPrivateKey
+            }
+        })
     }, 10000)
 
     it('can set admin fee', async () => {
@@ -53,7 +61,7 @@ describe('DataUnion admin fee', () => {
 
         const amount = parseEther('2')
 
-        const contracts = new Contracts(new DataUnionAPI(adminClient, null!, BrubeckConfig(ConfigTest)))
+        const contracts = new Contracts(new DataUnionAPI(adminClient, null!, createStrictConfig(ConfigTest)))
         const contract = await contracts.getMainnetContract(dataUnion.getAddress())
         const tokenAddress = await contract.tokenMainnet()
         const adminTokenMainnet = new Contract(tokenAddress, Token.abi, adminWalletMainnet)

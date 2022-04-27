@@ -27,7 +27,7 @@
     "fix-esm": "mkdir -p dist/src/; cp -Rf src/index-esm.mjs dist/src/index-esm.mjs",
     "build-node": "npm run bootstrap-dist && tsc --build ./tsconfig.node.json",
     "postbuild-node": "npm run copy-package",
-    "eslint": "eslint --cache --cache-location=node_modules/.cache/.eslintcache/ '*/**/*.{js,ts}'",
+    "lint": "eslint --cache --cache-location=node_modules/.cache/.eslintcache/ '*/**/*.{js,ts}'",
     "test": "jest --detectOpenHandles",
     "clean": "jest --clearCache || true; rm -rf dist vendor *.tsbuildinfo node_modules/.cache || true"
   },

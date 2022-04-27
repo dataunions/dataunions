@@ -1,4 +1,3 @@
-import crypto from 'crypto'
 import { writeHeapSnapshot } from 'v8'
 import { DependencyContainer } from 'tsyringe'
 
@@ -99,6 +98,10 @@ export function addAfterFn() {
 
 export const createMockAddress = () => '0x000000000000000000000000000' + Date.now()
 
+export function fastWallet() {
+    return new Wallet(createMockAddress())
+}
+
 export function getRandomClient() {
     const wallet = new Wallet(`0x100000000000000000000000000000000000000012300000001${Date.now()}`)
     return new DataUnionClient({
@@ -112,15 +115,6 @@ export function getRandomClient() {
 export const expectInvalidAddress = (operation: () => Promise<any>) => {
     return expect(() => operation()).rejects.toThrow()
 }
-
-// eslint-disable-next-line no-undef
-const getTestName = (module: NodeModule) => {
-    const fileNamePattern = new RegExp('.*/(.*).test\\...')
-    const groups = module.filename.match(fileNamePattern)
-    return (groups !== null) ? groups[1] : module.filename
-}
-
-const randomTestRunId = process.pid != null ? process.pid : crypto.randomBytes(4).toString('hex')
 
 export const getCreateClient = (defaultOpts = {}, defaultParentContainer?: DependencyContainer) => {
     const addAfter = addAfterFn()

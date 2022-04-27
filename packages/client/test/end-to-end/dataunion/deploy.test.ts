@@ -3,6 +3,7 @@ import debug from 'debug'
 import { DataUnionClient } from '../../../src/DataUnionClient'
 import { ConfigTest } from '../../../src/ConfigTest'
 import { createMockAddress } from '../../test-utils/utils'
+import {dataUnionAdminPrivateKey} from '../devEnvironment'
 
 const log = debug('DataUnionClient::DataUnion::integration-test-deploy')
 
@@ -12,7 +13,12 @@ describe('DataUnion deploy', () => {
 
     beforeAll(async () => {
         log('ClientOptions: %O', ConfigTest)
-        adminClient = new DataUnionClient(ConfigTest as any)
+        adminClient = new DataUnionClient({
+            ...ConfigTest,
+            auth: {
+                privateKey: dataUnionAdminPrivateKey
+            }
+        })
     }, 60000)
 
     describe('owner', () => {

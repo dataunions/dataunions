@@ -12,21 +12,28 @@ const privateKey = '0xe5af7834455b7239881b85be89d905d6881dcb4751063897f12be1b0dd
 const oneAddress = '0x0000000000000000000000000000000000000001'
 
 describe('Binance Adapter functions', () => {
+
     it('can set binance recipient for self', async () => {
-        const adminClient = new DataUnionClient(ConfigTest)
+        const adminClient = new DataUnionClient({
+            ...ConfigTest,
+            auth: { privateKey: dataUnionAdminPrivateKey }
+        })
         await adminClient.setBinanceDepositAddress(oneAddress)
         expect(await adminClient.getBinanceDepositAddress(adminWalletSidechain.address)).toBe(oneAddress)
         expect(await adminClient.getBinanceDepositAddress(oneAddress)).toBe(undefined)
     }, 100000)
 
     it('can set binance recipient for other with signature', async () => {
+        const adminClient = new DataUnionClient({
+            ...ConfigTest,
+            auth: { privateKey: dataUnionAdminPrivateKey }
+        })
         const client2 = new DataUnionClient({
             ...ConfigTest,
             auth: { privateKey }
         })
         const client2address = await client2.getAddress()
         const sig = await client2.signSetBinanceRecipient(oneAddress)
-        const adminClient = new DataUnionClient(ConfigTest)
         await adminClient.setBinanceDepositAddressFromSignature(client2address, oneAddress, sig)
         expect(await adminClient.getBinanceDepositAddress(client2address)).toBe(oneAddress)
     }, 100000)

@@ -15,11 +15,11 @@ import {
 } from '../devEnvironment'
 import { ConfigTest } from '../../../src/ConfigTest'
 import { getEndpointUrl, until } from '../../../src/utils'
-import { StreamrClient } from '../../../src/StreamrClient'
+import { DataUnionClient } from '../../../src/DataUnionClient'
 import { EthereumAddress } from '../../../src/types'
 import { authFetch } from '../../../src/authFetch'
 
-const log = debug('StreamrClient::DataUnion::integration-test-transfer')
+const log = debug('DataUnionClient::DataUnion::integration-test-transfer')
 
 const tokenAdminWallet = new Wallet(tokenAdminPrivateKey, providerMainnet)
 const tokenMainnet = new Contract(ConfigTest.tokenAddress, Token.abi, tokenAdminWallet)
@@ -30,7 +30,7 @@ const tokenSidechain = new Contract(ConfigTest.tokenSidechainAddress, Token.abi,
 async function addMember(dataUnionAddress: EthereumAddress, secret: string) {
     const privateKey = `0x100000000000000000000000000000000000000012300000001${Date.now()}`
     log('Joining a new member with privatekey %s', privateKey)
-    const memberClient = new StreamrClient({
+    const memberClient = new DataUnionClient({
         ...ConfigTest,
         auth: {
             privateKey
@@ -104,7 +104,7 @@ describe('DataUnion earnings transfer methods', () => {
         const adminWallet = getMainnetTestWallet(testIndex)
         const adminWalletSidechain = getSidechainTestWallet(testIndex)
 
-        const adminClient = new StreamrClient({
+        const adminClient = new DataUnionClient({
             ...ConfigTest,
             auth: {
                 privateKey: adminWallet.privateKey,
@@ -169,7 +169,7 @@ describe('DataUnion earnings transfer methods', () => {
             dataUnion
         } = await setupTest(1)
 
-        const memberClient = new StreamrClient({
+        const memberClient = new DataUnionClient({
             ...ConfigTest,
             auth: {
                 privateKey: memberWallet.privateKey,

@@ -1,7 +1,7 @@
 import debug from 'debug'
 
 import { DataUnionClient } from '../../../src/DataUnionClient'
-import { providerMainnet, providerSidechain } from '../devEnvironment'
+import { dataUnionAdminPrivateKey, providerMainnet, providerSidechain } from '../devEnvironment'
 import { getRandomClient, expectInvalidAddress } from '../../test-utils/utils'
 import { ConfigTest } from '../../../src/ConfigTest'
 
@@ -11,7 +11,6 @@ const log = debug('DataUnionClient::DataUnion::integration-test-calculate')
 // -> generate new codehashes for calculateDataUnionMainnetAddress() and calculateDataUnionSidechainAddress()
 
 describe('DataUnion calculate', () => {
-
     it('calculate DU address before deployment', async () => {
         log('Connecting to Ethereum networks, clientOptions: %O', ConfigTest)
         const network = await providerMainnet.getNetwork()
@@ -19,7 +18,12 @@ describe('DataUnion calculate', () => {
         const network2 = await providerSidechain.getNetwork()
         log('Connected to sidechain network: ', JSON.stringify(network2))
 
-        const adminClient = new DataUnionClient(ConfigTest)
+        const adminClient = new DataUnionClient({
+            ...ConfigTest,
+            auth: {
+                privateKey: dataUnionAdminPrivateKey
+            }
+        })
         const dataUnionName = 'test-' + Date.now()
         const {
             mainnetAddress,

@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { KeyServer } = require('streamr-test-utils')
+const { KeyServer } = require('./test/test-utils/KeyServer')
 
 export default async () => {
     await KeyServer.stopIfRunning()

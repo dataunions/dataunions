@@ -10,10 +10,10 @@
   "scripts": {
     "clean": "npm run clean -ws",
     "build": "npm run build -ws",
-    "lint": "npm run lint -ws",
+    "lint": "npm run lint --workspaces --if-present",
     "format-check": "npm run format-check -w=data-union-solidity",
-    "test": "npm run test -w=data-union-solidity",
-    "integration-test": "npm run integration-test -w=data-union-solidity",
+    "test": "npm run test --workspaces --if-present",
+    "integration-test": "npm run integration-test --workspaces --if-present",
     "graph1_build": "npm run deploy -w=data-union-solidity",
     "graph2_copyInfo": "./scripts/copyAbis.sh",
     "graph3_build": "npm run doAll -w=streamregistry-thegraph-subgraph",

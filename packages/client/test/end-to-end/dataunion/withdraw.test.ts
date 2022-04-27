@@ -6,8 +6,8 @@ import { keccak256 } from '@ethersproject/keccak256'
 import debug from 'debug'
 
 import { getEndpointUrl, until } from '../../../src/utils'
-import { StreamrClient } from '../../../src/StreamrClient'
-import Contracts from '../../../src/dataunion/Contracts'
+import { DataUnionClient } from '../../../src/DataUnionClient'
+import Contracts from '../../../src/Contracts'
 import DataUnionAPI from '../../../src/DataUnionAPI'
 import * as Token from '../../../contracts/TestToken.json'
 import * as DataUnionSidechain from '../../../contracts/DataUnionSidechain.json'
@@ -15,11 +15,11 @@ import { dataUnionAdminPrivateKey, tokenAdminPrivateKey } from '../devEnvironmen
 import { ConfigTest } from '../../../src/ConfigTest'
 import { authFetch } from '../../../src/authFetch'
 import { expectInvalidAddress } from '../../test-utils/utils'
-import { AmbMessageHash, DataUnionWithdrawOptions, MemberStatus, DataUnion } from '../../../src/dataunion/DataUnion'
+import { AmbMessageHash, DataUnionWithdrawOptions, MemberStatus, DataUnion } from '../../../src/DataUnion'
 import { EthereumAddress } from '../../../src/types'
-import { BrubeckConfig } from '../../../src/Config'
+import { createStrictConfig } from '../../../src/Config'
 
-const log = debug('StreamrClient::DataUnion::integration-test-withdraw')
+const log = debug('DataUnionClient::DataUnion::integration-test-withdraw')
 
 const providerSidechain = new providers.JsonRpcProvider(ConfigTest.dataUnionChainRPCs.rpcs[0])
 const providerMainnet = new providers.JsonRpcProvider(ConfigTest.mainChainRPCs.rpcs[0])
@@ -36,15 +36,15 @@ let testWalletId = 1000000 // ensure fixed length as string
 // TODO: to speed up this test, try re-using the data union?
 let validDataUnion: DataUnion | undefined // use this in a test that only wants a valid data union but doesn't mutate it
 async function getDataUnion(): Promise<DataUnion> {
-    return validDataUnion || new StreamrClient(ConfigTest).deployDataUnion()
+    return validDataUnion || new DataUnionClient(ConfigTest).deployDataUnion()
 }
 
 async function testWithdraw(
     withdraw: (
         dataUnionAddress: EthereumAddress,
-        memberClient: StreamrClient,
+        memberClient: DataUnionClient,
         memberWallet: Wallet,
-        adminClient: StreamrClient
+        adminClient: DataUnionClient
     ) => Promise<ContractReceipt | AmbMessageHash | null>,
     recipientAddress: EthereumAddress | null, // null means memberWallet.address
     requiresMainnetETH: boolean,
@@ -61,7 +61,12 @@ async function testWithdraw(
     const tx1 = await tokenMainnet.mint(adminWalletMainnet.address, parseEther('100'))
     await tx1.wait()
 
-    const adminClient = new StreamrClient(ConfigTest)
+    const adminClient = new DataUnionClient({
+        ...ConfigTest,
+        auth: {
+            privateKey: dataUnionAdminPrivateKey
+        }
+    })
 
     const dataUnion = await adminClient.deployDataUnion()
     validDataUnion = dataUnion // save for later re-use
@@ -82,7 +87,7 @@ async function testWithdraw(
         log('Sent 0.1 mainnet-ETH to %s', memberWallet.address)
     }
 
-    const memberClient = new StreamrClient({
+    const memberClient = new DataUnionClient({
         ...ConfigTest,
         auth: {
             privateKey: memberWallet.privateKey
@@ -107,11 +112,16 @@ async function testWithdraw(
     const res2 = await dataUnionMember.join(secret)
     log('Member joined data union %O', res2)
 
-    const contracts = new Contracts(new DataUnionAPI(adminClient, null!, BrubeckConfig(ConfigTest)))
+    const contracts = new Contracts(new DataUnionAPI(adminClient, null!, createStrictConfig({
+        ...ConfigTest,
+        auth: {
+            privateKey: dataUnionAdminPrivateKey
+        }
+    })))
     const mainnetContract = await contracts.getMainnetContract(dataUnion.getAddress())
     const sidechainContractLimited = await contracts.getSidechainContract(dataUnion.getAddress())
 
-    // make a "full" sidechain contract object that has all functions, not just those required by StreamrClient
+    // make a "full" sidechain contract object that has all functions, not just those required by DataUnionClient
     const sidechainContract = new Contract(sidechainContractLimited.address, DataUnionSidechain.abi, adminWalletSidechain)
 
     const tokenAddress = await mainnetContract.tokenMainnet()
@@ -216,11 +226,21 @@ providerSidechain.on({
         return
     }
     const hash = keccak256(message)
-    const adminClient = new StreamrClient(ConfigTest)
+    const adminClient = new DataUnionClient({
+        ...ConfigTest,
+        auth: {
+            privateKey: dataUnionAdminPrivateKey
+        }
+    })
     const dataUnion = new DataUnion(
         '0x0000000000000000000000000000000000000000',
         '0x0000000000000000000000000000000000000000',
-        new DataUnionAPI(adminClient, null!, BrubeckConfig(ConfigTest))
+        new DataUnionAPI(adminClient, null!, createStrictConfig({
+            ...ConfigTest,
+            auth: {
+                privateKey: dataUnionAdminPrivateKey
+            }
+        }))
     )
     await dataUnion.transportMessage(hash, 100, 120000)
     log('Transported message (hash=%s)', hash)

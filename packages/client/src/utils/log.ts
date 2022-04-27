@@ -44,18 +44,18 @@ if ('inspectOpts' in D) {
     })
 }
 
-const streamrDebug = Debug('Streamr')
+const dataUnionDebug = Debug('DataUnion')
 
-const StreamrDebug = Object.assign(streamrDebug.extend.bind(streamrDebug), {
+const DataUnionDebug = Object.assign(dataUnionDebug.extend.bind(dataUnionDebug), {
     enable: Debug.enable.bind(Debug),
     disable: Debug.disable.bind(Debug),
     humanize: Debug.humanize.bind(Debug) as (v: any) => string,
 })
 
-export type Debugger = ReturnType<typeof StreamrDebug>
+export type Debugger = ReturnType<typeof DataUnionDebug>
 
 export {
-    StreamrDebug as Debug,
+    DataUnionDebug as Debug,
 }
 
 export function inspect(value: any, inspectOptions: Parameters<typeof util.inspect>[1] = {}): string {

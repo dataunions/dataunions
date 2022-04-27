@@ -1,7 +1,7 @@
 jest.mock('node-fetch')
 
 import fetch from 'node-fetch'
-import { fastPrivateKey } from 'streamr-test-utils'
+import { createMockAddress } from '../../test-utils/utils'
 
 import { DataUnionClient } from '../../../src/DataUnionClient'
 
@@ -33,10 +33,9 @@ describe('authFetch', () => {
         client = new DataUnionClient({
             ...ConfigTest,
             auth: {
-                privateKey: fastPrivateKey()
+                privateKey: createMockAddress()
             },
         })
-        await client.connect()
         expect(fetch).not.toHaveBeenCalled() // will get called in background though (questionable behaviour)
         // @ts-expect-error
         await client.session.getSessionToken() // this ensures authentication completed

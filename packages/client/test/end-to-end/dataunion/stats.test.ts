@@ -5,11 +5,11 @@ import { ConfigTest } from '../../../src/ConfigTest'
 import { DataUnion, MemberStatus } from '../../../src/DataUnion'
 import { getRandomClient, createMockAddress, expectInvalidAddress } from '../../test-utils/utils'
 import { BigNumber } from '@ethersproject/bignumber'
+import {dataUnionAdminPrivateKey} from '../devEnvironment'
 
 const log = debug('DataUnionClient::DataUnion::integration-test-stats')
 
 describe('DataUnion stats', () => {
-
     let adminClient: DataUnionClient
     let dataUnion: DataUnion
     let queryClient: DataUnionClient
@@ -23,7 +23,13 @@ describe('DataUnion stats', () => {
 
     beforeAll(async () => {
         log('ClientOptions: %O', ConfigTest)
-        adminClient = new DataUnionClient(ConfigTest as any)
+        adminClient = new DataUnionClient({
+            ...ConfigTest,
+            auth: {
+                privateKey: dataUnionAdminPrivateKey
+            }
+        })
+
         dataUnion = await adminClient.deployDataUnion()
         await dataUnion.addMembers(activeMemberAddressList.concat([inactiveMember]))
         await dataUnion.removeMembers([inactiveMember])
