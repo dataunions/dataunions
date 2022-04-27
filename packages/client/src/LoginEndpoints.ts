@@ -1,12 +1,13 @@
 /**
  * Login Endpoints Wrapper.
  */
-import { scoped, Lifecycle, inject, delay } from 'tsyringe'
-import { Ethereum } from './Ethereum'
-import { instanceId } from './utils'
-import { Context } from './utils/Context'
-import { Rest } from './Rest'
-import { EthereumAddress } from './types'
+
+import {delay, inject, Lifecycle, scoped} from 'tsyringe'
+import {Ethereum} from './Ethereum'
+import {Rest} from './Rest'
+import {EthereumAddress} from './types'
+import {instanceId} from './utils'
+import {Context} from './utils/Context'
 
 export interface TokenObject {
     token: string

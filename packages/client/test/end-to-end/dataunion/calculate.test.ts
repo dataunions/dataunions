@@ -1,11 +1,11 @@
 import debug from 'debug'
 
-import { StreamrClient } from '../../../src/StreamrClient'
+import { DataUnionClient } from '../../../src/DataUnionClient'
 import { providerMainnet, providerSidechain } from '../devEnvironment'
 import { getRandomClient, expectInvalidAddress } from '../../test-utils/utils'
 import { ConfigTest } from '../../../src/ConfigTest'
 
-const log = debug('StreamrClient::DataUnion::integration-test-calculate')
+const log = debug('DataUnionClient::DataUnion::integration-test-calculate')
 
 // This test will fail when new docker images are pushed with updated DU smart contracts
 // -> generate new codehashes for calculateDataUnionMainnetAddress() and calculateDataUnionSidechainAddress()
@@ -19,7 +19,7 @@ describe('DataUnion calculate', () => {
         const network2 = await providerSidechain.getNetwork()
         log('Connected to sidechain network: ', JSON.stringify(network2))
 
-        const adminClient = new StreamrClient(ConfigTest)
+        const adminClient = new DataUnionClient(ConfigTest)
         const dataUnionName = 'test-' + Date.now()
         const {
             mainnetAddress,

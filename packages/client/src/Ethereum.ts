@@ -1,19 +1,19 @@
 /**
  * Config and utilities for interating with identity & Ethereum chain.
  */
-import { scoped, Lifecycle, inject } from 'tsyringe'
-import { Wallet } from '@ethersproject/wallet'
-import { getDefaultProvider, JsonRpcProvider, Web3Provider } from '@ethersproject/providers'
-import type { ExternalProvider, Provider } from '@ethersproject/providers'
-import type { Signer } from '@ethersproject/abstract-signer'
-import type { BigNumber } from '@ethersproject/bignumber'
-import { computeAddress } from '@ethersproject/transactions'
-import { getAddress } from '@ethersproject/address'
-import type { ConnectionInfo } from '@ethersproject/web'
-import type { Overrides } from '@ethersproject/contracts'
+import type {Signer} from '@ethersproject/abstract-signer'
+import {getAddress} from '@ethersproject/address'
+import type {BigNumber} from '@ethersproject/bignumber'
+import type {Overrides} from '@ethersproject/contracts'
+import type {ExternalProvider, Provider} from '@ethersproject/providers'
+import {getDefaultProvider, JsonRpcProvider, Web3Provider} from '@ethersproject/providers'
+import {computeAddress} from '@ethersproject/transactions'
+import {Wallet} from '@ethersproject/wallet'
+import type {ConnectionInfo} from '@ethersproject/web'
+import {inject, Lifecycle, scoped} from 'tsyringe'
 
-import { ConfigInjectionToken } from './Config'
-import { EthereumAddress } from './types'
+import {ConfigInjectionToken} from './Config'
+import {EthereumAddress} from './types'
 
 export type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never }
 export type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U

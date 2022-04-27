@@ -1,18 +1,18 @@
 import debug from 'debug'
 
-import { StreamrClient } from '../../../src/StreamrClient'
+import { DataUnionClient } from '../../../src/DataUnionClient'
 import { ConfigTest } from '../../../src/ConfigTest'
-import { DataUnion, MemberStatus } from '../../../src/dataunion/DataUnion'
+import { DataUnion, MemberStatus } from '../../../src/DataUnion'
 import { getRandomClient, createMockAddress, expectInvalidAddress } from '../../test-utils/utils'
 import { BigNumber } from '@ethersproject/bignumber'
 
-const log = debug('StreamrClient::DataUnion::integration-test-stats')
+const log = debug('DataUnionClient::DataUnion::integration-test-stats')
 
 describe('DataUnion stats', () => {
 
-    let adminClient: StreamrClient
+    let adminClient: DataUnionClient
     let dataUnion: DataUnion
-    let queryClient: StreamrClient
+    let queryClient: DataUnionClient
     const nonce = Date.now()
     const activeMemberAddressList = [
         `0x100000000000000000000000000${nonce}`,
@@ -23,7 +23,7 @@ describe('DataUnion stats', () => {
 
     beforeAll(async () => {
         log('ClientOptions: %O', ConfigTest)
-        adminClient = new StreamrClient(ConfigTest as any)
+        adminClient = new DataUnionClient(ConfigTest as any)
         dataUnion = await adminClient.deployDataUnion()
         await dataUnion.addMembers(activeMemberAddressList.concat([inactiveMember]))
         await dataUnion.removeMembers([inactiveMember])

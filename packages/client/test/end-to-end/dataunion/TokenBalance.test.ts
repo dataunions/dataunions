@@ -7,10 +7,10 @@ import { tokenAdminPrivateKey, tokenMediatorAddress } from '../devEnvironment'
 import { ConfigTest } from '../../../src/ConfigTest'
 import { BigNumber, providers } from 'ethers'
 import { parseEther } from 'ethers/lib/utils'
-import { EthereumAddress } from 'streamr-client-protocol'
+import { EthereumAddress } from '../../../src/types'
 import { until } from '../../../src/utils'
 import debug from 'debug'
-import StreamrClient from '../../../src'
+import { DataUnionClient } from '../../../src/DataUnionClient'
 
 const providerMainnet = new providers.JsonRpcProvider(ConfigTest.mainChainRPCs.rpcs[0])
 const providerSidechain = new providers.JsonRpcProvider(ConfigTest.dataUnionChainRPCs.rpcs[0])
@@ -19,7 +19,7 @@ const tokenAdminSidechainWallet = new Wallet(tokenAdminPrivateKey, providerSidec
 const tokenMainnet = new Contract(ConfigTest.tokenAddress, Token.abi, tokenAdminMainnetWallet)
 const tokenSidechain = new Contract(ConfigTest.tokenSidechainAddress, Token.abi, tokenAdminSidechainWallet)
 
-const log = debug('StreamrClient::test::token-balance')
+const log = debug('DataUnionClient::test::token-balance')
 
 const sendTokensToSidechain = async (receiverAddress: EthereumAddress, amount: BigNumber) => {
     const relayTokensAbi = [
@@ -64,7 +64,7 @@ const sendTokensToSidechain = async (receiverAddress: EthereumAddress, amount: B
 }
 
 describe('Token', () => {
-    let client: StreamrClient
+    let client: DataUnionClient
 
     beforeAll(async () => {
         client = getRandomClient()

@@ -3,9 +3,9 @@ import { parseEther } from 'ethers/lib/utils'
 import debug from 'debug'
 
 import { getEndpointUrl } from '../../../src/utils'
-import { StreamrClient } from '../../../src/StreamrClient'
+import { DataUnionClient } from '../../../src/DataUnionClient'
 import Contracts from '../../../src/dataunion/Contracts'
-import DataUnionAPI from '../../../src/dataunion'
+import DataUnionAPI from '../../../src/DataUnionAPI'
 import * as Token from '../../../contracts/TestToken.json'
 import * as DataUnionSidechain from '../../../contracts/DataUnionSidechain.json'
 import { dataUnionAdminPrivateKey, providerSidechain } from '../devEnvironment'
@@ -14,14 +14,14 @@ import { authFetch } from '../../../src/authFetch'
 import { BrubeckConfig } from '../../../src/Config'
 import { DataUnion } from '../../../src'
 
-const log = debug('StreamrClient::DataUnion::integration-test-signature')
+const log = debug('DataUnionClient::DataUnion::integration-test-signature')
 
 const adminWalletSidechain = new Wallet(dataUnionAdminPrivateKey, providerSidechain)
 
 describe('DataUnion signature', () => {
 
     it('check validity', async () => {
-        const adminClient = new StreamrClient(ConfigTest)
+        const adminClient = new DataUnionClient(ConfigTest)
         const dataUnion = await adminClient.deployDataUnion()
         const dataUnionAddress = dataUnion.getAddress()
         const secret = await dataUnion.createSecret('test secret')
@@ -30,7 +30,7 @@ describe('DataUnion signature', () => {
         const memberWallet = new Wallet(`0x100000000000000000000000000000000000000012300000001${Date.now()}`, providerSidechain)
         const member2Wallet = new Wallet(`0x100000000000000000000000000000000000000012300000002${Date.now()}`, providerSidechain)
 
-        const memberClient = new StreamrClient({
+        const memberClient = new DataUnionClient({
             ...ConfigTest,
             auth: {
                 privateKey: memberWallet.privateKey
@@ -58,7 +58,7 @@ describe('DataUnion signature', () => {
         const tokenSidechainAddress = await contractMainnet.tokenSidechain()
         const tokenSidechain = new Contract(tokenSidechainAddress, Token.abi, adminWalletSidechain)
 
-        // make a "full" sidechain contract object that has all functions, not just those required by StreamrClient
+        // make a "full" sidechain contract object that has all functions, not just those required by DataUnionClient
         const sidechainContract = new Contract(sidechainContractLimited.address, DataUnionSidechain.abi, adminWalletSidechain)
 
         const signature = await memberDataUnion.signWithdrawAllTo(member2Wallet.address)
@@ -80,7 +80,7 @@ describe('DataUnion signature', () => {
     }, 100000)
 
     it('create signature', async () => {
-        const client = new StreamrClient({
+        const client = new DataUnionClient({
             auth: {
                 privateKey: '0x1111111111111111111111111111111111111111111111111111111111111111'
             }

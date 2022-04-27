@@ -1,14 +1,13 @@
 /**
  * Session token caching and async init.
  */
-import { scoped, Lifecycle, inject, DependencyContainer } from 'tsyringe'
 import EventEmitter from 'eventemitter3'
-
-import { LoginEndpoints, TokenObject } from './LoginEndpoints'
-import { AuthConfig } from './Ethereum'
-import { ConfigInjectionToken } from './Config'
-import { DataUnionContainer } from './Container'
-import { Debug } from './utils/log'
+import {DependencyContainer, inject, Lifecycle, scoped} from 'tsyringe'
+import {ConfigInjectionToken} from './Config'
+import {DataUnionContainer} from './Container'
+import {AuthConfig} from './Ethereum'
+import {LoginEndpoints, TokenObject} from './LoginEndpoints'
+import {Debug} from './utils/log'
 
 const debug = Debug('Session')
 

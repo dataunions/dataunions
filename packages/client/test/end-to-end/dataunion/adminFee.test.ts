@@ -2,22 +2,22 @@ import { Contract, providers, Wallet } from 'ethers'
 import { parseEther, formatEther } from 'ethers/lib/utils'
 import debug from 'debug'
 
-import { StreamrClient } from '../../../src/StreamrClient'
+import { DataUnionClient } from '../../../src/DataUnionClient'
 import * as Token from '../../../contracts/TestToken.json'
-import Contracts from '../../../src/dataunion/Contracts'
-import DataUnionAPI from '../../../src/dataunion'
+import Contracts from '../../../src/Contracts'
+import DataUnionAPI from '../../../src/DataUnionAPI'
 import { dataUnionAdminPrivateKey, tokenAdminPrivateKey } from '../devEnvironment'
 import { ConfigTest } from '../../../src/ConfigTest'
 import { BrubeckConfig } from '../../../src/Config'
 
-const log = debug('StreamrClient::DataUnion::integration-test-adminFee')
+const log = debug('DataUnionClient::DataUnion::integration-test-adminFee')
 
 const providerSidechain = new providers.JsonRpcProvider(ConfigTest.dataUnionChainRPCs.rpcs[0])
 const providerMainnet = new providers.JsonRpcProvider(ConfigTest.mainChainRPCs.rpcs[0])
 const adminWalletMainnet = new Wallet(dataUnionAdminPrivateKey, providerMainnet)
 
 describe('DataUnion admin fee', () => {
-    let adminClient: StreamrClient
+    let adminClient: DataUnionClient
 
     const tokenAdminWallet = new Wallet(tokenAdminPrivateKey, providerMainnet)
     const tokenMainnet = new Contract(ConfigTest.tokenAddress, Token.abi, tokenAdminWallet)
@@ -31,7 +31,7 @@ describe('DataUnion admin fee', () => {
         log(`Minting 100 tokens to ${adminWalletMainnet.address}`)
         const tx1 = await tokenMainnet.mint(adminWalletMainnet.address, parseEther('100'))
         await tx1.wait()
-        adminClient = new StreamrClient(ConfigTest)
+        adminClient = new DataUnionClient(ConfigTest)
     }, 10000)
 
     it('can set admin fee', async () => {
@@ -74,5 +74,4 @@ describe('DataUnion admin fee', () => {
 
         expect(formatEther(balance2.sub(balance1))).toEqual('0.2')
     }, 150000)
-
 })

@@ -3,12 +3,12 @@ jest.mock('node-fetch')
 import fetch from 'node-fetch'
 import { fastPrivateKey } from 'streamr-test-utils'
 
-import { StreamrClient } from '../../../src/StreamrClient'
+import { DataUnionClient } from '../../../src/DataUnionClient'
 
 import { ConfigTest } from '../../../src/ConfigTest'
 
 describe('authFetch', () => {
-    let client: StreamrClient
+    let client: DataUnionClient
     afterEach(async () => {
         if (!client) { return }
         await client.destroy()
@@ -30,7 +30,7 @@ describe('authFetch', () => {
         fetch.Headers = realFetch.Headers
         // @ts-expect-error
         fetch.mockImplementation(realFetch)
-        client = new StreamrClient({
+        client = new DataUnionClient({
             ...ConfigTest,
             auth: {
                 privateKey: fastPrivateKey()

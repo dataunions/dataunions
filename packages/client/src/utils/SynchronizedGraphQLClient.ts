@@ -2,7 +2,7 @@ import { scoped, Lifecycle, inject } from 'tsyringe'
 import { Contract, ContractInterface, ContractReceipt, ContractTransaction } from '@ethersproject/contracts'
 import { Signer } from '@ethersproject/abstract-signer'
 import { GraphQLClient } from './GraphQLClient'
-import { ConfigInjectionToken, StrictStreamrClientConfig } from '../Config'
+import { ConfigInjectionToken, StrictDataUnionClientConfig } from '../Config'
 import { ObservableContract, withErrorHandlingAndLogging } from './contract'
 import { EthereumAddress } from '../types'
 import { Gate } from './Gate'
@@ -130,7 +130,7 @@ export class SynchronizedGraphQLClient {
     constructor(
         context: Context,
         @inject(GraphQLClient) delegate: GraphQLClient,
-        @inject(ConfigInjectionToken.Root) clientConfig: StrictStreamrClientConfig
+        @inject(ConfigInjectionToken.Root) clientConfig: StrictDataUnionClientConfig
     ) {
         this.delegate = delegate
         this.indexingState = new IndexingState(

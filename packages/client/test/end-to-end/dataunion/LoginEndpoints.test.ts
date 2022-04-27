@@ -1,13 +1,15 @@
+import 'reflect-metadata'
+
 import assert from 'assert'
 
 import { ethers } from 'ethers'
 
-import { StreamrClient } from '../../../src/StreamrClient'
+import { DataUnionClient } from '../../../src/DataUnionClient'
 
 import { getCreateClient } from '../../test-utils/utils'
 
 describe('LoginEndpoints', () => {
-    let client: StreamrClient
+    let client: DataUnionClient
 
     const createClient = getCreateClient()
 

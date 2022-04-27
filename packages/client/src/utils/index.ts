@@ -13,7 +13,6 @@ import { MaybeAsync } from '../types'
 import { AggregatedError } from './AggregatedError'
 import { Scaffold } from './Scaffold'
 import { Debug } from './log'
-import { EthereumAddress } from '../types'
 
 export const debug = Debug('utils')
 

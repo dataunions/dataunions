@@ -1,24 +1,22 @@
-import { inject, scoped, Lifecycle } from 'tsyringe'
+import {defaultAbiCoder} from '@ethersproject/abi'
+import {getAddress, getCreate2Address, isAddress} from '@ethersproject/address'
+import {BigNumber} from '@ethersproject/bignumber'
+import {BytesLike, hexZeroPad} from '@ethersproject/bytes'
+import {Contract} from '@ethersproject/contracts'
+import {keccak256} from '@ethersproject/keccak256'
+import {Provider} from '@ethersproject/providers'
+import {parseEther} from '@ethersproject/units'
+import {inject, Lifecycle, scoped} from 'tsyringe'
 
-import { BigNumber } from '@ethersproject/bignumber'
-import { BytesLike, hexZeroPad } from '@ethersproject/bytes'
-import { Contract } from '@ethersproject/contracts'
-import { keccak256 } from '@ethersproject/keccak256'
-
-import { factoryMainnetABI } from './abi'
-
-import { Debug } from './utils/log'
-import { parseEther } from '@ethersproject/units'
-import { until } from './utils'
-import { Provider } from '@ethersproject/providers'
-import { EthereumAddress } from './types'
-import { Ethereum } from './Ethereum'
-import { Rest } from './Rest'
-import { StrictStreamrClientConfig, ConfigInjectionToken } from './Config'
-import { DataUnion, DataUnionDeployOptions } from './DataUnion'
-import { getAddress, getCreate2Address, isAddress } from '@ethersproject/address'
+import {factoryMainnetABI} from './abi'
+import {ConfigInjectionToken, StrictDataUnionClientConfig} from './Config'
 import Contracts from './Contracts'
-import { defaultAbiCoder } from '@ethersproject/abi'
+import {DataUnion, DataUnionDeployOptions} from './DataUnion'
+import {Ethereum} from './Ethereum'
+import {Rest} from './Rest'
+import {EthereumAddress} from './types'
+import {until} from './utils'
+import {Debug} from './utils/log'
 
 const log = Debug('DataUnionAPI')
 
@@ -37,7 +35,7 @@ export default class DataUnionAPI {
     constructor(
         public ethereum: Ethereum,
         public rest: Rest,
-        @inject(ConfigInjectionToken.Root) public options: StrictStreamrClientConfig,
+        @inject(ConfigInjectionToken.Root) public options: StrictDataUnionClientConfig,
     ) {
 
     }
@@ -108,7 +106,7 @@ export default class DataUnionAPI {
         if (version === 0) {
             throw new Error(`${contractAddress} is not a Data Union!`)
         } else if (version === 1) {
-            throw new Error(`${contractAddress} is an old Data Union, please use StreamrClient 4.x or earlier!`)
+            throw new Error(`${contractAddress} is an old Data Union, please use DataUnionClient 4.x or earlier!`)
         } else if (version === 2) {
             const contracts = new Contracts(this)
             const sidechainContract = await contracts.getSidechainContractReadOnly(contractAddress)
@@ -161,7 +159,7 @@ export default class DataUnionAPI {
         }
 
         if (await mainnetProvider.getCode(factoryMainnetAddress) === '0x') {
-            throw new Error(`Contract not found at ${factoryMainnetAddress}, check StreamrClient.options.dataUnion.factoryMainnetAddress!`)
+            throw new Error(`Contract not found at ${factoryMainnetAddress}, check DataUnionClient.options.dataUnion.factoryMainnetAddress!`)
         }
 
         const factoryMainnet = new Contract(factoryMainnetAddress, factoryMainnetABI, mainnetWallet)

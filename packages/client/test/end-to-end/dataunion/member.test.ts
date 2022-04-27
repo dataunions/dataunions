@@ -1,10 +1,10 @@
 import { utils, Wallet } from 'ethers'
 import debug from 'debug'
 
-import { StreamrClient } from '../../../src/StreamrClient'
+import { DataUnionClient } from '../../../src/DataUnionClient'
 import { getSidechainTestWallet, tokenAdminWalletSidechain } from '../devEnvironment'
 import { ConfigTest } from '../../../src/ConfigTest'
-import { DataUnion, JoinRequestState } from '../../../src/dataunion/DataUnion'
+import { DataUnion, JoinRequestState } from '../../../src/DataUnion'
 import { createMockAddress, expectInvalidAddress } from '../../test-utils/utils'
 import { authFetch } from '../../../src/authFetch'
 import { getEndpointUrl } from '../../../src/utils'
@@ -12,7 +12,7 @@ import { fastWallet } from 'streamr-test-utils'
 
 const { parseEther } = utils
 
-const log = debug('StreamrClient::DataUnion::integration-test-member')
+const log = debug('DataUnionClient::DataUnion::integration-test-member')
 
 describe('DataUnion member', () => {
 
@@ -21,7 +21,7 @@ describe('DataUnion member', () => {
 
     beforeAll(async () => {
         log('clientOptions: %O', ConfigTest)
-        const adminClient = new StreamrClient(ConfigTest)
+        const adminClient = new DataUnionClient(ConfigTest)
         dataUnion = await adminClient.deployDataUnion()
 
         // product is needed for join requests to analyze the DU version
@@ -53,7 +53,7 @@ describe('DataUnion member', () => {
     }, 60000)
 
     async function getMemberDuObject(memberWallet: Wallet): Promise<DataUnion> {
-        const memberClient = new StreamrClient({
+        const memberClient = new DataUnionClient({
             ...ConfigTest,
             auth: {
                 privateKey: memberWallet.privateKey,

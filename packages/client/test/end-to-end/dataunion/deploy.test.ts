@@ -1,18 +1,18 @@
 import debug from 'debug'
 
-import { StreamrClient } from '../../../src/StreamrClient'
+import { DataUnionClient } from '../../../src/DataUnionClient'
 import { ConfigTest } from '../../../src/ConfigTest'
 import { createMockAddress } from '../../test-utils/utils'
 
-const log = debug('StreamrClient::DataUnion::integration-test-deploy')
+const log = debug('DataUnionClient::DataUnion::integration-test-deploy')
 
 describe('DataUnion deploy', () => {
 
-    let adminClient: StreamrClient
+    let adminClient: DataUnionClient
 
     beforeAll(async () => {
         log('ClientOptions: %O', ConfigTest)
-        adminClient = new StreamrClient(ConfigTest as any)
+        adminClient = new DataUnionClient(ConfigTest as any)
     }, 60000)
 
     describe('owner', () => {

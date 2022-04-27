@@ -1,17 +1,15 @@
 /**
  * More ergonomic wrapper around fetch/authFetch
  */
-import { Lifecycle, scoped, inject, DependencyContainer } from 'tsyringe'
+import {DependencyContainer, inject, Lifecycle, scoped} from 'tsyringe'
 
-import { Debugger } from './utils/log'
-import { instanceId } from './utils'
-import { ConnectionConfig, ConfigInjectionToken } from './Config'
-import { authFetch, authRequest } from './authFetch'
-import { Context } from './utils/Context'
-
-import { Session } from './Session'
-import { DataUnionContainer } from './Container'
-import split2 from 'split2'
+import {authFetch, authRequest} from './authFetch'
+import {ConfigInjectionToken, ConnectionConfig} from './Config'
+import {DataUnionContainer} from './Container'
+import {Session} from './Session'
+import {instanceId} from './utils'
+import {Context} from './utils/Context'
+import {Debugger} from './utils/log'
 
 export type FetchOptions = {
     query?: any,

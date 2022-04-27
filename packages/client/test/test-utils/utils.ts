@@ -3,22 +3,18 @@ import { writeHeapSnapshot } from 'v8'
 import { DependencyContainer } from 'tsyringe'
 
 import fetch from 'node-fetch'
-import { KeyServer, wait } from 'streamr-test-utils'
+import { wait } from 'streamr-test-utils'
 import { Wallet } from 'ethers'
-import { EthereumAddress, StreamMessage, StreamPartID, StreamPartIDUtils, toStreamPartID, MAX_PARTITION_COUNT } from 'streamr-client-protocol'
 import LeakDetector from 'jest-leak-detector'
 
-import { StreamrClient } from '../../src/StreamrClient'
+import { EthereumAddress } from '../../src/types'
+import { DataUnionClient } from '../../src/DataUnionClient'
 import { counterId, CounterId, AggregatedError, instanceId } from '../../src/utils'
 import { Debug, format } from '../../src/utils/log'
-import { MaybeAsync, StreamDefinition } from '../../src/types'
-import { Stream, StreamProperties } from '../../src/Stream'
+import { MaybeAsync } from '../../src/types'
 import { ConfigTest } from '../../src/ConfigTest'
 
-import { Signal } from '../../src/utils/Signal'
-import { PublishMetadata } from '../../src/publish/Publisher'
-import { Pipeline } from '../../src/utils/Pipeline'
-import { StreamPermission } from '../../src/permission'
+import { KeyServer } from './KeyServer'
 
 const testDebugRoot = Debug('test')
 const testDebug = testDebugRoot.extend.bind(testDebugRoot)
@@ -76,18 +72,6 @@ describeRepeats.only = (msg: any, fn: any) => {
     describeRepeats(msg, fn, describe.only)
 }
 
-export async function collect(iterator: any, fn: MaybeAsync<(item: any) => void> = async () => {}) {
-    const received: any[] = []
-    for await (const msg of iterator) {
-        received.push(msg.getParsedContent())
-        await fn({
-            msg, iterator, received,
-        })
-    }
-
-    return received
-}
-
 export function getTestSetTimeout() {
     const addAfter = addAfterFn()
     return (callback: () => void, ms?: number) => {
@@ -113,29 +97,11 @@ export function addAfterFn() {
     }
 }
 
-export function Msg<T extends object = object>(opts?: T) {
-    return {
-        value: uid('msg'),
-        ...opts,
-    }
-}
-
-export type CreateMessageOpts = {
-    /** index of message in total */
-    index: number,
-    /** batch number */
-    batch: number,
-    /** index of message in batch */
-    batchIndex: number,
-    /** total messages */
-    total: number
-}
-
 export const createMockAddress = () => '0x000000000000000000000000000' + Date.now()
 
 export function getRandomClient() {
     const wallet = new Wallet(`0x100000000000000000000000000000000000000012300000001${Date.now()}`)
-    return new StreamrClient({
+    return new DataUnionClient({
         ...ConfigTest,
         auth: {
             privateKey: wallet.privateKey
@@ -156,20 +122,6 @@ const getTestName = (module: NodeModule) => {
 
 const randomTestRunId = process.pid != null ? process.pid : crypto.randomBytes(4).toString('hex')
 
-// eslint-disable-next-line no-undef
-export const createRelativeTestStreamId = (module: NodeModule, suffix?: string) => {
-    return counterId(`/test/${randomTestRunId}/${getTestName(module)}${(suffix !== undefined) ? '-' + suffix : ''}`, '-')
-}
-
-// eslint-disable-next-line no-undef
-export const createTestStream = async (streamrClient: StreamrClient, module: NodeModule, props?: Partial<StreamProperties>) => {
-    const stream = await streamrClient.createStream({
-        id: createRelativeTestStreamId(module),
-        ...props
-    })
-    return stream
-}
-
 export const getCreateClient = (defaultOpts = {}, defaultParentContainer?: DependencyContainer) => {
     const addAfter = addAfterFn()
 
@@ -180,7 +132,7 @@ export const getCreateClient = (defaultOpts = {}, defaultParentContainer?: Depen
         } else {
             key = await fetchPrivateKeyWithGas()
         }
-        const c = new StreamrClient({
+        const c = new DataUnionClient({
             ...ConfigTest,
             auth: {
                 privateKey: key,
@@ -397,149 +349,6 @@ export class LeaksDetector {
     }
 }
 
-type PublishManyOpts = Partial<{
-    delay: number,
-    timestamp: number | (() => number)
-    sequenceNumber: number | (() => number)
-    partitionKey: number | string | (() => number | string)
-    createMessage: (content: any) => any
-}>
-
-export async function* publishManyGenerator(
-    total: number = 5,
-    opts: PublishManyOpts = {}
-): AsyncGenerator<PublishMetadata<any>> {
-    const { delay = 10, sequenceNumber, timestamp, partitionKey, createMessage = Msg } = opts
-    const batchId = counterId('publishMany')
-    for (let i = 0; i < total; i++) {
-        yield {
-            timestamp: typeof timestamp === 'function' ? timestamp() : timestamp,
-            sequenceNumber: typeof sequenceNumber === 'function' ? sequenceNumber() : sequenceNumber,
-            partitionKey: typeof partitionKey === 'function' ? partitionKey() : partitionKey,
-            content: createMessage({
-                batchId,
-                value: `${i + 1} of ${total}`,
-                index: i,
-                total,
-            })
-        }
-
-        if (delay) {
-            // eslint-disable-next-line no-await-in-loop
-            await wait(delay)
-        }
-    }
-}
-
-type PublishTestMessageOptions = PublishManyOpts & {
-    waitForLast?: boolean
-    waitForLastCount?: number
-    waitForLastTimeout?: number,
-    retainMessages?: boolean
-    onSourcePipeline?: Signal<[Pipeline<PublishMetadata<any>>]>
-    onPublishPipeline?: Signal<[Pipeline<StreamMessage>]>
-    afterEach?: (msg: StreamMessage) => Promise<void> | void
-}
-
-export function publishTestMessagesGenerator(
-    client: StreamrClient,
-    streamDefinition: StreamDefinition,
-    maxMessages = 5,
-    opts: PublishTestMessageOptions = {}
-) {
-    const source = new Pipeline(publishManyGenerator(maxMessages, opts))
-    if (opts.onSourcePipeline) {
-        opts.onSourcePipeline.trigger(source)
-    }
-    // @ts-expect-error
-    const pipeline = new Pipeline<StreamMessage>(client.publisher.publishFromMetadata(streamDefinition, source))
-    if (opts.afterEach) {
-        pipeline.forEach(opts.afterEach)
-    }
-    return pipeline
-}
-
-export function getPublishTestStreamMessages(
-    client: StreamrClient,
-    streamDefinition: StreamDefinition,
-    defaultOpts: PublishTestMessageOptions = {}
-) {
-    return async (maxMessages: number = 5, opts: PublishTestMessageOptions = {}) => {
-        const {
-            waitForLast,
-            waitForLastCount,
-            waitForLastTimeout,
-            retainMessages = true,
-            ...options
-        } = {
-            ...defaultOpts,
-            ...opts,
-        }
-
-        const contents = new WeakMap()
-        // @ts-expect-error
-        client.publisher.streamMessageQueue.onMessage(([streamMessage]) => {
-            contents.set(streamMessage, streamMessage.serializedContent)
-        })
-        const publishStream = publishTestMessagesGenerator(client, streamDefinition, maxMessages, options)
-        client.onDestroy(() => {
-            publishStream.return()
-        })
-        if (opts.onPublishPipeline) {
-            opts.onPublishPipeline.trigger(publishStream)
-        }
-        const streamMessages = []
-        let count = 0
-        for await (const streamMessage of publishStream) {
-            count += 1
-            if (!retainMessages) {
-                streamMessages.length = 0 // only keep last message
-            }
-            streamMessages.push(streamMessage)
-            if (count === maxMessages) {
-                break
-            }
-        }
-
-        if (waitForLast) {
-            await getWaitForStorage(client, {
-                count: waitForLastCount,
-                timeout: waitForLastTimeout,
-            })(streamMessages[streamMessages.length - 1])
-        }
-
-        return streamMessages.map((streamMessage) => {
-            const targetStreamMessage = streamMessage.clone()
-            targetStreamMessage.serializedContent = contents.get(streamMessage)
-            targetStreamMessage.encryptionType = 0
-            targetStreamMessage.parsedContent = null
-            targetStreamMessage.getParsedContent()
-            return targetStreamMessage
-        })
-    }
-}
-
-export function getPublishTestMessages(
-    client: StreamrClient,
-    streamDefinition: StreamDefinition,
-    defaultOpts: PublishTestMessageOptions = {}
-) {
-    const publishTestStreamMessages = getPublishTestStreamMessages(client, streamDefinition, defaultOpts)
-    return async (maxMessages: number = 5, opts: PublishTestMessageOptions = {}) => {
-        const streamMessages = await publishTestStreamMessages(maxMessages, opts)
-        return streamMessages.map((s) => s.getParsedContent())
-    }
-}
-
-export function getWaitForStorage(client: StreamrClient, defaultOpts = {}) {
-    return async (lastPublished: StreamMessage, opts = {}) => {
-        return client.waitForStorage(lastPublished, {
-            ...defaultOpts,
-            ...opts,
-        })
-    }
-}
-
 export async function sleep(ms: number = 0) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms)
@@ -655,38 +464,5 @@ export class Multimap<K, V> {
 
     keys(): K[] {
         return Array.from(this.values.keys())
-    }
-}
-
-// eslint-disable-next-line no-undef
-export const createPartitionedTestStream = async (module: NodeModule): Promise<Stream> => {
-    const client = new StreamrClient({
-        ...ConfigTest,
-        auth: {
-            privateKey: await fetchPrivateKeyWithGas()
-        }
-    })
-    const stream = await createTestStream(client, module, {
-        partitions: MAX_PARTITION_COUNT
-    })
-    await stream.grantPermissions({
-        public: true,
-        permissions: [StreamPermission.PUBLISH, StreamPermission.SUBSCRIBE]
-    })
-    await client.destroy()
-    return stream
-}
-
-export async function* createStreamPartIterator(stream: Stream): AsyncGenerator<StreamPartID> {
-    for (let partition = 0; partition < stream.partitions; partition++) {
-        yield toStreamPartID(stream.id, partition)
-    }
-}
-
-export const toStreamDefinition = (streamPart: StreamPartID): { id: string, partition: number } => {
-    const [id, partition] = StreamPartIDUtils.getStreamIDAndPartition(streamPart)
-    return {
-        id,
-        partition
     }
 }

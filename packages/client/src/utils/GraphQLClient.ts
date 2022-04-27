@@ -1,8 +1,9 @@
 import { scoped, Lifecycle, inject } from 'tsyringe'
-import { instanceId } from './index'
-import { ConfigInjectionToken, ConnectionConfig } from '../Config'
-import { Context } from './Context'
 import { Debugger } from 'debug'
+
+import { ConfigInjectionToken, ConnectionConfig } from '../Config'
+import { instanceId } from './index'
+import { Context } from './Context'
 import { HttpFetcher } from './HttpFetcher'
 
 @scoped(Lifecycle.ContainerScoped)

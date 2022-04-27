@@ -43,6 +43,41 @@
         }
       }
     },
+    "auth": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+            "privateKey": {
+                "type": "string",
+                "format": "ethereum-private-key"
+            },
+            "address": {
+                "type": "string",
+                "format": "ethereum-address"
+            },
+            "ethereum": {
+                "type": "object"
+            },
+            "sessionToken": {
+                "type": "string"
+            },
+            "unauthenticated": {
+                "type": "boolean"
+            }
+        }
+    },
+    "binanceAdapterAddress": {
+        "type": "string",
+        "format": "ethereum-address"
+    },
+    "binanceSmartChainAMBAddress": {
+        "type": "string",
+        "format": "ethereum-address"
+    },
+    "withdrawServerUrl": {
+        "type": "string",
+        "format": "uri"
+    },
     "dataUnionBinanceWithdrawalChainRPCs": {
       "$ref": "#/definitions/chainConnectionInfoList"
     },
@@ -56,6 +91,31 @@
     "tokenSidechainAddress": {
       "type": "string",
       "format": "ethereum-address"
+    },
+    "mainChainRPCs": {
+        "anyOf": [{
+            "$ref": "#/definitions/chainConnectionInfoList"
+        }, {
+        "type": "string",
+        "format": "uri"
+        }]
+    },
+    "debug": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+            "inspectOpts": {
+                "type": "object"
+            }
+        }
+    },
+    "theGraphUrl" : {
+        "type" : "string",
+        "format": "uri"
+    },
+    "restUrl": {
+        "type": "string",
+        "format": "uri"
     }
   },
   "definitions": {

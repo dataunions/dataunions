@@ -1,9 +1,10 @@
 import { inject, Lifecycle, scoped } from 'tsyringe'
 import { Debugger } from 'debug'
-import { Context } from './Context'
-import { ConfigInjectionToken, StrictStreamrClientConfig } from '../Config'
-import { instanceId } from './index'
 import fetch, { Response } from 'node-fetch'
+
+import { ConfigInjectionToken, StrictDataUnionClientConfig } from '../Config'
+import { Context } from './Context'
+import { instanceId } from './index'
 
 @scoped(Lifecycle.ContainerScoped)
 export class HttpFetcher {
@@ -11,7 +12,7 @@ export class HttpFetcher {
 
     constructor(
         context: Context,
-        @inject(ConfigInjectionToken.Root) private config: StrictStreamrClientConfig
+        @inject(ConfigInjectionToken.Root) private config: StrictDataUnionClientConfig
     ) {
         this.debug = context.debug.extend(instanceId(this))
     }

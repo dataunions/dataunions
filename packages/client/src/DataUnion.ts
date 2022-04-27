@@ -1,22 +1,19 @@
-import { defaultAbiCoder } from '@ethersproject/abi'
-import { getAddress } from '@ethersproject/address'
-import { BigNumber } from '@ethersproject/bignumber'
-import { arrayify, hexZeroPad, BytesLike } from '@ethersproject/bytes'
-import { Contract, ContractReceipt, ContractTransaction } from '@ethersproject/contracts'
-import { keccak256 } from '@ethersproject/keccak256'
-import { AddressZero } from '@ethersproject/constants'
-import type { Overrides as EthersOptions } from '@ethersproject/contracts'
-import type { Signer } from '@ethersproject/abstract-signer'
-import type { TransactionReceipt } from '@ethersproject/providers'
-
-import { Debug } from './utils/log'
-import { sleep, until } from './utils'
-
+import {defaultAbiCoder} from '@ethersproject/abi'
+import type {Signer} from '@ethersproject/abstract-signer'
+import {getAddress} from '@ethersproject/address'
+import {BigNumber} from '@ethersproject/bignumber'
+import {arrayify, BytesLike, hexZeroPad} from '@ethersproject/bytes'
+import {AddressZero} from '@ethersproject/constants'
+import type {Overrides as EthersOptions} from '@ethersproject/contracts'
+import {Contract, ContractReceipt, ContractTransaction} from '@ethersproject/contracts'
+import {keccak256} from '@ethersproject/keccak256'
+import type {TransactionReceipt} from '@ethersproject/providers'
+import {erc20AllowanceAbi} from './abi'
 import Contracts from './Contracts'
-import { erc20AllowanceAbi } from './abi'
-
-import DataUnionAPI from './index'
-import { EthereumAddress } from './types'
+import DataUnionAPI from './DataUnionAPI'
+import {EthereumAddress} from './types'
+import {sleep, until} from './utils'
+import {Debug} from './utils/log'
 
 export interface DataUnionDeployOptions {
     owner?: EthereumAddress,

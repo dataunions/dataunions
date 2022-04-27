@@ -1,17 +1,13 @@
-import 'reflect-metadata'
-import type { BigNumber } from '@ethersproject/bignumber'
-import cloneDeep from 'lodash/cloneDeep'
-import Ajv, { ErrorObject } from 'ajv'
+import type {BigNumber} from '@ethersproject/bignumber'
+import Ajv, {ErrorObject} from 'ajv'
 import addFormats from 'ajv-formats'
+import cloneDeep from 'lodash/cloneDeep'
 import merge from 'lodash/merge'
-
-import type { AuthConfig, EthereumConfig } from './Ethereum'
-
+import 'reflect-metadata'
+import type {InspectOptions} from 'util'
 import CONFIG_SCHEMA from './config.schema.json'
-import { EthereumAddress } from './types'
-
-import type { InspectOptions } from 'util'
-import type { ConnectionInfo } from '@ethersproject/web'
+import type {AuthConfig, EthereumConfig} from './Ethereum'
+import {EthereumAddress} from './types'
 
 export type CacheConfig = {
     maxSize: number,
@@ -73,11 +69,11 @@ export type DebugConfig = {
 /**
  * @category Important
  */
-export type StrictStreamrClientConfig = {
+export type StrictDataUnionClientConfig = {
   /** Custom human-readable debug id for client. Used in logging. Unique id will be generated regardless. */
     id?: string,
     /**
-    * Authentication: identity used by this StreamrClient instance.
+    * Authentication: identity used by this DataUnionClient instance.
     * Can contain member privateKey or (window.)ethereum
     */
     auth: AuthConfig
@@ -100,10 +96,10 @@ export type StrictStreamrClientConfig = {
     & SubscribeConfig
 )
 
-export type StreamrClientConfig = Partial<Omit<StrictStreamrClientConfig, 'dataUnion' | 'network' | 'debug'> & {
-    dataUnion: Partial<StrictStreamrClientConfig['dataUnion']>
+export type DataUnionClientConfig = Partial<Omit<StrictDataUnionClientConfig, 'dataUnion' | 'network' | 'debug'> & {
+    dataUnion: Partial<StrictDataUnionClientConfig['dataUnion']>
     /** @internal */
-    debug: Partial<StrictStreamrClientConfig['debug']>
+    debug: Partial<StrictDataUnionClientConfig['debug']>
 }>
 
 export const STREAMR_STORAGE_NODE_GERMANY = '0x31546eEA76F2B2b3C5cC06B1c93601dc35c9D916'
@@ -111,7 +107,7 @@ export const STREAMR_STORAGE_NODE_GERMANY = '0x31546eEA76F2B2b3C5cC06B1c93601dc3
 /**
  * @category Important
  */
-export const STREAM_CLIENT_DEFAULTS: StrictStreamrClientConfig = {
+export const STREAM_CLIENT_DEFAULTS: StrictDataUnionClientConfig = {
     auth: {},
 
     // Streamr Core options
@@ -214,12 +210,12 @@ export const STREAM_CLIENT_DEFAULTS: StrictStreamrClientConfig = {
     }
 }
 
-export const createStrictConfig = (inputOptions: StreamrClientConfig = {}): StrictStreamrClientConfig => {
+export const createStrictConfig = (inputOptions: DataUnionClientConfig = {}): StrictDataUnionClientConfig => {
     validateConfig(inputOptions)
     const opts = cloneDeep(inputOptions)
     const defaults = cloneDeep(STREAM_CLIENT_DEFAULTS)
 
-    const options: StrictStreamrClientConfig = {
+    const options: StrictDataUnionClientConfig = {
         ...defaults,
         ...opts,
         dataUnion: {
@@ -277,9 +273,4 @@ export const ConfigInjectionToken = {
     Auth: Symbol('Config.Auth'),
     Ethereum: Symbol('Config.Ethereum'),
     Connection: Symbol('Config.Connection'),
-    Subscribe: Symbol('Config.Subscribe'),
-    Publish: Symbol('Config.Publish'),
-    Cache: Symbol('Config.Cache'),
-    StorageNodeRegistry: Symbol('Config.StorageNodeRegistry'),
-    Encryption: Symbol('Config.Encryption'),
 }

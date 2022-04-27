@@ -16,7 +16,7 @@ import {
 import { ConfigTest } from '../../../src/ConfigTest'
 import { getEndpointUrl, until } from '../../../src/utils'
 import { StreamrClient } from '../../../src/StreamrClient'
-import { EthereumAddress } from 'streamr-client-protocol'
+import { EthereumAddress } from '../../../src/types'
 import { authFetch } from '../../../src/authFetch'
 
 const log = debug('StreamrClient::DataUnion::integration-test-transfer')
