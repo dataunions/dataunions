@@ -53,15 +53,10 @@ class Server {
 	}
 	
 	services() {
-		const DB_NAME = 'dujsdb'
-		const joinRequestDB = new service.JoinRequestDB(
-			this.mongoClient,
-			DB_NAME,
-			this.logger,
-		)
 		this.joinRequestService = new service.JoinRequestService(
-			joinRequestDB,
 			this.logger,
+			this.streamrClient,
+			service.joinDataUnion
 		)
 	}
 
@@ -112,13 +107,18 @@ class Server {
 			this.sendJsonError(res, 400, `Invalid Data Union contract address: '${err.address}'`)
 			return
 		}
-		const joinRequest = this.joinRequestService.create(member, dataUnion)
-		const joinRequestJsonResponse = {
-			id: joinRequest._id,
-			member: joinRequest.member,
-			dataUnion: joinRequest.dataUnion,
-		}
-		this.sendJsonResponse(res, 201, joinRequestJsonResponse)
+		this.joinRequestService.create(member, dataUnion).then((joinRequest) => {
+			// Convert app internal representation to JSON
+			const joinRequestJsonResponse = {
+				member: joinRequest.member.toString(),
+				dataUnion: joinRequest.dataUnion.toString(),
+			}
+			this.logger.info(joinRequest)
+			this.sendJsonResponse(res, 201, joinRequestJsonResponse)
+		}).catch((err) => {
+			this.logger.info(err)
+			this.sendJsonError(res, 400, err.message)
+		})
 	}
 
 }
