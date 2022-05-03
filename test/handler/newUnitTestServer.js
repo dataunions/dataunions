@@ -1,7 +1,5 @@
 const express = require('express')
 const pino = require('pino')
-const service = require('../../src/service')
-const { MockJoinRequestDB } = require('../service/MockJoinRequestDB')
 const app = require('../../src/app')
 
 function newUnitTestServer(...conf) {
@@ -17,15 +15,6 @@ function newUnitTestServer(...conf) {
 				enabled: false,
 			})
 			srv.logger = logger
-			const joinRequestDb = new MockJoinRequestDB(
-				undefined,
-				undefined,
-				logger,
-			)
-			srv.joinRequestService = new service.JoinRequestService(
-				joinRequestDb,
-				logger,
-			)
 		},
 		...conf,
 	)
