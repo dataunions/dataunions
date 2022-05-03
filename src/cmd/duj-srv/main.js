@@ -6,6 +6,7 @@ const pino = require('pino')
 const app = require('../../app')
 const packageJson = require('../../../package.json')
 const mongodb = require('mongodb')
+const streamr = require('streamr-client')
 
 const programName = 'duj-srv'
 
@@ -23,6 +24,8 @@ async function main(argv) {
 		.addOption(new commander.Option('-l <log level>', 'log level')
 			.default('info', 'options are: trace, debug, info, warn, error, and fatal')
 			.env('LOG_LEVEL'))
+		.addOption(new commander.Option('-k <private key>', 'private key')
+			.env('PRIVATE_KEY'))
 		.parse(argv)
 	const options = program.opts()
 	if (options.h) {
@@ -47,6 +50,10 @@ async function main(argv) {
 	}
 	if (!options.m) {
 		process.stderr.write(`${program.name()}: mongodb uri is required.\n`)
+		process.exit(1)
+	}
+	if (!options.k) {
+		process.stderr.write(`${program.name()}: Private key is required.\n`)
 		process.exit(1)
 	}
 	const expressApp = express()
@@ -75,6 +82,13 @@ async function main(argv) {
 				process.exit(1)
 			})
 			srv.mongoClient = mongoClient
+		},
+		(srv) => {
+			srv.streamrClient = new streamr.StreamrClient({
+				auth: {
+					privateKey: options.k
+				}
+			})
 		},
 	)
 	srv.services()

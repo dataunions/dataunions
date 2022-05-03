@@ -1,12 +1,24 @@
 const { newUnitTestServer } = require('../handler/newUnitTestServer')
 const request = require('supertest')
 const { assert } = require('chai')
+const service = require('../../src/service')
 
 describe('POST /api/:dataUnionAddress/joinRequest', async () => {
 	let srv
 
 	before(() => {
-		srv = newUnitTestServer()
+		srv = newUnitTestServer((srv) => {
+			srv.joinRequestService = new service.JoinRequestService(
+				srv.logger,
+				undefined, // Streamr Client
+				(_streamrClient, memberAddress, dataUnionAddress) => {
+					return Promise.resolve({
+						member: memberAddress,
+						dataUnion: dataUnionAddress,
+					})
+				}, // Join Data Union Function
+			)
+		})
 	})
 
 	after(() => {
