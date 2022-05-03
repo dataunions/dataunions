@@ -1,22 +1,28 @@
 {
-  "name": "data-union",
-  "description": "Smart contracts for Data Union with sidechain accounting and theGraph subgraph",
-  "version": "2.2.0",
-  "author": "Streamr Network AG",
-  "license": "AGPL-3.0",
-  "workspaces": [
-    "./packages/*"
-  ],
-  "scripts": {
-    "clean": "npm run clean -ws --if-present",
-    "build": "npm run build -ws --if-present",
-    "lint": "npm run lint --workspaces --if-present",
-    "format-check": "npm run format-check -w=data-union-solidity",
-    "test": "npm run test --workspaces --if-present",
-    "integration-test": "npm run integration-test --workspaces --if-present",
-    "graph1_build": "npm run deploy -w=data-union-solidity",
-    "graph2_copyInfo": "./scripts/copyAbis.sh",
-    "graph3_build": "npm run doAll -w=streamregistry-thegraph-subgraph",
-    "graph": "npm run graph1_build && npm run graph2_copyInfo && npm run graph3_build"
-  }
+    "name": "@dataunions/monorepo",
+    "description": "Smart contracts, client and theGraph subgraph for dataunions.",
+    "private": true,
+    "version": "1.0.0",
+    "author": "Streamr Network AG",
+    "license": "AGPL-3.0",
+    "workspaces": [
+        "packages/client",
+        "packages/contracts",
+        "packages/config",
+        "packages/dev-config",
+        "packages/eslint-config",
+        "packages/thegraph-subgraph"
+    ],
+    "scripts": {
+        "clean": "npm run clean -ws --if-present",
+        "build": "npm run build -ws --if-present",
+        "lint": "npm run lint --workspaces --if-present",
+        "format-check": "npm run format-check -w=@dataunions/contracts",
+        "test": "npm run test --workspaces --if-present",
+        "integration-test": "npm run integration-test --workspaces --if-present",
+        "graph1_build": "npm run deploy -w=@dataunions/solidity",
+        "graph2_copyInfo": "./scripts/copyAbis.sh",
+        "graph3_build": "npm run doAll -w=@dataunions/thegraph-subgraph",
+        "graph": "npm run graph1_build && npm run graph2_copyInfo && npm run graph3_build"
+    }
 }

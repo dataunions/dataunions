@@ -1,19 +1,19 @@
-import {defaultAbiCoder} from '@ethersproject/abi'
-import type {Signer} from '@ethersproject/abstract-signer'
-import {getAddress} from '@ethersproject/address'
-import {BigNumber} from '@ethersproject/bignumber'
-import {arrayify, BytesLike, hexZeroPad} from '@ethersproject/bytes'
-import {AddressZero} from '@ethersproject/constants'
-import type {Overrides as EthersOptions} from '@ethersproject/contracts'
-import {Contract, ContractReceipt, ContractTransaction} from '@ethersproject/contracts'
-import {keccak256} from '@ethersproject/keccak256'
-import type {TransactionReceipt} from '@ethersproject/providers'
-import {erc20AllowanceAbi} from './abi'
+import { defaultAbiCoder } from '@ethersproject/abi'
+import type { Signer } from '@ethersproject/abstract-signer'
+import { getAddress } from '@ethersproject/address'
+import { BigNumber } from '@ethersproject/bignumber'
+import { arrayify, BytesLike, hexZeroPad } from '@ethersproject/bytes'
+import { AddressZero } from '@ethersproject/constants'
+import type { Overrides as EthersOptions } from '@ethersproject/contracts'
+import { Contract, ContractReceipt, ContractTransaction } from '@ethersproject/contracts'
+import { keccak256 } from '@ethersproject/keccak256'
+import type { TransactionReceipt } from '@ethersproject/providers'
+import { erc20AllowanceAbi } from './abi'
 import Contracts from './Contracts'
 import DataUnionAPI from './DataUnionAPI'
-import {EthereumAddress} from './types'
-import {sleep, until} from './utils'
-import {Debug} from './utils/log'
+import { EthereumAddress } from './types'
+import { sleep, until } from './utils'
+import { Debug } from './utils/log'
 
 export interface DataUnionDeployOptions {
     owner?: EthereumAddress,
@@ -429,7 +429,7 @@ export class DataUnion {
      * Add a new data union secret
      */
     async createSecret(name: string = 'Untitled Data Union Secret'): Promise<string> {
-        const res = await this.client.rest.post<{secret: string}>(['dataunions', this.contractAddress, 'secrets'], {
+        const res = await this.client.rest.post<{ secret: string }>(['dataunions', this.contractAddress, 'secrets'], {
             name,
         })
         return res?.secret
@@ -624,7 +624,7 @@ export class DataUnion {
      */
     async transferToMemberInContract(
         memberAddress: EthereumAddress,
-        amountTokenWei: BigNumber|number|string
+        amountTokenWei: BigNumber | number | string
     ): Promise<ContractReceipt> {
         const address = getAddress(memberAddress) // throws if bad address
         const amount = BigNumber.from(amountTokenWei)
@@ -656,7 +656,7 @@ export class DataUnion {
      */
     async transferWithinContract(
         memberAddress: EthereumAddress,
-        amountTokenWei: BigNumber|number|string
+        amountTokenWei: BigNumber | number | string
     ): Promise<ContractReceipt> {
         const address = getAddress(memberAddress) // throws if bad address
         const duSidechain = await this.getContracts().getSidechainContract(this.contractAddress)

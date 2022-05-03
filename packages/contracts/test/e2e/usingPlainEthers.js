@@ -11,7 +11,7 @@ const {
             tokenMediator: HOME_ERC677_MEDIATOR,
         }
     }
-} = require("data-union-config")
+} = require("@dataunions/config")
 const ORACLE_VALIDATOR_ADDRESS_PRIVATE_KEY = "5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0"
 // const HOME_MULTIMEDIATOR = "0x41B89Db86BE735c03A9296437E39F5FDAdC4c678"
 // const FOREIGN_MULTIMEDIATOR = "0x6346Ed242adE018Bd9320D5E3371c377BAB29c31"
@@ -74,7 +74,7 @@ let factoryMainnet, mainnetAmb, sidechainAmb
 
 describe("Data Union tests using only ethers.js directly", () => {
 
-    before(async function () {
+    before(async function() {
         this.timeout(process.env.TEST_TIMEOUT || 60000)
         const factorySidechain = await deployDataUnionFactorySidechain(walletSidechain)
         const templateSidechain = getTemplateSidechain()
@@ -86,7 +86,7 @@ describe("Data Union tests using only ethers.js directly", () => {
         sidechainAmb = new Contract(FOREIGN_AMB, IAMB.abi, walletMainnet)
     })
 
-    it("can deploy, add members and withdraw", async function () {
+    it("can deploy, add members and withdraw", async function() {
         this.timeout(process.env.TEST_TIMEOUT || 300000)
         const member = "0x4178baBE9E5148c6D5fd431cD72884B07Ad855a0"
         const member2 = "0x0101010101010101010010101010101001010101"
@@ -202,7 +202,7 @@ async function getTokenContracts(mainnetDu) {
 // goes over bridge => extra wait
 async function withdraw(duSidechain, member) {
     const duMainnet = await getMainnetDu(duSidechain)
-    const [mainnetToken, ] = await getTokenContracts(duMainnet)
+    const [mainnetToken,] = await getTokenContracts(duMainnet)
     const balanceBefore = await mainnetToken.balanceOf(member)
     const earnings = await duSidechain.getWithdrawableEarnings(member)
     log(`withdraw for ${member} (mainnet balance ${balanceBefore}) (earnings ${earnings})`)
@@ -231,7 +231,7 @@ async function withdraw(duSidechain, member) {
             const messageHash = keccak256(sigEvent.args[1])
 
             log(`Waiting until sidechain AMB has collected required signatures for hash=${messageHash}...`)
-            await until(async () => requiredSignaturesHaveBeenCollected(messageHash, mainnetAmb),360000)
+            await until(async () => requiredSignaturesHaveBeenCollected(messageHash, mainnetAmb), 360000)
 
             log(`Checking mainnet AMB hasn't already processed messageId=${messageId}`)
             const alreadySent = await mainnetAmb.messageCallStatus(messageId)

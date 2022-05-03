@@ -1,20 +1,16 @@
 import 'reflect-metadata'
-
-import './utils/PatchTsyringe'
-
-import {container as rootContainer, DependencyContainer} from 'tsyringe'
-
-import {counterId, uuid} from './utils'
-import {Context} from './utils/Context'
-import {Debug} from './utils/log'
-import {Methods, Plugin} from './utils/Plugin'
-
-import {ConfigInjectionToken, createStrictConfig, DataUnionClientConfig, StrictDataUnionClientConfig} from './Config'
-import {DataUnionContainer} from './Container'
-import {Ethereum} from './Ethereum'
+import { container as rootContainer } from 'tsyringe'
+import { ConfigInjectionToken, createStrictConfig, DataUnionClientConfig, StrictDataUnionClientConfig } from './Config'
+import { DataUnionContainer } from './Container'
 import DataUnions from './DataUnionAPI'
-import {LoginEndpoints} from './LoginEndpoints'
-import {Session} from './Session'
+import { Ethereum } from './Ethereum'
+import { LoginEndpoints } from './LoginEndpoints'
+import { Session } from './Session'
+import { counterId, uuid } from './utils'
+import { Context } from './utils/Context'
+import { Debug } from './utils/log'
+import './utils/PatchTsyringe'
+import { Methods, Plugin } from './utils/Plugin'
 
 let uid: string = process.pid != null
     // Use process id in node uid.
@@ -40,7 +36,6 @@ class DataUnionClientBase implements Context {
     readonly debug
 
     constructor(
-        private container: DependencyContainer,
         context: Context,
         private ethereum: Ethereum,
         private session: Session,
@@ -65,12 +60,12 @@ class DataUnionClientBase implements Context {
         Debug.disable()
     }
 
-    async destroy() {}
+    async destroy() { }
 }
 
 /**
- * @internal
- */
+* @internal
+*/
 export function initContainer(config: StrictDataUnionClientConfig, parentContainer = rootContainer) {
     const c = parentContainer.createChildContainer()
     uid = uid || `${uuid().slice(-4)}${uuid().slice(0, 4)}`
@@ -121,18 +116,17 @@ export function initContainer(config: StrictDataUnionClientConfig, parentContain
 }
 
 /**
- * @category Important
- */
+* @category Important
+*/
 export class DataUnionClient extends DataUnionClientBase {
     constructor(options: DataUnionClientConfig = {}, parentContainer = rootContainer) {
         const config = createStrictConfig(options)
         const { childContainer: c } = initContainer(config, parentContainer)
         super(
-            c,
             c.resolve<Context>(Context as any),
             c.resolve<Ethereum>(Ethereum),
             c.resolve<Session>(Session),
-            c .resolve<LoginEndpoints>(LoginEndpoints),
+            c.resolve<LoginEndpoints>(LoginEndpoints),
             c.resolve<DataUnions>(DataUnions),
         )
     }
@@ -145,4 +139,3 @@ export const Dependencies = {
     LoginEndpoints,
     DataUnions,
 }
-

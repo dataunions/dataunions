@@ -1,4 +1,4 @@
-# data-union-solidity
+# @dataunions/contracts
 
 [![Discord Chat](https://img.shields.io/discord/801574432350928907.svg?label=Streamr Discord&logo=Discord&colorB=7289da)](https://discord.gg/FVtAph9cvz)
 

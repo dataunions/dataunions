@@ -26,7 +26,7 @@ jobs:
         with:
           submodules: true
       - name: Build Solidity contracts using makefile
-        working-directory: packages/data-union-solidity
+        working-directory: packages/contracts
         run: |
            make build
       - name: Node 16.6.1 - x64 on ${{ matrix.os }}

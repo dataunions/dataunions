@@ -6,3 +6,4 @@ coverage
 /packages/*/build
 /packages/*/generated
 .idea
+dist
