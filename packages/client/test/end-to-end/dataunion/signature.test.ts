@@ -1,22 +1,16 @@
-import { BigNumber, Contract, Wallet } from 'ethers'
-import { parseEther } from 'ethers/lib/utils'
 import debug from 'debug'
-
-import { getEndpointUrl } from '../../../src/utils'
-import { DataUnionClient } from '../../../src/DataUnionClient'
-import Contracts from '../../../src/Contracts'
-import DataUnionAPI from '../../../src/DataUnionAPI'
-import * as Token from '../../../contracts/TestToken.json'
-import * as DataUnionSidechain from '../../../contracts/DataUnionSidechain.json'
-import { dataUnionAdminPrivateKey, providerSidechain } from '../devEnvironment'
-import { ConfigTest } from '../../../src/ConfigTest'
+import { BigNumber, Wallet } from 'ethers'
+import { parseEther } from 'ethers/lib/utils'
 import { authFetch } from '../../../src/authFetch'
 import { createStrictConfig } from '../../../src/Config'
+import { ConfigTest } from '../../../src/ConfigTest'
 import { DataUnion } from '../../../src/DataUnion'
+import DataUnionAPI from '../../../src/DataUnionAPI'
+import { DataUnionClient } from '../../../src/DataUnionClient'
+import { getEndpointUrl } from '../../../src/utils'
+import { dataUnionAdminPrivateKey, provider } from '../devEnvironment'
 
 const log = debug('DataUnionClient::DataUnion::integration-test-signature')
-
-const adminWalletSidechain = new Wallet(dataUnionAdminPrivateKey, providerSidechain)
 
 describe('DataUnion signature', () => {
 
@@ -32,8 +26,8 @@ describe('DataUnion signature', () => {
         const secret = await dataUnion.createSecret('test secret')
         log(`DataUnion ${dataUnionAddress} is ready to roll`)
 
-        const memberWallet = new Wallet(`0x100000000000000000000000000000000000000012300000001${Date.now()}`, providerSidechain)
-        const member2Wallet = new Wallet(`0x100000000000000000000000000000000000000012300000002${Date.now()}`, providerSidechain)
+        const memberWallet = new Wallet(`0x100000000000000000000000000000000000000012300000001${Date.now()}`, provider)
+        const member2Wallet = new Wallet(`0x100000000000000000000000000000000000000012300000002${Date.now()}`, provider)
 
         const memberClient = new DataUnionClient({
             ...ConfigTest,
@@ -57,32 +51,24 @@ describe('DataUnion signature', () => {
         })
         await memberDataUnion.join(secret)
 
-        const contracts = new Contracts(new DataUnionAPI(adminClient, null!, createStrictConfig({
-            ...ConfigTest,
-            auth: {
-                privateKey: dataUnionAdminPrivateKey
-            }
-        })))
-        const contractMainnet = await contracts.getMainnetContract(dataUnion.getAddress())
-        const sidechainContractLimited = await contracts.getSidechainContract(dataUnion.getAddress())
-        const tokenSidechainAddress = await contractMainnet.tokenSidechain()
-        const tokenSidechain = new Contract(tokenSidechainAddress, Token.abi, adminWalletSidechain)
+        const dataUnionContract = adminClient.getTemplate(dataUnion.getAddress(), provider)
+        const token = adminClient.getToken()
 
         // make a "full" sidechain contract object that has all functions, not just those required by DataUnionClient
-        const sidechainContract = new Contract(sidechainContractLimited.address, DataUnionSidechain.abi, adminWalletSidechain)
+        // const sidechainContract = new Contract(sidechainContractLimited.address, DataUnionSidechain.abi, adminWalletSidechain)
 
         const signature = await memberDataUnion.signWithdrawAllTo(member2Wallet.address)
         const signature2 = await memberDataUnion.signWithdrawAmountTo(member2Wallet.address, parseEther('1'))
         const signature3 = await memberDataUnion.signWithdrawAmountTo(member2Wallet.address, 3000000000000000) // 0.003 tokens
 
-        const isValid = await sidechainContract.signatureIsValid(memberWallet.address, member2Wallet.address, '0', signature) // '0' = all earnings
-        const isValid2 = await sidechainContract.signatureIsValid(memberWallet.address, member2Wallet.address, parseEther('1'), signature2)
-        const isValid3 = await sidechainContract.signatureIsValid(memberWallet.address, member2Wallet.address, '3000000000000000', signature3)
+        const isValid = await dataUnionContract.signatureIsValid(memberWallet.address, member2Wallet.address, '0', signature) // '0' = all earnings
+        const isValid2 = await dataUnionContract.signatureIsValid(memberWallet.address, member2Wallet.address, parseEther('1'), signature2)
+        const isValid3 = await dataUnionContract.signatureIsValid(memberWallet.address, member2Wallet.address, '3000000000000000', signature3)
         log(`Signature for all tokens ${memberWallet.address} -> ${member2Wallet.address}: ${signature}, checked ${isValid ? 'OK' : '!!!BROKEN!!!'}`)
         log(`Signature for 1 token ${memberWallet.address} -> ${member2Wallet.address}: ${signature2}, checked ${isValid2 ? 'OK' : '!!!BROKEN!!!'}`)
         // eslint-disable-next-line max-len
         log(`Signature for 0.003 tokens ${memberWallet.address} -> ${member2Wallet.address}: ${signature3}, checked ${isValid3 ? 'OK' : '!!!BROKEN!!!'}`)
-        log(`sidechainDU(${sidechainContract.address}) token bal ${await tokenSidechain.balanceOf(sidechainContract.address)}`)
+        log(`sidechainDU(${dataUnionContract.address}) token bal ${await token.balanceOf(dataUnionContract.address)}`)
 
         expect(isValid).toBe(true)
         expect(isValid2).toBe(true)
@@ -96,7 +82,6 @@ describe('DataUnion signature', () => {
             }
         })
         const dataUnion = new DataUnion(
-            '0x2222222222222222222222222222222222222222',
             '0x2222222222222222222222222222222222222222',
             new DataUnionAPI(client, null!, createStrictConfig({
                 ...ConfigTest,

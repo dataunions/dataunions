@@ -1,118 +1,65 @@
-import {defaultAbiCoder} from '@ethersproject/abi'
-import {getAddress, getCreate2Address, isAddress} from '@ethersproject/address'
-import {BigNumber} from '@ethersproject/bignumber'
-import {BytesLike, hexZeroPad} from '@ethersproject/bytes'
-import {Contract} from '@ethersproject/contracts'
-import {keccak256} from '@ethersproject/keccak256'
-import {Provider} from '@ethersproject/providers'
-import {parseEther} from '@ethersproject/units'
-import {inject, Lifecycle, scoped} from 'tsyringe'
-
-import {factoryMainnetABI} from './abi'
-import {ConfigInjectionToken, StrictDataUnionClientConfig} from './Config'
-import Contracts from './Contracts'
-import {DataUnion, DataUnionDeployOptions} from './DataUnion'
-import {Ethereum} from './Ethereum'
-import {Rest} from './Rest'
-import {EthereumAddress} from './types'
-import {until} from './utils'
-import {Debug} from './utils/log'
+import type { DataUnionFactory, ERC20 } from '@dataunions/contracts'
+import { DataUnionFactory__factory as DataUnionFactoryFactory, DataUnionTemplate__factory as DataUnionTemplateFactory, ERC20__factory as ERC20Factory } from '@dataunions/contracts'
+import { getAddress, isAddress } from '@ethersproject/address'
+import { BigNumber } from '@ethersproject/bignumber'
+import { Provider } from '@ethersproject/providers'
+import { parseEther } from '@ethersproject/units'
+import { inject, Lifecycle, scoped } from 'tsyringe'
+import { ConfigInjectionToken, StrictDataUnionClientConfig } from './Config'
+import { DataUnion, DataUnionDeployOptions } from './DataUnion'
+import { Ethereum } from './Ethereum'
+import { Rest } from './Rest'
+import { EthereumAddress } from './types'
+import { Debug } from './utils/log'
 
 const log = Debug('DataUnionAPI')
 
-const balanceOfAbi = [{
-    name: 'balanceOf',
-    inputs: [{ type: 'address' }],
-    outputs: [{ type: 'uint256' }],
-    constant: true,
-    payable: false,
-    stateMutability: 'view',
-    type: 'function'
-}]
-
 @scoped(Lifecycle.ContainerScoped)
 export default class DataUnionAPI {
+    token: ERC20
+    factory: DataUnionFactory
     constructor(
         public ethereum: Ethereum,
         public rest: Rest,
         @inject(ConfigInjectionToken.Root) public options: StrictDataUnionClientConfig,
     ) {
-
+        this.token = this.getToken()
+        this.factory = this.getFactory()
     }
+
+    getFactory(factoryAddress: EthereumAddress = this.options.dataUnion.factoryAddress, provider: Provider = this.ethereum.getProvider()) {
+        return DataUnionFactoryFactory.connect(getAddress(factoryAddress), provider)
+    }
+
+    getTemplate(templateAddress: EthereumAddress, provider: Provider = this.ethereum.getProvider()) {
+        return DataUnionTemplateFactory.connect(getAddress(templateAddress), provider)
+    }
+
+    getToken(tokenAddress: EthereumAddress = this.options.tokenAddress, provider: Provider = this.ethereum.getProvider()) {
+        return ERC20Factory.connect(getAddress(tokenAddress), provider)
+    }
+
     /**
      * Get token balance in "wei" (10^-18 parts) for given address
      */
     async getTokenBalance(address: EthereumAddress): Promise<BigNumber> {
-        const { tokenAddress } = this.options
-        const addr = getAddress(address)
-        const providers = this.ethereum.getAllMainnetProviders()
-        const tokens = providers.map((provider: Provider) => {
-            return new Contract(tokenAddress, balanceOfAbi, provider)
-        })
-        return Promise.any([
-            ...tokens.map((token: Contract) => token.balanceOf(addr))
-        ])
-    }
-
-    /**
-     * Get token balance in "wei" (10^-18 parts) for given address in sidechain
-     */
-    async getSidechainTokenBalance(address: EthereumAddress): Promise<BigNumber> {
-        const { tokenSidechainAddress } = this.options
-        const addr = getAddress(address)
-
-        const providers = this.ethereum.getAllDataUnionChainProviders()
-        const tokens = providers.map((provider: Provider) => {
-            return new Contract(tokenSidechainAddress, balanceOfAbi, provider)
-        })
-        return Promise.any([
-            ...tokens.map((token: Contract) => token.balanceOf(addr))
-        ])
-    }
-
-    /**
-     * NOTE: if template address is not given, calculation only works for the newest currently deployed factory,
-     *       i.e. can be used for "future deployments" but NOT for old deployments
-     * For old deployments, please use getDataUnion
-     */
-    async calculateDataUnionAddresses(
-        dataUnionName: string,
-        deployerAddress?: EthereumAddress
-    ): Promise<{ mainnetAddress: EthereumAddress, sidechainAddress: EthereumAddress }> {
-        const deployer = deployerAddress ?? await this.ethereum.getAddress()
-        const {
-            templateMainnetAddress,
-            templateSidechainAddress,
-            factoryMainnetAddress,
-            factorySidechainAddress,
-        } = this.options.dataUnion
-        // The magic hex strings come from https://github.com/streamr-dev/data-union-solidity/blob/master/contracts/CloneLib.sol#L19
-        const salt = keccak256(defaultAbiCoder.encode(['string', 'address'], [dataUnionName, deployer]))
-        const codeHashM = keccak256(`0x3d602d80600a3d3981f3363d3d373d3d3d363d73${templateMainnetAddress.slice(2)}5af43d82803e903d91602b57fd5bf3`)
-        const mainnetAddress = getCreate2Address(factoryMainnetAddress, salt, codeHashM)
-        const codeHashS = keccak256(`0x3d602d80600a3d3981f3363d3d373d3d3d363d73${templateSidechainAddress.slice(2)}5af43d82803e903d91602b57fd5bf3`)
-        const sidechainAddress = getCreate2Address(factorySidechainAddress, hexZeroPad(mainnetAddress, 32), codeHashS)
-        return { mainnetAddress, sidechainAddress }
+        return this.token.balanceOf(getAddress(address))
     }
 
     /**
      * @category Important
      */
-    async getDataUnion(contractAddress: EthereumAddress): Promise<DataUnion> {
+    async getDataUnion(contractAddress: EthereumAddress): Promise<DataUnion | never> {
         if (!isAddress(contractAddress)) {
-            throw new Error(`Can't get Data Union, invalid Ethereum address: ${contractAddress}`)
+            throw new Error(`Can't get DataUnion, invalid Ethereum address: ${contractAddress}`)
         }
-        const version = await DataUnion.getVersion(contractAddress, this)
-        if (version === 0) {
-            throw new Error(`${contractAddress} is not a Data Union!`)
-        } else if (version === 1) {
-            throw new Error(`${contractAddress} is an old Data Union, please use DataUnionClient 4.x or earlier!`)
-        } else if (version === 2) {
-            const contracts = new Contracts(this)
-            const sidechainContract = await contracts.getSidechainContractReadOnly(contractAddress)
-            return new DataUnion(contractAddress, sidechainContract.address, this)
+
+        const provider = this.ethereum.getProvider()
+        if (await provider.getCode(contractAddress) === '0x') {
+            throw new Error(`No Contract found at ${contractAddress}, check DataUnionClient.options.dataUnion.factoryAddress!`)
         }
-        throw new Error(`${contractAddress} is an unknown Data Union version "${version}"`)
+
+        return new DataUnion(contractAddress, this)
     }
 
     /**
@@ -121,27 +68,28 @@ export default class DataUnionAPI {
      * @return Promise<DataUnion> that resolves when the new DU is deployed over the bridge to side-chain
      */
     async deployDataUnion(options: DataUnionDeployOptions = {}): Promise<DataUnion> {
-        const deployerAddress = await this.ethereum.getAddress()
-        const mainnetProvider = this.ethereum.getMainnetProvider()
-        const mainnetWallet = this.ethereum.getSigner()
-        const duChainProvider = this.ethereum.getDataUnionChainProvider()
-
+        const provider = this.ethereum.getProvider()
         const {
-            factoryMainnetAddress
+            factoryAddress,
+            joinPartAgentAddress
         } = this.options.dataUnion
+
+        if (await provider.getCode(factoryAddress) === '0x') {
+            throw new Error(`Contract not found at ${factoryAddress}, check DataUnionClient.options.dataUnion.factoryAddress!`)
+        }
+
+        const deployerAddress = await this.ethereum.getAddress()
 
         const {
             owner = deployerAddress,
-            joinPartAgents = [owner, this.options.streamrNodeAddress],
+            joinPartAgents = [owner, joinPartAgentAddress],
             dataUnionName = `DataUnion-${Date.now()}`, // TODO: use uuid
             adminFee = 0,
-            sidechainPollingIntervalMs = 1000,
-            sidechainRetryTimeoutMs = 600000,
             confirmations = 1,
             gasPrice
         } = options
 
-        log(`Going to deploy Data Union with name: ${dataUnionName}`)
+        log(`Going to deploy DataUnion with name: ${dataUnionName}`)
 
         if (adminFee < 0 || adminFee > 1) { throw new Error('options.adminFeeFraction must be a number between 0...1, got: ' + adminFee) }
         const adminFeeBN = BigNumber.from((adminFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish
@@ -149,74 +97,22 @@ export default class DataUnionAPI {
         const ownerAddress = getAddress(owner)
         const agentAddressList = joinPartAgents.map(getAddress)
 
-        const {
-            mainnetAddress,
-            sidechainAddress,
-        } = await this.calculateDataUnionAddresses(dataUnionName, deployerAddress)
-
-        if (await mainnetProvider.getCode(mainnetAddress) !== '0x') {
-            throw new Error(`Mainnet data union "${dataUnionName}" contract ${mainnetAddress} already exists!`)
-        }
-
-        if (await mainnetProvider.getCode(factoryMainnetAddress) === '0x') {
-            throw new Error(`Contract not found at ${factoryMainnetAddress}, check DataUnionClient.options.dataUnion.factoryMainnetAddress!`)
-        }
-
-        const factoryMainnet = new Contract(factoryMainnetAddress, factoryMainnetABI, mainnetWallet)
         const ethersOptions: any = {}
         if (gasPrice) { ethersOptions.gasPrice = gasPrice }
         const duFeeFraction = parseEther('0') // TODO: decide what the default values should be
         const duBeneficiary = '0x0000000000000000000000000000000000000000' // TODO: decide what the default values should be
-        const tx = await factoryMainnet.deployNewDataUnion(
+        const tx = await this.factory.deployNewDataUnion(
             ownerAddress,
             adminFeeBN,
             duFeeFraction,
             duBeneficiary,
             agentAddressList,
-            dataUnionName,
             ethersOptions
         )
-        await tx.wait(confirmations)
+        const t = await tx.wait(confirmations)
 
-        log(`Data Union deployed to mainnet: ${mainnetAddress}, waiting for sidechain: ${sidechainAddress}`)
-        await until(
-            async () => await duChainProvider.getCode(sidechainAddress) !== '0x',
-            sidechainRetryTimeoutMs,
-            sidechainPollingIntervalMs
-        )
+        log(`DataUnion deployed ${t.contractAddress}`)
 
-        return new DataUnion(mainnetAddress, sidechainAddress, this)
-    }
-
-    async setBinanceDepositAddress(binanceRecipient: EthereumAddress) {
-        return DataUnion._setBinanceDepositAddress(binanceRecipient, this) // eslint-disable-line no-underscore-dangle
-    }
-
-    async setBinanceDepositAddressFromSignature(from: EthereumAddress, binanceRecipient: EthereumAddress, signature: BytesLike) {
-        return DataUnion._setBinanceDepositAddressFromSignature(from, binanceRecipient, signature, this) // eslint-disable-line no-underscore-dangle
-    }
-
-    // TODO: define returned object's type
-    async setBinanceDepositAddressViaWithdrawServer(from: EthereumAddress, binanceRecipient: EthereumAddress, signature: BytesLike): Promise<object> {
-        const body = {
-            memberAddress: from,
-            binanceRecipientAddress: binanceRecipient,
-            signature
-        }
-        return this.rest.post(['binanceAdapterSetRecipient'], body, {
-            restUrl: this.options.withdrawServerUrl,
-        })
-    }
-
-    async getBinanceDepositAddress(userAddress: EthereumAddress) {
-        return DataUnion._getBinanceDepositAddress(userAddress, this) // eslint-disable-line no-underscore-dangle
-    }
-
-    async signSetBinanceRecipient(
-        recipientAddress: EthereumAddress,
-    ): Promise<string> {
-        const to = getAddress(recipientAddress) // throws if bad address
-        const signer = this.ethereum.getSigner()
-        return DataUnion._createSetBinanceRecipientSignature(to, signer, new Contracts(this)) // eslint-disable-line no-underscore-dangle
+        return new DataUnion(t.contractAddress, this)
     }
 }

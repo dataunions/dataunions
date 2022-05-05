@@ -23,7 +23,7 @@ describe('Session', () => {
         it('gets no token (undefined) when the auth object is empty', async () => {
             expect(await (await createClient({
                 auth: {},
-            // @ts-expect-error
+                // @ts-expect-error
             })).session.getSessionToken()).toBe('')
         })
     })

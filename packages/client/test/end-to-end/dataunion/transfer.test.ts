@@ -1,31 +1,26 @@
 /* eslint-disable no-await-in-loop */
-import { Contract, Wallet } from 'ethers'
-import { formatEther, parseEther } from 'ethers/lib/utils'
 import debug from 'debug'
-import Token from '../../../contracts/TestToken.json'
-import DataUnionSidechain from '../../../contracts/DataUnionSidechain.json'
-import {
-    tokenAdminPrivateKey,
-    tokenMediatorAddress,
-    relayTokensAbi,
-    providerMainnet,
-    providerSidechain,
-    getMainnetTestWallet,
-    getSidechainTestWallet
-} from '../devEnvironment'
+import { Wallet } from 'ethers'
+import { formatEther, parseEther } from 'ethers/lib/utils'
+import { authFetch } from '../../../src/authFetch'
 import { ConfigTest } from '../../../src/ConfigTest'
-import { getEndpointUrl, until } from '../../../src/utils'
 import { DataUnionClient } from '../../../src/DataUnionClient'
 import { EthereumAddress } from '../../../src/types'
-import { authFetch } from '../../../src/authFetch'
+import { getEndpointUrl } from '../../../src/utils'
+import {
+    getTestWallet, provider, tokenAdminPrivateKey
+} from '../devEnvironment'
 
 const log = debug('DataUnionClient::DataUnion::integration-test-transfer')
 
-const tokenAdminWallet = new Wallet(tokenAdminPrivateKey, providerMainnet)
-const tokenMainnet = new Contract(ConfigTest.tokenAddress, Token.abi, tokenAdminWallet)
-
-const tokenAdminSidechainWallet = new Wallet(tokenAdminPrivateKey, providerSidechain)
-const tokenSidechain = new Contract(ConfigTest.tokenSidechainAddress, Token.abi, tokenAdminSidechainWallet)
+const tokenAdminWallet = new Wallet(tokenAdminPrivateKey, provider)
+const tokenAdminClient = new DataUnionClient({
+    ...ConfigTest,
+    auth: {
+        privateKey: tokenAdminPrivateKey
+    }
+})
+const token = tokenAdminClient.getToken()
 
 async function addMember(dataUnionAddress: EthereumAddress, secret: string) {
     const privateKey = `0x100000000000000000000000000000000000000012300000001${Date.now()}`
@@ -40,38 +35,19 @@ async function addMember(dataUnionAddress: EthereumAddress, secret: string) {
     const res = await memberDataUnion.join(secret)
     log('Member joined data union: %O', res)
 
-    const memberWallet = new Wallet(privateKey, providerSidechain)
+    const memberWallet = new Wallet(privateKey, provider)
     return memberWallet
 }
 
 describe('DataUnion earnings transfer methods', () => {
     beforeAll(async () => {
         log('Connecting to Ethereum networks, clientOptions: %O', ConfigTest)
-        const network = await providerMainnet.getNetwork()
-        log('Connected to "mainnet" network: %O', network)
-        const network2 = await providerSidechain.getNetwork()
-        log('Connected to sidechain network: %O', network2)
-
-        // TODO: ALL of the below should be unnecessary after test wallets are properly set up in smart-contracts-init
-
-        log('Minting 200 tokens to %s and sending 100 to sidechain', tokenAdminWallet.address)
-        const mintTx = await tokenMainnet.mint(tokenAdminWallet.address, parseEther('200'))
-        await mintTx.wait()
-        const tokenMediator = new Contract(tokenMediatorAddress, relayTokensAbi, tokenAdminWallet)
-        const approveTx = await tokenMainnet.approve(tokenMediator.address, parseEther('100'))
-        await approveTx.wait()
-        const relayTx = await tokenMediator.relayTokensAndCall(
-            tokenMainnet.address,
-            tokenAdminSidechainWallet.address,
-            parseEther('100'),
-            '0x1234' // dummy 0x1234
-        )
-        await relayTx.wait()
-        await until(async () => (await tokenSidechain.balanceOf(tokenAdminSidechainWallet.address)).gt('0'), 300000, 3000)
+        const network = await provider.getNetwork()
+        log('Connected to network: %O', network)
 
         log('Distributing mainnet ETH to following addresses:')
         for (let i = 1; i <= 2; i++) {
-            const testWallet = getMainnetTestWallet(i)
+            const testWallet = getTestWallet(i)
             log('    #%d: %s', i, testWallet.address)
             const sendTx = await tokenAdminWallet.sendTransaction({
                 to: testWallet.address,
@@ -82,9 +58,9 @@ describe('DataUnion earnings transfer methods', () => {
 
         log('Distributing sidechain ETH to following addresses:')
         for (let i = 1; i <= 2; i++) {
-            const testWallet = getSidechainTestWallet(i)
+            const testWallet = getTestWallet(i)
             log('    #%d: %s', i, testWallet.address)
-            const sendTx = await tokenAdminSidechainWallet.sendTransaction({
+            const sendTx = await tokenAdminWallet.sendTransaction({
                 to: testWallet.address,
                 value: parseEther('1')
             })
@@ -93,16 +69,15 @@ describe('DataUnion earnings transfer methods', () => {
 
         log('Distributing 10 sidechain DATA to following addresses:')
         for (let i = 1; i <= 2; i++) {
-            const testWallet = getSidechainTestWallet(i)
+            const testWallet = getTestWallet(i)
             log('    #%d: %s', i, testWallet.address)
-            const sendTx = await tokenSidechain.transfer(testWallet.address, parseEther('10'))
+            const sendTx = await token.transfer(testWallet.address, parseEther('10'))
             await sendTx.wait()
         }
     }, 1500000)
 
     async function setupTest(testIndex: number) {
-        const adminWallet = getMainnetTestWallet(testIndex)
-        const adminWalletSidechain = getSidechainTestWallet(testIndex)
+        const adminWallet = getTestWallet(testIndex)
 
         const adminClient = new DataUnionClient({
             ...ConfigTest,
@@ -114,10 +89,9 @@ describe('DataUnion earnings transfer methods', () => {
         const dataUnion = await adminClient.deployDataUnion()
         const dataUnionAddress = dataUnion.getAddress()
         const secret = await dataUnion.createSecret('test secret')
-        const dataUnionSidechain = new Contract(dataUnion.getSidechainAddress(), DataUnionSidechain.abi, adminWalletSidechain)
 
         log('DU mainnet address: %s', dataUnionAddress)
-        log('DU sidechain address: %s', dataUnionSidechain.address)
+        log('DU sidechain address: %s', dataUnion.contract.address)
         log('DU owner: %s', await dataUnion.getAdminAddress())
         log('Sending tx from %s', await adminClient.getAddress())
 
@@ -135,23 +109,23 @@ describe('DataUnion earnings transfer methods', () => {
         })
 
         const memberWallet = await addMember(dataUnionAddress, secret)
-        log(`DU member count: ${await dataUnionSidechain.activeMemberCount()}`)
+        log(`DU member count: ${await dataUnion.contract.activeMemberCount()}`)
 
         const member2Wallet = await addMember(dataUnionAddress, secret)
-        log(`DU member count: ${await dataUnionSidechain.activeMemberCount()}`)
+        log(`DU member count: ${await dataUnion.contract.activeMemberCount()}`)
 
         log('Transfer sidechain ETH to %s for transferWithinContract tx', memberWallet.address)
-        const sendTx = await adminWalletSidechain.sendTransaction({
+        const sendTx = await adminWallet.sendTransaction({
             to: memberWallet.address,
             value: parseEther('0.1')
         })
         await sendTx.wait()
 
-        const transferTx = await tokenSidechain.transfer(dataUnionSidechain.address, parseEther('4'))
+        const transferTx = await token.transfer(dataUnion.contract.address, parseEther('4'))
         await transferTx.wait()
         log('sidechain token transfer done')
 
-        const refreshTx = await dataUnionSidechain.refreshRevenue()
+        const refreshTx = await dataUnion.contract.refreshRevenue()
         await refreshTx.wait()
         log('refreshRevenue done')
 
@@ -181,8 +155,8 @@ describe('DataUnion earnings transfer methods', () => {
         const stats2Before = await dataUnion.getMemberStats(member2Wallet.address)
         log('Stats before: %O, %O', statsBefore, stats2Before)
 
-        log('%s sidechain-ETH balance: %s', memberWallet.address, await providerSidechain.getBalance(memberWallet.address))
-        log('%s sidechain-DATA balance: %s', memberWallet.address, await tokenSidechain.balanceOf(memberWallet.address))
+        log('%s sidechain-ETH balance: %s', memberWallet.address, await provider.getBalance(memberWallet.address))
+        log('%s sidechain-DATA balance: %s', memberWallet.address, await token.balanceOf(memberWallet.address))
 
         log('Transfer 1 token worth of earnings with transferWithinContract: %s -> %s', memberWallet.address, member2Wallet.address)
         await memberDataUnion.transferWithinContract(member2Wallet.address, parseEther('1'))
@@ -210,7 +184,7 @@ describe('DataUnion earnings transfer methods', () => {
             member2Wallet,
             dataUnion
         } = await setupTest(2)
-        const adminWalletSidechain = getSidechainTestWallet(2)
+        const adminWalletSidechain = getTestWallet(2)
 
         const statsBefore = await dataUnion.getMemberStats(memberWallet.address)
         const stats2Before = await dataUnion.getMemberStats(member2Wallet.address)
@@ -218,9 +192,9 @@ describe('DataUnion earnings transfer methods', () => {
 
         // if approval hasn't been done, transferToMemberInContract should do it
         if (approveFirst) {
-            const approve = await tokenSidechain.approve(dataUnion.getSidechainAddress(), parseEther('1'))
+            const approve = await token.approve(dataUnion.getAddress(), parseEther('1'))
             await approve.wait()
-            log(`Approve DU ${dataUnion.getSidechainAddress()} to access 1 token from ${adminWalletSidechain.address}`)
+            log(`Approve DU ${dataUnion.getAddress()} to access 1 token from ${adminWalletSidechain.address}`)
         }
 
         log(`Transfer 1 token with transferToMemberInContract to ${memberWallet.address}`)

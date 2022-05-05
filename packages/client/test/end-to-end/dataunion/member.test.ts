@@ -1,13 +1,12 @@
-import { utils, Wallet } from 'ethers'
 import debug from 'debug'
-
-import { DataUnionClient } from '../../../src/DataUnionClient'
-import { dataUnionAdminPrivateKey, getSidechainTestWallet, tokenAdminWalletSidechain } from '../devEnvironment'
+import { utils, Wallet } from 'ethers'
+import { authFetch } from '../../../src/authFetch'
 import { ConfigTest } from '../../../src/ConfigTest'
 import { DataUnion, JoinRequestState } from '../../../src/DataUnion'
-import { createMockAddress, expectInvalidAddress, fastWallet } from '../../test-utils/utils'
-import { authFetch } from '../../../src/authFetch'
+import { DataUnionClient } from '../../../src/DataUnionClient'
 import { getEndpointUrl } from '../../../src/utils'
+import { createMockAddress, expectInvalidAddress, fastWallet } from '../../test-utils/utils'
+import { dataUnionAdminPrivateKey, getSidechainTestWallet, tokenAdminWalletSidechain } from '../devEnvironment'
 
 const { parseEther } = utils
 

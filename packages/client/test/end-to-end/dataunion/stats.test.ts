@@ -1,11 +1,10 @@
+import { BigNumber } from '@ethersproject/bignumber'
 import debug from 'debug'
-
-import { DataUnionClient } from '../../../src/DataUnionClient'
 import { ConfigTest } from '../../../src/ConfigTest'
 import { DataUnion, MemberStatus } from '../../../src/DataUnion'
-import { getRandomClient, createMockAddress, expectInvalidAddress } from '../../test-utils/utils'
-import { BigNumber } from '@ethersproject/bignumber'
-import {dataUnionAdminPrivateKey} from '../devEnvironment'
+import { DataUnionClient } from '../../../src/DataUnionClient'
+import { createMockAddress, expectInvalidAddress, getRandomClient } from '../../test-utils/utils'
+import { dataUnionAdminPrivateKey } from '../devEnvironment'
 
 const log = debug('DataUnionClient::DataUnion::integration-test-stats')
 

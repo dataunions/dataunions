@@ -14,6 +14,7 @@ import { MaybeAsync } from '../../src/types'
 import { ConfigTest } from '../../src/ConfigTest'
 
 import { KeyServer } from './KeyServer'
+import { Context } from '../../src/utils/Context'
 
 const testDebugRoot = Debug('test')
 const testDebug = testDebugRoot.extend.bind(testDebugRoot)
@@ -22,7 +23,7 @@ export {
     testDebug as Debug
 }
 
-export function mockContext() {
+export function mockContext(): Context {
     const id = counterId('mockContext')
     return { id, debug: testDebugRoot.extend(id) }
 }

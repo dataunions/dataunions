@@ -2,12 +2,12 @@
  * Login Endpoints Wrapper.
  */
 
-import {delay, inject, Lifecycle, scoped} from 'tsyringe'
-import {Ethereum} from './Ethereum'
-import {Rest} from './Rest'
-import {EthereumAddress} from './types'
-import {instanceId} from './utils'
-import {Context} from './utils/Context'
+import { delay, inject, Lifecycle, scoped } from 'tsyringe'
+import { Ethereum } from './Ethereum'
+import { Rest } from './Rest'
+import { EthereumAddress } from './types'
+import { instanceId } from './utils'
+import { Context } from './utils/Context'
 
 export interface TokenObject {
     token: string
@@ -77,4 +77,3 @@ export class LoginEndpoints implements Context {
         await this.rest.post(['logout'])
     }
 }
-
