@@ -3,6 +3,7 @@
     "description": "Smart contracts for Data Union with sidechain accounting",
     "version": "1.0.0",
     "main": "dist/typechain",
+    "types": "typechain",
     "scripts": {
         "build": "hardhat compile && tsc -p tsconfig.json",
         "prepare": "npm run build",
