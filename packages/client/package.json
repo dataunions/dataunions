@@ -28,7 +28,8 @@
         "postbuild-node": "npm run copy-package",
         "lint": "eslint --cache --cache-location=node_modules/.cache/.eslintcache/ '*/**/*.{js,ts}'",
         "test-integration": "jest --maxWorkers=1 test/end-to-end",
-        "clean": "jest --clearCache || true; rm -rf dist vendor *.tsbuildinfo node_modules/.cache || true"
+        "clean": "jest --clearCache || true; rm -rf dist vendor *.tsbuildinfo node_modules/.cache || true",
+        "browser-gui": "esbuild src/index.ts  --bundle --sourcemap --target=esnext --format=esm --tsconfig=tsconfig.browser.json --minify --servedir=test/browser --outdir=test/browser --bundle"
     },
     "engines": {
         "node": ">= 16"
@@ -66,6 +67,7 @@
         "concurrently": "^6.4.0",
         "cors": "^2.8.5",
         "crypto-browserify": "^3.12.0",
+        "esbuild": "^0.14.38",
         "eslint": "^7.32.0",
         "eslint-config-airbnb": "^18.2.1",
         "eslint-loader": "^4.0.2",
