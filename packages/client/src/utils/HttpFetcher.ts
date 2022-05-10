@@ -1,9 +1,11 @@
 import { inject, Lifecycle, scoped } from 'tsyringe'
-import { Debugger } from 'debug'
-import fetch, { Response } from 'node-fetch'
+import type { Debugger } from 'debug'
+import type { Response } from 'node-fetch'
+import fetch from 'node-fetch'
 
-import { ConfigInjectionToken, StrictDataUnionClientConfig } from '../Config'
-import { Context } from './Context'
+import type { StrictDataUnionClientConfig } from '../Config'
+import { ConfigInjectionToken } from '../Config'
+import type { Context } from './Context'
 import { instanceId } from './index'
 
 @scoped(Lifecycle.ContainerScoped)

@@ -5,7 +5,7 @@ import { formatEther, parseEther } from 'ethers/lib/utils'
 import { authFetch } from '../../../src/authFetch'
 import { ConfigTest } from '../../../src/ConfigTest'
 import { DataUnionClient } from '../../../src/DataUnionClient'
-import { EthereumAddress } from '../../../src/types'
+import type { EthereumAddress } from '../../../src/types'
 import { getEndpointUrl } from '../../../src/utils'
 import {
     getTestWallet, provider, tokenAdminPrivateKey

@@ -4,7 +4,7 @@ import assert from 'assert'
 
 import { ethers } from 'ethers'
 
-import { DataUnionClient } from '../../../src/DataUnionClient'
+import type { DataUnionClient } from '../../../src/DataUnionClient'
 
 import { getCreateClient } from '../../test-utils/utils'
 

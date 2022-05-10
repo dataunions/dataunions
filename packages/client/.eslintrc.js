@@ -55,6 +55,10 @@ module.exports = {
             argsIgnorePattern: '^_',
             varsIgnorePattern: '^_',
         }],
+        '@typescript-eslint/consistent-type-imports': ['error', {
+            prefer: 'type-imports',
+        }],
+        'quote-props': ['error', 'consistent-as-needed'],
         'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/*.test.*', 'test/*.ts', 'test/*.js', 'test/**/*.ts', 'test/**/*.js'] }],
         'no-redeclare': 'off',
         '@typescript-eslint/no-redeclare': ['error'],

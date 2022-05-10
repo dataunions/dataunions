@@ -1,7 +1,8 @@
 import { instanceId, pOnce } from './index'
 import { Debug } from './log'
 import { iteratorFinally } from './iterators'
-import { ContextError, Context } from './Context'
+import type { Context } from './Context'
+import { ContextError } from './Context'
 import * as G from './GeneratorUtils'
 import { ErrorSignal, Signal } from './Signal'
 

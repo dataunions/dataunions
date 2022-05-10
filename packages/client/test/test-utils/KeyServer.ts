@@ -1,6 +1,6 @@
 import express from 'express'
 import cors from'cors'
-import http from 'http'
+import type http from 'http'
 
 /**
  * Used to spin up an HTTP server used by integration tests to fetch private keys having non-zero ERC-20 token

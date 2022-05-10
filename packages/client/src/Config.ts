@@ -7,12 +7,7 @@ import 'reflect-metadata'
 import type { InspectOptions } from 'util'
 // import CONFIG_SCHEMA from './config.schema.json'
 import type { AuthConfig, EthereumConfig } from './Ethereum'
-import { EthereumAddress } from './types'
-
-export type CacheConfig = {
-    maxSize: number,
-    maxAge: number
-}
+import type { EthereumAddress } from './types'
 
 type TimeoutConfig = {
     timeout: number
@@ -61,7 +56,6 @@ export type StrictDataUnionClientConfig = {
     */
     auth: AuthConfig
     dataUnion: DataUnionConfig
-    cache: CacheConfig,
 
     /** @internal */
     _timeouts: TimeoutsConfig
@@ -105,10 +99,6 @@ export const DATAUNION_CLIENT_DEFAULTS: StrictDataUnionClientConfig = {
         templateAddress: '0x67352e3F7dBA907aF877020aE7E9450C0029C70c',
         joinPartAgentAddress: '0xf3E5A65851C3779f468c9EcB32E6f25D9D68601a',
     },
-    cache: {
-        maxSize: 10000,
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
     _timeouts: {
         theGraph: {
             timeout: 60 * 1000,
@@ -140,10 +130,6 @@ export const createStrictConfig = (inputOptions: DataUnionClientConfig = {}): St
             ...opts.dataUnion
         },
         debug: merge(defaults.debug || {}, opts.debug),
-        cache: {
-            ...defaults.cache,
-            ...opts.cache,
-        }
     }
 
     options.auth = options.auth || {}

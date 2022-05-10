@@ -1,20 +1,20 @@
 import { writeHeapSnapshot } from 'v8'
-import { DependencyContainer } from 'tsyringe'
+import type { DependencyContainer } from 'tsyringe'
 
 import fetch from 'node-fetch'
 import { wait } from 'streamr-test-utils'
 import { Wallet } from 'ethers'
 import LeakDetector from 'jest-leak-detector'
 
-import { EthereumAddress } from '../../src/types'
+import type { EthereumAddress } from '../../src/types'
 import { DataUnionClient } from '../../src/DataUnionClient'
 import { counterId, CounterId, AggregatedError, instanceId } from '../../src/utils'
 import { Debug, format } from '../../src/utils/log'
-import { MaybeAsync } from '../../src/types'
+import type { MaybeAsync } from '../../src/types'
 import { ConfigTest } from '../../src/ConfigTest'
 
 import { KeyServer } from './KeyServer'
-import { Context } from '../../src/utils/Context'
+import type { Context } from '../../src/utils/Context'
 
 const testDebugRoot = Debug('test')
 const testDebug = testDebugRoot.extend.bind(testDebugRoot)

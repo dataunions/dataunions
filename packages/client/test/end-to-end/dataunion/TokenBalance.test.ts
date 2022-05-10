@@ -1,4 +1,4 @@
-import { ERC20 } from '@dataunions/contracts/typechain'
+import type { ERC20 } from '@dataunions/contracts/typechain'
 import { Wallet } from '@ethersproject/wallet'
 import { parseEther } from 'ethers/lib/utils'
 import { ConfigTest } from '../../../src/ConfigTest'

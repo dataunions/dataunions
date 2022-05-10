@@ -1,9 +1,10 @@
 import { scoped, Lifecycle, inject } from 'tsyringe'
-import { Debugger } from 'debug'
+import type { Debugger } from 'debug'
 
-import { ConfigInjectionToken, ConnectionConfig } from '../Config'
+import type { ConnectionConfig } from '../Config'
+import { ConfigInjectionToken } from '../Config'
 import { instanceId } from './index'
-import { Context } from './Context'
+import type { Context } from './Context'
 import { HttpFetcher } from './HttpFetcher'
 
 @scoped(Lifecycle.ContainerScoped)
@@ -25,7 +26,7 @@ export class GraphQLClient {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                accept: '*/*',
+                "accept": '*/*',
             },
             body: gqlQuery
         })

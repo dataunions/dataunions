@@ -9,7 +9,7 @@ export type { ExternalProvider } from '@ethersproject/providers'
 export type { ConnectionInfo } from '@ethersproject/web'
 export { ErrorCode, NotFoundError } from './authFetch'
 export {
-    CacheConfig, ConnectionConfig, DataUnionConfig, DATAUNION_CLIENT_DEFAULTS, DebugConfig, StrictDataUnionClientConfig, validateConfig
+    ConnectionConfig, DataUnionConfig, DATAUNION_CLIENT_DEFAULTS, DebugConfig, StrictDataUnionClientConfig, validateConfig
 } from './Config'
 export { ConfigTest } from './ConfigTest'
 export * from './DataUnionClient'

@@ -13,7 +13,7 @@ import type { ConnectionInfo } from '@ethersproject/web'
 import { inject, Lifecycle, scoped } from 'tsyringe'
 
 import { ConfigInjectionToken } from './Config'
-import { EthereumAddress } from './types'
+import type { EthereumAddress } from './types'
 
 export type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never }
 export type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U

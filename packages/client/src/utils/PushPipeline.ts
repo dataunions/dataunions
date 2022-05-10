@@ -1,6 +1,8 @@
-import { IPushBuffer, PushBuffer, DEFAULT_BUFFER_SIZE, pull, PushBufferOptions, PullOptions } from './PushBuffer'
-import * as G from './GeneratorUtils'
-import { Pipeline, PipelineTransform } from './Pipeline'
+import type { IPushBuffer, PushBufferOptions, PullOptions } from './PushBuffer'
+import { PushBuffer, DEFAULT_BUFFER_SIZE, pull } from './PushBuffer'
+import type * as G from './GeneratorUtils'
+import type { PipelineTransform } from './Pipeline'
+import { Pipeline } from './Pipeline'
 
 /**
  * Pipeline that is also a PushBuffer.

@@ -1,4 +1,4 @@
-import { Contract, ContractReceipt, ContractTransaction } from '@ethersproject/contracts'
+import type { Contract, ContractReceipt, ContractTransaction } from '@ethersproject/contracts'
 import EventEmitter from 'eventemitter3'
 import debug from 'debug'
 

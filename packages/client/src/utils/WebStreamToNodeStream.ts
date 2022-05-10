@@ -1,4 +1,5 @@
-import { PassThrough, Readable, TransformOptions } from 'stream'
+import type { Readable, TransformOptions } from 'stream'
+import { PassThrough } from 'stream'
 import { once } from 'events'
 
 const ignoreAbort = (err: Error) => {

@@ -1,6 +1,7 @@
 import 'reflect-metadata'
 import { container as rootContainer } from 'tsyringe'
-import { ConfigInjectionToken, createStrictConfig, DataUnionClientConfig, StrictDataUnionClientConfig } from './Config'
+import type { DataUnionClientConfig, StrictDataUnionClientConfig } from './Config'
+import { ConfigInjectionToken, createStrictConfig } from './Config'
 import { DataUnionContainer } from './Container'
 import DataUnions from './DataUnionAPI'
 import { Ethereum } from './Ethereum'
@@ -10,7 +11,8 @@ import { counterId, uuid } from './utils'
 import { Context } from './utils/Context'
 import { Debug } from './utils/log'
 import './utils/PatchTsyringe'
-import { Methods, Plugin } from './utils/Plugin'
+import type { Methods} from './utils/Plugin'
+import { Plugin } from './utils/Plugin'
 
 let uid: string = process.pid != null
     // Use process id in node uid.

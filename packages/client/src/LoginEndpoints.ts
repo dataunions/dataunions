@@ -3,11 +3,11 @@
  */
 
 import { delay, inject, Lifecycle, scoped } from 'tsyringe'
-import { Ethereum } from './Ethereum'
+import type { Ethereum } from './Ethereum'
 import { Rest } from './Rest'
-import { EthereumAddress } from './types'
+import type { EthereumAddress } from './types'
 import { instanceId } from './utils'
-import { Context } from './utils/Context'
+import type { Context } from './utils/Context'
 
 export interface TokenObject {
     token: string
