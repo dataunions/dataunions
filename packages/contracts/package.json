@@ -19,6 +19,7 @@
     "author": "Streamr Network AG",
     "license": "AGPL-3.0",
     "devDependencies": {
+        "@dataunions/config": "^1.0.0",
         "@nomiclabs/hardhat-ethers": "^2.0.3",
         "@nomiclabs/hardhat-waffle": "^2.0.1",
         "@streamr/config": "^0.0.3",
@@ -26,12 +27,11 @@
         "@types/chai": "^4.2.22",
         "@types/debug": "^4.1.7",
         "@types/mocha": "^9.0.0",
-        "@types/node": "^16.9.6",
+        "@types/node": "^16.10.6",
         "chai": "^4.3.4",
         "chai-bignumber": "^3.0.0",
-        "@dataunions/config": "^1.0.0",
-        "debug": "4.1.1",
-        "eslint": "7.32.0",
+        "debug": "^4.3.2",
+        "eslint": "^7.32.0",
         "ethereum-waffle": "^3.4.0",
         "hardhat": "^2.6.1",
         "hardhat-typechain": "^0.3.5",
@@ -40,12 +40,12 @@
         "solhint": "3.3.6",
         "solhint-plugin-prettier": "0.0.5",
         "solidity-coverage": "^0.7.16",
-        "ts-node": "^10.2.1",
+        "ts-node": "^10.7.0",
         "typechain": "^4.0.0",
-        "typescript": "^4.3.5"
+        "typescript": "^4.7.0-beta"
     },
     "dependencies": {
         "@openzeppelin/contracts": "4.2.0",
-        "ethers": "^5.0.0"
+        "ethers": "^5.4.7"
     }
 }
