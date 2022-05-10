@@ -1,3 +1,5 @@
+import 'reflect-metadata'
+
 /**
  * This file captures named exports so we can manipulate them for cjs/browser builds.
  */
@@ -12,7 +14,6 @@ export {
     ConnectionConfig, DataUnionConfig, DATAUNION_CLIENT_DEFAULTS, DebugConfig, StrictDataUnionClientConfig, validateConfig
 } from './Config'
 export { ConfigTest } from './ConfigTest'
-export * from './DataUnionClient'
 export {
     AuthConfig,
     AuthenticatedConfig,
@@ -21,3 +22,5 @@ export {
 } from './Ethereum'
 export * from './types'
 export { SignalListener } from './utils/Signal'
+
+export * from './DataUnionClient'

@@ -13,8 +13,8 @@ import type { StrictDataUnionClientConfig } from './Config'
 import { ConfigInjectionToken } from './Config'
 import type { DataUnionDeployOptions } from './DataUnion'
 import { DataUnion } from './DataUnion'
-import type { Ethereum } from './Ethereum'
-import type { Rest } from './Rest'
+import { Ethereum } from './Ethereum'
+import { Rest } from './Rest'
 import type { EthereumAddress } from './types'
 import { Debug } from './utils/log'
 
@@ -25,8 +25,8 @@ export default class DataUnionAPI {
     token: ERC20
     factory: DataUnionFactory
     constructor(
-        public ethereum: Ethereum,
-        public rest: Rest,
+        @inject(Ethereum) public ethereum: Ethereum,
+        @inject(Rest) public rest: Rest,
         @inject(ConfigInjectionToken.Root) public options: StrictDataUnionClientConfig,
     ) {
         this.token = this.getToken()

@@ -1,17 +1,17 @@
 import 'reflect-metadata'
 import { container as rootContainer } from 'tsyringe'
 import type { DataUnionClientConfig, StrictDataUnionClientConfig } from './Config'
+import { Ethereum } from './Ethereum'
+import { Context } from './utils/Context'
 import { ConfigInjectionToken, createStrictConfig } from './Config'
 import { DataUnionContainer } from './Container'
 import DataUnions from './DataUnionAPI'
-import { Ethereum } from './Ethereum'
 import { LoginEndpoints } from './LoginEndpoints'
 import { Session } from './Session'
 import { counterId, uuid } from './utils'
-import { Context } from './utils/Context'
 import { Debug } from './utils/log'
 import './utils/PatchTsyringe'
-import type { Methods} from './utils/Plugin'
+import type { Methods } from './utils/Plugin'
 import { Plugin } from './utils/Plugin'
 
 let uid: string = process.pid != null
@@ -69,7 +69,7 @@ class DataUnionClientBase implements Context {
 * @internal
 */
 export function initContainer(config: StrictDataUnionClientConfig, parentContainer = rootContainer) {
-    const c = parentContainer.createChildContainer()
+    const c = parentContainer //.createChildContainer()
     uid = uid || `${uuid().slice(-4)}${uuid().slice(0, 4)}`
     const id = counterId(`DataUnionClient:${uid}${config.id ? `:${config.id}` : ''}`)
     const debug = Debug(id)
@@ -124,6 +124,7 @@ export class DataUnionClient extends DataUnionClientBase {
     constructor(options: DataUnionClientConfig = {}, parentContainer = rootContainer) {
         const config = createStrictConfig(options)
         const { childContainer: c } = initContainer(config, parentContainer)
+
         super(
             c.resolve<Context>(Context as any),
             c.resolve<Ethereum>(Ethereum),

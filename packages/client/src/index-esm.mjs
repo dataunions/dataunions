@@ -1,3 +1,5 @@
+import 'reflect-metadata'
+
 // ESM EntryPoint
 import DataUnionClient from './index.js'
 export * from './index.js'

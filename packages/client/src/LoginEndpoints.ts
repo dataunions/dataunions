@@ -3,11 +3,11 @@
  */
 
 import { delay, inject, Lifecycle, scoped } from 'tsyringe'
-import type { Ethereum } from './Ethereum'
+import { Ethereum } from './Ethereum'
 import { Rest } from './Rest'
 import type { EthereumAddress } from './types'
 import { instanceId } from './utils'
-import type { Context } from './utils/Context'
+import { Context } from './utils/Context'
 
 export interface TokenObject {
     token: string
@@ -22,7 +22,7 @@ export interface UserDetails {
 }
 
 @scoped(Lifecycle.ContainerScoped)
-export class LoginEndpoints implements Context {
+class LoginEndpoints implements Context {
     /** @internal */
     readonly id
     /** @internal */
@@ -30,8 +30,8 @@ export class LoginEndpoints implements Context {
 
     /** @internal */
     constructor(
-        context: Context,
-        private ethereum: Ethereum,
+        @inject(Context as any) context: Context,
+        @inject(Ethereum) private ethereum: Ethereum,
         @inject(delay(() => Rest)) private rest: Rest
     ) {
         this.id = instanceId(this)
@@ -77,3 +77,5 @@ export class LoginEndpoints implements Context {
         await this.rest.post(['logout'])
     }
 }
+
+export { LoginEndpoints }

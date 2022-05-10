@@ -1,4 +1,4 @@
-import type { Debugger} from './log'
+import type { Debugger } from './log'
 import { formatWithOptions } from './log'
 
 export const InjectContext = Symbol('Context')
@@ -22,4 +22,3 @@ export class ContextError extends Error {
         }
     }
 }
-

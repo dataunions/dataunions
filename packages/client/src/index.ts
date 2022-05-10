@@ -1,3 +1,5 @@
+import 'reflect-metadata'
+
 /**
  * DataUnionClient
  *
@@ -5,8 +7,9 @@
  * @module DataUnionClient
  */
 
+export * from './index-exports'
+
 import { DataUnionClient } from './DataUnionClient'
 
-export * from './index-exports'
 export default DataUnionClient
 // Note awful export wrappers in index-commonjs.js & index-esm.mjs

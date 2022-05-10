@@ -1,7 +1,7 @@
 /**
  * More ergonomic wrapper around fetch/authFetch
  */
-import type { DependencyContainer} from 'tsyringe'
+import type { DependencyContainer } from 'tsyringe'
 import { inject, Lifecycle, scoped } from 'tsyringe'
 import { authFetch, authRequest } from './authFetch'
 import type { ConnectionConfig } from './Config'
@@ -9,7 +9,7 @@ import { ConfigInjectionToken } from './Config'
 import { DataUnionContainer } from './Container'
 import { Session } from './Session'
 import { instanceId } from './utils'
-import type { Context } from './utils/Context'
+import { Context } from './utils/Context'
 import type { Debugger } from './utils/log'
 
 export type FetchOptions = {
@@ -39,7 +39,7 @@ export class Rest implements Context {
     readonly debug
 
     constructor(
-        context: Context,
+        @inject(Context as any) context: Context,
         @inject(DataUnionContainer) private container: DependencyContainer,
         @inject(ConfigInjectionToken.Connection) private options: ConnectionConfig,
     ) {
