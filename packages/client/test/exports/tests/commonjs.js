@@ -1,15 +1,15 @@
 // checks that require works
-const StreamrClient = require('streamr-client')
+const DataUnionClient = require('@dataunions/client')
+const assert = require('node:assert')
 
-console.info('const StreamrClient = require(\'streamr-client\'):', { StreamrClient })
-
-const auth = StreamrClient.generateEthereumAccount()
-const client = new StreamrClient({
+console.info('const DataUnionClient = require(\'streamr-client\'):', { DataUnionClient })
+assert(!!DataUnionClient.ConfigTest, 'DataUnionClient should contain ConfigTest')
+assert(!!DataUnionClient.generateEthereumAccount, 'DataUnionClient should have generateEthereumAccount')
+const auth = DataUnionClient.generateEthereumAccount()
+const client = new DataUnionClient({
     auth,
 })
-
-client.connect().then(async () => {
+client.getUserInfo().then(async () => {
     console.info('success')
-    await client.destroy()
     process.exit(0)
 })

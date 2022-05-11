@@ -25,7 +25,6 @@
         "src/**/*",
         "src/**/*.json",
         "vendor/**/*",
-        "contracts/**/*.json",
         "test/**/*",
         "src/config.schema.json"
     ],

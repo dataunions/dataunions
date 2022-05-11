@@ -9,7 +9,7 @@
         "directory": "packages/client"
     },
     "types": "./dist/types/src/index.d.ts",
-    "main": "./dist/src/index-commonjs.js",
+    "main": "./dist/src/index.js",
     "browser": "./dist/web/index.js",
     "exports": {
         "default": {
@@ -19,20 +19,22 @@
     },
     "scripts": {
         "bootstrap-dist": "npm run vendor && npm run copy-package && npm run fix-esm",
-        "start-browser": "npm run build-browser-iife -- --servedir=test/browser --outdir=test/browser",
         "build": "npm run bootstrap-dist && npm run build-node",
         "build-browser": "npm run build-browser-iife -- --outdir=dist/web && npm run build-browser-esm -- --outdir=dist/web",
-        "build-browser-base": "esbuild src/index.ts --bundle --sourcemap --target=chrome101 --tsconfig=tsconfig.browser.json --legal-comments=linked --define:'process.env.NODE_ENV=\"development\"' --inject:./process-shim.js",
+        "build-browser-base": "esbuild src/index.ts --bundle --sourcemap --target=chrome101 --tsconfig=tsconfig.browser.json --legal-comments=linked --define:process.env.NODE_ENV=\\\"${NODE_ENV:-development}\\\" --inject:./process-shim.js",
         "build-browser-esm": "npm run build-browser-base --outfile=dist/web/index.esm.js -- --format=esm",
         "build-browser-iife": "npm run build-browser-base -- --format=iife --global-name=DataUnions",
         "build-node": "npm run bootstrap-dist && tsc --build ./tsconfig.node.json",
-        "build-production": "npm run clean; npm run bootstrap-dist && NODE_ENV=production npm run build-node",
+        "build-production": "npm run clean; npm run bootstrap-dist && NODE_ENV=production npm run build && NODE_ENV=production npm run build-browser",
         "check": "tsc -p ./tsconfig.json --noEmit",
         "clean": "jest --clearCache || true; rm -rf dist vendor *.tsbuildinfo node_modules/.cache || true",
         "copy-package": "mkdir -p dist/; node copy-package.js; cp -f README.md LICENSE readme-header-img.png dist; true",
         "fix-esm": "mkdir -p dist/src/; cp -Rf src/index-esm.mjs dist/src/index-esm.mjs",
         "lint": "eslint --cache --cache-location=node_modules/.cache/.eslintcache/ '*/**/*.{js,ts}'",
         "postbuild-node": "npm run copy-package",
+        "start-browser": "npm run build-browser-iife -- --servedir=test/browser --outdir=test/browser",
+        "test": "npm run test-exports",
+        "test-exports": "cd test/exports && npm run link && tsc --noEmit --project ./tsconfig.json && npm test",
         "test-integration": "jest --maxWorkers=1 test/end-to-end",
         "vendor": "SRCDIR=`node -p \"path.dirname(require.resolve('quick-lru'))\"` bash -c 'mkdir -p vendor/quick-lru; cp -n $SRCDIR/index.d.ts vendor/quick-lru; cp -n $SRCDIR/index.js vendor/quick-lru'; true"
     },

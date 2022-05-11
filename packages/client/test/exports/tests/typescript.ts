@@ -1,20 +1,21 @@
 // check ts esm works via tsc
 
-import DefaultExport, * as NamedExports from 'streamr-client'
+import DefaultExport, * as NamedExports from '@dataunions/client'
+import assert from 'node:assert'
 
-console.info('import DefaultExport, * as NamedExports from \'streamr-client\':', { DefaultExport, NamedExports })
+console.info('import DefaultExport, * as NamedExports from \'@dataunions/client\':', { DefaultExport, NamedExports })
 
-const StreamrClient = DefaultExport
+const DataUnionClient = DefaultExport
 
-const auth = StreamrClient.generateEthereumAccount()
-const client = new StreamrClient({
+console.assert(!!NamedExports.ConfigTest, 'Named exports should contain ConfigTest')
+console.assert(!!NamedExports.generateEthereumAccount, 'Named exports should contain generateEthereumAccount')
+
+const auth = DataUnionClient.generateEthereumAccount()
+const client = new DataUnionClient({
     auth,
 })
 
- console.assert(!!NamedExports.Subscription, 'NamedExports should have Subscription')
-
-client.connect().then(async () => {
+client.getUserInfo().then(async () => {
     console.info('success')
-    await client.destroy()
     process.exit(0)
 })

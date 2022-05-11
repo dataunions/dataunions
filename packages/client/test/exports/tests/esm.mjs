@@ -1,17 +1,20 @@
 // check esm works, as native and via webpack + babel. Also see typescript.ts
-import DefaultExport, * as NamedExports from 'streamr-client'
+import DefaultExport, * as NamedExports from '@dataunions/client'
+import assert from 'node:assert'
+console.info('import DefaultExport, * as NamedExports from \'@dataunions/client\':', { DefaultExport, NamedExports })
 
-console.info('import DefaultExport, * as NamedExports from \'streamr-client\':', { DefaultExport, NamedExports })
+const DataUnionClient = DefaultExport
 
-const StreamrClient = DefaultExport
+assert(!!NamedExports.ConfigTest, 'Named exports should contain ConfigTest')
+assert(!!NamedExports.generateEthereumAccount, 'Named exports should contain generateEthereumAccount')
 
-const auth = StreamrClient.generateEthereumAccount()
-const client = new StreamrClient({
-    auth,
+const auth = DataUnionClient.generateEthereumAccount()
+
+const client = new DataUnionClient({
+  auth,
 })
-console.assert(!!NamedExports.Subscription, 'NamedExports should have Subscription')
-client.connect().then(async () => {
-    console.info('success')
-    await client.destroy()
-    process.exit(0)
+
+client.getUserInfo().then(async () => {
+  console.info('success')
+  process.exit(0)
 })

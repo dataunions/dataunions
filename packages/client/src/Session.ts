@@ -2,7 +2,7 @@
  * Session token caching and async init.
  */
 import EventEmitter from 'eventemitter3'
-import type { DependencyContainer} from 'tsyringe'
+import type { DependencyContainer } from 'tsyringe'
 import { inject, Lifecycle, scoped } from 'tsyringe'
 import { ConfigInjectionToken } from './Config'
 import { DataUnionContainer } from './Container'
@@ -65,7 +65,6 @@ export class Session {
         throw new Error('Need either "privateKey", "ethereum" or "sessionToken" to login.')
     }
 
-    /** @internal */
     async getSessionToken(requireNewToken = false): Promise<string> {
         // @ts-expect-error
         if (typeof this.options.apiKey !== 'undefined') {

@@ -25,7 +25,6 @@
         "src/**/*",
         "src/**/*.json",
         "vendor/**/*",
-        "contracts/**/*.json",
         "src/config.schema.json"
     ],
     "exclude": [

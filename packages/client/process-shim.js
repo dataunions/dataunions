@@ -1,3 +1,4 @@
 export let process = {
-    env: {}
+    env: {
+    }
 }
