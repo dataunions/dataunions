@@ -44,12 +44,6 @@
     "author": "Streamr",
     "license": "Apache-2.0",
     "devDependencies": {
-        "@babel/core": "^7.16.0",
-        "@babel/plugin-proposal-decorators": "^7.16.4",
-        "@babel/plugin-transform-modules-commonjs": "^7.16.0",
-        "@babel/plugin-transform-runtime": "^7.16.4",
-        "@babel/preset-env": "^7.16.4",
-        "@babel/preset-typescript": "^7.16.0",
         "@dataunions/dev-config": "^1.0.0",
         "@dataunions/eslint-config": "^1.0.0",
         "@ethersproject/wordlists": "^5.5.0",
@@ -63,10 +57,6 @@
         "@types/uuid": "^8.3.1",
         "@typescript-eslint/eslint-plugin": "^5.0.0",
         "@typescript-eslint/parser": "^5.0.0",
-        "babel-loader": "^8.2.3",
-        "babel-plugin-add-module-exports": "^1.0.4",
-        "babel-plugin-lodash": "^3.3.4",
-        "babel-plugin-transform-typescript-metadata": "^0.3.2",
         "benchmark": "^2.1.4",
         "buffer": "^6.0.3",
         "bytes": "^3.1.1",
@@ -82,33 +72,21 @@
         "eslint-plugin-promise": "^5.1.0",
         "ethers": "^5.4.7",
         "express": "^4.17.1",
-        "git-revision-webpack-plugin": "^5.0.0",
         "jest": "^27.2.5",
         "jest-circus": "^27.2.5",
         "jest-extended": "^0.11.5",
         "jest-leak-detector": "^27.3.1",
-        "lodash-webpack-plugin": "^0.11.6",
         "nightwatch": "^1.7.12",
-        "node-polyfill-webpack-plugin": "^1.1.4",
         "pretty-bytes": "^5.6.0",
         "process": "^0.11.10",
         "streamr-test-utils": "^2.0.0",
-        "terser-webpack-plugin": "^5.2.5",
         "ts-jest": "^28.0.1",
         "ts-loader": "^9.2.6",
-        "typedoc": "^0.22.5",
         "typescript": "^4.7.0-beta",
         "util": "^0.12.4",
-        "weak-napi": "^2.0.2",
-        "webpack": "^5.64.1",
-        "webpack-bundle-analyzer": "^4.5.0",
-        "webpack-cli": "^4.9.1",
-        "webpack-merge": "^5.8.0"
+        "weak-napi": "^2.0.2"
     },
-    "#IMPORTANT": "babel-runtime must be in dependencies, not devDependencies",
     "dependencies": {
-        "@babel/runtime": "^7.16.3",
-        "@babel/runtime-corejs3": "^7.16.3",
         "@dataunions/contracts": "^1.0.0",
         "@ethersproject/abi": "^5.5.0",
         "@ethersproject/abstract-signer": "^5.5.0",
@@ -152,9 +130,9 @@
         "utf-8-validate": "^5.0.7"
     },
     "bugs": {
-        "url": "https://github.com/streamr-dev/streamr-client/issues"
+        "url": "https://github.com/dataunions/data-union/issues"
     },
-    "homepage": "https://github.com/streamr-dev/streamr-client#readme",
+    "homepage": "https://github.com/dataunions/data-union#readme",
     "publishConfig": {
         "access": "public"
     }
