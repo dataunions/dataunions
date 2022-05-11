@@ -1,6 +1,6 @@
 {
   "name": "@dataunions/eslint-config",
-  "version": "3.0.0-alpha.1",
+  "version": "3.0.0-alpha.2",
   "description": "DataUnion Monorepo eslint rules",
   "main": "index.js",
   "author": "Streamr Network AG <contact@streamr.network>",
