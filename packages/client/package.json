@@ -1,6 +1,6 @@
 {
     "name": "@dataunions/client",
-    "version": "3.0.0-alpha.0",
+    "version": "3.0.0-alpha.1",
     "description": "JavaScript client library for DataUnions",
     "private": false,
     "repository": {
@@ -44,8 +44,8 @@
     "author": "Streamr",
     "license": "Apache-2.0",
     "devDependencies": {
-        "@dataunions/dev-config": "^1.0.0",
-        "@dataunions/eslint-config": "^1.0.0",
+        "@dataunions/dev-config": "^3.0.0-alpha.1",
+        "@dataunions/eslint-config": "^3.0.0-alpha.1",
         "@ethersproject/wordlists": "^5.5.0",
         "@types/cors": "^2.8.12",
         "@types/express": "^4.17.13",
@@ -87,7 +87,7 @@
         "weak-napi": "^2.0.2"
     },
     "dependencies": {
-        "@dataunions/contracts": "^1.0.0",
+        "@dataunions/contracts": "^3.0.0-alpha.1",
         "@ethersproject/abi": "^5.5.0",
         "@ethersproject/abstract-signer": "^5.5.0",
         "@ethersproject/address": "^5.5.0",
