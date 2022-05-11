@@ -1,6 +1,6 @@
 {
   "name": "@dataunions/thegraph-subgraph",
-  "version": "1.0.0",
+  "version": "3.0.0-alpha.0",
   "description": "Subgraph definitions for sidechain data unions",
   "scripts": {
     "clean": "rm -rf build generated",
