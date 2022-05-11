@@ -47,5 +47,9 @@
     "dependencies": {
         "@openzeppelin/contracts": "4.2.0",
         "ethers": "^5.4.7"
+    },
+    "private": false,
+    "publishConfig": {
+        "access": "public"
     }
 }

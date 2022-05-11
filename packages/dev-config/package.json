@@ -23,5 +23,9 @@
         "@dataunions/eslint-config": "^1.0.0",
         "ts-jest": "^28.0.1",
         "typescript": "^4.7.0-beta"
+    },
+    "private": false,
+    "publishConfig": {
+        "access": "public"
     }
 }

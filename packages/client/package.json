@@ -2,7 +2,7 @@
     "name": "@dataunions/client",
     "version": "3.0.0-alpha.0",
     "description": "JavaScript client library for DataUnions",
-    "private": true,
+    "private": false,
     "repository": {
         "type": "git",
         "url": "git+https://github.com/dataunions/data-union.git",
@@ -154,5 +154,8 @@
     "bugs": {
         "url": "https://github.com/streamr-dev/streamr-client/issues"
     },
-    "homepage": "https://github.com/streamr-dev/streamr-client#readme"
+    "homepage": "https://github.com/streamr-dev/streamr-client#readme",
+    "publishConfig": {
+        "access": "public"
+    }
 }

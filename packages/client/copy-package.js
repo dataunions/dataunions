@@ -4,7 +4,7 @@ const path = require('path')
 const pkg = Object.assign({}, require('./package.json'))
 
 delete pkg.scripts
-delete pkg.private
+pkg.private = false
 // rewrite paths to be relative to dist
 pkg.types = `./${path.relative('./dist', pkg.types)}`
 pkg.main = `./${path.relative('./dist', pkg.main)}`

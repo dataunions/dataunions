@@ -11,5 +11,9 @@
         "lint": ""
     },
     "author": "",
-    "license": "MIT"
+    "license": "MIT",
+    "private": false,
+    "publishConfig": {
+        "access": "public"
+    }
 }
