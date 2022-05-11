@@ -44,8 +44,8 @@
     "author": "Streamr",
     "license": "Apache-2.0",
     "devDependencies": {
-        "@dataunions/dev-config": "^3.0.0-alpha.1",
-        "@dataunions/eslint-config": "^3.0.0-alpha.1",
+        "@dataunions/dev-config": "3.0.0-alpha.1",
+        "@dataunions/eslint-config": "3.0.0-alpha.1",
         "@ethersproject/wordlists": "^5.5.0",
         "@types/cors": "^2.8.12",
         "@types/express": "^4.17.13",
@@ -87,7 +87,7 @@
         "weak-napi": "^2.0.2"
     },
     "dependencies": {
-        "@dataunions/contracts": "^3.0.0-alpha.1",
+        "@dataunions/contracts": "3.0.0-alpha.1",
         "@ethersproject/abi": "^5.5.0",
         "@ethersproject/abstract-signer": "^5.5.0",
         "@ethersproject/address": "^5.5.0",
