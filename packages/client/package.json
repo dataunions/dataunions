@@ -35,7 +35,7 @@
         "start-browser": "npm run build-browser-iife -- --servedir=test/browser --outdir=test/browser",
         "test": "npm run test-exports",
         "test-exports": "cd test/exports && npm run link && tsc --noEmit --project ./tsconfig.json && npm test",
-        "test-integration": "jest --maxWorkers=1 test/end-to-end",
+        "integration-test": "jest --maxWorkers=1 test/end-to-end",
         "vendor": "SRCDIR=`node -p \"path.dirname(require.resolve('quick-lru'))\"` bash -c 'mkdir -p vendor/quick-lru; cp -n $SRCDIR/index.d.ts vendor/quick-lru; cp -n $SRCDIR/index.js vendor/quick-lru'; true"
     },
     "engines": {
