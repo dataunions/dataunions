@@ -61,21 +61,15 @@ const receipt = await dataUnion.withdrawAllToSigned(
     signature
 )
 ```
-Send some of the withdrawable earnings to the address signed off by the member
+Send only some of the withdrawable earnings to the address signed off by the member
 ```js
-const signature = await dataUnion.signWithdrawAllTo(recipientAddress)
-const receipt = await dataUnion.withdrawAllToSigned(
-    '0x12345...', // member address
-    recipientAddress,
-    signature
-)
-
-// Or to authorize a fixed amount:
+const oneEth = "1000000000000000000" // amounts in wei
+const signature = await dataUnion.signWithdrawAmountTo(recipientAddress, oneEth)
 const receipt = await dataUnion.withdrawAmountToSigned(
     '0x12345...', // member address
     recipientAddress,
-    100, // token amount, in wei
-    signature,
+    oneEth,
+    signature
 )
 ```
 
