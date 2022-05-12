@@ -107,7 +107,7 @@ export class DataUnion {
         this.contract = client.getTemplate(contractAddress)
     }
 
-    getAddress() {
+    getAddress(): EthereumAddress {
         return this.contractAddress
     }
 
@@ -141,7 +141,7 @@ export class DataUnion {
 
     async isMember(memberAddress: EthereumAddress): Promise<boolean> {
         const memberData = await this.contract.memberData(getAddress(memberAddress))
-        const state = memberData[0]
+        const [ state ] = memberData
         const ACTIVE = 1 // memberData[0] is enum ActiveStatus {None, Active, Inactive}
         return (state === ACTIVE)
     }
@@ -153,7 +153,7 @@ export class DataUnion {
      *          ELSE the mainnet AMB signature execution transaction receipt IF we did the transport ourselves,
      *          ELSE null IF transport to mainnet was done by someone else (in which case the receipt is lost)
      */
-    async withdrawAll() {
+    async withdrawAll(): Promise<ContractReceipt> {
         const recipientAddress = await this.client.ethereum.getAddress()
         return this.withdrawAllTo(recipientAddress)
     }
@@ -216,7 +216,7 @@ export class DataUnion {
         const memberData = await this.contract.memberData(address)
         // does this need to match '0'?
         if (memberData[0] == 0) { throw new Error(`${address} is not a member in DataUnion (sidechain address ${this.contract.address})`) }
-        const withdrawn = memberData[3]
+        const [, , , withdrawn] = memberData
         return this._createWithdrawSignature(amountTokenWei, to, withdrawn, signer)
     }
 
@@ -226,7 +226,7 @@ export class DataUnion {
         to: EthereumAddress,
         withdrawn: BigNumber,
         signer: Signer
-    ) {
+    ): Promise<string> {
         const message = to
             + hexZeroPad(BigNumber.from(amountTokenWei).toHexString(), 32).slice(2)
             + this.getAddress().slice(2)
@@ -296,7 +296,7 @@ export class DataUnion {
             this.contract.memberData(address),
             this.contract.getEarnings(address).catch(() => BigNumber.from(0)),
         ])
-        const withdrawnEarnings = memberData[3]
+        const [, , , withdrawnEarnings] = memberData
         const withdrawable = total.gt(withdrawnEarnings) ? total.sub(withdrawnEarnings) : BigNumber.from(0)
         const STATUSES = [MemberStatus.NONE, MemberStatus.ACTIVE, MemberStatus.INACTIVE]
         return {
