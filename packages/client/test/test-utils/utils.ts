@@ -344,7 +344,7 @@ export class LeaksDetector {
     }
 }
 
-export async function sleep(ms: number = 0) {
+export async function sleep(ms: number = 0): Promise<void> {
     return new Promise((resolve) => {
         setTimeout(resolve, ms)
     })
@@ -358,7 +358,12 @@ export async function sleep(ms: number = 0) {
  * @param failedMsgFn - append the string return value of this getter function to the error message, if given
  * @return the (last) truthy value returned by the condition function
  */
-export async function until(condition: MaybeAsync<() => boolean>, timeOutMs = 10000, pollingIntervalMs = 100, failedMsgFn?: () => string) {
+export async function until(
+    condition: MaybeAsync<() => boolean>,
+    timeOutMs = 10000,
+    pollingIntervalMs = 100,
+    failedMsgFn?: () => string
+): Promise<void> {
     // condition could as well return any instead of boolean, could be convenient
     // sometimes if waiting until a value is returned. Maybe change if such use
     // case emerges.
@@ -385,8 +390,6 @@ export async function until(condition: MaybeAsync<() => boolean>, timeOutMs = 10
             }
             throw err
         }
-
-        return wasDone
     } finally {
         clearTimeout(t)
     }
