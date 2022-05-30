@@ -61,56 +61,10 @@ test: ## Run all tests
 test-unit: ## Run all unit tests
 	$(call node, $(NODE_BIN)/mocha --recursive --check-leaks test)
 
-DOCKER_NETWORK:=dujsnet
-.PHONY: docker-setup
-docker-setup: ## Setup Docker environment
-	docker network create $(DOCKER_NETWORK)
-
-.PHONY: docker-clean
-docker-clean: ## Clean Docker environment
-	docker network rm $(DOCKER_NETWORK)
-
-MONGO_VERSION:=5.0.7-focal
-MONGO_USERNAME:=root
-MONGO_PASSWORD:=example
-MONGO_DATABASE:=dujsdb
-.PHONY: run-mongo
-run-mongo: ## Run mongo
-	-docker run \
-		--interactive \
-		--tty \
-		--name mongo \
-		--hostname mongo \
-		--network $(DOCKER_NETWORK) \
-		--rm \
-		--env MONGO_INITDB_ROOT_USERNAME=$(MONGO_USERNAME) \
-		--env MONGO_INITDB_ROOT_PASSWORD=$(MONGO_PASSWORD) \
-		--env MONGO_INITDB_DATABASE=$(MONGO_DATABASE) \
-		--publish 27017:27017/tcp \
-		mongo:$(MONGO_VERSION)
-
-.PHONY: run-mongo-cli
-run-mongo-cli: ## Run mongo cli
-	-docker run \
-		--interactive \
-		--tty \
-		--name mongo-cli \
-		--hostname mongo-cli \
-		--network $(DOCKER_NETWORK) \
-		--rm \
-		mongo:$(MONGO_VERSION) \
-		mongo \
-		--host mongo \
-        -u $(MONGO_USERNAME) \
-        -p $(MONGO_PASSWORD) \
-        --authenticationDatabase admin \
-        $(MONGO_DATABASE)
-
 # private key: 0x7013b52cd5bcefcb813252ba4fd19de4ffbc7be60cd3da017448bbd883b15457
 # address: 0x516115E2a11393d1C91c41a14cCf2eFC1D6F5931
 # public: 470e7f7704c995fcf1847e3543f9388809e57d1262afdc5b73781808ef57a0fb470f7fd2ac1056e6ae84a9d49f1631d145408807963ed3ba3df4dce4f96407a7
 .PHONY: run
-run: export MONGODB_URI=mongodb://$(MONGO_USERNAME):$(MONGO_PASSWORD)@localhost:27017/
 run: export HTTP_PORT=8787
 run: export NODE_ENV=development
 run: export LOG_LEVEL=trace

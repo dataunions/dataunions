@@ -5,7 +5,6 @@ const commander = require('commander')
 const pino = require('pino')
 const app = require('../../app')
 const packageJson = require('../../../package.json')
-const mongodb = require('mongodb')
 const streamr = require('streamr-client')
 
 const programName = 'duj-srv'
@@ -19,8 +18,6 @@ async function main(argv) {
 		.helpOption('-h', 'print help message')
 		.addOption(new commander.Option('-p <number>', 'port number')
 			.env('HTTP_PORT'))
-		.addOption(new commander.Option('-m <mongodb uri>', 'mongo db connection uri')
-			.env('MONGODB_URI'))
 		.addOption(new commander.Option('-l <log level>', 'log level')
 			.default('info', 'options are: trace, debug, info, warn, error, and fatal')
 			.env('LOG_LEVEL'))
@@ -48,10 +45,6 @@ async function main(argv) {
 		process.stderr.write(`${program.name()}: HTTP port is required.\n`)
 		process.exit(1)
 	}
-	if (!options.m) {
-		process.stderr.write(`${program.name()}: mongodb uri is required.\n`)
-		process.exit(1)
-	}
 	if (!options.k) {
 		process.stderr.write(`${program.name()}: Private key is required.\n`)
 		process.exit(1)
@@ -72,16 +65,6 @@ async function main(argv) {
 				name: 'main',
 				level: options.l,
 			})
-		},
-		(srv) => {
-			let mongoClient = new mongodb.MongoClient(options.m)
-			mongoClient.connect().then(() => {
-				// wait until connected
-			}).catch((err) => {
-				process.stderr.write(`${program.name()}: connection to mongodb failed with error: ${err.message}\n`)
-				process.exit(1)
-			})
-			srv.mongoClient = mongoClient
 		},
 		(srv) => {
 			srv.streamrClient = new streamr.StreamrClient({

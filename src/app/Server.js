@@ -39,11 +39,6 @@ class Server {
 		Object.keys(signals).forEach((signal) => {
 			process.on(signal, () => {
 				this.httpServer.close(() => {
-					this.logger.info(`Closing connection to mongodb...`)
-					const force = true
-					this.mongoClient.close(force).then(() => {
-						this.logger.info(`Connection to mongodb closed.`)
-					})
 					this.logger.info(`HTTP server stopped by signal: ${signal}`)
 					const exitCode = invalidExitArg + signals[signal]
 					process.exit(exitCode)
