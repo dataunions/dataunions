@@ -8,7 +8,9 @@
     "duj-srv": "src/cmd/duj-srv/main.js"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha --recursive --check-leaks test",
+    "lint": "make lint",
+    "lint-fix": "make lint-fix"
   },
   "author": "Kare Nuorteva <kare.nuorteva@streamr.com>",
   "license": "MIT",

@@ -19,11 +19,6 @@ Run unit tests
 make test
 ```
 
-Setup Docker environment
-```
-make docker-setup
-```
-
 Then run Data Union Join Server
 ```
 make run
@@ -42,11 +37,6 @@ make eslint-fix
 Run clean
 ```
 make clean
-```
-
-Clean Docker environment
-```
-make docker-clean
 ```
 
 Run help
