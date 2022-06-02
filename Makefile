@@ -2,7 +2,6 @@ LANG = en_US.UTF-8
 SHELL := /bin/bash
 .SHELLFLAGS := --norc --noprofile -e -u -o pipefail -c
 .DEFAULT_GOAL := test
-#PATH := $(shell pwd)/node_modules/.bin:$(PATH)
 
 nvm_brew = /usr/local/opt/nvm/nvm.sh
 ifneq ("$(wildcard $(nvm_brew))", "")
@@ -54,12 +53,7 @@ eslint-fix: ## Run eslint with fix options
 	$(call node, $(NODE_BIN)/eslint --config .eslintrc.js --ext .js --fix .)
 
 .PHONY: test
-test: ## Run all tests
-	$(MAKE) -f Makefile test-unit
-
-.PHONY: test-unit
-test-unit: ## Run all unit tests
-	$(call node, $(NODE_BIN)/mocha --recursive --check-leaks test)
+test: npm-test ## Run all tests
 
 # private key: 0x7013b52cd5bcefcb813252ba4fd19de4ffbc7be60cd3da017448bbd883b15457
 # address: 0x516115E2a11393d1C91c41a14cCf2eFC1D6F5931
