@@ -79,6 +79,11 @@ clean: ## Remove generated files
 	$(RM) -r \
 		node_modules
 
+.PHONY: clean-dist
+clean-dist: clean ## Remove generated files and distributable files
+	$(RM) -r \
+		data-union-src-deploy-aws-*.zip
+
 .PHONY: help
 help: ## Show Help
 	@grep -E '^[a-zA-Z0-9_\-\/]+%?:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "%-20s %s\n", $$1, $$2}' | sort
