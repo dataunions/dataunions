@@ -66,6 +66,14 @@ run: export PRIVATE_KEY=0x7013b52cd5bcefcb813252ba4fd19de4ffbc7be60cd3da017448bb
 run: ## Run Data Union Join Server
 	$(call node, src/cmd/duj-srv/main.js)
 
+.PHONY: aws-src-bundle
+ZIP:=/usr/bin/zip
+FILE=$(PWD)/data-union-src-deploy-aws-$(shell date +"%F_%H.%M.%S").zip
+IGNORED_FILES:=.git .DS_Store *.diff *.patch *.bash *.zip
+FILES:=package.json package-lock.json .nvmrc .npmrc src .ebextensions
+aws-src-bundle:
+	$(ZIP) -r $(FILE) $(FILES) -x $(IGNORED_FILES)
+
 .PHONY: clean
 clean: ## Remove generated files
 	$(RM) -r \
