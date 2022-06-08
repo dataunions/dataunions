@@ -7,7 +7,7 @@ function newUnitTestServer(...conf) {
 		express(),
 		express.Router(),
 		undefined,
-		process.env.HTTP_PORT,
+		process.env.PORT,
 		(srv) => {
 			const logger = pino({
 				name: 'unit-test',

@@ -17,7 +17,7 @@ async function main(argv) {
 		.version(packageJson.version, '-v', 'print version')
 		.helpOption('-h', 'print help message')
 		.addOption(new commander.Option('-p <number>', 'port number')
-			.env('HTTP_PORT'))
+			.env('PORT'))
 		.addOption(new commander.Option('-l <log level>', 'log level')
 			.default('info', 'options are: trace, debug, info, warn, error, and fatal')
 			.env('LOG_LEVEL'))
