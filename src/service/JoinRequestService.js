@@ -15,24 +15,17 @@ class JoinRequestService {
 					member: member.toString(),
 					dataUnion: dataUnion.toString(),
 				}
-				return Promise.resolve(result)
-			})
-			.catch((err) => {
-				return Promise.reject(err)
+				return result
 			})
 	}
 }
 
 function joinDataUnion(streamrClient, memberAddress, dataUnionAddres) {
-	return streamrClient.getDataUnion(dataUnionAddres).then((du) => {
-		du.addMembers([memberAddress]).then((value) => {
-			return Promise.resolve(value)
-		}).catch((err) => {
-			return Promise.reject(new Error(`Error while adding a member to data union: ${err.message}`))
-		})
-	}).catch((err) => {
-		return Promise.reject(new Error(`Error while retrieving data union: ${err.message}`))
-	})
+	return streamrClient.getDataUnion(dataUnionAddres).catch((err) => {
+		throw new Error(`Error while retrieving data union: ${err.message}`)
+	}).then((du) => du.addMembers([memberAddress]).catch((err) => {
+		throw new Error(`Error while adding a member to data union: ${err.message}`)
+	}))
 }
 
 module.exports = {

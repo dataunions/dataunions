@@ -4,6 +4,10 @@
   "description": "",
   "main": "src/cmd/duj-srv/main.js",
   "private": true,
+  "engines": {
+    "node": "16.13.1",
+    "npm": "8.1.2"
+  },
   "bin": {
     "duj-srv": "src/cmd/duj-srv/main.js"
   },
