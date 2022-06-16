@@ -119,8 +119,14 @@ export default class DataUnionAPI {
         )
         const t = await tx.wait(confirmations)
 
-        log(`DataUnion deployed ${t.contractAddress}`)
+        const createdEvent = t.events.find((e: { event: string }) => e.event === 'DUCreated')
+        if (createdEvent == null) {
+            throw new Error('Factory did not emit a DUCreated event!')
+        }
 
-        return new DataUnion(t.contractAddress, this)
+        const contractAddress = createdEvent.args.du
+        log(`DataUnion deployed ${contractAddress}`)
+
+        return new DataUnion(contractAddress, this)
     }
 }
