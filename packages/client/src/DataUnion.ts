@@ -1,10 +1,12 @@
-import type { DataUnionTemplate } from '@dataunions/contracts/typechain'
-import { defaultAbiCoder } from '@ethersproject/abi'
+import type { ContractReceipt, ContractTransaction } from '@ethersproject/contracts'
 import type { Signer } from '@ethersproject/abstract-signer'
+import { defaultAbiCoder } from '@ethersproject/abi'
 import { getAddress } from '@ethersproject/address'
 import { BigNumber } from '@ethersproject/bignumber'
 import { arrayify, hexZeroPad } from '@ethersproject/bytes'
-import type { ContractReceipt, ContractTransaction } from '@ethersproject/contracts'
+
+import type { DataUnionTemplate } from '@dataunions/contracts/typechain'
+
 import type DataUnionAPI from './DataUnionAPI'
 import type { EthereumAddress } from './types'
 import { sleep, until } from './utils'

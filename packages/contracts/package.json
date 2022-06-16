@@ -18,7 +18,8 @@
     },
     "files": [
         "contracts/**/*",
-        "typechain/**/*"
+        "typechain/**/*",
+	    "artifacts/**/*"
     ],
     "author": "Streamr Network AG",
     "license": "AGPL-3.0",

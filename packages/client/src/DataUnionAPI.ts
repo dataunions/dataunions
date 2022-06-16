@@ -1,29 +1,31 @@
-import type { DataUnionFactory, ERC20 } from '@dataunions/contracts/typechain'
-import {
-    DataUnionFactory__factory as DataUnionFactoryFactory,
-    DataUnionTemplate__factory as DataUnionTemplateFactory,
-    ERC20__factory as ERC20Factory
-} from '@dataunions/contracts/typechain'
+import { inject, Lifecycle, scoped } from 'tsyringe'
+
+import type { Signer } from '@ethersproject/abstract-signer'
+import type { Provider } from '@ethersproject/providers'
 import { getAddress, isAddress } from '@ethersproject/address'
 import { BigNumber } from '@ethersproject/bignumber'
-import type { Provider } from '@ethersproject/providers'
-import type { Signer } from '@ethersproject/abstract-signer'
+import { Contract } from '@ethersproject/contracts'
 import { parseEther } from '@ethersproject/units'
-import { inject, Lifecycle, scoped } from 'tsyringe'
+
+import type { DataUnionFactory, DataUnionTemplate, IERC677 } from '@dataunions/contracts/typechain'
+import * as DataUnionTemplateJson from '@dataunions/contracts/artifacts/contracts/unichain/DataUnionTemplate.sol/DataUnionTemplate.json'
+import * as DataUnionFactoryJson from '@dataunions/contracts/artifacts/contracts/unichain/DataUnionFactory.sol/DataUnionFactory.json'
+import * as IERC677Json from '@dataunions/contracts/artifacts/contracts/IERC677.sol/IERC677.json'
+
 import type { StrictDataUnionClientConfig } from './Config'
-import { ConfigInjectionToken } from './Config'
 import type { DataUnionDeployOptions } from './DataUnion'
+import type { EthereumAddress } from './types'
+import { ConfigInjectionToken } from './Config'
 import { DataUnion } from './DataUnion'
 import { Ethereum } from './Ethereum'
 import { Rest } from './Rest'
-import type { EthereumAddress } from './types'
 import { Debug } from './utils/log'
 
 const log = Debug('DataUnionAPI')
 
 @scoped(Lifecycle.ContainerScoped)
 export default class DataUnionAPI {
-    token: ERC20
+    token: IERC677
     factory: DataUnionFactory
     constructor(
         @inject(Ethereum) public ethereum: Ethereum,
@@ -34,16 +36,25 @@ export default class DataUnionAPI {
         this.factory = this.getFactory()
     }
 
-    getFactory(factoryAddress: EthereumAddress = this.options.dataUnion.factoryAddress, provider: Provider | Signer = this.ethereum.getProvider()) {
-        return DataUnionFactoryFactory.connect(getAddress(factoryAddress), provider)
+    getFactory(
+        factoryAddress: EthereumAddress = this.options.dataUnion.factoryAddress,
+        provider: Provider | Signer = this.ethereum.getProvider()
+    ): DataUnionFactory {
+        return new Contract(factoryAddress, DataUnionFactoryJson.abi, provider) as DataUnionFactory
     }
 
-    getTemplate(templateAddress: EthereumAddress, provider: Provider = this.ethereum.getProvider()) {
-        return DataUnionTemplateFactory.connect(getAddress(templateAddress), provider)
+    getTemplate(
+        templateAddress: EthereumAddress,
+        provider: Provider = this.ethereum.getProvider()
+    ): DataUnionTemplate {
+        return new Contract(templateAddress, DataUnionTemplateJson.abi, provider) as DataUnionTemplate
     }
 
-    getToken(tokenAddress: EthereumAddress = this.options.tokenAddress, provider: Provider = this.ethereum.getProvider()) {
-        return ERC20Factory.connect(getAddress(tokenAddress), provider)
+    getToken(
+        tokenAddress: EthereumAddress = this.options.tokenAddress,
+        provider: Provider = this.ethereum.getProvider()
+    ): IERC677 {
+        return new Contract(tokenAddress, IERC677Json.abi, provider) as IERC677
     }
 
     /**
@@ -70,7 +81,7 @@ export default class DataUnionAPI {
     }
 
     /**
-     * Create a new DataUnionMainnet contract to mainnet with DataUnionFactoryMainnet
+     * Create a new DataUnionTemplate contract to mainnet with DataUnionFactory
      * This triggers DataUnionSidechain contract creation in sidechain, over the bridge (AMB)
      * @return Promise<DataUnion> that resolves when the new DU is deployed over the bridge to side-chain
      */
