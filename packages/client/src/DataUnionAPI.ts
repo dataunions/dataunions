@@ -7,6 +7,7 @@ import {
 import { getAddress, isAddress } from '@ethersproject/address'
 import { BigNumber } from '@ethersproject/bignumber'
 import type { Provider } from '@ethersproject/providers'
+import type { Signer } from '@ethersproject/abstract-signer'
 import { parseEther } from '@ethersproject/units'
 import { inject, Lifecycle, scoped } from 'tsyringe'
 import type { StrictDataUnionClientConfig } from './Config'
@@ -33,7 +34,7 @@ export default class DataUnionAPI {
         this.factory = this.getFactory()
     }
 
-    getFactory(factoryAddress: EthereumAddress = this.options.dataUnion.factoryAddress, provider: Provider = this.ethereum.getProvider()) {
+    getFactory(factoryAddress: EthereumAddress = this.options.dataUnion.factoryAddress, provider: Provider | Signer = this.ethereum.getProvider()) {
         return DataUnionFactoryFactory.connect(getAddress(factoryAddress), provider)
     }
 
@@ -107,7 +108,8 @@ export default class DataUnionAPI {
         if (gasPrice) { ethersOptions.gasPrice = gasPrice }
         const duFeeFraction = parseEther('0') // TODO: decide what the default values should be
         const duBeneficiary = '0x0000000000000000000000000000000000000000' // TODO: decide what the default values should be
-        const tx = await this.factory.deployNewDataUnion(
+        const signer = this.ethereum.getSigner()
+        const tx = await this.getFactory(factoryAddress, signer).deployNewDataUnion(
             ownerAddress,
             adminFeeBN,
             duFeeFraction,
