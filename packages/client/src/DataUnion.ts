@@ -1,4 +1,4 @@
-import type { DataUnionTemplate } from '@dataunions/contracts'
+import type { DataUnionTemplate } from '@dataunions/contracts/typechain'
 import { defaultAbiCoder } from '@ethersproject/abi'
 import type { Signer } from '@ethersproject/abstract-signer'
 import { getAddress } from '@ethersproject/address'

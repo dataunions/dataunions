@@ -1,9 +1,9 @@
-import type { DataUnionFactory, ERC20 } from '@dataunions/contracts'
+import type { DataUnionFactory, ERC20 } from '@dataunions/contracts/typechain'
 import {
     DataUnionFactory__factory as DataUnionFactoryFactory,
     DataUnionTemplate__factory as DataUnionTemplateFactory,
     ERC20__factory as ERC20Factory
-} from '@dataunions/contracts'
+} from '@dataunions/contracts/typechain'
 import { getAddress, isAddress } from '@ethersproject/address'
 import { BigNumber } from '@ethersproject/bignumber'
 import type { Provider } from '@ethersproject/providers'

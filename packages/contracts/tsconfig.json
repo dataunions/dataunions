@@ -16,15 +16,8 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
-        "moduleResolution": "node",
-        "outDir": "dist"
+        "moduleResolution": "node"
     },
-    "include": [
-        "./scripts",
-        "./test",
-        "./typechain",
-        "test-contracts"
-    ],
     "files": [
         "./hardhat.config.ts"
     ]
