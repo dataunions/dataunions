@@ -42,7 +42,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci --no-audit
-          npm ci --no-audit
+          npm i -ws   # generate symlinks in node_modules/@dataunions
       - name: Run lint
         run:  npm run lint
       - name: Build and unit test
