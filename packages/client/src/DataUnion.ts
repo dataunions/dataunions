@@ -5,7 +5,7 @@ import { getAddress } from '@ethersproject/address'
 import { BigNumber } from '@ethersproject/bignumber'
 import { arrayify, hexZeroPad } from '@ethersproject/bytes'
 
-import type { DataUnionTemplate } from '@dataunions/contracts/typechain'
+import type { DataUnionTemplate as DataUnionContract } from '@dataunions/contracts/typechain'
 
 import type DataUnionAPI from './DataUnionAPI'
 import type { EthereumAddress } from './types'
@@ -97,20 +97,18 @@ async function waitOrRetryTx(tx: ContractTransaction, { retries = 60, retryInter
  * @category Important
  */
 export class DataUnion {
-    private contractAddress: EthereumAddress
     private client: DataUnionAPI
-    public readonly contract: DataUnionTemplate
+    public readonly contract: DataUnionContract
 
     /** @internal */
-    constructor(contractAddress: EthereumAddress, client: DataUnionAPI) {
+    constructor(contract: DataUnionContract, client: DataUnionAPI) {
         // validate and convert to checksum case
         this.client = client
-        this.contractAddress = getAddress(contractAddress)
-        this.contract = client.getTemplate(contractAddress)
+        this.contract = contract
     }
 
     getAddress(): EthereumAddress {
-        return this.contractAddress
+        return this.contract.address
     }
 
     // Member functions
@@ -125,7 +123,7 @@ export class DataUnion {
         }
         if (secret) { body.secret = secret }
 
-        const response = await this.client.rest.post<JoinResponse>(['dataunions', this.contractAddress, 'joinRequests'], body)
+        const response = await this.client.rest.post<JoinResponse>(['dataunions', this.contract.address, 'joinRequests'], body)
         if (secret) {
             await until(async () => this.isMember(memberAddress))
         }
@@ -340,12 +338,12 @@ export class DataUnion {
      * Add a new data union secret
      */
     async createSecret(name: string = 'Untitled DataUnion Secret'): Promise<string> {
-        const res = await this.client.rest.post<{ secret: string }>(['dataunions', this.contractAddress, 'secrets'], {
+        const res = await this.client.rest.post<{ secret: string }>(['dataunions', this.contract.address, 'secrets'], {
             name,
         })
 
         if (typeof res?.secret !== 'string' || res.secret?.length > 0) {
-            throw new Error(`Invalid secret response for ${this.contractAddress}`)
+            throw new Error(`Invalid secret response for ${this.contract.address}`)
         }
 
         return res?.secret

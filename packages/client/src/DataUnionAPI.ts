@@ -26,26 +26,28 @@ const log = Debug('DataUnionAPI')
 @scoped(Lifecycle.ContainerScoped)
 export default class DataUnionAPI {
     token: IERC677
-    factory: DataUnionFactory
     constructor(
         @inject(Ethereum) public ethereum: Ethereum,
         @inject(Rest) public rest: Rest,
         @inject(ConfigInjectionToken.Root) public options: StrictDataUnionClientConfig,
     ) {
         this.token = this.getToken()
-        this.factory = this.getFactory()
     }
 
-    getFactory(
+    async getFactory(
         factoryAddress: EthereumAddress = this.options.dataUnion.factoryAddress,
-        provider: Provider | Signer = this.ethereum.getProvider()
-    ): DataUnionFactory {
-        return new Contract(factoryAddress, DataUnionFactoryJson.abi, provider) as DataUnionFactory
+        signer: Signer
+    ): Promise<DataUnionFactory> {
+        if (await signer.provider.getCode(factoryAddress) === '0x') {
+            throw new Error(`No Contract found at ${factoryAddress}, check DataUnionClient.options.dataUnion.factoryAddress!`)
+        }
+
+        return new Contract(factoryAddress, DataUnionFactoryJson.abi, signer) as DataUnionFactory
     }
 
     getTemplate(
         templateAddress: EthereumAddress,
-        provider: Provider = this.ethereum.getProvider()
+        provider: Provider | Signer = this.ethereum.getProvider()
     ): DataUnionTemplate {
         return new Contract(templateAddress, DataUnionTemplateJson.abi, provider) as DataUnionTemplate
     }
@@ -74,10 +76,17 @@ export default class DataUnionAPI {
 
         const provider = this.ethereum.getProvider()
         if (await provider.getCode(contractAddress) === '0x') {
-            throw new Error(`No Contract found at ${contractAddress}, check DataUnionClient.options.dataUnion.factoryAddress!`)
+            throw new Error(`${contractAddress} is not a Data Union!`)
         }
 
-        return new DataUnion(contractAddress, this)
+        // giving signer to DataUnion wouldn't really be required for most operations (reading)
+        //   but some operations (withdrawing) won't work without.
+        // if this getSigner does nasty things (like Metamask popup?) then it could be replaced by separating
+        //   getDataUnionReadonly for the cases where reading isn't required, OR
+        //   getSigner could be called directly in the withdraw functions that need it, then .connect()ed to the contract
+        const signer = this.ethereum.getSigner()
+        const contract = this.getTemplate(contractAddress, signer)
+        return new DataUnion(contract, this)
     }
 
     /**
@@ -120,7 +129,8 @@ export default class DataUnionAPI {
         const duFeeFraction = parseEther('0') // TODO: decide what the default values should be
         const duBeneficiary = '0x0000000000000000000000000000000000000000' // TODO: decide what the default values should be
         const signer = this.ethereum.getSigner()
-        const tx = await this.getFactory(factoryAddress, signer).deployNewDataUnion(
+        const duFactory = await this.getFactory(factoryAddress, signer)
+        const tx = await duFactory.deployNewDataUnion(
             ownerAddress,
             adminFeeBN,
             duFeeFraction,
