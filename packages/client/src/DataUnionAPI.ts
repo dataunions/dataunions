@@ -38,7 +38,7 @@ export default class DataUnionAPI {
         factoryAddress: EthereumAddress = this.options.dataUnion.factoryAddress,
         signer: Signer
     ): Promise<DataUnionFactory> {
-        if (await signer.provider.getCode(factoryAddress) === '0x') {
+        if (await signer.provider!.getCode(factoryAddress) === '0x') {
             throw new Error(`No Contract found at ${factoryAddress}, check DataUnionClient.options.dataUnion.factoryAddress!`)
         }
 
