@@ -3,9 +3,9 @@
 ## Development
 
 ### Foreword
-This project uses [`Makefile`](./blob/main/Makefile) instead of the usual `package.json` scripts. Firstly, this is done to ensure correct versions of Node and npm. Secondly, to allow dependencies between recipes.
+This project uses [`Makefile`](Makefile) instead of the usual `package.json` scripts. Firstly, this is done to ensure correct versions of Node and npm. Secondly, to allow dependencies between recipes.
 
-[Nvm](https://github.com/nvm-sh/nvm#readme) is used to install Node and npm. Node version is specified in [`.nvmrc`](./blob/main/.nvmrc).
+[Nvm](https://github.com/nvm-sh/nvm#readme) is used to install Node and npm. Node version is specified in [`.nvmrc`](.nvmrc).
 
 ### Common Commands
 

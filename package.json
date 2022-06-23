@@ -13,8 +13,8 @@
   },
   "scripts": {
     "test": "mocha --recursive --check-leaks test",
-    "lint": "make lint",
-    "lint-fix": "make lint-fix"
+    "eslint": "make eslint",
+    "eslint-fix": "make eslint-fix"
   },
   "author": "Kare Nuorteva <kare.nuorteva@streamr.com>",
   "license": "MIT",
