@@ -38,9 +38,9 @@ jobs:
             ${{ runner.os }}-node-
       - name: Install dependencies
         run: |
-          npm i -ws   # generate symlinks in node_modules/@dataunions
+          npm install --workspaces
       - name: Run lint
-        run: npm run lint
+        run: npm run lint --workspaces --if-present
       - name: Build and unit test
         run: |
           npm run build
@@ -48,9 +48,9 @@ jobs:
       - name: Start Streamr Docker Stack
         uses: streamr-dev/streamr-docker-dev-action@v1.0.0
         with:
-          services-to-start: 'parity-sidechain-node0 parity-node0 bridge core-api'
+          services-to-start: 'parity-sidechain-node0 parity-node0 bridge core-api nginx'
       - name: Integration Test
         env:
           DEBUG: '*'
           TEST_TIMEOUT: '600000'
-        run: npm run integration-test
+        run: npm run integration-test --workspaces --if-present
