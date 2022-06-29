@@ -75,7 +75,7 @@
         "express": "^4.17.1",
         "git-revision-webpack-plugin": "5.0.0",
         "jest": "28.1.2",
-        "jest-circus": "^27.2.5",
+        "jest-circus": "28.1.2",
         "jest-extended": "^0.11.5",
         "jest-leak-detector": "^27.3.1",
         "nightwatch": "^1.7.12",
