@@ -113,7 +113,6 @@
         "quick-lru": "^6.0.1",
         "readable-stream": "^3.6.0",
         "reflect-metadata": "^0.1.13",
-        "split2": "^3.2.2",
         "ts-toolbelt": "^9.6.0",
         "tsyringe": "^4.6.0",
         "uuid": "^8.3.2"
