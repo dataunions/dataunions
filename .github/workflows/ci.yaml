@@ -37,8 +37,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Install dependencies
-        run: |
-          npm install --workspaces
+        run: npm ci --workspaces
       - name: Run lint
         run: npm run lint --workspaces --if-present
       - name: Build and unit test
