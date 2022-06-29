@@ -3,7 +3,7 @@ const request = require('supertest')
 const { assert } = require('chai')
 const service = require('../../src/service')
 
-describe('POST /api/:dataUnionAddress/joinRequest', async () => {
+describe('POST /api/join', async () => {
 	let srv
 
 	before(() => {
@@ -28,17 +28,18 @@ describe('POST /api/:dataUnionAddress/joinRequest', async () => {
 	const happyTestCases = [
 		{
 			name: 'send join data union request',
-			dataUnionAddress: '0x0123456789012345678901234567890123456789',
-			memberAddress: '0x0000011111000001111100000111110000011111'
+			dataUnionAddress: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
+			memberAddress: '0x766760C748bcEcf5876a6469a6aed3C642CdA261'
 		},
 	]
 	happyTestCases.forEach((tc) => {
 		it(tc.name, async () => {
 			const res = await request(srv.app)
-				.post(`/api/${tc.dataUnionAddress}/joinrequest`)
+				.post(`/api/join`)
 				.set('Content-Type', 'application/json')
 				.send({
 					member: tc.memberAddress,
+					dataUnion: tc.dataUnionAddress,
 				})
 				.expect('Content-Type', 'application/json; charset=utf-8')
 				.expect(201)
@@ -50,24 +51,25 @@ describe('POST /api/:dataUnionAddress/joinRequest', async () => {
 	const testCases = [
 		{
 			name: 'client sends invalid member address',
-			dataUnionAddress: '0x0123456789012345678901234567890123456789',
+			dataUnionAddress: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
 			memberAddress: '0x00000',
 			expectedErrorMessage: `Invalid member address: '0x00000'`,
 		},
 		{
 			name: 'client sends invalid data union address',
 			dataUnionAddress: '0x01234',
-			memberAddress: '0x0000011111000001111100000111110000011111',
+			memberAddress: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
 			expectedErrorMessage: `Invalid Data Union contract address: '0x01234'`,
 		},
 	]
 	testCases.forEach((tc) => {
 		it(tc.name, async () => {
 			const res = await request(srv.app)
-				.post(`/api/${tc.dataUnionAddress}/joinrequest`)
+				.post(`/api/join`)
 				.set('Content-Type', 'application/json')
 				.send({
 					member: tc.memberAddress,
+					dataUnion: tc.dataUnionAddress,
 				})
 				.expect('Content-Type', 'application/json; charset=utf-8')
 				.expect(400)

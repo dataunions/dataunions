@@ -60,7 +60,7 @@ class Server {
 		this.app.use(express.json({
 			limit: '1kb',
 		}))
-		this.app.post('/api/:dataUnionAddress/joinrequest', this.joinRequest)
+		this.app.post('/api/join', this.joinRequest)
 	}
 
 	run() {
@@ -97,7 +97,7 @@ class Server {
 	
 		let dataUnion
 		try {
-			dataUnion = new domain.Address(req.params.dataUnionAddress)
+			dataUnion = new domain.Address(req.body.dataUnion)
 		} catch (err) {
 			this.sendJsonError(res, 400, `Invalid Data Union contract address: '${err.address}'`)
 			return
