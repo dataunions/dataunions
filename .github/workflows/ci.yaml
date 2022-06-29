@@ -4,11 +4,9 @@ on:
   pull_request:
     branches:
       - master
-      - release/*
   push:
     branches:
       - master
-      - release/*
 
 jobs:
   build:
@@ -29,14 +27,13 @@ jobs:
         working-directory: packages/contracts
         run: |
            make build
-      - name: Node 16.6.1 - x64 on ${{ matrix.os }}
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
       - uses: actions/cache@v3
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Install dependencies
