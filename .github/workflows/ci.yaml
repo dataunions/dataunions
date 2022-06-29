@@ -51,6 +51,5 @@ jobs:
           services-to-start: 'parity-sidechain-node0 parity-node0 bridge core-api nginx'
       - name: Integration Test
         env:
-          DEBUG: '*'
           TEST_TIMEOUT: '600000'
         run: npm run integration-test --workspaces --if-present
