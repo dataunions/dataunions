@@ -24,8 +24,8 @@ describe('Join Request Service', () => {
 		let isJoinDataUnionFuncCalled = false
 		joinRequestService = new JoinRequestService(
 			logger,
-			undefined, // Streamr Client
-			(_streamrClient, memberAddress, dataUnionAddress) => {
+			undefined, // Data Union Client
+			(_dataUnionClient, memberAddress, dataUnionAddress) => {
 				isJoinDataUnionFuncCalled = true
 				return Promise.resolve({
 					member: memberAddress,
@@ -47,7 +47,7 @@ describe('Join Request Service', () => {
 		joinRequestService = new JoinRequestService(
 			logger,
 			undefined, // Streamr Client
-			(_streamrClient, _memberAddress, dataUnionAddress) => {
+			(_dataUnionClient, _memberAddress, dataUnionAddress) => {
 				isJoinDataUnionFuncCalled = true
 				const msg = `Error while adding a member to data union: ${dataUnionAddress} is not a Data Union!`
 				return Promise.reject(new Error(msg))
@@ -70,7 +70,7 @@ describe('Join Request Service', () => {
 		joinRequestService = new JoinRequestService(
 			logger,
 			undefined, // Streamr Client
-			(_streamrClient, _memberAddress, _dataUnionAddress) => {
+			(_dataUnionClient, _memberAddress, _dataUnionAddress) => {
 				isJoinDataUnionFuncCalled = true
 				const msg = `Error while adding a member to data union: Error while joining Data Union`
 				return Promise.reject(new Error(msg))

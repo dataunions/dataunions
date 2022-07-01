@@ -50,7 +50,7 @@ class Server {
 	services() {
 		this.joinRequestService = new service.JoinRequestService(
 			this.logger,
-			this.streamrClient,
+			this.dataUnionClient,
 			service.joinDataUnion
 		)
 	}
