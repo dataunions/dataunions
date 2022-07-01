@@ -11,7 +11,7 @@ describe('POST /api/join', async () => {
 			srv.joinRequestService = new service.JoinRequestService(
 				srv.logger,
 				undefined, // Streamr Client
-				(_streamrClient, memberAddress, dataUnionAddress) => {
+				(_dataUnionClient, memberAddress, dataUnionAddress) => {
 					return Promise.resolve({
 						member: memberAddress,
 						dataUnion: dataUnionAddress,

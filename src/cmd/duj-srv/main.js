@@ -5,7 +5,7 @@ const commander = require('commander')
 const pino = require('pino')
 const app = require('../../app')
 const packageJson = require('../../../package.json')
-const streamr = require('streamr-client')
+const dataUnions = require('@dataunions/client')
 
 const programName = 'duj-srv'
 
@@ -67,7 +67,7 @@ async function main(argv) {
 			})
 		},
 		(srv) => {
-			srv.streamrClient = new streamr.StreamrClient({
+			srv.dataUnionClient = new dataUnions.DataUnionClient({
 				auth: {
 					privateKey: options.k
 				}
