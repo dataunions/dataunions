@@ -2,6 +2,7 @@
     "rules": {
         "prefer-const": "off",
         "eqeqeq": "off",
+        "@typescript-eslint/ban-types": "off",
         "max-len": ["warn", {
             "code": 150
         }]
