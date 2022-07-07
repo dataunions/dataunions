@@ -15,7 +15,7 @@ import { statSync } from "fs"
 import path from "path"
 
 const { JsonRpcProvider } = ethersProviders
-const { parseUnits, formatUnits, getAddress } = ethersUtils
+const { parseUnits, getAddress } = ethersUtils
 
 const {
     ENV,
