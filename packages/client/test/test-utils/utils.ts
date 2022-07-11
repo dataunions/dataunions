@@ -19,6 +19,8 @@ import type { Context } from '../../src/utils/Context'
 const testDebugRoot = Debug('test')
 const testDebug = testDebugRoot.extend.bind(testDebugRoot)
 
+type EmptyFunction = () => Promise<void>;
+
 export {
     testDebug as Debug
 }
@@ -28,7 +30,9 @@ export function mockContext(): Context {
     return { id, debug: testDebugRoot.extend(id) }
 }
 
-export const uid = (prefix?: string) => counterId(`p${process.pid}${prefix ? '-' + prefix : ''}`)
+export function uid(prefix?: string): string {
+    return counterId(`p${process.pid}${prefix ? '-' + prefix : ''}`)
+}
 
 export async function fetchPrivateKeyWithGas(): Promise<string> {
     let response
@@ -55,7 +59,7 @@ export async function fetchPrivateKeyWithGas(): Promise<string> {
 
 const TEST_REPEATS = (process.env.TEST_REPEATS) ? parseInt(process.env.TEST_REPEATS, 10) : 1
 
-export function describeRepeats(msg: any, fn: any, describeFn = describe) {
+export function describeRepeats(msg: string, fn: EmptyFunction, describeFn = describe): void {
     for (let k = 0; k < TEST_REPEATS; k++) {
         // eslint-disable-next-line no-loop-func
         describe(msg, () => {
@@ -64,27 +68,28 @@ export function describeRepeats(msg: any, fn: any, describeFn = describe) {
     }
 }
 
-describeRepeats.skip = (msg: any, fn: any) => {
+describeRepeats.skip = (msg: string, fn: EmptyFunction) => {
     describe.skip(`${msg} – test repeat ALL of ${TEST_REPEATS}`, fn)
 }
 
-describeRepeats.only = (msg: any, fn: any) => {
+describeRepeats.only = (msg: string, fn: EmptyFunction) => {
     describeRepeats(msg, fn, describe.only)
 }
 
-export function getTestSetTimeout() {
-    const addAfter = addAfterFn()
-    return (callback: () => void, ms?: number) => {
-        const t = setTimeout(callback, ms)
-        addAfter(() => {
-            clearTimeout(t)
-        })
-        return t
-    }
-}
+// TODO: unused, remove
+// export function getTestSetTimeout() {
+//     const addAfter = addAfterFn()
+//     return (callback: () => void, ms?: number) => {
+//         const t = setTimeout(callback, ms)
+//         addAfter(() => {
+//             clearTimeout(t)
+//         })
+//         return t
+//     }
+// }
 
-export function addAfterFn() {
-    const afterFns: any[] = []
+export function addAfterFn(): (fn: EmptyFunction) => void {
+    const afterFns: EmptyFunction[] = []
     afterEach(async () => {
         const fns = afterFns.slice()
         afterFns.length = 0
@@ -92,18 +97,20 @@ export function addAfterFn() {
         AggregatedError.throwAllSettled(await Promise.allSettled(fns.map((fn) => fn())))
     })
 
-    return (fn: any) => {
+    return (fn: EmptyFunction) => {
         afterFns.push(fn)
     }
 }
 
-export const createMockAddress = () => '0x000000000000000000000000000' + Date.now()
+export function createMockAddress(): string {
+    return '0x000000000000000000000000000' + Date.now()
+}
 
-export function fastWallet() {
+export function fastWallet(): Wallet {
     return new Wallet(createMockAddress())
 }
 
-export function getRandomClient() {
+export function getRandomClient(): DataUnionClient {
     const wallet = new Wallet(`0x100000000000000000000000000000000000000012300000001${Date.now()}`)
     return new DataUnionClient({
         ...ConfigTest,
@@ -151,7 +158,7 @@ export const getCreateClient = (defaultOpts = {}, defaultParentContainer?: Depen
 /**
  * Write a heap snapshot file if WRITE_SNAPSHOTS env var is set.
  */
-export function snapshot() {
+export function snapshot(): string {
     if (!process.env.WRITE_SNAPSHOTS) { return '' }
     testDebugRoot('heap snapshot >>')
     const value = writeHeapSnapshot()
@@ -178,7 +185,7 @@ export class LeaksDetector {
 
     private counter = CounterId(this.id, { maxPrefixes: 1024 })
 
-    add(name: string, obj: any) {
+    add(name: string, obj: unknown): void {
         if (!obj || typeof obj !== 'object') { return }
 
         if (this.ignoredValues.has(obj)) { return }
@@ -194,7 +201,7 @@ export class LeaksDetector {
     // returns a monkeypatch for leaksDetector._runGarbageCollector
     // that avoids running gc for every isLeaking check, only once.
     private runGarbageCollectorOnce(original: (...args: unknown[]) => void) {
-        return (...args: any[]) => {
+        return (...args: unknown[]) => {
             if (this.didGC) {
                 return
             }
@@ -204,16 +211,16 @@ export class LeaksDetector {
         }
     }
 
-    resetGC() {
+    resetGC(): void {
         this.didGC = false
     }
 
-    ignore(obj: any) {
+    ignore(obj: unknown): void {
         if (!obj || typeof obj !== 'object') { return }
         this.ignoredValues.add(obj)
     }
 
-    ignoreAll(obj: any) {
+    ignoreAll(obj: unknown): void {
         if (!obj || typeof obj !== 'object') { return }
         const seen = new Set()
         this.walk([], obj, (_path, value) => {
@@ -227,9 +234,9 @@ export class LeaksDetector {
     idToPaths = new Map<string, Set<string>>() // ids to paths
     objectToId = new WeakMap<object, string>() // single id for value
 
-    getID(path: string[], value: any) {
+    getID(path: string[], value: any): string {
         if (this.objectToId.has(value)) {
-            return this.objectToId.get(value)
+            return this.objectToId.get(value)!
         }
 
         let id = (() => {
@@ -250,7 +257,7 @@ export class LeaksDetector {
         obj: object,
         fn: (path: string[], obj: object, depth: number) => false | void,
         depth = 0
-    ) {
+    ): void {
         if (!obj || typeof obj !== 'object') { return }
 
         if (depth > 10) { return }
@@ -273,7 +280,7 @@ export class LeaksDetector {
         }
     }
 
-    addAll(rootId: string, obj: object) {
+    addAll(rootId: string, obj: object): void {
         this.walk([rootId], obj, (path, value) => {
             if (this.ignoredValues.has(value)) { return false }
             const pathString = path.join('/')
@@ -316,7 +323,7 @@ export class LeaksDetector {
         return leaks
     }
 
-    async checkNoLeaks() {
+    async checkNoLeaks(): Promise<void> {
         const leaks = await this.getLeaks()
         const numLeaks = Object.keys(leaks).length
         if (numLeaks) {
@@ -326,7 +333,7 @@ export class LeaksDetector {
         }
     }
 
-    async checkNoLeaksFor(id: string) {
+    async checkNoLeaksFor(id: string): Promise<void> {
         const leaks = await this.getLeaks()
         const numLeaks = Object.keys(leaks).length
         if (Object.keys(leaks).includes(id)) {
@@ -336,7 +343,7 @@ export class LeaksDetector {
         }
     }
 
-    clear() {
+    clear(): void {
         this.seen = new WeakSet()
         this.ignoredValues = new WeakSet()
         this.leakDetectors.clear()
@@ -401,6 +408,7 @@ export const createEthereumAddressCache = (): { getAddress: (privateKey: string)
         getAddress: (privateKey: string): EthereumAddress => {
             let address = cache.get(privateKey)
             if (address === undefined) {
+                // eslint-disable-next-line prefer-destructuring
                 address = new Wallet(privateKey).address
                 cache.set(privateKey, address)
             }
@@ -426,7 +434,7 @@ export class Multimap<K, V> {
         return this.values.get(key) ?? []
     }
 
-    has(key: K, value: V) {
+    has(key: K, value: V): boolean {
         const items = this.values.get(key)
         if (items !== undefined) {
             return items.includes(value)
