@@ -59,7 +59,7 @@ module.exports = {
             prefer: 'type-imports',
         }],
         'quote-props': ['error', 'consistent-as-needed'],
-        'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/*.test.*', 'test/*.ts', 'test/*.js', 'test/**/*.ts', 'test/**/*.js'] }],
+        'import/no-extraneous-dependencies': ['error', { devDependencies: false }],
         'no-redeclare': 'off',
         '@typescript-eslint/no-redeclare': ['error'],
         'no-dupe-class-members': 'off',
