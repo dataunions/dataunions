@@ -8,6 +8,7 @@
         "noEmit": true,
         "outDir": "dist",
         "declarationDir": "dist/types",
+        "resolveJsonModule": true,
         "lib": [
             "ES5",
             "ES2015",

@@ -1,18 +1,20 @@
-import type { ContractReceipt } from '@ethersproject/contracts'
-import debug from 'debug'
-import type { BigNumber} from 'ethers'
 import { Wallet } from 'ethers'
 import { formatEther, parseEther } from 'ethers/lib/utils'
 import { authFetch } from '../../../src/authFetch'
 import { ConfigTest } from '../../../src/ConfigTest'
-import type { AmbMessageHash, DataUnion} from '../../../src/DataUnion'
 import { MemberStatus } from '../../../src/DataUnion'
 import { DataUnionClient } from '../../../src/DataUnionClient'
-import type { EthereumAddress } from '../../../src/types'
 import { getEndpointUrl } from '../../../src/utils'
 import { expectInvalidAddress } from '../../test-utils/utils'
-import { dataUnionAdminPrivateKey, provider, tokenAdminPrivateKey } from '../devEnvironment'
+import { dataUnionAdminPrivateKey, provider, token } from '../devEnvironment'
 
+import type { ContractReceipt } from '@ethersproject/contracts'
+import type { BigNumber } from 'ethers'
+
+import type { AmbMessageHash, DataUnion} from '../../../src/DataUnion'
+import type { EthereumAddress } from '../../../src/types'
+
+import debug from 'debug'
 const log = debug('DataUnionClient::DataUnion::integration-test-withdraw')
 
 // const provider = new providers.JsonRpcProvider(ConfigTest.dataUnionChainRPCs.rpcs[0])
@@ -26,14 +28,6 @@ let validDataUnion: DataUnion | undefined // use this in a test that only wants 
 async function getDataUnion(): Promise<DataUnion> {
     return validDataUnion || new DataUnionClient(ConfigTest).deployDataUnion()
 }
-
-const tokenAdminClient = new DataUnionClient({
-    ...ConfigTest,
-    auth: {
-        privateKey: tokenAdminPrivateKey
-    }
-})
-const token = tokenAdminClient.getToken()
 
 async function testWithdraw(
     withdraw: (
