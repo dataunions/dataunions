@@ -75,9 +75,8 @@ contract DataUnionFactory is Ownable {
             duBeneficiary
         );
     }
+
     /**
-     * @dev This function is called over the bridge by the DataUnionMainnet.initialize function
-     * @dev Hence must be called by the AMB. Use MockAMB for testing.
      * @dev CREATE2 salt = mainnet_address.
      */
     function deployNewDataUnionUsingToken(
@@ -98,7 +97,7 @@ contract DataUnionFactory is Ownable {
             initialDataUnionFeeFraction,
             initialDataUnionBeneficiary
         );
-        
+
         emit SidechainDUCreated(du, du, owner, dataUnionTemplate);
         emit DUCreated(du, owner, dataUnionTemplate);
 
@@ -109,6 +108,7 @@ contract DataUnionFactory is Ownable {
             }
         }
         if (newDUOwnerInitialEth != 0 && address(this).balance >= newDUOwnerInitialEth) {
+            // ignore failed sends. If they don't want the stipend, that's not a problem
             // solhint-disable-next-line multiple-sends
             if (owner.send(newDUOwnerInitialEth)) {
                 emit OwnerInitialEthSent(newDUOwnerInitialEth);
