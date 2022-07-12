@@ -11,33 +11,29 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.experimental }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-20.04
-        experimental: [false]
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: Build Solidity contracts using makefile
-        working-directory: packages/contracts
-        run: |
-           make build
+      # - name: Build Solidity contracts using makefile
+      #   working-directory: packages/contracts
+      #   run: |
+      #      make build
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-      - uses: actions/cache@v3
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v3
         with:
-          path: ~/.npm
+          path: |
+            node_modules
+            packages/*/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Install dependencies
-        run: npm ci --workspaces
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --no-audit
       - name: Run lint
         run: npm run lint --workspaces --if-present
       - name: Build and unit test
