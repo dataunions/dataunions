@@ -6,11 +6,11 @@
     "author": "Streamr Network AG",
     "license": "AGPL-3.0",
     "workspaces": [
-        "packages/client",
-        "packages/config",
         "packages/contracts",
-        "packages/dev-config",
+        "packages/config",
         "packages/eslint-config",
+        "packages/dev-config",
+        "packages/client",
         "packages/thegraph-subgraph"
     ],
     "scripts": {
