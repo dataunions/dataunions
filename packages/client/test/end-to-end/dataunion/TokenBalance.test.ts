@@ -1,14 +1,13 @@
-import type { ERC20 } from '@dataunions/contracts/typechain'
-import { Wallet } from '@ethersproject/wallet'
+import type { IERC677 } from '@dataunions/contracts/typechain'
 import { parseEther } from 'ethers/lib/utils'
 import { ConfigTest } from '../../../src/ConfigTest'
 import { DataUnionClient } from '../../../src/DataUnionClient'
-import { createMockAddress, getRandomClient } from '../../test-utils/utils'
-import { tokenAdminPrivateKey } from '../devEnvironment'
+import { getRandomClient } from '../../test-utils/utils'
+import { tokenAdminPrivateKey, getTestWallet } from '../devEnvironment'
 
 describe('Token', () => {
     let client: DataUnionClient
-    let token: ERC20
+    let token: IERC677
 
     beforeAll(async () => {
         client = getRandomClient()
@@ -22,7 +21,7 @@ describe('Token', () => {
     })
 
     it('getTokenBalance', async () => {
-        const userWallet = new Wallet(createMockAddress())
+        const userWallet = getTestWallet(10)
         const balance1 = await client.getTokenBalance(userWallet.address)
         expect(balance1.toString()).toBe('0')
         const tx1 = await token.mint(userWallet.address, parseEther('123'))

@@ -106,10 +106,6 @@ export function createMockAddress(): string {
     return '0x000000000000000000000000000' + Date.now()
 }
 
-export function fastWallet(): Wallet {
-    return new Wallet(createMockAddress())
-}
-
 export function getRandomClient(): DataUnionClient {
     const wallet = new Wallet(`0x100000000000000000000000000000000000000012300000001${Date.now()}`)
     return new DataUnionClient({

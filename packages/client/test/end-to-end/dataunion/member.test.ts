@@ -1,5 +1,4 @@
 import debug from 'debug'
-import type { Wallet } from 'ethers'
 import { utils } from 'ethers'
 import { authFetch } from '../../../src/authFetch'
 import { ConfigTest } from '../../../src/ConfigTest'
@@ -7,8 +6,8 @@ import type { DataUnion} from '../../../src/DataUnion'
 import { JoinRequestState } from '../../../src/DataUnion'
 import { DataUnionClient } from '../../../src/DataUnionClient'
 import { getEndpointUrl } from '../../../src/utils'
-import { createMockAddress, expectInvalidAddress, fastWallet } from '../../test-utils/utils'
-import { dataUnionAdminPrivateKey, getSidechainTestWallet, tokenAdminWalletSidechain } from '../devEnvironment'
+import { createMockAddress, expectInvalidAddress } from '../../test-utils/utils'
+import { dataUnionAdminPrivateKey, getTestWallet, tokenAdminWallet } from '../devEnvironment'
 
 const { parseEther } = utils
 
@@ -48,8 +47,8 @@ describe('DataUnion member', () => {
 
         // TODO: this should be unnecessary after test wallets are properly set up in smart-contracts-init
         // send some ETH to a test wallet
-        const memberWallet = getSidechainTestWallet(3)
-        const sendTx = await tokenAdminWalletSidechain.sendTransaction({
+        const memberWallet = getTestWallet(3)
+        const sendTx = await tokenAdminWallet.sendTransaction({
             to: memberWallet.address,
             value: parseEther('1')
         })
@@ -74,7 +73,7 @@ describe('DataUnion member', () => {
     }, 60000)
 
     it('join with valid secret', async () => {
-        const memberWallet = fastWallet()
+        const memberWallet = getTestWallet(4)
         const memberDu = await getMemberDuObject(memberWallet)
         await memberDu.join(secret)
         const isMember = await dataUnion.isMember(memberWallet.address)
@@ -82,7 +81,7 @@ describe('DataUnion member', () => {
     }, 60000)
 
     it('part after joining', async () => {
-        const memberWallet = getSidechainTestWallet(3)
+        const memberWallet = getTestWallet(5)
         const memberDu = await getMemberDuObject(memberWallet)
         await memberDu.join(secret)
 
@@ -95,13 +94,13 @@ describe('DataUnion member', () => {
     }, 60000)
 
     it('join with invalid secret', async () => {
-        const memberWallet = fastWallet()
+        const memberWallet = getTestWallet(6)
         const memberDu = await getMemberDuObject(memberWallet)
         return expect(() => memberDu.join('invalid-secret')).rejects.toThrow('Incorrect data union secret')
     }, 60000)
 
     it('join without secret', async () => {
-        const memberWallet = fastWallet()
+        const memberWallet = getTestWallet(7)
         const memberDu = await getMemberDuObject(memberWallet)
         const response = await memberDu.join()
         expect(response.id).toBeDefined()
