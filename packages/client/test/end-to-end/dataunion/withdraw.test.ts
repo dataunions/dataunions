@@ -187,7 +187,7 @@ describe('DataUnion withdrawX functions', () => {
 
         it("to anyone with member's signature", async () => {
             testWalletId += 1
-            const member2Wallet = new Wallet(`0x100000000000000000000000000040000000000012300000007${testWalletId}`, provider)
+            const member2Wallet = new Wallet(`0x100000000000000000000000000000000040000000000012300000007${testWalletId}`, provider)
             await testWithdraw(async (dataUnionAddress, memberClient, memberWallet, adminClient) => {
                 const duMember = await memberClient.getDataUnion(dataUnionAddress)
                 const duAdmin = await adminClient.getDataUnion(dataUnionAddress)
@@ -199,7 +199,7 @@ describe('DataUnion withdrawX functions', () => {
         it("to anyone a specific amount with member's signature", async () => {
             testWalletId += 1
             const withdrawAmount = parseEther('0.5')
-            const member2Wallet = new Wallet(`0x100000000000000000000000000040000000000012300000007${testWalletId}`, provider)
+            const member2Wallet = new Wallet(`0x100000000000000000000000000000000040000000000012300000008${testWalletId}`, provider)
             return testWithdraw(async (dataUnionAddress, memberClient, memberWallet, adminClient) => {
                 const duMember = await memberClient.getDataUnion(dataUnionAddress)
                 const duAdmin = await adminClient.getDataUnion(dataUnionAddress)
