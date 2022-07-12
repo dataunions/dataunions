@@ -13,17 +13,24 @@ class JoinRequestService {
 	}
 
 	async create(member, dataUnion) {
-		return this.joinDataUnionFunc(this.dataUnionClient, member.toString(), dataUnion.toString())
-			.then(() => {
-				const result = {
-					member: member.toString(),
-					dataUnion: dataUnion.toString(),
-				}
-				return result
-			})
+		let du
+		try {
+			du = await this.dataUnionClient.getDataUnion(dataUnion.toString())
+		} catch (err) {
+			throw new DataUnionRetrievalError(`Error while retrieving data union ${dataUnion}: ${err.message}`)
+		}
+		
+		try {
+			await du.addMembers([member.toString()])
+		} catch (err) {
+			throw new DataUnionJoinError(`Error while adding member ${member} to data union ${dataUnion}: ${err.message}`)
+		}
+
+		return {
+			member: member.toString(),
+			dataUnion: dataUnion.toString(),
+		}
 	}
-
-
 
 	async validateJoinRequest(signedObject) {
 		const payload = getSignablePayload(signedObject)
@@ -57,14 +64,6 @@ class JoinRequestService {
 
 		return true
 	}
-}
-
-function joinDataUnion(dataUnionClient, memberAddress, dataUnionAddres) {
-	return dataUnionClient.getDataUnion(dataUnionAddres).catch((err) => {
-		throw new Error(`Error while retrieving data union: ${err.message}`)
-	}).then((du) => du.addMembers([memberAddress]).catch((err) => {
-		throw new Error(`Error while adding a member to data union: ${err.message}`)
-	}))
 }
 
 /**
@@ -103,10 +102,13 @@ function getSignablePayload(object) {
 
 class InvalidSignatureError extends Error {}
 class InvalidTimestampError extends Error {}
+class DataUnionRetrievalError extends Error {}
+class DataUnionJoinError extends Error {}
 
 module.exports = {
 	JoinRequestService,
-	joinDataUnion,
 	InvalidSignatureError,
 	InvalidTimestampError,
+	DataUnionRetrievalError,
+	DataUnionJoinError,
 }
