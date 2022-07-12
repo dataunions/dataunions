@@ -3,7 +3,8 @@ const { assert, expect } = chai
 chai.use(require('chai-as-promised'))
 const sinon = require('sinon')
 const pino = require('pino')
-const { JoinRequestService, InvalidSignatureError, InvalidTimestampError, DataUnionJoinError, DataUnionRetrievalError } = require('../../src/service/JoinRequestService')
+const { JoinRequestService, InvalidSignatureError, InvalidTimestampError, 
+	DataUnionJoinError, DataUnionRetrievalError } = require('../../src/service/JoinRequestService')
 const domain = require('../../src/domain')
 
 describe('Join Request Service', () => {
