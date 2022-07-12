@@ -12,7 +12,7 @@ class JoinRequestService {
 		this.create = this.create.bind(this)
 	}
 
-	create(member, dataUnion) {
+	async create(member, dataUnion) {
 		return this.joinDataUnionFunc(this.dataUnionClient, member.toString(), dataUnion.toString())
 			.then(() => {
 				const result = {
