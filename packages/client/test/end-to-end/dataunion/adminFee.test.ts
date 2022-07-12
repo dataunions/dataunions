@@ -5,19 +5,11 @@ import 'reflect-metadata'
 import { ConfigTest } from '../../../src/ConfigTest'
 import { DataUnionClient } from '../../../src/DataUnionClient'
 import { getCreateClient } from '../../test-utils/utils'
-import { dataUnionAdminPrivateKey, provider, tokenAdminPrivateKey } from '../devEnvironment'
+import { dataUnionAdminPrivateKey, provider, token } from '../devEnvironment'
 
 const log = debug('DataUnionClient::DataUnion::integration-test-adminFee')
 
 const adminWallet = new Wallet(dataUnionAdminPrivateKey, provider)
-
-const tokenAdminClient = new DataUnionClient({
-    ...ConfigTest,
-    auth: {
-        privateKey: tokenAdminPrivateKey
-    }
-})
-const token = tokenAdminClient.getToken()
 
 describe('DataUnion admin fee', () => {
     const createClient = getCreateClient()

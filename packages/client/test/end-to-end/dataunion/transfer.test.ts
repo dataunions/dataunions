@@ -8,19 +8,10 @@ import { DataUnionClient } from '../../../src/DataUnionClient'
 import type { EthereumAddress } from '../../../src/types'
 import { getEndpointUrl } from '../../../src/utils'
 import {
-    getTestWallet, provider, tokenAdminPrivateKey
+    getTestWallet, provider, token
 } from '../devEnvironment'
 
 const log = debug('DataUnionClient::DataUnion::integration-test-transfer')
-
-const tokenAdminWallet = new Wallet(tokenAdminPrivateKey, provider)
-const tokenAdminClient = new DataUnionClient({
-    ...ConfigTest,
-    auth: {
-        privateKey: tokenAdminPrivateKey
-    }
-})
-const token = tokenAdminClient.getToken()
 
 async function addMember(dataUnionAddress: EthereumAddress, secret: string) {
     const privateKey = `0x100000000000000000000000000000000000000012300000001${Date.now()}`
