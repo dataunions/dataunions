@@ -3,9 +3,10 @@ import { Wallet } from 'ethers'
 import { formatEther, parseEther } from 'ethers/lib/utils'
 import 'reflect-metadata'
 import { ConfigTest } from '../../../src/ConfigTest'
-import { DataUnionClient } from '../../../src/DataUnionClient'
 import { getCreateClient } from '../../test-utils/utils'
 import { dataUnionAdminPrivateKey, provider, token } from '../devEnvironment'
+
+import type { DataUnionClient } from '../../../src/DataUnionClient'
 
 const log = debug('DataUnionClient::DataUnion::integration-test-adminFee')
 
