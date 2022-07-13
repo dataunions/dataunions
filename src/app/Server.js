@@ -86,7 +86,7 @@ class Server {
 		this.sendJsonResponse(res, status, errorMessage)
 	}
 
-	joinRequest(req, res, _next) {
+	async joinRequest(req, res, _next) {
 		let member
 		try {
 			member = new domain.Address(req.body.member)
@@ -102,7 +102,17 @@ class Server {
 			this.sendJsonError(res, 400, `Invalid Data Union contract address: '${err.address}'`)
 			return
 		}
-		this.joinRequestService.create(member, dataUnion).then((joinRequest) => {
+
+		try {
+			await this.joinRequestService.validateJoinRequest(req.body)
+		} catch (err) {
+			this.sendJsonError(res, 400, `Join request failed validation: '${err}'`)
+			return
+		}
+
+		try {
+			const joinRequest = await this.joinRequestService.create(member, dataUnion)
+
 			// Convert app internal representation to JSON
 			const joinRequestJsonResponse = {
 				member: joinRequest.member.toString(),
@@ -110,12 +120,11 @@ class Server {
 			}
 			this.logger.info(joinRequest)
 			this.sendJsonResponse(res, 201, joinRequestJsonResponse)
-		}).catch((err) => {
+		} catch(err) {
 			this.logger.info(err)
 			this.sendJsonError(res, 400, err.message)
-		})
+		}
 	}
-
 }
 
 module.exports = {

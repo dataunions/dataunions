@@ -1,27 +1,30 @@
 const { newUnitTestServer } = require('../handler/newUnitTestServer')
 const request = require('supertest')
 const { assert } = require('chai')
+const sinon = require('sinon')
 const service = require('../../src/service')
 
 describe('POST /api/join', async () => {
 	let srv
 
-	before(() => {
+	beforeEach(() => {
 		srv = newUnitTestServer((srv) => {
 			srv.joinRequestService = new service.JoinRequestService(
 				srv.logger,
-				undefined, // Streamr Client
-				(_dataUnionClient, memberAddress, dataUnionAddress) => {
-					return Promise.resolve({
-						member: memberAddress,
-						dataUnion: dataUnionAddress,
-					})
-				}, // Join Data Union Function
+				undefined, // DU client
 			)
+
+			srv.joinRequestService.create = sinon.spy((memberAddress, dataUnionAddress) => {
+				return {
+					member: memberAddress,
+					dataUnion: dataUnionAddress,
+				}
+			})
+			srv.joinRequestService.validateJoinRequest = sinon.stub().resolves(true)
 		})
 	})
 
-	after(() => {
+	afterEach(() => {
 		srv = undefined
 	})
 
@@ -34,7 +37,7 @@ describe('POST /api/join', async () => {
 	]
 	happyTestCases.forEach((tc) => {
 		it(tc.name, async () => {
-			const res = await request(srv.app)
+			await request(srv.app)
 				.post(`/api/join`)
 				.set('Content-Type', 'application/json')
 				.send({
@@ -43,8 +46,9 @@ describe('POST /api/join', async () => {
 				})
 				.expect('Content-Type', 'application/json; charset=utf-8')
 				.expect(201)
-			assert.equal(res.body.member, tc.memberAddress)
-			assert.equal(res.body.dataUnion, tc.dataUnionAddress)
+
+			assert.isTrue(srv.joinRequestService.validateJoinRequest.calledOnce)
+			assert.isTrue(srv.joinRequestService.create.calledOnce)
 		})
 	})
 
@@ -73,7 +77,10 @@ describe('POST /api/join', async () => {
 				})
 				.expect('Content-Type', 'application/json; charset=utf-8')
 				.expect(400)
+
 			assert.equal(res.body.error.message, tc.expectedErrorMessage)
+			assert.isFalse(srv.joinRequestService.validateJoinRequest.called)
+			assert.isFalse(srv.joinRequestService.create.called)
 		})
 	})
 })
