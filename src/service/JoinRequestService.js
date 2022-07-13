@@ -3,9 +3,10 @@ const { ethers } = require('ethers')
 const TOLERANCE_MILLIS = 5 * 60 * 1000 // 5 min
 
 class JoinRequestService {
-	constructor(logger, dataUnionClient) {
+	constructor(logger, dataUnionClient, customValidator) {
 		this.logger = logger
 		this.dataUnionClient = dataUnionClient
+		this.customValidator = customValidator
 	}
 
 	async create(member, dataUnion) {
@@ -56,6 +57,10 @@ class JoinRequestService {
 			}, tolerance (sec): ${
 				TOLERANCE_MILLIS / 1000
 			}`)
+		}
+
+		if (this.customValidator) {
+			await this.customValidator(signedObject)
 		}
 
 		return true

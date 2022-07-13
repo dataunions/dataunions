@@ -134,5 +134,38 @@ describe('Join Request Service', () => {
 
 			await expect(joinRequestService.validateJoinRequest(joinRequest)).to.be.rejectedWith(InvalidTimestampError)
 		})
+
+		it('calls the custom validator with the join request', async () => {
+			const customValidator = sinon.stub().resolves()
+			joinRequestService = new JoinRequestService(logger, dataUnionClient, customValidator)
+
+			const joinRequest = {
+				member: '0xf79d101E1243cbDdE02d0F49E776fA65de0122ed',
+				dataUnion: DATAUNION_ADDRESS,
+				additionalField: 'is not a problem',
+				timestamp: '2022-07-01T00:00:00Z',
+				// eslint-disable-next-line max-len
+				signature: '0xaabb03e281eb87df25ecf5e8c204854c617b45b54a93de85f241736b246e810903f8f3638664739dc022af83acf444bbc445af35f92c60fbe62d7d5ce71194601c'
+			}
+			
+			assert.isTrue(await joinRequestService.validateJoinRequest(joinRequest))
+			assert.isTrue(customValidator.calledOnceWith(joinRequest))
+		})
+
+		it('rejects if the custom validator rejects', async () => {
+			const customValidator = sinon.stub().rejects()
+			joinRequestService = new JoinRequestService(logger, dataUnionClient, customValidator)
+
+			const joinRequest = {
+				member: '0xf79d101E1243cbDdE02d0F49E776fA65de0122ed',
+				dataUnion: DATAUNION_ADDRESS,
+				additionalField: 'is not a problem',
+				timestamp: '2022-07-01T00:00:00Z',
+				// eslint-disable-next-line max-len
+				signature: '0xaabb03e281eb87df25ecf5e8c204854c617b45b54a93de85f241736b246e810903f8f3638664739dc022af83acf444bbc445af35f92c60fbe62d7d5ce71194601c'
+			}
+
+			await expect(joinRequestService.validateJoinRequest(joinRequest)).to.be.rejectedWith(Error)
+		})
 	})
 })

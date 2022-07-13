@@ -3,7 +3,7 @@ const http = require('http')
 const express = require('express')
 const commander = require('commander')
 const pino = require('pino')
-const app = require('../../app')
+const { Server } = require('../../app')
 const packageJson = require('../../../package.json')
 const dataUnions = require('@dataunions/client')
 
@@ -55,7 +55,7 @@ async function main(argv) {
 		maxHeaderSize: 4096,
 	}
 	const httpServer = http.createServer(httpServerOptions, expressApp)
-	const srv = new app.Server(
+	const srv = new Server(
 		expressApp,
 		expressRouter,
 		httpServer,
@@ -72,6 +72,12 @@ async function main(argv) {
 					privateKey: options.k
 				}
 			})
+		},
+		(srv) => {
+			// Customize this part to inject custom join request validation logic
+
+			// eslint-disable-next-line no-unused-vars
+			srv.customJoinRequestValidator = async (joinRequest) => {}
 		},
 	)
 	srv.services()
