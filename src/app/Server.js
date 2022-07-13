@@ -26,8 +26,8 @@ class Server {
 		this.joinRequest = this.joinRequest.bind(this)
 
 		this.app.use(this.router)
-		configOptions.forEach((option) => {
-			option(this)
+		configOptions.forEach((extensionFn) => {
+			extensionFn(this)
 		})
 
 		// Listen for Linux Signals
@@ -50,8 +50,8 @@ class Server {
 	services() {
 		this.joinRequestService = new service.JoinRequestService(
 			this.logger,
-			this.dataUnionClient,
-			service.joinDataUnion
+			this.dataUnionClient, // written in main.js
+			this.customJoinRequestValidator, // written in main.js
 		)
 	}
 
