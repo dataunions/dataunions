@@ -3,13 +3,9 @@ const { ethers } = require('ethers')
 const TOLERANCE_MILLIS = 5 * 60 * 1000 // 5 min
 
 class JoinRequestService {
-	constructor(logger, dataUnionClient, joinDataUnionFunc) {
+	constructor(logger, dataUnionClient) {
 		this.logger = logger
 		this.dataUnionClient = dataUnionClient
-		this.joinDataUnionFunc = joinDataUnionFunc
-
-		// Bind member functions
-		this.create = this.create.bind(this)
 	}
 
 	async create(member, dataUnion) {
