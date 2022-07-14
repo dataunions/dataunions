@@ -1,6 +1,8 @@
-import debug from 'debug'
-import { BigNumber, Wallet } from 'ethers'
-import { parseEther } from 'ethers/lib/utils'
+import { Wallet } from '@ethersproject/wallet'
+import { BigNumber } from '@ethersproject/bignumber'
+import { parseEther } from '@ethersproject/units'
+import { Contract } from '@ethersproject/contracts'
+
 import { authFetch } from '../../../src/authFetch'
 import { createStrictConfig } from '../../../src/Config'
 import { ConfigTest } from '../../../src/ConfigTest'
@@ -10,6 +12,10 @@ import { DataUnionClient } from '../../../src/DataUnionClient'
 import { getEndpointUrl } from '../../../src/utils'
 import { dataUnionAdminPrivateKey, provider } from '../devEnvironment'
 
+import * as DataUnionTemplateJson from '@dataunions/contracts/artifacts/contracts/unichain/DataUnionTemplate.sol/DataUnionTemplate.json'
+import type { DataUnionTemplate } from '@dataunions/contracts/typechain'
+
+import debug from 'debug'
 const log = debug('DataUnionClient::DataUnion::integration-test-signature')
 
 describe('DataUnion signature', () => {
@@ -76,13 +82,15 @@ describe('DataUnion signature', () => {
     }, 100000)
 
     it('create signature', async () => {
-        const client = new DataUnionClient({
+        const opts = {
             auth: {
                 privateKey: '0x1111111111111111111111111111111111111111111111111111111111111111'
             }
-        })
+        }
+        const client = new DataUnionClient(opts)
+        const template = new Contract('0x2222222222222222222222222222222222222222', DataUnionTemplateJson.abi, provider) as DataUnionTemplate
         const dataUnion = new DataUnion(
-            '0x2222222222222222222222222222222222222222',
+            template,
             new DataUnionAPI(client, null!, createStrictConfig({
                 ...ConfigTest,
                 auth: {
@@ -93,8 +101,8 @@ describe('DataUnion signature', () => {
         const to = '0x3333333333333333333333333333333333333333'
         const withdrawn = BigNumber.from('4000000000000000')
         const amounts = [5000000000000000, '5000000000000000', BigNumber.from('5000000000000000')]
-        // @ts-expect-error
-        const signer = client.ethereum.getSigner()
+
+        const signer = new Wallet(opts.auth.privateKey)
         // eslint-disable-next-line no-underscore-dangle
         const signaturePromises = amounts.map((amount) => dataUnion._createWithdrawSignature(amount, to, withdrawn, signer))
         const actualSignatures = await Promise.all(signaturePromises)

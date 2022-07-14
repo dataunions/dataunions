@@ -3,7 +3,7 @@ import type { DependencyContainer } from 'tsyringe'
 
 import fetch from 'node-fetch'
 import { wait } from 'streamr-test-utils'
-import { Wallet } from 'ethers'
+import { Wallet } from '@ethersproject/wallet'
 import LeakDetector from 'jest-leak-detector'
 
 import type { EthereumAddress } from '../../src/types'

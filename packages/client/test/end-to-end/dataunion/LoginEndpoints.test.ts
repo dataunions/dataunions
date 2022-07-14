@@ -1,12 +1,10 @@
-import 'reflect-metadata'
-
+// import 'reflect-metadata'
 import assert from 'assert'
 
-import { ethers } from 'ethers'
-
-import type { DataUnionClient } from '../../../src/DataUnionClient'
+import { Wallet } from '@ethersproject/wallet'
 
 import { getCreateClient } from '../../test-utils/utils'
+import type { DataUnionClient } from '../../../src/DataUnionClient'
 
 describe('LoginEndpoints', () => {
     let client: DataUnionClient
@@ -41,7 +39,7 @@ describe('LoginEndpoints', () => {
         })
 
         it('should get a session token', async () => {
-            const wallet = ethers.Wallet.createRandom()
+            const wallet = Wallet.createRandom()
             const challenge = await client.getChallenge(wallet.address)
             assert(challenge.challenge)
             const signature = await wallet.signMessage(challenge.challenge)

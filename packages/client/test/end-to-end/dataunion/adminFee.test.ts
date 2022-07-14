@@ -1,5 +1,5 @@
 import debug from 'debug'
-import { Wallet } from 'ethers'
+import { Wallet } from '@ethersproject/wallet'
 import { formatEther, parseEther } from 'ethers/lib/utils'
 import 'reflect-metadata'
 import { ConfigTest } from '../../../src/ConfigTest'

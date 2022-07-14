@@ -1,15 +1,13 @@
 /* eslint-disable no-await-in-loop */
 import debug from 'debug'
-import { Wallet } from 'ethers'
+import { Wallet } from '@ethersproject/wallet'
 import { formatEther, parseEther } from 'ethers/lib/utils'
 import { authFetch } from '../../../src/authFetch'
 import { ConfigTest } from '../../../src/ConfigTest'
 import { DataUnionClient } from '../../../src/DataUnionClient'
 import type { EthereumAddress } from '../../../src/types'
 import { getEndpointUrl } from '../../../src/utils'
-import {
-    getTestWallet, provider, token
-} from '../devEnvironment'
+import { getTestWallet, provider, token, tokenAdminWallet } from '../devEnvironment'
 
 const log = debug('DataUnionClient::DataUnion::integration-test-transfer')
 

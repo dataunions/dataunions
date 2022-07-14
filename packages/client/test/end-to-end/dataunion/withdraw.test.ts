@@ -1,18 +1,18 @@
-import { Wallet } from 'ethers'
-import { formatEther, parseEther } from 'ethers/lib/utils'
+import { Wallet } from '@ethersproject/wallet'
+import { parseEther, formatEther } from '@ethersproject/units'
+import type { ContractReceipt } from '@ethersproject/contracts'
+import type { BigNumber } from 'ethers'
+
 import { authFetch } from '../../../src/authFetch'
 import { ConfigTest } from '../../../src/ConfigTest'
 import { MemberStatus } from '../../../src/DataUnion'
 import { DataUnionClient } from '../../../src/DataUnionClient'
 import { getEndpointUrl } from '../../../src/utils'
 import { expectInvalidAddress } from '../../test-utils/utils'
-import { dataUnionAdminPrivateKey, provider, token } from '../devEnvironment'
-
-import type { ContractReceipt } from '@ethersproject/contracts'
-import type { BigNumber } from 'ethers'
-
 import type { AmbMessageHash, DataUnion} from '../../../src/DataUnion'
 import type { EthereumAddress } from '../../../src/types'
+
+import { dataUnionAdminPrivateKey, provider, token } from '../devEnvironment'
 
 import debug from 'debug'
 const log = debug('DataUnionClient::DataUnion::integration-test-withdraw')

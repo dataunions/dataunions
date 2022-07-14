@@ -1,15 +1,16 @@
 import debug from 'debug'
-import { utils } from 'ethers'
+
+import { parseEther } from '@ethersproject/units'
+import type { Wallet } from '@ethersproject/wallet'
+
 import { authFetch } from '../../../src/authFetch'
 import { ConfigTest } from '../../../src/ConfigTest'
-import type { DataUnion} from '../../../src/DataUnion'
+import type { DataUnion } from '../../../src/DataUnion'
 import { JoinRequestState } from '../../../src/DataUnion'
 import { DataUnionClient } from '../../../src/DataUnionClient'
 import { getEndpointUrl } from '../../../src/utils'
 import { createMockAddress, expectInvalidAddress } from '../../test-utils/utils'
 import { dataUnionAdminPrivateKey, getTestWallet, tokenAdminWallet } from '../devEnvironment'
-
-const { parseEther } = utils
 
 const log = debug('DataUnionClient::DataUnion::integration-test-member')
 
