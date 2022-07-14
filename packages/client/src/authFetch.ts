@@ -15,7 +15,7 @@ export enum ErrorCode {
 }
 
 export const DEFAULT_HEADERS = {
-    'Streamr-Client': `streamr-client-javascript/${getVersionString()}`,
+    'Data-Union-Client': `data-union-client-javascript/${getVersionString()}`,
 }
 
 export class AuthFetchError extends Error {

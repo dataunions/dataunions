@@ -19,8 +19,8 @@ afterAll(() => {
     provider.removeAllListeners()
 })
 
+// TODO: replace with pre-funded wallets once available
 export function getTestWallet(index: number, testProvider: JsonRpcProvider = provider): Wallet {
-    // TODO: change to 'streamr-client-javascript' once https://github.com/streamr-dev/smart-contracts-init/pull/36 is in docker
     const hash = id(`marketplace-contracts${index}`)
     return new Wallet(hash, testProvider)
 }

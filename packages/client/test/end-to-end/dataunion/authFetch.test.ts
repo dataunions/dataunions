@@ -16,7 +16,7 @@ describe('authFetch', () => {
         jest.restoreAllMocks()
     })
 
-    it('sends Streamr-Client header', async () => {
+    it('sends Data-Union-Client header', async () => {
         const realFetch = jest.requireActual('node-fetch')
         // @ts-expect-error
         fetch.Response = realFetch.Response
@@ -43,7 +43,7 @@ describe('authFetch', () => {
             expect(typeof url).toEqual('string')
             expect(opts).toMatchObject({
                 headers: {
-                    'Streamr-Client': expect.stringMatching('streamr-client-javascript'),
+                    'Data-Union-Client': expect.stringMatching('data-union-client-javascript'),
                 },
             })
         })

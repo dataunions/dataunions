@@ -2,7 +2,6 @@
 const DataUnionClient = require('@dataunions/client')
 const assert = require('node:assert')
 
-console.info('const DataUnionClient = require(\'streamr-client\'):', { DataUnionClient })
 assert(!!DataUnionClient.ConfigTest, 'DataUnionClient should contain ConfigTest')
 assert(!!DataUnionClient.generateEthereumAccount, 'DataUnionClient should have generateEthereumAccount')
 const auth = DataUnionClient.generateEthereumAccount()
