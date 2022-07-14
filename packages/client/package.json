@@ -67,7 +67,6 @@
         "esbuild": "^0.14.38",
         "eslint": "8.18.0",
         "eslint-config-airbnb": "19.0.4",
-        "eslint-loader": "^4.0.2",
         "eslint-plugin-import": "^2.25.3",
         "eslint-plugin-promise": "6.0.0",
         "ethers": "^5.4.7",
@@ -88,6 +87,7 @@
         "weak-napi": "^2.0.2"
     },
     "dependencies": {
+        "@streamr/config": "latest",
         "@dataunions/contracts": "3.0.0-alpha.2",
         "@ethersproject/abi": "5.6.1",
         "@ethersproject/abstract-signer": "5.6.0",
