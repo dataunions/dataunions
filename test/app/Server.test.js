@@ -20,7 +20,11 @@ describe('POST /api/join', async () => {
 					dataUnion: dataUnionAddress,
 				}
 			})
-			srv.joinRequestService.validateJoinRequest = sinon.stub().resolves(true)
+
+			srv.signedRequestValidator = sinon.spy(async (req) => {
+				req.validatedRequest = JSON.parse(req.body.request)
+			})
+			srv.customJoinRequestValidator = sinon.stub().resolves(true)
 		})
 	})
 
@@ -31,8 +35,12 @@ describe('POST /api/join', async () => {
 	const happyTestCases = [
 		{
 			name: 'send join data union request',
-			dataUnionAddress: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
-			memberAddress: '0x766760C748bcEcf5876a6469a6aed3C642CdA261'
+			body: {
+				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
+				request: JSON.stringify({
+					dataUnion: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
+				}),
+			},
 		},
 	]
 	happyTestCases.forEach((tc) => {
@@ -40,14 +48,12 @@ describe('POST /api/join', async () => {
 			await request(srv.app)
 				.post(`/api/join`)
 				.set('Content-Type', 'application/json')
-				.send({
-					member: tc.memberAddress,
-					dataUnion: tc.dataUnionAddress,
-				})
+				.send(tc.body)
 				.expect('Content-Type', 'application/json; charset=utf-8')
 				.expect(201)
 
-			assert.isTrue(srv.joinRequestService.validateJoinRequest.calledOnce)
+			assert.isTrue(srv.signedRequestValidator.calledOnce)
+			assert.isTrue(srv.customJoinRequestValidator.calledOnce)
 			assert.isTrue(srv.joinRequestService.create.calledOnce)
 		})
 	})
@@ -55,14 +61,22 @@ describe('POST /api/join', async () => {
 	const testCases = [
 		{
 			name: 'client sends invalid member address',
-			dataUnionAddress: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
-			memberAddress: '0x00000',
+			body: {
+				address: '0x00000',
+				request: JSON.stringify({
+					dataUnion: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
+				}),
+			},
 			expectedErrorMessage: `Invalid member address: '0x00000'`,
 		},
 		{
 			name: 'client sends invalid data union address',
-			dataUnionAddress: '0x01234',
-			memberAddress: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
+			body: {
+				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
+				request: JSON.stringify({
+					dataUnion: '0x01234',
+				}),
+			},
 			expectedErrorMessage: `Invalid Data Union contract address: '0x01234'`,
 		},
 	]
@@ -71,16 +85,24 @@ describe('POST /api/join', async () => {
 			const res = await request(srv.app)
 				.post(`/api/join`)
 				.set('Content-Type', 'application/json')
-				.send({
-					member: tc.memberAddress,
-					dataUnion: tc.dataUnionAddress,
-				})
+				.send(tc.body)
 				.expect('Content-Type', 'application/json; charset=utf-8')
 				.expect(400)
 
 			assert.equal(res.body.error.message, tc.expectedErrorMessage)
-			assert.isFalse(srv.joinRequestService.validateJoinRequest.called)
+			assert.isFalse(srv.customJoinRequestValidator.called)
 			assert.isFalse(srv.joinRequestService.create.called)
 		})
+	})
+
+	it('fails the join request if the custom validator rejects', async () => {
+		srv.customJoinRequestValidator = sinon.stub().rejects()
+
+		await request(srv.app)
+			.post(`/api/join`)
+			.set('Content-Type', 'application/json')
+			.send(happyTestCases[0].body)
+			.expect('Content-Type', 'application/json; charset=utf-8')
+			.expect(400)
 	})
 })
