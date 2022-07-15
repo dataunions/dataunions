@@ -60,6 +60,8 @@ class Server {
 		this.app.use(express.json({
 			limit: '1kb',
 		}))
+
+		this.app.use((req, res, next) => this.signedRequestValidator(req).then(next).catch((err) => next(err)))
 		this.app.post('/api/join', this.joinRequest)
 	}
 
@@ -89,7 +91,7 @@ class Server {
 	async joinRequest(req, res, _next) {
 		let member
 		try {
-			member = new domain.Address(req.body.member)
+			member = new domain.Address(req.body.address)
 		} catch (err) {
 			this.sendJsonError(res, 400, `Invalid member address: '${err.address}'`)
 			return
@@ -97,16 +99,16 @@ class Server {
 	
 		let dataUnion
 		try {
-			dataUnion = new domain.Address(req.body.dataUnion)
+			dataUnion = new domain.Address(req.validatedRequest.dataUnion)
 		} catch (err) {
 			this.sendJsonError(res, 400, `Invalid Data Union contract address: '${err.address}'`)
 			return
 		}
 
 		try {
-			await this.joinRequestService.validateJoinRequest(req.body)
+			await this.customJoinRequestValidator(req.body.address, req.validatedJoinRequest)
 		} catch (err) {
-			this.sendJsonError(res, 400, `Join request failed validation: '${err}'`)
+			this.sendJsonError(res, 400, `Join request failed custom validation: '${err}'`)
 			return
 		}
 

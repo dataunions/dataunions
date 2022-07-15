@@ -7,6 +7,9 @@ const { Server } = require('../../app')
 const packageJson = require('../../../package.json')
 const dataUnions = require('@dataunions/client')
 
+const TOLERANCE_MILLIS = 5 * 60 * 1000 // 5 min
+const signedRequestValidator = require('./SignedRequestValidatorMiddleware')(TOLERANCE_MILLIS)
+
 const programName = 'duj-srv'
 
 async function main(argv) {
@@ -72,6 +75,9 @@ async function main(argv) {
 					privateKey: options.k
 				}
 			})
+		},
+		(srv) => {
+			srv.signedRequestValidator = signedRequestValidator.validator
 		},
 		(srv) => {
 			// Customize this part to inject custom join request validation logic
