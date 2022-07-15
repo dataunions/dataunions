@@ -1,4 +1,4 @@
-const { newUnitTestServer } = require('../handler/newUnitTestServer')
+const { newUnitTestServer, logger } = require('../handler/newUnitTestServer')
 const request = require('supertest')
 const { assert } = require('chai')
 const sinon = require('sinon')
@@ -8,23 +8,24 @@ describe('POST /api/join', async () => {
 	let srv
 
 	beforeEach(() => {
-		srv = newUnitTestServer((srv) => {
-			srv.joinRequestService = new service.JoinRequestService(
-				srv.logger,
-				undefined, // DU client
-			)
+		// JoinRequestService with mocked create()
+		const joinRequestService = new service.JoinRequestService(
+			logger,
+			undefined, // DU client
+		)
+		joinRequestService.create = sinon.spy((memberAddress, dataUnionAddress) => {
+			return {
+				member: memberAddress,
+				dataUnion: dataUnionAddress,
+			}
+		})
 
-			srv.joinRequestService.create = sinon.spy((memberAddress, dataUnionAddress) => {
-				return {
-					member: memberAddress,
-					dataUnion: dataUnionAddress,
-				}
-			})
-
-			srv.signedRequestValidator = sinon.spy(async (req) => {
+		srv = newUnitTestServer({
+			joinRequestService,
+			signedRequestValidator: sinon.spy(async (req) => {
 				req.validatedRequest = JSON.parse(req.body.request)
-			})
-			srv.customJoinRequestValidator = sinon.stub().resolves(true)
+			}),
+			customJoinRequestValidator: sinon.stub().resolves(true),
 		})
 	})
 

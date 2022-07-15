@@ -1,34 +1,57 @@
 const process = require('process')
 const express = require('express')
+const http = require('http')
+const pino = require('pino')
+const DU = require('@dataunions/client')
+
 const handler = require('../handler')
 const domain = require('../domain')
 const service = require('../service')
 
+
+const TOLERANCE_MILLIS = 5 * 60 * 1000 // 5 min
+const SignedRequestValidator = require('./SignedRequestValidatorMiddleware')(TOLERANCE_MILLIS)
+
 class Server {
-	constructor(
-		app /* express Application */,
-		router /* express Router */,
-		httpServer /* node http.Server */,
-		port /* string */,
-		...configOptions /* (srv: app.Server): void => {} */
-	) {
-		this.app = app
-		this.router = router
+	constructor({
+		expressApp = express(),
+		expressRouter = express.Router(),
+		httpServer = undefined,  /* node http.Server */
+		port = 5555,
+		logLevel = 'info',
+		logger = pino({
+			name: 'main',
+			level: logLevel,
+		}),
+		privateKey,
+		dataUnionClient = new DU.DataUnionClient({
+			auth: {
+				privateKey,
+			}
+		}),
+		signedRequestValidator = SignedRequestValidator.validator,
+		customJoinRequestValidator = async (/* joinRequest */) => {},
+		joinRequestService = new service.JoinRequestService(logger, dataUnionClient),
+	}) {
+
+		this.expressApp = expressApp
+		this.expressRouter = expressRouter
+		this.logger = logger
+		this.dataUnionClient = dataUnionClient
+		this.signedRequestValidator = signedRequestValidator
+		this.joinRequestService = joinRequestService
+		this.customJoinRequestValidator = customJoinRequestValidator
+
+		if (!httpServer) {
+			const httpServerOptions = {
+				maxHeaderSize: 4096,
+			}
+			httpServer = http.createServer(httpServerOptions, expressApp)
+		}
 		this.httpServer = httpServer
 		this.port = port
 
-		// Bind member functions
-		this.services = this.services.bind(this)
-		this.routes = this.routes.bind(this)
-		this.run = this.run.bind(this)
-		this.sendJsonResponse = this.sendJsonResponse.bind(this)
-		this.sendJsonError = this.sendJsonError.bind(this)
-		this.joinRequest = this.joinRequest.bind(this)
-
-		this.app.use(this.router)
-		configOptions.forEach((extensionFn) => {
-			extensionFn(this)
-		})
+		this.expressApp.use(this.expressRouter)
 
 		// Listen for Linux Signals
 		const invalidExitArg = 128
@@ -56,13 +79,13 @@ class Server {
 	}
 
 	routes() {
-		this.app.use(handler.error(this.logger))
-		this.app.use(express.json({
+		this.expressApp.use(handler.error(this.logger))
+		this.expressApp.use(express.json({
 			limit: '1kb',
 		}))
 
-		this.app.use((req, res, next) => this.signedRequestValidator(req).then(next).catch((err) => next(err)))
-		this.app.post('/api/join', this.joinRequest)
+		this.expressApp.use((req, res, next) => this.signedRequestValidator(req).then(next).catch((err) => next(err)))
+		this.expressApp.post('/api/join', this.joinRequest)
 	}
 
 	run() {
@@ -70,7 +93,7 @@ class Server {
 		const callback = () => {
 			this.logger.info(`HTTP server started on port: ${this.port}`)
 		}
-		this.app.listen(this.port, backlog, callback)
+		this.expressApp.listen(this.port, backlog, callback)
 	}
 	
 	sendJsonResponse(res, status, response) {

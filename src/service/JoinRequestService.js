@@ -1,8 +1,7 @@
 class JoinRequestService {
-	constructor(logger, dataUnionClient, customValidator) {
+	constructor(logger, dataUnionClient) {
 		this.logger = logger
 		this.dataUnionClient = dataUnionClient
-		this.customValidator = customValidator
 	}
 
 	async create(member, dataUnion) {

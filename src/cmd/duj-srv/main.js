@@ -1,15 +1,7 @@
 const process = require('process')
-const http = require('http')
-const express = require('express')
 const commander = require('commander')
-const pino = require('pino')
 const { Server } = require('../../app')
 const packageJson = require('../../../package.json')
-const dataUnions = require('@dataunions/client')
-
-const TOLERANCE_MILLIS = 5 * 60 * 1000 // 5 min
-const signedRequestValidator = require('./SignedRequestValidatorMiddleware')(TOLERANCE_MILLIS)
-
 const programName = 'duj-srv'
 
 async function main(argv) {
@@ -52,40 +44,11 @@ async function main(argv) {
 		process.stderr.write(`${program.name()}: Private key is required.\n`)
 		process.exit(1)
 	}
-	const expressApp = express()
-	const expressRouter = express.Router()
-	const httpServerOptions = {
-		maxHeaderSize: 4096,
-	}
-	const httpServer = http.createServer(httpServerOptions, expressApp)
-	const srv = new Server(
-		expressApp,
-		expressRouter,
-		httpServer,
-		options.p,
-		(srv) => {
-			srv.logger = pino({
-				name: 'main',
-				level: options.l,
-			})
-		},
-		(srv) => {
-			srv.dataUnionClient = new dataUnions.DataUnionClient({
-				auth: {
-					privateKey: options.k
-				}
-			})
-		},
-		(srv) => {
-			srv.signedRequestValidator = signedRequestValidator.validator
-		},
-		(srv) => {
-			// Customize this part to inject custom join request validation logic
 
-			// eslint-disable-next-line no-unused-vars
-			srv.customJoinRequestValidator = async (joinRequest) => {}
-		},
-	)
+	const srv = new Server({
+		port: options.p,
+		logLevel: options.l,
+	})
 	srv.services()
 	srv.routes()
 	srv.run()
