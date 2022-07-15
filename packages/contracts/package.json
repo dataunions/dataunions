@@ -2,8 +2,6 @@
     "name": "@dataunions/contracts",
     "description": "Smart contracts for Data Union with sidechain accounting",
     "version": "3.0.0-alpha.2",
-    "main": "dist/typechain",
-    "types": "typechain/index.d.ts",
     "scripts": {
         "build": "hardhat compile",
         "prepare": "npm run build",
