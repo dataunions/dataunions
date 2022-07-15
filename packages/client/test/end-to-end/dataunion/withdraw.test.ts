@@ -1,7 +1,7 @@
 import { Wallet } from '@ethersproject/wallet'
 import { parseEther, formatEther } from '@ethersproject/units'
 import type { ContractReceipt } from '@ethersproject/contracts'
-import type { BigNumber } from 'ethers'
+import type { BigNumber } from '@ethersproject/bignumber'
 
 import { authFetch } from '../../../src/authFetch'
 import { ConfigTest } from '../../../src/ConfigTest'
