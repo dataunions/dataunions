@@ -18,6 +18,9 @@ const server = ganache.server({
     // options, see https://github.com/trufflesuite/ganache/tree/develop/src/packages/ganache#startup-options
     wallet: {
         mnemonic: "testrpc"
+    },
+    logging: {
+        quiet: true // if only I could make it log to debug, not stdout...
     }
 })
 
