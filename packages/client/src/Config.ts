@@ -63,7 +63,7 @@ export type StrictDataUnionClientConfig = {
     debug: DebugConfig
 } & EthereumConfig & ConnectionConfig
 
-export type DataUnionClientConfig = Partial<Omit<StrictDataUnionClientConfig, 'dataUnion' | 'network' | 'debug'> & {
+export type DataUnionClientConfig = Partial<Omit<StrictDataUnionClientConfig, 'dataUnion' | 'debug'> & {
     dataUnion: Partial<StrictDataUnionClientConfig['dataUnion']>
     /** @internal */
     debug: Partial<StrictDataUnionClientConfig['debug']>
