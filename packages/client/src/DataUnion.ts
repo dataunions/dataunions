@@ -177,7 +177,7 @@ export class DataUnion {
                 + `DataUnion ${this.contract.address} (min: ${this.client.options.dataUnion.minimumWithdrawTokenWei})`)
         }
         const ethersOverrides = this.client.ethereum.getOverrides()
-        const tx = await this.contract.withdrawAll(address, true, ethersOverrides)
+        const tx = await this.contract.withdrawAll(address, false, ethersOverrides)
         return tx.wait()
     }
 
@@ -385,7 +385,7 @@ export class DataUnion {
     ): Promise<ContractReceipt> {
         const address = getAddress(memberAddress) // throws if bad address
         const ethersOverrides = this.client.ethereum.getOverrides()
-        const tx = await this.contract.withdrawAll(address, true, ethersOverrides)
+        const tx = await this.contract.withdrawAll(address, false, ethersOverrides)
         return waitOrRetryTx(tx)
     }
 
@@ -407,7 +407,7 @@ export class DataUnion {
         const from = getAddress(memberAddress) // throws if bad address
         const to = getAddress(recipientAddress)
         const ethersOverrides = this.client.ethereum.getOverrides()
-        const tx = await this.contract.withdrawAllToSigned(from, to, true, signature, ethersOverrides)
+        const tx = await this.contract.withdrawAllToSigned(from, to, false, signature, ethersOverrides)
         return waitOrRetryTx(tx)
     }
 
@@ -431,7 +431,7 @@ export class DataUnion {
         const to = getAddress(recipientAddress)
         const amount = BigNumber.from(amountTokenWei)
         const ethersOverrides = this.client.ethereum.getOverrides()
-        const tx = await this.contract.withdrawToSigned(from, to, amount, true, signature, ethersOverrides)
+        const tx = await this.contract.withdrawToSigned(from, to, amount, false, signature, ethersOverrides)
         return waitOrRetryTx(tx)
     }
 
