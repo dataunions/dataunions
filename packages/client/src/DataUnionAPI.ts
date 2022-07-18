@@ -89,6 +89,73 @@ export default class DataUnionAPI {
         return new DataUnion(contract, this)
     }
 
+    async deployDataUnionUsingToken(tokenAddress: EthereumAddress, options: DataUnionDeployOptions): Promise<DataUnion> {
+        const provider = this.ethereum.getProvider()
+        const {
+            factoryAddress,
+            joinPartAgentAddress
+        } = this.options.dataUnion
+
+        if (await provider.getCode(factoryAddress) === '0x') {
+            throw new Error(`Contract not found at ${factoryAddress}, check DataUnionClient.options.dataUnion.factoryAddress!`)
+        }
+
+        const deployerAddress = await this.ethereum.getAddress()
+
+        const {
+            owner = deployerAddress,
+            joinPartAgents = [owner, joinPartAgentAddress],
+            dataUnionName = `DataUnion-${Date.now()}`, // TODO: use uuid
+            adminFee = 0,
+            confirmations = 1,
+            gasPrice
+        } = options
+
+        log(`Going to deploy DataUnion with name: ${dataUnionName}`)
+
+        if (adminFee < 0 || adminFee > 1) { throw new Error('options.adminFeeFraction must be a number between 0...1, got: ' + adminFee) }
+        const adminFeeBN = BigNumber.from((adminFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish
+
+        const ownerAddress = getAddress(owner)
+        const agentAddressList = joinPartAgents.map(getAddress)
+
+        const ethersOptions: any = {}
+        if (gasPrice) { ethersOptions.gasPrice = gasPrice }
+        const duFeeFraction = parseEther('0') // TODO: decide what the default values should be
+        const duBeneficiary = '0x0000000000000000000000000000000000000000' // TODO: decide what the default values should be
+        const signer = this.ethereum.getSigner()
+        const duFactory = await this.getFactory(factoryAddress, signer)
+
+        // function deployNewDataUnionUsingToken(
+        //     address token,
+        //     address payable owner,
+        //     address[] memory agents,
+        //     uint256 initialAdminFeeFraction,
+        //     uint256 initialDataUnionFeeFraction,
+        //     address initialDataUnionBeneficiary
+        // )
+        const tx = await duFactory.deployNewDataUnionUsingToken(
+            tokenAddress,
+            ownerAddress,
+            agentAddressList,
+            adminFeeBN,
+            duFeeFraction,
+            duBeneficiary,
+            ethersOptions
+        )
+        const receipt = await tx.wait(confirmations)
+
+        const createdEvent = receipt.events?.find((e) => e.event === 'DUCreated')
+        if (createdEvent == null) {
+            throw new Error('Factory did not emit a DUCreated event!')
+        }
+
+        const contractAddress = createdEvent.args!.du
+        log(`DataUnion deployed ${contractAddress}`)
+
+        return new DataUnion(contractAddress, this)
+    }
+
     /**
      * Create a new DataUnionTemplate contract to mainnet with DataUnionFactory
      * This triggers DataUnionSidechain contract creation in sidechain, over the bridge (AMB)
