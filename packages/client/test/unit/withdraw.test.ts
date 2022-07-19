@@ -28,7 +28,7 @@ async function setup() {
         // log("%o", (await duContract.getStats()).map((bn) => bn.toString()))
         await (await token.mint(await token.signer.getAddress(), parseEther('1'))).wait()
         await (await token.transferAndCall(duContract.address, parseEther('1'), '0x')).wait()
-        // log("%o", (await duContract.getStats()).map((bn) => bn.toString()))
+        log("Data Union funded, stats: %o", (await duContract.getStats()).map((bn) => bn.toString()))
     }
 
     async function getClientFor(wallet: Wallet) {
