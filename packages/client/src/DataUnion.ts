@@ -316,7 +316,12 @@ export class DataUnion {
      * Get the amount of tokens the member would get from a successful withdraw
      */
     async getWithdrawableEarnings(memberAddress: EthereumAddress): Promise<BigNumber> {
-        return this.contract.getWithdrawableEarnings(getAddress(memberAddress))
+        return this.contract.getWithdrawableEarnings(getAddress(memberAddress)).catch((error) => {
+            if (error.message.includes('error_notMember')) {
+                throw new Error(`${memberAddress} is not a member of this DataUnion`)
+            }
+            throw error
+        })
     }
 
     /**
@@ -441,7 +446,16 @@ export class DataUnion {
         const adminFeeBN = BigNumber.from((newFeeFraction * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish
         const duFeeBN = await this.contract.dataUnionFeeFraction()
         const ethersOverrides = this.client.ethereum.getOverrides()
-        const tx = await this.contract.setFees(adminFeeBN, duFeeBN, ethersOverrides)
+        let tx
+        try {
+            tx = await this.contract.setFees(adminFeeBN, duFeeBN, ethersOverrides)
+        } catch(error) {
+            if (error.message.includes('error_onlyOwner')) {
+                const myAddress = await this.contract.signer.getAddress()
+                throw new Error(`Setting admin fee for data union ${this.contract.address} failed: ${myAddress} is not the DataUnion admin!`)
+            }
+            throw error
+        }
         return waitOrRetryTx(tx)
     }
 
