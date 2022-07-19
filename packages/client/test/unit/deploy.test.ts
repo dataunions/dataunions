@@ -1,32 +1,25 @@
 import type { Wallet } from '@ethersproject/wallet'
 
-import type { DATAv2 } from '@streamr/data-v2'
-import type { DataUnionFactory, DataUnionTemplate } from '@dataunions/contracts/typechain'
-
 import { DataUnionClient } from '../../src/DataUnionClient'
+import type { DataUnionClientConfig } from '../../src/Config'
+
 import { deployContracts, getWallets } from './setup'
 
 describe('DataUnion deploy', () => {
 
-    let token: DATAv2
-    let dataUnionFactory: DataUnionFactory
-    let dataUnionTemplate: DataUnionTemplate
-    let ethereumUrl: string
     let admin: Wallet
     let user: Wallet
+    let clientOptions: DataUnionClientConfig
     beforeAll(async () => {
         [ admin, user ] = getWallets()
-        ;({
+        const {
             token,
             dataUnionFactory,
             dataUnionTemplate,
             ethereumUrl
-        } = await deployContracts(admin))
-    })
-
-    async function getClientFor(wallet: Wallet) {
-        return new DataUnionClient({
-            auth: { privateKey: wallet.privateKey },
+        } = await deployContracts(admin)
+        clientOptions = {
+            auth: { privateKey: user.privateKey },
             tokenAddress: token.address,
             dataUnion: {
                 factoryAddress: dataUnionFactory.address,
@@ -41,25 +34,25 @@ describe('DataUnion deploy', () => {
                     timeout: 30 * 1000
                 }]
             },
-        })
-    }
+        }
+    })
 
     describe('owner', () => {
         it('not specified: defaults to deployer', async () => {
-            const client = await getClientFor(user)
+            const client = new DataUnionClient(clientOptions)
             const dataUnion = await client.deployDataUnion()
             expect(await dataUnion.getAdminAddress()).toBe(await client.getAddress())
         }, 30000)
 
         it('specified', async () => {
             const owner = "0x0000000000000000000000000000000000000123"
-            const client = await getClientFor(user)
+            const client = new DataUnionClient(clientOptions)
             const dataUnion = await client.deployDataUnion({ owner })
             expect(await dataUnion.getAdminAddress()).toBe(owner)
         }, 30000)
 
         it('invalid', async () => {
-            const client = await getClientFor(user)
+            const client = new DataUnionClient(clientOptions)
             await expect(client.deployDataUnion({ owner: 'foobar' })).rejects.toThrow(/invalid address/)
         })
     })

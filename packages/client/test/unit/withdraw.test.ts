@@ -5,43 +5,40 @@ import { DataUnionClient } from '../../src/DataUnionClient'
 
 import { deployContracts, deployDataUnion, getWallets } from './setup'
 
-import debug from 'debug'
-const log = debug('DataUnionClient:unit-tests:withdraw')
+import type { DataUnionClientConfig } from '../../src/Config'
+import type { DATAv2 } from '@streamr/data-v2'
 
-async function setup() {
-    const [
-        admin,
-        member,
-        otherMember,
-        outsider
-    ] = getWallets()
-    const {
-        token,
-        dataUnionFactory,
-        dataUnionTemplate,
-        ethereumUrl
-    } = await deployContracts(admin)
-    const duContract = await deployDataUnion(dataUnionFactory, token)
-    await (await duContract.addMembers([member.address, otherMember.address])).wait()
+describe('DataUnion withdrawX functions', () => {
 
-    async function fundDataUnion() {
-        // log("%o", (await duContract.getStats()).map((bn) => bn.toString()))
-        await (await token.mint(await token.signer.getAddress(), parseEther('1'))).wait()
-        await (await token.transferAndCall(duContract.address, parseEther('1'), '0x')).wait()
-        log("Data Union funded, stats: %o", (await duContract.getStats()).map((bn) => bn.toString()))
-    }
+    let admin: Wallet
+    let member: Wallet
+    let otherMember: Wallet
+    let outsider: Wallet
+    let clientOptions: DataUnionClientConfig
+    let duAddress: string
+    let token: DATAv2
+    beforeAll(async () => {
+        [
+            admin,
+            member,
+            otherMember,
+            outsider
+        ] = getWallets()
+        const {
+            token: tokenContract,
+            dataUnionFactory,
+            dataUnionTemplate,
+            ethereumUrl
+        } = await deployContracts(admin)
+        token = tokenContract
+        const duContract = await deployDataUnion(dataUnionFactory, token)
+        duAddress = duContract.address
+        await (await duContract.addMembers([member.address, otherMember.address])).wait()
 
-    async function getClientFor(wallet: Wallet) {
-        return new DataUnionClient({
-            // TODO: delete these if possible
-            theGraphUrl: "10.200.10.1:8000/subgraphs/name/streamr-dev/network-contracts",
-            restUrl: "http://localhost/api/v2",
-            id: "lol",
-
+        clientOptions = {
             auth: {
-                privateKey: wallet.privateKey
+                privateKey: member.privateKey
             },
-
             tokenAddress: token.address,
             dataUnion: {
                 factoryAddress: dataUnionFactory.address,
@@ -55,38 +52,19 @@ async function setup() {
                     url: ethereumUrl,
                     timeout: 30 * 1000
                 }]
-            },
-            // _timeouts: {
-            //     theGraph: {
-            //         timeout: 10 * 1000,
-            //         retryInterval: 500
-            //     },
-            //     httpFetch: {
-            //         timeout: 30 * 1000,
-            //         retryInterval: -1
-            //     }
-            // }
-        })
+            }
+        }
+    })
+
+    async function fundDataUnion() {
+        await (await token.mint(await token.signer.getAddress(), parseEther('1'))).wait()
+        await (await token.transferAndCall(duAddress, parseEther('1'), '0x')).wait()
     }
 
-    return {
-        getClientFor,
-        fundDataUnion,
-        duContract,
-        admin,
-        member,
-        otherMember,
-        outsider,
-        token,
-    }
-}
-
-describe('DataUnion withdrawX functions', () => {
     describe('by the member itself', () => {
         it('to itself', async () => {
-            const { getClientFor, fundDataUnion, duContract, member, token } = await setup()
-            const client = await getClientFor(member)
-            const du = await client.getDataUnion(duContract.address)
+            const client = new DataUnionClient(clientOptions)
+            const du = await client.getDataUnion(duAddress)
 
             const balanceBefore = await token.balanceOf(member.address)
             await fundDataUnion()
@@ -97,9 +75,8 @@ describe('DataUnion withdrawX functions', () => {
         }, 30000)
 
         it('to any address', async () => {
-            const { getClientFor, fundDataUnion, duContract, member, outsider, token } = await setup()
-            const client = await getClientFor(member)
-            const du = await client.getDataUnion(duContract.address)
+            const client = new DataUnionClient(clientOptions)
+            const du = await client.getDataUnion(duAddress)
 
             const balanceBefore = await token.balanceOf(outsider.address)
             await fundDataUnion()
@@ -113,9 +90,8 @@ describe('DataUnion withdrawX functions', () => {
     describe('by someone else on the member\'s behalf', () => {
 
         it('to a member without signature', async () => {
-            const { getClientFor, fundDataUnion, duContract, member, outsider, token } = await setup()
-            const client = await getClientFor(outsider)
-            const du = await client.getDataUnion(duContract.address)
+            const client = new DataUnionClient({ ...clientOptions, auth: { privateKey: outsider.privateKey } })
+            const du = await client.getDataUnion(duAddress)
 
             const balanceBefore = await token.balanceOf(member.address)
             await fundDataUnion()
@@ -126,14 +102,12 @@ describe('DataUnion withdrawX functions', () => {
         }, 30000)
 
         it("to anyone with member's signature", async () => {
-            const { getClientFor, fundDataUnion, duContract, member, outsider, otherMember, token } = await setup()
-
-            const memberClient = await getClientFor(member)
-            const memberDU = await memberClient.getDataUnion(duContract.address)
+            const memberClient = new DataUnionClient(clientOptions)
+            const memberDU = await memberClient.getDataUnion(duAddress)
             const signature = await memberDU.signWithdrawAllTo(outsider.address)
 
-            const otherClient = await getClientFor(otherMember)
-            const otherDU = await otherClient.getDataUnion(duContract.address)
+            const otherClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: otherMember.privateKey } })
+            const otherDU = await otherClient.getDataUnion(duAddress)
 
             const balanceBefore = await token.balanceOf(outsider.address)
             await fundDataUnion()
@@ -145,14 +119,13 @@ describe('DataUnion withdrawX functions', () => {
 
         it("to anyone a specific amount with member's signature", async () => {
             const withdrawAmount = parseEther("0.1")
-            const { getClientFor, fundDataUnion, duContract, member, outsider, otherMember, token } = await setup()
 
-            const memberClient = await getClientFor(member)
-            const memberDU = await memberClient.getDataUnion(duContract.address)
+            const memberClient = new DataUnionClient(clientOptions)
+            const memberDU = await memberClient.getDataUnion(duAddress)
             const signature = await memberDU.signWithdrawAmountTo(outsider.address, withdrawAmount)
 
-            const otherClient = await getClientFor(otherMember)
-            const otherDU = await otherClient.getDataUnion(duContract.address)
+            const otherClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: otherMember.privateKey } })
+            const otherDU = await otherClient.getDataUnion(duAddress)
 
             const balanceBefore = await token.balanceOf(outsider.address)
             await fundDataUnion()
@@ -164,9 +137,8 @@ describe('DataUnion withdrawX functions', () => {
     })
 
     it('validates input addresses', async () => {
-        const { getClientFor, fundDataUnion, member, duContract } = await setup()
-        const client = await getClientFor(member)
-        const dataUnion = await client.getDataUnion(duContract.address)
+        const client = new DataUnionClient(clientOptions)
+        const dataUnion = await client.getDataUnion(duAddress)
         await fundDataUnion()
         return Promise.all([
             expect(() => dataUnion.getWithdrawableEarnings('invalid-address')).rejects.toThrow(/invalid address/),
