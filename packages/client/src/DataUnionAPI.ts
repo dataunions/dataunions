@@ -150,10 +150,11 @@ export default class DataUnionAPI {
             throw new Error('Factory did not emit a DUCreated event!')
         }
 
-        const contractAddress = createdEvent.args!.du
+        const contractAddress = createdEvent.args!.du as string
         log(`DataUnion deployed ${contractAddress}`)
 
-        return new DataUnion(contractAddress, this)
+        const contract = this.getTemplate(contractAddress, signer)
+        return new DataUnion(contract, this)
     }
 
     /**
@@ -212,9 +213,10 @@ export default class DataUnionAPI {
             throw new Error('Factory did not emit a DUCreated event!')
         }
 
-        const contractAddress = createdEvent.args!.du
+        const contractAddress = createdEvent.args!.du as string
         log(`DataUnion deployed ${contractAddress}`)
 
-        return new DataUnion(contractAddress, this)
+        const contract = this.getTemplate(contractAddress, signer)
+        return new DataUnion(contract, this)
     }
 }
