@@ -1,6 +1,6 @@
 {
     "name": "@dataunions/client",
-    "version": "3.0.0-alpha.4",
+    "version": "3.0.0-alpha.5",
     "description": "JavaScript client library for DataUnions",
     "private": false,
     "repository": {
