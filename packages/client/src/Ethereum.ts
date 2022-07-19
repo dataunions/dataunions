@@ -125,7 +125,7 @@ export class Ethereum {
             throw new Error('StreamrClient is not authenticated with private key')
         }
 
-        return (await this._getAddress()).toLowerCase()
+        return (await this._getAddress())
     }
 
     /** @internal */
