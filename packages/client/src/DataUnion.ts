@@ -154,8 +154,10 @@ export class DataUnion {
      *          ELSE null IF transport to mainnet was done by someone else (in which case the receipt is lost)
      */
     async withdrawAll(): Promise<ContractReceipt> {
-        const recipientAddress = await this.client.ethereum.getAddress()
-        return this.withdrawAllTo(recipientAddress)
+        const memberAddress = await this.client.ethereum.getAddress()
+        const ethersOverrides = this.client.ethereum.getOverrides()
+        const tx = await this.contract.withdrawAll(memberAddress, false, ethersOverrides)
+        return tx.wait()
     }
 
     /**
@@ -166,18 +168,21 @@ export class DataUnion {
      *          ELSE null IF transport to mainnet was done by someone else (in which case the receipt is lost)
      * @returns await on call .wait to actually send the tx
      */
-    async withdrawAllTo(address: EthereumAddress): Promise<ContractReceipt> {
-        const withdrawable = await this.contract.getWithdrawableEarnings(address)
+    async withdrawAllTo(recipientAddress: EthereumAddress): Promise<ContractReceipt> {
+        const memberAddress = await this.client.ethereum.getAddress()
+        const withdrawable = await this.contract.getWithdrawableEarnings(memberAddress)
         if (withdrawable.eq(0)) {
-            throw new Error(`${address} has nothing to withdraw in (sidechain) data union ${this.contract.address}`)
+            throw new Error(`${memberAddress} has nothing to withdraw in (sidechain) data union ${this.contract.address}`)
         }
 
         if (this.client.options.dataUnion.minimumWithdrawTokenWei && withdrawable.lt(this.client.options.dataUnion.minimumWithdrawTokenWei)) {
-            throw new Error(`${address} has only ${withdrawable} to withdraw in `
+            throw new Error(`${memberAddress} has only ${withdrawable} to withdraw in `
                 + `DataUnion ${this.contract.address} (min: ${this.client.options.dataUnion.minimumWithdrawTokenWei})`)
         }
+
+        const address = getAddress(recipientAddress)
         const ethersOverrides = this.client.ethereum.getOverrides()
-        const tx = await this.contract.withdrawAll(address, false, ethersOverrides)
+        const tx = await this.contract.withdrawAllTo(address, false, ethersOverrides)
         return tx.wait()
     }
 
@@ -375,10 +380,6 @@ export class DataUnion {
      * Admin: withdraw earnings (pay gas) on behalf of a member
      * TODO: add test
      * @param memberAddress - the other member who gets their tokens out of the DataUnion
-     * @returns the sidechain withdraw transaction receipt IF called with sendToMainnet=false,
-     *          ELSE the message hash IF called with payForTransport=false and waitUntilTransportIsComplete=false,
-     *          ELSE the mainnet AMB signature execution transaction receipt IF we did the transport ourselves,
-     *          ELSE null IF transport to mainnet was done by someone else (in which case the receipt is lost)
      */
     async withdrawAllToMember(
         memberAddress: EthereumAddress,
@@ -394,10 +395,6 @@ export class DataUnion {
      * @param memberAddress - the member whose earnings are sent out
      * @param recipientAddress - the address to receive the tokens in mainnet
      * @param signature - from member, produced using signWithdrawAllTo
-     * @returns the sidechain withdraw transaction receipt IF called with sendToMainnet=false,
-     *          ELSE the message hash IF called with payForTransport=false and waitUntilTransportIsComplete=false,
-     *          ELSE the mainnet AMB signature execution transaction receipt IF we did the transport ourselves,
-     *          ELSE null IF transport to mainnet was done by someone else (in which case the receipt is lost)
      */
     async withdrawAllToSigned(
         memberAddress: EthereumAddress,
@@ -416,10 +413,6 @@ export class DataUnion {
      * @param memberAddress - the member whose earnings are sent out
      * @param recipientAddress - the address to receive the tokens in mainnet
      * @param signature - from member, produced using signWithdrawAllTo
-     * @returns the sidechain withdraw transaction receipt IF called with sendToMainnet=false,
-     *          ELSE the message hash IF called with payForTransport=false and waitUntilTransportIsComplete=false,
-     *          ELSE the mainnet AMB signature execution transaction receipt IF we did the transport ourselves,
-     *          ELSE null IF transport to mainnet was done by someone else (in which case the receipt is lost)
      */
     async withdrawAmountToSigned(
         memberAddress: EthereumAddress,
