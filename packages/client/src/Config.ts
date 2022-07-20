@@ -36,6 +36,10 @@ export type DataUnionConfig = {
     payForTransport: boolean
     factoryAddress: EthereumAddress
     templateAddress: EthereumAddress
+
+    /** recipient of DU fees */
+    duBeneficiaryAddress: EthereumAddress
+
     /** joinPartAgent when using EE for join part handling */
     joinPartAgentAddress: EthereumAddress
 }

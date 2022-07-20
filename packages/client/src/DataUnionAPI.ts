@@ -166,7 +166,8 @@ export default class DataUnionAPI {
         const provider = this.ethereum.getProvider()
         const {
             factoryAddress,
-            joinPartAgentAddress
+            joinPartAgentAddress,
+            duBeneficiaryAddress,
         } = this.options.dataUnion
 
         if (await provider.getCode(factoryAddress) === '0x') {
@@ -194,8 +195,8 @@ export default class DataUnionAPI {
 
         const ethersOptions: any = {}
         if (gasPrice) { ethersOptions.gasPrice = gasPrice }
-        const duFeeFraction = parseEther('0') // TODO: decide what the default values should be
-        const duBeneficiary = '0x0000000000000000000000000000000000000000' // TODO: decide what the default values should be
+        const duFeeFraction = parseEther('0') // TODO: decide what the default value should be
+        const duBeneficiary = duBeneficiaryAddress
         const signer = this.ethereum.getSigner()
         const duFactory = await this.getFactory(factoryAddress, signer)
         const tx = await duFactory.deployNewDataUnion(
