@@ -102,6 +102,7 @@ export const DATAUNION_CLIENT_DEFAULTS: StrictDataUnionClientConfig = {
         factoryAddress: '0xE41439BF434F9CfBF0153f5231C205d4ae0C22e3',
         templateAddress: '0x67352e3F7dBA907aF877020aE7E9450C0029C70c',
         joinPartAgentAddress: '0xf3E5A65851C3779f468c9EcB32E6f25D9D68601a',
+        duBeneficiaryAddress: '0xf3E5A65851C3779f468c9EcB32E6f25D9D68601a'  // TODO: decide what this should be
     },
     _timeouts: {
         theGraph: {

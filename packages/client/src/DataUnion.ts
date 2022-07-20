@@ -435,8 +435,6 @@ export class DataUnion {
 
     /**
      * Admin: set admin fee (between 0.0 and 1.0) for the data union
-     * Version 2.2: admin fee is collected in DataUnionSidechain
-     * Version 2.0: admin fee was collected in DataUnionMainnet
      */
     async setAdminFee(newFeeFraction: number): Promise<ContractReceipt> {
         if (newFeeFraction < 0 || newFeeFraction > 1) {
@@ -445,6 +443,30 @@ export class DataUnion {
 
         const adminFeeBN = BigNumber.from((newFeeFraction * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish
         const duFeeBN = await this.contract.dataUnionFeeFraction()
+        const ethersOverrides = this.client.ethereum.getOverrides()
+        let tx
+        try {
+            tx = await this.contract.setFees(adminFeeBN, duFeeBN, ethersOverrides)
+        } catch(error) {
+            if (error.message.includes('error_onlyOwner')) {
+                const myAddress = await this.contract.signer.getAddress()
+                throw new Error(`Setting admin fee for data union ${this.contract.address} failed: ${myAddress} is not the DataUnion admin!`)
+            }
+            throw error
+        }
+        return waitOrRetryTx(tx)
+    }
+
+    /**
+     * Admin: set Data Union DAO fee (between 0.0 and 1.0) for the data union
+     */
+    async setDataUnionFee(newFeeFraction: number): Promise<ContractReceipt> {
+        if (newFeeFraction < 0 || newFeeFraction > 1) {
+            throw new Error('newFeeFraction argument must be a number between 0...1, got: ' + newFeeFraction)
+        }
+
+        const duFeeBN = BigNumber.from((newFeeFraction * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish
+        const adminFeeBN = await this.contract.adminFeeFraction()
         const ethersOverrides = this.client.ethereum.getOverrides()
         let tx
         try {

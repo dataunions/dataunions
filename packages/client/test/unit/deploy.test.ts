@@ -24,7 +24,8 @@ describe('DataUnion deploy', () => {
             dataUnion: {
                 factoryAddress: dataUnionFactory.address,
                 templateAddress: dataUnionTemplate.address,
-                joinPartAgentAddress: admin.address,
+                duBeneficiaryAddress: admin.address,
+                joinPartAgentAddress: "0x0000000000000000000000000000000000000000",
             },
             network: {
                 name: 'dev1',
