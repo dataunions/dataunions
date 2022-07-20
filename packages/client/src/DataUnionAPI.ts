@@ -61,22 +61,24 @@ export default class DataUnionAPI {
 
     /**
      * Get token balance in "wei" (10^-18 parts) for given address
+     * @param address to query, or this DU client's address if omitted
      */
-    async getTokenBalance(address: EthereumAddress): Promise<BigNumber> {
-        return this.token.balanceOf(getAddress(address))
+    async getTokenBalance(address?: EthereumAddress): Promise<BigNumber> {
+        const a = address ? getAddress(address) : await this.ethereum.getAddress()
+        return this.token.balanceOf(a)
     }
 
     /**
      * @category Important
      */
-    async getDataUnion(contractAddress: EthereumAddress): Promise<DataUnion | never> {
+    async getDataUnion(contractAddress: EthereumAddress): Promise<DataUnion> {
         if (!isAddress(contractAddress)) {
             throw new Error(`Can't get DataUnion, invalid Ethereum address: ${contractAddress}`)
         }
 
         const provider = this.ethereum.getProvider()
         if (await provider.getCode(contractAddress) === '0x') {
-            throw new Error(`${contractAddress} is not a Data Union!`)
+            throw new Error(`${contractAddress} is not an Ethereum contract!`)
         }
 
         // giving signer to DataUnion wouldn't really be required for most operations (reading)
@@ -86,6 +88,12 @@ export default class DataUnionAPI {
         //   getSigner could be called directly in the withdraw functions that need it, then .connect()ed to the contract
         const signer = this.ethereum.getSigner()
         const contract = this.getTemplate(contractAddress, signer)
+
+        const looksLikeDataUnion = await contract.isJoinPartAgent("0x0000000000000000000000000000000000000000").then(() => true).catch(() => false)
+        if (!looksLikeDataUnion) {
+            throw new Error(`${contractAddress} is not a Data Union!`)
+        }
+
         return new DataUnion(contract, this)
     }
 
