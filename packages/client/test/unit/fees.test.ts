@@ -1,15 +1,15 @@
 import { parseEther, formatEther } from '@ethersproject/units'
 import type { Wallet } from '@ethersproject/wallet'
+import type { BigNumberish } from '@ethersproject/bignumber'
 
 import { DataUnionClient } from '../../src/DataUnionClient'
 
-import { deployContracts, deployDataUnion, getWallets } from './setup'
+import { deployContracts, getWallets } from './setup'
 
 import type { DataUnionClientConfig } from '../../src/Config'
 import type { DATAv2 } from '@streamr/data-v2'
 
 import debug from 'debug'
-import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 const log = debug('DataUnionClient:unit-tests:adminFee')
 
 describe('DataUnion admin fee', () => {
