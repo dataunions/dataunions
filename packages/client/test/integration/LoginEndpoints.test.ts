@@ -3,7 +3,7 @@ import assert from 'assert'
 
 import { Wallet } from '@ethersproject/wallet'
 
-import { getCreateClient } from '../../test-utils/utils'
+import { getCreateClient } from '../utils'
 import type { DataUnionClient } from '../../../src/DataUnionClient'
 
 describe('LoginEndpoints', () => {

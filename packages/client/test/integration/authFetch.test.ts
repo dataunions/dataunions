@@ -1,9 +1,9 @@
 jest.mock('node-fetch')
 
 import fetch from 'node-fetch'
-import { ConfigTest } from '../../../src/ConfigTest'
-import { DataUnionClient } from '../../../src/DataUnionClient'
-import { createMockAddress } from '../../test-utils/utils'
+import { ConfigTest } from '../../src/ConfigTest'
+import { DataUnionClient } from '../../src/DataUnionClient'
+import { createMockAddress } from './utils'
 
 describe('authFetch', () => {
     let client: DataUnionClient
