@@ -139,8 +139,9 @@ export class DataUnion {
         return this.removeMembers([memberAddress])
     }
 
-    async isMember(memberAddress: EthereumAddress): Promise<boolean> {
-        const memberData = await this.contract.memberData(getAddress(memberAddress))
+    async isMember(memberAddress?: EthereumAddress): Promise<boolean> {
+        const address = memberAddress ? getAddress(memberAddress) : await this.client.ethereum.getAddress()
+        const memberData = await this.contract.memberData(address)
         const [ state ] = memberData
         const ACTIVE = 1 // memberData[0] is enum ActiveStatus {None, Active, Inactive}
         return (state === ACTIVE)
