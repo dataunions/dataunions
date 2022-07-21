@@ -57,4 +57,6 @@ describe('DataUnion deploy', () => {
             await expect(client.deployDataUnion({ owner: 'foobar' })).rejects.toThrow(/invalid address/)
         })
     })
+
+    // TODO: tests for calculateAddress
 })

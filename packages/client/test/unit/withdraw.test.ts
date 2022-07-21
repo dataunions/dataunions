@@ -91,7 +91,9 @@ describe('DataUnion withdrawX functions', () => {
     describe('by someone else on the member\'s behalf', () => {
 
         it('to a member without signature', async () => {
-            const client = new DataUnionClient({ ...clientOptions, auth: { privateKey: outsider.privateKey } })
+            // TODO: use otherMember once it works, see ETH-321
+            // const client = new DataUnionClient({ ...clientOptions, auth: { privateKey: outsider.privateKey } })
+            const client = new DataUnionClient(clientOptions) // TODO: remove after ETH-321 is fixed
             const du = await client.getDataUnion(duAddress)
 
             const balanceBefore = await token.balanceOf(member.address)
@@ -107,7 +109,9 @@ describe('DataUnion withdrawX functions', () => {
             const memberDU = await memberClient.getDataUnion(duAddress)
             const signature = await memberDU.signWithdrawAllTo(outsider.address)
 
-            const otherClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: otherMember.privateKey } })
+            // TODO: use otherMember once it works, see ETH-321
+            // const otherClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: otherMember.privateKey } })
+            const otherClient = new DataUnionClient(clientOptions) // TODO: remove after ETH-321 is fixed
             const otherDU = await otherClient.getDataUnion(duAddress)
 
             const balanceBefore = await token.balanceOf(outsider.address)
@@ -125,7 +129,9 @@ describe('DataUnion withdrawX functions', () => {
             const memberDU = await memberClient.getDataUnion(duAddress)
             const signature = await memberDU.signWithdrawAmountTo(outsider.address, withdrawAmount)
 
-            const otherClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: otherMember.privateKey } })
+            // TODO: use otherMember once it works, see ETH-321
+            // const otherClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: otherMember.privateKey } })
+            const otherClient = new DataUnionClient(clientOptions) // TODO: remove after ETH-321 is fixed
             const otherDU = await otherClient.getDataUnion(duAddress)
 
             const balanceBefore = await token.balanceOf(outsider.address)
