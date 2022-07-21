@@ -1,0 +1,43 @@
+{
+    "extends": "@dataunions/dev-config/ts/tsconfig.browser.json",
+    "compilerOptions": {
+        "composite": true,
+        "noEmit": true,
+        "declarationDir": "dist/types",
+        "outDir": "dist",
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "strictBindCallApply": true,
+        "baseUrl": ".",
+        "paths": {
+            "stream": [
+                "readable-stream"
+            ],
+            "util": [
+                "util"
+            ],
+            "@ethersproject/wordlists": [
+                "@ethersproject/wordlists/lib.esm/browser-wordlists.js"
+            ],
+            "crypto": [
+                "crypto-browserify"
+            ],
+            "buffer": [
+                "buffer/"
+            ],
+            "@dataunions/contracts": [
+                "../contracts/typechain/index.ts"
+            ]
+        }
+    },
+    "include": [
+        "package.json",
+        "src/**/*",
+        "src/**/*.json",
+        "vendor/**/*",
+        "src/config.schema.json"
+    ],
+    "exclude": [
+        "src/index-esm.mjs"
+    ]
+}

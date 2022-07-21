@@ -1,0 +1,44 @@
+{
+    "extends": "@dataunions/dev-config/ts/tsconfig.jest.json",
+    "compilerOptions": {
+        "composite": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "strictBindCallApply": true,
+        "noEmit": true,
+        "outDir": "dist",
+        "declarationDir": "dist/types",
+        "resolveJsonModule": true,
+        "lib": [
+            "ES5",
+            "ES2015",
+            "ES2016",
+            "ES2017",
+            "ES2018",
+            "ES2019",
+            "ES2020",
+            "ESNext",
+            "DOM"
+        ]
+    },
+    "include": [
+        "package.json",
+        "src/**/*",
+        "src/**/*.json",
+        "vendor/**/*",
+        "test/**/*",
+        "src/config.schema.json"
+    ],
+    "exclude": [
+        "test/exports/*",
+        "src/index-esm.mjs"
+    ],
+    "references": [
+        {
+            "path": "./tsconfig.node.json"
+        },
+        {
+            "path": "../contracts/tsconfig.json"
+        }
+    ]
+}

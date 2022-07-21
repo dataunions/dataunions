@@ -1,0 +1,20 @@
+{
+    "name": "@dataunions/test-exports",
+    "version": "1.0.0",
+    "description": "",
+    "main": "commonjs.js",
+    "private": true,
+    "scripts": {
+        "pretest": "rm -Rf dist",
+        "test": "npm run test-commonjs && npm run test-esm && npm run test-ts",
+        "build-ts": "tsc --project ./tsconfig.json",
+        "pretest-ts": "npm run build-ts",
+        "test-ts": "node dist/tests/typescript.js",
+        "test-esm": "node tests/esm.mjs",
+        "test-commonjs": "node tests/commonjs.js",
+        "link": "mkdir -p node_modules && ln -fs ../../../dist/ node_modules/streamr-client"
+    },
+    "author": "Tim Oxley <secoif@gmail.com>",
+    "license": "ISC",
+    "dependencies": {}
+}

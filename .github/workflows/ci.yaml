@@ -4,56 +4,47 @@ on:
   pull_request:
     branches:
       - master
-      - release/*
   push:
     branches:
       - master
-      - release/*
 
 jobs:
   build:
     name: Build
-    timeout-minutes: 20
-    runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.experimental }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-20.04
-        experimental: [false]
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: Build Solidity contracts using makefile
-        working-directory: packages/data-union-solidity
-        run: |
-           make build
-      - name: Node 16.6.1 - x64 on ${{ matrix.os }}
-        uses: actions/setup-node@v3
+      # - name: Build Solidity contracts using makefile
+      #   working-directory: packages/contracts
+      #   run: |
+      #      make build
+      - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-      - uses: actions/cache@v3
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v3
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          path: |
+            node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --no-audit
+      - name: Run lint
+        run: npm run lint --workspaces --if-present
+      - name: Build and unit test
         run: |
-          npm ci
-      - name: Run lint, build and unit test
-        run: |
-          npm run lint
           npm run build
           npm run test
-      - name: Start Streamr Docker Stack
-        uses: streamr-dev/streamr-docker-dev-action@v1.0.0
-        with:
-          services-to-start: 'parity-sidechain-node0 parity-node0 bridge'
-      - name: Integration Test
-        env:
-          DEBUG: '*'
-          TEST_TIMEOUT: '600000'
-        run: npm run integration-test
+      # - name: Start Streamr Docker Stack
+      #   uses: streamr-dev/streamr-docker-dev-action@v1.0.0
+      #   with:
+      #     services-to-start: 'parity-sidechain-node0 parity-node0'
+      # - name: Integration Test
+      #   env:
+      #     TEST_TIMEOUT: '600000'
+      #   run: npm run integration-test --workspaces --if-present

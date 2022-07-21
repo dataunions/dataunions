@@ -5,6 +5,31 @@
 # Data Union monorepo
 
 `/packages`:
-* `data-union-solidity`: Smart contracts for Data Unions 2.0
-* `dataunion-thegraph-subgraph`: [TheGraph](https://thegraph.com/) subgraph for Data Union smart contracts
+* `contracts`: Smart contracts for Data Unions 2.0 and 3.0 (`unichain`)
+* `client`: Data Union client
+* `thegraph-subgraph`: [TheGraph](https://thegraph.com/) subgraph for Data Union smart contracts
 * `config`: Addresses and URLs for connecting to the deployed smart contracts
+
+## Development
+
+Load project Node and npm:
+```
+nvm use
+```
+
+Install dependencies:
+```
+npm ci
+```
+
+Build client:
+```
+cd packages/client
+npm run build
+```
+
+Run tests:
+```
+npm run test
+```
+
