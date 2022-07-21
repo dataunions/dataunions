@@ -12,7 +12,6 @@ describe('DataUnion member', () => {
     let admin: Wallet
     let member: Wallet
     let otherMember: Wallet
-    let outsider: Wallet
     let clientOptions: DataUnionClientConfig
     let duAddress: string
     let token: DATAv2
@@ -21,7 +20,6 @@ describe('DataUnion member', () => {
             admin,
             member,
             otherMember,
-            outsider
         ] = getWallets()
         const {
             token: tokenContract,
