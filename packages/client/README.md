@@ -6,15 +6,25 @@
 
 The Data Union framework is a data crowdsourcing and crowdselling solution. Working in tandem with the Streamr Network and Ethereum, the framework powers applications that enable people to earn by sharing valuable data. You can [read more about it here](https://dataunions.network/docs/data-unions/intro-to-data-unions)
 
+#### Basic use
+
+Start by obtaining a DataUnionClient object:
+
+```js
+import { DataUnionClient } from '@dataunions/client'
+const DU = new DataUnionClient(clientOptions)
+```
+
+_TODO: document `clientOptions`_
 
 To deploy a new DataUnion with default [deployment options](#deployment-options):
 ```js
-const dataUnion = await dataunions.deployDataUnion()
+const dataUnion = await DU.deployDataUnion()
 ```
 
 To get an existing (previously deployed) `DataUnion` instance:
 ```js
-const dataUnion = await dataunions.getDataUnion('0x12345...')
+const dataUnion = await DU.getDataUnion('0x12345...')
 ```
 
 
@@ -163,7 +173,7 @@ const dataUnion = await dataunions.deployDataUnion({
 
 Streamr Core is added as a `joinPartAgent` by default so that joining with secret works using the member function `join`. If you don't plan to use `join` for "self-service joining", you can leave out Streamr Core agent by calling `deployDataUnion` e.g. with your own address as the sole joinPartAgent:
 ```js
-const dataUnion = await dataunions.deployDataUnion({
+const dataUnion = await DU.deployDataUnion({
     joinPartAgents: [ownerAddress],
     adminFee,
 })
