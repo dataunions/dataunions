@@ -199,10 +199,33 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
      * ERC677 callback function, see https://github.com/ethereum/EIPs/issues/677
      * Receives the tokens arriving through bridge
      * Only the token contract is authorized to call this function
+     * @param data if given an address, then these tokens are allocated to that member's address; otherwise they are added as DU revenue
      */
-    function onTokenTransfer(address, uint256, bytes calldata) override external {
-        // guarding refreshRevenue is pointless, but this prevents DU from receiving unexpected ERC677 tokens
+    function onTokenTransfer(address, uint256 amount, bytes calldata data) override external {
         require(msg.sender == address(token), "error_onlyTokenContract");
+
+        if (data.length == 20) {
+            // shift 20 bytes (= 160 bits) to end of uint256 to make it an address => shift by 256 - 160 = 96
+            // (this is what abi.encodePacked would produce)
+            address recipient;
+            assembly {
+                recipient := shr(96, calldataload(data.offset))
+            }
+            _increaseBalance(recipient, amount);
+            totalRevenue += amount;
+            emit TransferToAddressInContract(msg.sender, recipient, amount);
+        } else if (data.length == 32) {
+            // assume the address was encoded by converting address -> uint -> bytes32 -> bytes (already in the least significant bytes)
+            // (this is what abi.encode would produce)
+            address recipient;
+            assembly {
+                recipient := calldataload(data.offset)
+            }
+            _increaseBalance(recipient, amount);
+            totalRevenue += amount;
+            emit TransferToAddressInContract(msg.sender, recipient, amount);
+        }
+
         refreshRevenue();
     }
 

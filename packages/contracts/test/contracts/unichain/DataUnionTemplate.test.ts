@@ -308,6 +308,13 @@ describe("DataUnionTemplate", () => {
         await expect(dataUnionSidechain.transferToMemberInContract(m[0], "777")).to.be.revertedWith("error_transfer")
     })
 
+    it("transferToMemberInContract using ERC677", async () => {
+        await testToken.transferAndCall(dataUnionSidechain.address, "1000", o[0])
+        await testToken.transferAndCall(dataUnionSidechain.address, "1000", m[0])
+        expect(await dataUnionSidechain.getWithdrawableEarnings(o[0])).to.equal(1000)
+        expect(await dataUnionSidechain.getWithdrawableEarnings(m[0])).to.equal(1000)
+    })
+
     it("transferWithinContract", async () => {
         assert(await testToken.transfer(dataUnionSidechain.address, "3000"))
         await dataUnionSidechain.refreshRevenue()
