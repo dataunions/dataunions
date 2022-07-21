@@ -208,7 +208,7 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
             // shift 20 bytes (= 160 bits) to end of uint256 to make it an address => shift by 256 - 160 = 96
             // (this is what abi.encodePacked would produce)
             address recipient;
-            assembly {
+            assembly { // solhint-disable-line no-inline-assembly
                 recipient := shr(96, calldataload(data.offset))
             }
             _increaseBalance(recipient, amount);
@@ -218,7 +218,7 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
             // assume the address was encoded by converting address -> uint -> bytes32 -> bytes (already in the least significant bytes)
             // (this is what abi.encode would produce)
             address recipient;
-            assembly {
+            assembly { // solhint-disable-line no-inline-assembly
                 recipient := calldataload(data.offset)
             }
             _increaseBalance(recipient, amount);
