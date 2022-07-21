@@ -497,11 +497,16 @@ export class DataUnion {
         const myAddress = await signer.getAddress()
         const ethersOverrides = this.client.ethereum.getOverrides()
 
+        // TODO: implement as ERC677 transfer with data=memberAddress, after this feature is deployed
+        // const tx = await this.client.token.transferAndCall(this.contract.address, amount, memberAddress, ethersOverrides)
+        // TODO: all things below can then be removed until the "return" line, also delete the 2-step test
+
         // check first that we have enough allowance to do the transferFrom within the transferToMemberInContract
         const allowance = await this.client.token.allowance(myAddress, this.contract.address)
         if (allowance.lt(amount)) {
-            const difference = amount.sub(allowance)
-            const approveTx = await this.client.token.increaseAllowance(this.contract.address, difference, ethersOverrides)
+            // TODO: some tokens could fail here; might need resetting allowance to 0 first.
+            //   That's why @openzeppelin/contracts:ERC20.sol has "increaseAllowance" but since it's not part of IERC20, prefer not use it here
+            const approveTx = await this.client.token.connect(signer).approve(this.contract.address, amount, ethersOverrides)
             const approveTr = await waitOrRetryTx(approveTx)
             log('Approval transaction receipt: %o', approveTr)
         }
