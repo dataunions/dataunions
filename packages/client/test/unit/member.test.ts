@@ -1,4 +1,3 @@
-import { parseEther, formatEther } from '@ethersproject/units'
 import { Wallet } from '@ethersproject/wallet'
 
 import { DataUnionClient } from '../../src/DataUnionClient'
