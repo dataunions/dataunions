@@ -1,27 +1,22 @@
-const express = require('express')
 const pino = require('pino')
 const app = require('../../src/app')
 
-function newUnitTestServer(...conf) {
-	const srv = new app.Server(
-		express(),
-		express.Router(),
-		undefined,
-		process.env.PORT,
-		(srv) => {
-			const logger = pino({
-				name: 'unit-test',
-				level: 'trace',
-				enabled: false,
-			})
-			srv.logger = logger
-		},
+const logger = pino({
+	name: 'unit-test',
+	level: 'trace',
+	enabled: false,
+})
+
+function newUnitTestServer(conf) {
+	return new app.Server({
+		dataUnionClient: null,
+		port: process.env.PORT,
+		logger,
 		...conf,
-	)
-	srv.routes()
-	return srv
+	})
 }
 
 module.exports = {
 	newUnitTestServer,
+	logger,
 }
