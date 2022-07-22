@@ -6,17 +6,21 @@ describe('Error handler', async () => {
 	let srv
 
 	before(() => {
-		const conf = (srv) => {
-			srv.app.get('/hello', function(_req, res, _next) {
-				res.status(200)
-				res.set('content-type', 'application/json')
-				res.send({message:'hello'})
-			})
-			srv.app.post('/error', function(_req, _res, _next) {
-				throw new Error('mock error message')
-			})
-		}
-		srv = newUnitTestServer(conf)
+		srv = newUnitTestServer({
+			signedRequestValidator: async (req) => {
+				req.validatedRequest = {}
+			},
+			customRoutes: (app) => {
+				app.get('/hello', function(_req, res, _next) {
+					res.status(200)
+					res.set('content-type', 'application/json')
+					res.send({message:'hello'})
+				})
+				app.post('/error', function(_req, _res, _next) {
+					throw new Error('mock error message')
+				})
+			}
+		})
 	})
 
 	after(() => {
@@ -31,7 +35,7 @@ describe('Error handler', async () => {
 	]
 	happyTestCases.forEach((tc) => {
 		it(tc.name, async () => {
-			const res = await request(srv.app)
+			const res = await request(srv.expressApp)
 				.get('/hello')
 				.expect('Content-Type', 'application/json; charset=utf-8')
 				.expect(200)
@@ -47,7 +51,7 @@ describe('Error handler', async () => {
 	]
 	testCases.forEach((tc) => {
 		it(tc.name, async () => {
-			const res = await request(srv.app)
+			const res = await request(srv.expressApp)
 				.post('/error')
 				.expect('Content-Type', 'application/json; charset=utf-8')
 				.expect(500)

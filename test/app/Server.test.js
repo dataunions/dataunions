@@ -46,7 +46,7 @@ describe('POST /api/join', async () => {
 	]
 	happyTestCases.forEach((tc) => {
 		it(tc.name, async () => {
-			await request(srv.app)
+			await request(srv.expressApp)
 				.post(`/api/join`)
 				.set('Content-Type', 'application/json')
 				.send(tc.body)
@@ -83,7 +83,7 @@ describe('POST /api/join', async () => {
 	]
 	testCases.forEach((tc) => {
 		it(tc.name, async () => {
-			const res = await request(srv.app)
+			const res = await request(srv.expressApp)
 				.post(`/api/join`)
 				.set('Content-Type', 'application/json')
 				.send(tc.body)
@@ -99,7 +99,7 @@ describe('POST /api/join', async () => {
 	it('fails the join request if the custom validator rejects', async () => {
 		srv.customJoinRequestValidator = sinon.stub().rejects()
 
-		await request(srv.app)
+		await request(srv.expressApp)
 			.post(`/api/join`)
 			.set('Content-Type', 'application/json')
 			.send(happyTestCases[0].body)

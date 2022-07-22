@@ -5,6 +5,17 @@ const { ethers } = require('ethers')
  * or rejects with an error if the request is not valid.
  */
 async function validate(signedObject, toleranceMillis = 5 * 60 * 1000) {
+    
+	if (!signedObject.signature) {
+		throw new InvalidSignatureError(`The field 'signature' is missing!`)
+	}
+	if (!signedObject.address) {
+		throw new InvalidSignatureError(`The field 'address' is missing!`)
+	}
+	if (!signedObject.timestamp) {
+		throw new InvalidTimestampError(`The field 'timestamp' is missing!`)
+	}
+
 	// Check signature
 	const recoveredAddress = ethers.utils.verifyMessage(signedObject.request + signedObject.timestamp, signedObject.signature)
 	if (recoveredAddress.toLowerCase() !== signedObject.address.toLowerCase()) {

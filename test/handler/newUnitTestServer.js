@@ -7,15 +7,13 @@ const logger = pino({
 	enabled: false,
 })
 
-function newUnitTestServer(...conf) {
-	const srv = new app.Server({
+function newUnitTestServer(conf) {
+	return new app.Server({
 		dataUnionClient: null,
 		port: process.env.PORT,
 		logger,
 		...conf,
 	})
-	srv.routes()
-	return srv
 }
 
 module.exports = {

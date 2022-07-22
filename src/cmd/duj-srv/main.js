@@ -46,12 +46,11 @@ async function main(argv) {
 	}
 
 	const srv = new Server({
+		privateKey: options.k,
 		port: options.p,
 		logLevel: options.l,
 	})
-	srv.services()
-	srv.routes()
-	srv.run()
+	srv.start()
 }
 
 main(process.argv).catch((e) => {

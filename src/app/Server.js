@@ -2,7 +2,8 @@ const process = require('process')
 const express = require('express')
 const http = require('http')
 const pino = require('pino')
-const DU = require('@dataunions/client')
+
+const { DataUnionClient } = require('@dataunions/client')
 
 const handler = require('../handler')
 const domain = require('../domain')
@@ -15,7 +16,6 @@ const SignedRequestValidator = require('./SignedRequestValidatorMiddleware')(TOL
 class Server {
 	constructor({
 		expressApp = express(),
-		expressRouter = express.Router(),
 		httpServer = undefined,  /* node http.Server */
 		port = 5555,
 		logLevel = 'info',
@@ -24,7 +24,7 @@ class Server {
 			level: logLevel,
 		}),
 		privateKey,
-		dataUnionClient = new DU.DataUnionClient({
+		dataUnionClient = new DataUnionClient({
 			auth: {
 				privateKey,
 			}
@@ -32,15 +32,16 @@ class Server {
 		signedRequestValidator = SignedRequestValidator.validator,
 		customJoinRequestValidator = async (/* joinRequest */) => {},
 		joinRequestService = new service.JoinRequestService(logger, dataUnionClient),
-	}) {
+		customRoutes = (/*app*/) => {},
+	} = {}) {
 
 		this.expressApp = expressApp
-		this.expressRouter = expressRouter
 		this.logger = logger
 		this.dataUnionClient = dataUnionClient
 		this.signedRequestValidator = signedRequestValidator
-		this.joinRequestService = joinRequestService
 		this.customJoinRequestValidator = customJoinRequestValidator
+		this.joinRequestService = joinRequestService
+		this.customRoutes = customRoutes
 
 		if (!httpServer) {
 			const httpServerOptions = {
@@ -50,8 +51,6 @@ class Server {
 		}
 		this.httpServer = httpServer
 		this.port = port
-
-		this.expressApp.use(this.expressRouter)
 
 		// Listen for Linux Signals
 		const invalidExitArg = 128
@@ -68,27 +67,21 @@ class Server {
 				})
 			})
 		})
-	}
-	
-	services() {
-		this.joinRequestService = new service.JoinRequestService(
-			this.logger,
-			this.dataUnionClient, // written in main.js
-			this.customJoinRequestValidator, // written in main.js
-		)
+
+		this.routes()
 	}
 
 	routes() {
-		this.expressApp.use(handler.error(this.logger))
 		this.expressApp.use(express.json({
 			limit: '1kb',
 		}))
-
 		this.expressApp.use((req, res, next) => this.signedRequestValidator(req).then(next).catch((err) => next(err)))
-		this.expressApp.post('/api/join', this.joinRequest)
+		this.expressApp.post('/api/join', (req, res, next) => this.joinRequest(req, res, next))
+		this.customRoutes(this.expressApp)
+		this.expressApp.use(handler.error(this.logger))
 	}
 
-	run() {
+	start() {
 		const backlog = 511
 		const callback = () => {
 			this.logger.info(`HTTP server started on port: ${this.port}`)
@@ -129,7 +122,7 @@ class Server {
 		}
 
 		try {
-			await this.customJoinRequestValidator(req.body.address, req.validatedJoinRequest)
+			await this.customJoinRequestValidator(req.body.address, req.validatedRequest)
 		} catch (err) {
 			this.sendJsonError(res, 400, `Join request failed custom validation: '${err}'`)
 			return
