@@ -4,7 +4,7 @@ const { assert } = require('chai')
 const sinon = require('sinon')
 const service = require('../../src/service')
 
-describe('POST /api/join', async () => {
+describe('POST /join', async () => {
 	let srv
 
 	beforeEach(() => {
@@ -47,7 +47,7 @@ describe('POST /api/join', async () => {
 	happyTestCases.forEach((tc) => {
 		it(tc.name, async () => {
 			await request(srv.expressApp)
-				.post(`/api/join`)
+				.post(`/join`)
 				.set('Content-Type', 'application/json')
 				.send(tc.body)
 				.expect('Content-Type', 'application/json; charset=utf-8')
@@ -84,7 +84,7 @@ describe('POST /api/join', async () => {
 	testCases.forEach((tc) => {
 		it(tc.name, async () => {
 			const res = await request(srv.expressApp)
-				.post(`/api/join`)
+				.post(`/join`)
 				.set('Content-Type', 'application/json')
 				.send(tc.body)
 				.expect('Content-Type', 'application/json; charset=utf-8')
@@ -100,7 +100,7 @@ describe('POST /api/join', async () => {
 		srv.customJoinRequestValidator = sinon.stub().rejects()
 
 		await request(srv.expressApp)
-			.post(`/api/join`)
+			.post(`/join`)
 			.set('Content-Type', 'application/json')
 			.send(happyTestCases[0].body)
 			.expect('Content-Type', 'application/json; charset=utf-8')

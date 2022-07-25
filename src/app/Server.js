@@ -76,7 +76,7 @@ class Server {
 			limit: '1kb',
 		}))
 		this.expressApp.use((req, res, next) => this.signedRequestValidator(req).then(next).catch((err) => next(err)))
-		this.expressApp.post('/api/join', (req, res, next) => this.joinRequest(req, res, next))
+		this.expressApp.post('/join', (req, res, next) => this.joinRequest(req, res, next))
 		this.customRoutes(this.expressApp)
 		this.expressApp.use(handler.error(this.logger))
 	}
