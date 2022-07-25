@@ -15,24 +15,31 @@ const SignedRequestValidator = require('./SignedRequestValidatorMiddleware')(TOL
 
 class Server {
 	constructor({
-		expressApp = express(),
-		httpServer = undefined,  /* node http.Server */
+		/**
+		 * These options are primarily intended for end users
+		 */
+		privateKey,
 		port = 5555,
 		logLevel = 'info',
+		customJoinRequestValidator = async (/* joinRequest */) => {},
+		customRoutes = (/*app*/) => {},
+
+		/**
+		 * These options are primarily intended for advanced use or passing in test mocks
+		 */
+		expressApp = express(),
+		httpServer = undefined,  /* node http.Server */
 		logger = pino({
 			name: 'main',
 			level: logLevel,
 		}),
-		privateKey,
 		dataUnionClient = new DataUnionClient({
 			auth: {
 				privateKey,
 			}
 		}),
 		signedRequestValidator = SignedRequestValidator.validator,
-		customJoinRequestValidator = async (/* joinRequest */) => {},
 		joinRequestService = new service.JoinRequestService(logger, dataUnionClient),
-		customRoutes = (/*app*/) => {},
 	} = {}) {
 
 		this.expressApp = expressApp
