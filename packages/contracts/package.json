@@ -1,7 +1,7 @@
 {
     "name": "@dataunions/contracts",
     "description": "Smart contracts for Data Union with sidechain accounting",
-    "version": "3.0.0-alpha.4",
+    "version": "3.0.0-beta.1",
     "scripts": {
         "build": "hardhat compile",
         "prepare": "npm run build",
@@ -17,13 +17,13 @@
     "files": [
         "contracts/**/*",
         "typechain/**/*",
-	    "artifacts/contracts/*",
+        "artifacts/contracts/*",
         "index.*"
     ],
     "author": "Streamr Network AG",
     "license": "AGPL-3.0",
     "devDependencies": {
-        "@dataunions/config": "3.0.0-alpha.2",
+        "@dataunions/config": "latest",
         "@nomiclabs/hardhat-ethers": "^2.0.3",
         "@nomiclabs/hardhat-waffle": "^2.0.1",
         "@streamr/config": "latest",
