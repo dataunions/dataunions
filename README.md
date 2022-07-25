@@ -8,64 +8,11 @@ The process of joining a Data Union is generally as follows:
 - When a member wants to join via the Data Union application, a HTTP request is sent to this join server.
 - The join server validates the join request (by validating app secret, captcha, or whatever is needed), and then makes a blockchain transaction to add the member to the Data Union.
 
-Data Union builder teams can easily extend the validation logic and run their own join server. Implementing any kind of join request validation logic is possible.
+Data Union builder teams can easily [extend](#extending) the validation logic and run their own join server. Implementing any kind of join request validation logic is possible.
 
-As an alternative to running your own customized join server, the Data Union DAO hosts a **default join server**, which also extends this base package and implements a validation logic based on application secrets.
+As an alternative to running your own customized join server, the Data Union DAO hosts a **default join server**, which also extends this base package and implements a validation logic based on application secrets stored in a database.
 
-This package can also be run as-is, in which case the join server performs only signature validation and therefore allows anyone to join a Data Union.
-
-## Authentication
-
-The endpoints exposed by the join server expect requests to be signed with the requesting Ethereum wallet using a simple signature scheme. The details are below, however most users shouldn't need to implement the authentication from scratch, but instead simply use the [Data Union client](https://www.npmjs.com/package/@dataunions/client).
-
-Requests to the join server look like this:
-
-```
-{
-   "address": "0xf79d101E1243cbDdE02d0F49E776fA65de0122ed",
-   "request": "{\"foo\":\"bar\"}",
-   "timestamp": "2022-07-01T00:00:00.000Z",
-   "signature": "0xefde1ff335c8fb28fe9f49c87c39c21659b5ad1a6967d154c4d4ea1978f572a02c7d82f8ab5828b7550246220919594bc84361cb50a89ce74a957eefc59dd4a41b"
-}
-```
-
-- `request` - the actual request as stringified JSON
-- `address` - the Ethereum address that originated the request
-- `timestamp` - timestamp of the request in ISO 8601 format. The join server will by default reject requests with timestamps more than 5 minutes off from current time
-- `signature` - a hex-encoded signature produced by signing the `request` with the private key of `address` using the Ethereum message signing (for example [`signer.signMessage()` in ethers](https://docs.ethers.io/v5/api/signer/#Signer-signMessage))
-
-Different endpoints expect different types of content in `request`. Users that extend the server can add new endpoints and submit arbitrary `request` content.
-
-## HTTP Endpoints
-
-This base package only exposes one endpoint, which is used for submitting join requests.
-
-### `/join`
-
-Expects the `request` in the wrapper object to be of form:
-
-```
-{
-    "dataUnion": "0x12345",
-    "chain": "polygon"
-}
-```
-
-or in other words, the full signed HTTP request body would be:
-
-```
-{
-   "address": "0xabcdef",
-   "request": "{\"dataUnion\":\"0x12345\",\"chain\":\"polygon\",}",
-   "timestamp": "...",
-   "signature": "..."
-}
-```
-
-Such a request would join `address` (`0xabcdef`) as member of the Data Union at smart contract address `0x12345`, to be found on the Polygon chain.
-
-The join request can contain arbitrary additional fields, which are validated by passing to the server a `customJoinRequestValidator` function - see below for information about extending and customizing the server.
-
+This package can also be [run as-is](#running-as-is), in which case the join server performs only signature validation and therefore allows anyone to join a Data Union.
 
 ## Usage
 
@@ -92,6 +39,50 @@ const srv = new JoinServer({
 })
 srv.start()
 ```
+
+### Options
+
+See below for the various constructor options and their default values. At a minimum, you should pass in at least the `privateKey`.
+
+```
+new JoinServer({
+    // Hex-encoded private key for your joinPartAgent address
+    privateKey: '...', 
+
+    // HTTP port the server listens on
+    port: 5555,
+
+    // Logger (pino) level: one of 'fatal', 'error', 'warn', 'info', 'debug', 'trace' or 'silent'.
+    logLevel: 'info',
+
+    // Used to validate custom fields in join requests. The default function does nothing.
+    customJoinRequestValidator: async (joinRequest) => {},
+
+    // Used to add custom routes to the HTTP server. The default function does nothing.
+    customRoutes: (expressApp) => {},
+
+    // By default public RPCs are used for each chain, but you can pass this option to override
+    customRPCs: {
+        polygon: 'https://my-custom-polygon-rpc-address',
+        gnosis: 'https://my-custom-gnosis-rpc-address',
+    }
+})
+```
+
+## Running as-is
+
+You can also run the "base" join server without any customizations. This may be useful for development and testing. Note that the base join server only does the signature validation, meaning that anyone (including bots etc.) can join your data unions.
+
+```
+npm install -g @dataunions/join-server
+join-server -k <private key>
+```
+
+For other command-line options, see the help available at `join-server -h`.
+
+## Extending
+
+The functionality of the join server can be extended by data union teams in two important ways: validating custom fields in join requests, and adding custom HTTP endpoints.
 
 ### Adding custom fields to join requests
 
@@ -144,7 +135,7 @@ const srv = new JoinServer({
 })
 ```
 
-In the context of the signed message wrapper, the full request to this endpoint would look like this:
+In the context of the signed message wrapper, the full request to this endpoint would look like this (see [Authentication](#authentication)):
 
 ```
 {
@@ -155,34 +146,57 @@ In the context of the signed message wrapper, the full request to this endpoint 
 }
 ```
 
-### Options
+## Authentication
 
-See below for the various constructor options and their default values. At a minimum, you should pass in at least the `privateKey`.
+All endpoints exposed by the join server expect requests to be signed with the requesting Ethereum wallet using a simple signature scheme. The details are below, however most users shouldn't need to implement the authentication from scratch, but instead simply use the [Data Union client](https://www.npmjs.com/package/@dataunions/client).
+
+Requests to the join server look like this:
 
 ```
-new JoinServer({
-    // Hex-encoded private key for your joinPartAgent address
-    privateKey: '...', 
-
-    // HTTP port the server listens on
-    port: 5555,
-
-    // Logger (pino) level: one of 'fatal', 'error', 'warn', 'info', 'debug', 'trace' or 'silent'.
-    logLevel: 'info',
-
-    // Used to validate custom fields in join requests. The default function does nothing.
-    customJoinRequestValidator: async (joinRequest) => {},
-
-    // Used to add custom routes to the HTTP server. The default function does nothing.
-    customRoutes: (expressApp) => {},
-
-    // By default public RPCs are used for each chain, but you can pass this option to override
-    customRPCs: {
-        polygon: 'https://my-custom-polygon-rpc-address',
-        gnosis: 'https://my-custom-gnosis-rpc-address',
-    }
-})
+{
+   "address": "0xf79d101E1243cbDdE02d0F49E776fA65de0122ed",
+   "request": "{\"foo\":\"bar\"}",
+   "timestamp": "2022-07-01T00:00:00.000Z",
+   "signature": "0xefde1ff335c8fb28fe9f49c87c39c21659b5ad1a6967d154c4d4ea1978f572a02c7d82f8ab5828b7550246220919594bc84361cb50a89ce74a957eefc59dd4a41b"
+}
 ```
+
+- `request` - the actual request as stringified JSON
+- `address` - the Ethereum address that originated the request
+- `timestamp` - timestamp of the request in ISO 8601 format. The join server will by default reject requests with timestamps more than 5 minutes off from current time
+- `signature` - a hex-encoded signature produced by signing the `request` with the private key of `address` using the Ethereum message signing (for example [`signer.signMessage()` in ethers](https://docs.ethers.io/v5/api/signer/#Signer-signMessage))
+
+Different endpoints expect different types of content in `request`. Users that extend the server can add new endpoints and submit arbitrary `request` content.
+
+## HTTP Endpoints
+
+This base package only exposes one endpoint, which is used for submitting join requests.
+
+### `/join`
+
+Expects the `request` in the wrapper object to be of form:
+
+```
+{
+    "dataUnion": "0x12345",
+    "chain": "polygon"
+}
+```
+
+or in other words, the full signed HTTP request body would be:
+
+```
+{
+   "address": "0xabcdef",
+   "request": "{\"dataUnion\":\"0x12345\",\"chain\":\"polygon\",}",
+   "timestamp": "...",
+   "signature": "..."
+}
+```
+
+Such a request would join `address` (`0xabcdef`) as member of the Data Union at smart contract address `0x12345`, to be found on the Polygon chain.
+
+The join request can contain arbitrary additional fields, which are validated by passing to the server a `customJoinRequestValidator` function - see below for information about extending and customizing the server.
 
 ## Developing
 
