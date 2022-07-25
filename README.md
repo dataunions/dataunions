@@ -121,7 +121,7 @@ Here's a simple example of a custom endpoint `POST /hello` that reads payloads w
 const srv = new JoinServer({
     ...
     customRoutes = (expressApp) => {
-        app.post('/hello', function(req, res, next) {
+        expressApp.post('/hello', function(req, res, next) {
             res.status(200)
             res.set('content-type', 'application/json')
             res.send({
