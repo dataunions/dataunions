@@ -9,7 +9,7 @@
     "npm": "8.1.2"
   },
   "bin": {
-    "duj-srv": "src/cmd/duj-srv/main.js"
+    "join-server": "src/cmd/duj-srv/main.js"
   },
   "scripts": {
     "test": "mocha --recursive --check-leaks test",
