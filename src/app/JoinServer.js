@@ -13,7 +13,7 @@ const service = require('../service')
 const TOLERANCE_MILLIS = 5 * 60 * 1000 // 5 min
 const SignedRequestValidator = require('./SignedRequestValidatorMiddleware')(TOLERANCE_MILLIS)
 
-class Server {
+class JoinServer {
 	constructor({
 		/**
 		 * These options are primarily intended for end users
@@ -153,5 +153,5 @@ class Server {
 }
 
 module.exports = {
-	Server,
+	JoinServer,
 }

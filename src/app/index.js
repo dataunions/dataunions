@@ -1,5 +1,5 @@
-const { Server } = require('./Server')
+const { JoinServer } = require('./JoinServer')
 
 module.exports = {
-	Server,
+	JoinServer,
 }

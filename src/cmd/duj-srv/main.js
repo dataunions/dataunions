@@ -1,6 +1,6 @@
 const process = require('process')
 const commander = require('commander')
-const { Server } = require('../../app')
+const { JoinServer } = require('../../app')
 const packageJson = require('../../../package.json')
 const programName = 'duj-srv'
 
@@ -45,7 +45,7 @@ async function main(argv) {
 		process.exit(1)
 	}
 
-	const srv = new Server({
+	const srv = new JoinServer({
 		privateKey: options.k,
 		port: options.p,
 		logLevel: options.l,
