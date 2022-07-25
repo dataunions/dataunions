@@ -106,4 +106,13 @@ describe('POST /join', async () => {
 			.expect('Content-Type', 'application/json; charset=utf-8')
 			.expect(400)
 	})
+
+	it('adds customRoutes upon constructions', () => {
+		const customRoutes = sinon.stub()
+		srv = newUnitTestServer({
+			customRoutes,
+		})
+
+		assert(customRoutes.calledOnceWithExactly(srv.expressApp))
+	})
 })
