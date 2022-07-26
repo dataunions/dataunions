@@ -531,4 +531,8 @@ export class DataUnion {
         const tx = await this.contract.transferWithinContract(address, amountTokenWei, ethersOverrides)
         return waitOrRetryTx(tx)
     }
+
+    async getOwner(): Promise<EthereumAddress> {
+        return this.contract.owner()
+    }
 }
