@@ -149,15 +149,9 @@ class JoinServer {
 		}
 
 		try {
-			const joinRequest = await this.joinRequestService.create(member, dataUnion, req.validatedRequest.chain)
-
-			// Convert app internal representation to JSON
-			const joinRequestJsonResponse = {
-				member: joinRequest.member.toString(),
-				dataUnion: joinRequest.dataUnion.toString(),
-			}
-			this.logger.info(joinRequest)
-			this.sendJsonResponse(res, 201, joinRequestJsonResponse)
+			const joinResponse = await this.joinRequestService.create(member.toString(), dataUnion.toString(), req.validatedRequest.chain)
+			this.logger.info(joinResponse)
+			this.sendJsonResponse(res, 200, joinResponse)
 		} catch(err) {
 			this.logger.info(err)
 			this.sendJsonError(res, 400, err.message)

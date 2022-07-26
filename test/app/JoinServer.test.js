@@ -14,11 +14,11 @@ describe('POST /join', async () => {
 			undefined, // DU client
 			undefined, // onMemberJoin
 		)
-		joinRequestService.create = sinon.spy((memberAddress, dataUnionAddress, chain) => {
+		joinRequestService.create = sinon.spy((member, dataUnion, chain) => {
 			return {
-				member: memberAddress,
-				dataUnion: dataUnionAddress,
-				chain: chain,
+				member,
+				dataUnion,
+				chain,
 			}
 		})
 
@@ -49,16 +49,23 @@ describe('POST /join', async () => {
 	]
 	happyTestCases.forEach((tc) => {
 		it(tc.name, async () => {
-			await request(srv.expressApp)
+			const res = await request(srv.expressApp)
 				.post(`/join`)
 				.set('Content-Type', 'application/json')
 				.send(tc.body)
 				.expect('Content-Type', 'application/json; charset=utf-8')
-				.expect(201)
+				.expect(200)
 
 			assert.isTrue(srv.signedRequestValidator.calledOnce)
 			assert.isTrue(srv.customJoinRequestValidator.calledOnce)
 			assert.isTrue(srv.joinRequestService.create.calledOnce)
+
+			const joinRequest = JSON.parse(tc.body.request)
+			assert.deepEqual(res.body, {
+				member: tc.body.address,
+				dataUnion: joinRequest.dataUnion,
+				chain: joinRequest.chain,
+			})
 		})
 	})
 

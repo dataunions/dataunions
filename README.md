@@ -207,6 +207,16 @@ Such a request would join `address` (`0xabcdef`) as member of the Data Union at 
 
 The join request can contain arbitrary additional fields, which are validated by passing to the server a `customJoinRequestValidator` function - see below for information about extending and customizing the server.
 
+The response sent by the server has the form:
+
+```
+{
+    "member": "0xabcdef",
+    "dataUnion": "0x12345",
+	"chain": "polygon"
+}
+```
+
 ## Developing
 
 To learn about building and developing this software, see [developing.md](developing.md).
