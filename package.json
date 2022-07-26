@@ -1,9 +1,8 @@
 {
   "name": "@dataunions/join-server",
-  "version": "0.0.1",
+  "version": "3.0.0-alpha.1",
   "description": "",
-  "main": "src/cmd/duj-srv/main.js",
-  "private": true,
+  "main": "src/app/index.js",
   "engines": {
     "node": "16.13.1",
     "npm": "8.1.2"
@@ -16,8 +15,8 @@
     "eslint": "make eslint",
     "eslint-fix": "make eslint-fix"
   },
-  "author": "Kare Nuorteva <kare.nuorteva@streamr.com>",
-  "license": "MIT",
+  "author": "Data Union DAO <contact@dataunions.org>",
+  "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@dataunions/client": "3.0.0-beta.4",
     "commander": "9.3.0",
@@ -38,6 +37,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:technology-exploration/data-union-joining-server.git"
+    "url": "git@github.com:dataunions/data-union-join-server.git"
   }
 }
