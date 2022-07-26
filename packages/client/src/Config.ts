@@ -91,7 +91,7 @@ export const DATAUNION_CLIENT_DEFAULTS: StrictDataUnionClientConfig = {
         chainId: 100,
         gasPriceStrategy: (estimatedGasPrice: BigNumber) => estimatedGasPrice.add('10000000000'),
         rpcs: [{
-            url: 'https://rpc.xdaichain.com/',
+            url: 'https://rpc.gnosischain.com/',
             timeout: 120 * 1000
         }]
     },
