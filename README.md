@@ -10,7 +10,7 @@ The process of joining a Data Union is generally as follows:
 
 Data Union builder teams can easily [extend](#extending) the validation logic and run their own join server. Implementing any kind of join request validation logic is possible.
 
-As an alternative to running your own customized join server, the Data Union DAO hosts a **default join server**, which also extends this base package and implements a validation logic based on application secrets stored in a database.
+As an alternative to running your own customized join server, the Data Union DAO hosts a [default join server](https://github.com/dataunions/default-join-server), which also extends this base package and implements a validation logic based on application secrets stored in a database. Forking that as a starting point may be an easier way to get started on your own customizations, or you can follow the instructions in this readme to start the customizations from scratch.
 
 This package can also be [run as-is](#running-as-is), in which case the join server performs only signature validation and therefore allows anyone to join a Data Union.
 
@@ -39,6 +39,8 @@ const srv = new JoinServer({
 })
 srv.start()
 ```
+
+That's exactly what's happening in the [default join server](https://github.com/dataunions/default-join-server). Forking that may be a faster starting point for your own customizations, or you can study this readme to start your customizations from scratch.
 
 ### Options
 
