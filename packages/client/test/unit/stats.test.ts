@@ -105,4 +105,11 @@ describe('DataUnion stats getters', () => {
         const dataUnion = await client.getDataUnion(duAddress)
         expect(dataUnion.getMemberStats('invalid-address')).rejects.toThrow(/invalid address/)
     })
+
+    it('gives DU owner correctly', async () => {
+        const client = new DataUnionClient(clientOptions)
+        const dataUnion = await client.getDataUnion(duAddress)
+        const owner = await dataUnion.getOwner()
+        expect(owner).toEqual(admin.address)
+    })
 })
