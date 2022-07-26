@@ -42,7 +42,9 @@ srv.start()
 
 That's exactly what's happening in the [default join server](https://github.com/dataunions/default-join-server). Forking that may be a faster starting point for your own customizations, or you can study this readme to start your customizations from scratch.
 
-Note that this base join server does not grant the joining member permissions to any data backend, it just adds the member to the smart contract. You should grant the joining member the ability to share their data via whatever data backend/protocol your Data Union is using. The [default join server](https://github.com/dataunions/default-join-server) hosted by the Data Union DAO is [Streamr](https://streamr.network)-aware, meaning that it grants new members publish permission to Streamr streams associated with that Data Union.
+Note that this base join server does not grant the joining member permissions to any data backend, it just adds the member to the smart contract. In your join server, you should grant the joining member the ability to share their data via whatever data backend/protocol your Data Union is using via using the `onMemberJoin` hook (see [Options](#options)). 
+
+The [default join server](https://github.com/dataunions/default-join-server) hosted by the Data Union DAO is [Streamr](https://streamr.network)-aware, meaning that it grants new members publish permission to Streamr streams associated with that Data Union. If you're using a different data protocol/backend, you need to grant access to your data backend to your new DU members (unless of course your backend accepts data from anyone, not just DU members).
 
 ### Options
 
