@@ -34,6 +34,9 @@ class JoinServer {
 		// Used to add custom routes to the HTTP server. The default function does nothing.
 		customRoutes = (/*expressApp*/) => {},
 
+		// Gets called after a member is successfully joined to the Data Union smart contract. The default function does nothing.
+		onMemberJoin = async (/* member, dataUnion, chain */) => {},
+
 		/**
 		 * These options are primarily intended for advanced use or passing in test mocks
 		 */
@@ -49,7 +52,7 @@ class JoinServer {
 			}
 		}),
 		signedRequestValidator = SignedRequestValidator.validator,
-		joinRequestService = new service.JoinRequestService(logger, dataUnionClient),
+		joinRequestService = new service.JoinRequestService(logger, dataUnionClient, onMemberJoin),
 	} = {}) {
 
 		this.expressApp = expressApp
@@ -146,7 +149,7 @@ class JoinServer {
 		}
 
 		try {
-			const joinRequest = await this.joinRequestService.create(member, dataUnion)
+			const joinRequest = await this.joinRequestService.create(member, dataUnion, req.validatedRequest.chain)
 
 			// Convert app internal representation to JSON
 			const joinRequestJsonResponse = {

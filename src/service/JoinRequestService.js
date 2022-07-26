@@ -1,10 +1,11 @@
 class JoinRequestService {
-	constructor(logger, dataUnionClient) {
+	constructor(logger, dataUnionClient, onMemberJoin) {
 		this.logger = logger
 		this.dataUnionClient = dataUnionClient
+		this.onMemberJoin = onMemberJoin
 	}
 
-	async create(member, dataUnion) {
+	async create(member, dataUnion, chain) {
 		let du
 		try {
 			du = await this.dataUnionClient.getDataUnion(dataUnion.toString())
@@ -14,6 +15,12 @@ class JoinRequestService {
 		
 		try {
 			await du.addMembers([member.toString()])
+		} catch (err) {
+			throw new DataUnionJoinError(`Error while adding member ${member} to data union ${dataUnion}: ${err.message}`)
+		}
+
+		try {
+			await this.onMemberJoin(member.toString(), dataUnion.toString(), chain)
 		} catch (err) {
 			throw new DataUnionJoinError(`Error while adding member ${member} to data union ${dataUnion}: ${err.message}`)
 		}

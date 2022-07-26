@@ -12,11 +12,13 @@ describe('POST /join', async () => {
 		const joinRequestService = new service.JoinRequestService(
 			logger,
 			undefined, // DU client
+			undefined, // onMemberJoin
 		)
-		joinRequestService.create = sinon.spy((memberAddress, dataUnionAddress) => {
+		joinRequestService.create = sinon.spy((memberAddress, dataUnionAddress, chain) => {
 			return {
 				member: memberAddress,
 				dataUnion: dataUnionAddress,
+				chain: chain,
 			}
 		})
 
@@ -40,6 +42,7 @@ describe('POST /join', async () => {
 				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
 				request: JSON.stringify({
 					dataUnion: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
+					chain: 'test-chain',
 				}),
 			},
 		},
@@ -66,6 +69,7 @@ describe('POST /join', async () => {
 				address: '0x00000',
 				request: JSON.stringify({
 					dataUnion: '0x81ed645D344cB2096aBA56B94d336E6dcF80f6C6',
+					chain: 'test-chain',
 				}),
 			},
 			expectedErrorMessage: `Invalid member address: '0x00000'`,
@@ -76,6 +80,7 @@ describe('POST /join', async () => {
 				address: '0x766760C748bcEcf5876a6469a6aed3C642CdA261',
 				request: JSON.stringify({
 					dataUnion: '0x01234',
+					chain: 'test-chain',
 				}),
 			},
 			expectedErrorMessage: `Invalid Data Union contract address: '0x01234'`,
