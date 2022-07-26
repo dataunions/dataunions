@@ -1,6 +1,6 @@
 {
-  "name": "server",
-  "version": "0.0.0",
+  "name": "@dataunions/join-server",
+  "version": "0.0.1",
   "description": "",
   "main": "src/cmd/duj-srv/main.js",
   "private": true,
@@ -9,7 +9,7 @@
     "npm": "8.1.2"
   },
   "bin": {
-    "duj-srv": "src/cmd/duj-srv/main.js"
+    "join-server": "src/cmd/duj-srv/main.js"
   },
   "scripts": {
     "test": "mocha --recursive --check-leaks test",

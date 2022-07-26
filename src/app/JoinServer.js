@@ -18,11 +18,21 @@ class JoinServer {
 		/**
 		 * These options are primarily intended for end users
 		 */
+		
+		// Hex-encoded private key for your joinPartAgent address
 		privateKey,
+
+		// HTTP port the server listens on
 		port = 5555,
+
+		// Logger (pino) level: one of 'fatal', 'error', 'warn', 'info', 'debug', 'trace' or 'silent'.
 		logLevel = 'info',
+
+		// Used to validate custom fields in join requests. The default function does nothing.
 		customJoinRequestValidator = async (/* joinRequest */) => {},
-		customRoutes = (/*app*/) => {},
+
+		// Used to add custom routes to the HTTP server. The default function does nothing.
+		customRoutes = (/*expressApp*/) => {},
 
 		/**
 		 * These options are primarily intended for advanced use or passing in test mocks
