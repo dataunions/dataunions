@@ -42,6 +42,8 @@ srv.start()
 
 That's exactly what's happening in the [default join server](https://github.com/dataunions/default-join-server). Forking that may be a faster starting point for your own customizations, or you can study this readme to start your customizations from scratch.
 
+Note that this base join server does not grant the joining member permissions to any data backend, it just adds the member to the smart contract. You should grant the joining member the ability to share their data via whatever data backend/protocol your Data Union is using. The [default join server](https://github.com/dataunions/default-join-server) hosted by the Data Union DAO is [Streamr](https://streamr.network)-aware, meaning that it grants new members publish permission to Streamr streams associated with that Data Union.
+
 ### Options
 
 See below for the various constructor options and their default values. At a minimum, you should pass in at least the `privateKey`.
@@ -62,6 +64,9 @@ new JoinServer({
 
     // Used to add custom routes to the HTTP server. The default function does nothing.
     customRoutes: (expressApp) => {},
+
+	// Gets called after a member is successfully joined to the Data Union smart contract. The default function does nothing.
+	onMemberJoin = async (/* member, dataUnion, chain */) => {},
 
     // By default public RPCs are used for each chain, but you can pass this option to override
     customRPCs: {
