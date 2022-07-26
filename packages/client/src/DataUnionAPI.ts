@@ -89,7 +89,7 @@ export default class DataUnionAPI {
         const signer = this.ethereum.getSigner()
         const contract = this.getTemplate(contractAddress, signer)
 
-        const looksLikeDataUnion = await contract.isJoinPartAgent("0x0000000000000000000000000000000000000000").then(() => true).catch(() => false)
+        const looksLikeDataUnion = await contract.memberData("0x0000000000000000000000000000000000000000").then(() => true).catch(() => false)
         if (!looksLikeDataUnion) {
             throw new Error(`${contractAddress} is not a Data Union!`)
         }
