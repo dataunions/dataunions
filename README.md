@@ -62,7 +62,7 @@ new JoinServer({
     logLevel: 'info',
 
     // Used to validate custom fields in join requests. The default function does nothing.
-    customJoinRequestValidator: async (joinRequest) => {},
+    customJoinRequestValidator: async (address, joinRequest) => {},
 
     // Used to add custom routes to the HTTP server. The default function does nothing.
     customRoutes: (expressApp) => {},
