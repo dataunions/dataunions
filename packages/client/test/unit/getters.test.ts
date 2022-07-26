@@ -11,8 +11,8 @@ describe('Simple DataUnion object getters', () => {
 
     let admin: Wallet
     let member: Wallet
-    let clientOptions: DataUnionClientConfig
     let token: DATAv2
+    let clientOptions: Partial<DataUnionClientConfig>
     beforeAll(async () => {
         [
             admin,
@@ -37,8 +37,6 @@ describe('Simple DataUnion object getters', () => {
                 joinPartAgentAddress: "0x0000000000000000000000000000000000000000",
             },
             network: {
-                name: 'dev1',
-                chainId: 8996,
                 rpcs: [{
                     url: ethereumUrl,
                     timeout: 30 * 1000

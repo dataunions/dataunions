@@ -13,7 +13,6 @@ import { Debug, format } from '../../src/utils/log'
 import type { MaybeAsync } from '../../src/types'
 import { ConfigTest } from '../../src/ConfigTest'
 
-import { KeyServer } from './KeyServer'
 import type { Context } from '../../src/utils/Context'
 
 const testDebugRoot = Debug('test')
@@ -35,20 +34,9 @@ export function uid(prefix?: string): string {
 }
 
 export async function fetchPrivateKeyWithGas(): Promise<string> {
-    let response
-    try {
-        response = await fetch(`http://localhost:${KeyServer.KEY_SERVER_PORT}/key`, {
-            timeout: 5 * 1000
-        })
-    } catch (_e) {
-        try {
-            await KeyServer.startIfNotRunning() // may throw if parallel attempts at starting server
-        } finally {
-            response = await fetch(`http://localhost:${KeyServer.KEY_SERVER_PORT}/key`, {
-                timeout: 5 * 1000
-            })
-        }
-    }
+    const response = await fetch(`http://key-server`, {
+        timeout: 5 * 1000
+    })
 
     if (!response.ok) {
         throw new Error(`fetchPrivateKeyWithGas failed ${response.status} ${response.statusText}: ${response.text()}`)

@@ -1,21 +1,20 @@
 // check ts esm works via tsc
 
-import DefaultExport, * as NamedExports from '@dataunions/client'
 import assert from 'node:assert'
+import { Wallet } from '@ethersproject/wallet'
+import DefaultExport, * as NamedExports from '@dataunions/client'
 
 console.info('import DefaultExport, * as NamedExports from \'@dataunions/client\':', { DefaultExport, NamedExports })
 
 const DataUnionClient = DefaultExport
 
-console.assert(!!NamedExports.ConfigTest, 'Named exports should contain ConfigTest')
-console.assert(!!NamedExports.generateEthereumAccount, 'Named exports should contain generateEthereumAccount')
+assert(!!NamedExports.DATAUNION_CLIENT_DEFAULTS, 'Named exports should contain DATAUNION_CLIENT_DEFAULTS')
 
-const auth = DataUnionClient.generateEthereumAccount()
 const client = new DataUnionClient({
-    auth,
+    auth: Wallet.createRandom(),
 })
 
-client.getUserInfo().then(async () => {
+client.getAddress().then(async () => {
     console.info('success')
     process.exit(0)
 })

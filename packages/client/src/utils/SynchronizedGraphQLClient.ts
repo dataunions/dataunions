@@ -3,8 +3,6 @@ import type { ContractInterface, ContractReceipt, ContractTransaction } from '@e
 import { Contract } from '@ethersproject/contracts'
 import type { Signer } from '@ethersproject/abstract-signer'
 import { GraphQLClient } from './GraphQLClient'
-import type { StrictDataUnionClientConfig } from '../Config'
-import { ConfigInjectionToken } from '../Config'
 import type { ObservableContract} from './contract'
 import { withErrorHandlingAndLogging } from './contract'
 import type { EthereumAddress } from '../types'
@@ -133,15 +131,14 @@ export class SynchronizedGraphQLClient {
     constructor(
         context: Context,
         @inject(GraphQLClient) delegate: GraphQLClient,
-        @inject(ConfigInjectionToken.Root) clientConfig: StrictDataUnionClientConfig
     ) {
         this.delegate = delegate
         this.indexingState = new IndexingState(
             () => this.delegate.getIndexBlockNumber(),
-            // eslint-disable-next-line no-underscore-dangle
-            clientConfig._timeouts.theGraph.timeout,
-            // eslint-disable-next-line no-underscore-dangle
-            clientConfig._timeouts.theGraph.retryInterval,
+            // clientConfig._timeouts.theGraph.timeout,
+            // clientConfig._timeouts.theGraph.retryInterval,
+            60 * 1000,
+            60 * 1000,
             context.debug.extend(instanceId(this))
         )
     }

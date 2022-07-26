@@ -9,7 +9,7 @@ describe('DataUnion deploy', () => {
 
     let admin: Wallet
     let user: Wallet
-    let clientOptions: DataUnionClientConfig
+    let clientOptions: Partial<DataUnionClientConfig>
     beforeAll(async () => {
         [ admin, user ] = getWallets()
         const {
@@ -28,8 +28,6 @@ describe('DataUnion deploy', () => {
                 joinPartAgentAddress: "0x0000000000000000000000000000000000000000",
             },
             network: {
-                name: 'dev1',
-                chainId: 8996,
                 rpcs: [{
                     url: ethereumUrl,
                     timeout: 30 * 1000

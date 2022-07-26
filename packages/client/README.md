@@ -32,7 +32,7 @@ const dataUnion = await DU.getDataUnion('0x12345...')
 
 Admin functions require xDai tokens on the xDai network. To get xDai you can either use a [faucet](https://www.xdaichain.com/for-users/get-xdai-tokens/xdai-faucet) or you can reach out on the [Streamr Discord #dev channel](https://discord.gg/gZAm8P7hK8).
 
-Adding members using admin functions is not at feature parity with the member function `join`. The newly added member will not be granted publish permissions to the streams inside the Data Union. This will need to be done manually using, `dataunions.grantPermissions()`. Similarly, after removing a member using the admin function `removeMembers`, the publish permissions will need to be removed in a secondary step using `revokePermissions()`.
+Adding members using admin functions is not at feature parity with the member function `join`. The newly added member will not be granted publish permissions to the streams inside the Data Union. This will need to be done manually using the StreamrClient, see `StreamrClient.grantPermissions()`. Similarly, after removing a member using the admin function `removeMembers`, the publish permissions will need to be removed in a secondary step using `StreamrClient.revokePermissions()`.
 
 Adding members:
 ```js
@@ -182,10 +182,6 @@ const dataUnion = await DU.deployDataUnion({
 `dataUnionName` option exists purely for the purpose of predicting the addresses of Data Unions not yet deployed. Data Union deployment uses the [CREATE2 opcode](https://eips.ethereum.org/EIPS/eip-1014) which means a Data Union deployed by a particular address with particular "name" will have a predictable address.
 
 ### Utility functions
-The static function `DataUnionClient.generateEthereumAccount()` generates a new Ethereum private key and returns an object with fields `address` and `privateKey`.
-```js
-const { address, privateKey } = DataUnionClient.generateEthereumAccount()
-```
 In order to retrieve the client's address an async call must me made to `dataunions.getAddress`
 ```js
 const address = await dataunions.getAddress()
