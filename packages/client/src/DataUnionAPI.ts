@@ -83,8 +83,8 @@ export default class DataUnionAPI {
         //   just giving a read-only data union contract here, then .connect(wallet) in withdraw functions
         const contract = this.getTemplate(contractAddress, this.wallet)
 
-        // throws an error isJoinPartAgent <=> not a data union (probably...)
-        const looksLikeDataUnion = await contract.isJoinPartAgent("0x0000000000000000000000000000000000000000").then(() => true).catch(() => false)
+        // memberData throws an error <=> not a data union (probably...)
+        const looksLikeDataUnion = await contract.memberData("0x0000000000000000000000000000000000000000").then(() => true).catch(() => false)
         if (!looksLikeDataUnion) {
             throw new Error(`${contractAddress} is not a Data Union!`)
         }
