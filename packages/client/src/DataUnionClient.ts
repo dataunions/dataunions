@@ -44,6 +44,10 @@ export class DataUnionClient {
         if (!clientOptions.auth) { throw new Error("Must include auth in the config!") }
         const options: DataUnionClientConfig = { ...DATAUNION_CLIENT_DEFAULTS, ...clientOptions }
 
+        // get defaults for networks from @streamr/config
+        const chains = Chains.load()
+        const chain = chains[options.chain]
+
         this.overrides = options.network?.ethersOverrides ?? {}
         this.minimumWithdrawTokenWei = options.dataUnion.minimumWithdrawTokenWei
         this.gasPriceStrategy = options.gasPriceStrategy
@@ -88,10 +92,6 @@ export class DataUnionClient {
         } else {
             throw new Error("Must include auth.ethereum or auth.privateKey in the config!")
         }
-
-        // get defaults for networks from @streamr/config
-        const chains = Chains.load()
-        const chain = chains[options.chain]
 
         // TODO: either tokenAddress -> defaultTokenAddress or delete completely; DUs can have different tokens
         const tokenAddress = getAddress(options.tokenAddress || chain?.contracts.DATA || "Must include tokenAddress or chain in the config!")
