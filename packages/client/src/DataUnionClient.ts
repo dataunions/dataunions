@@ -1,9 +1,10 @@
-import type { DataUnionClientConfig, GasPriceStrategy } from './Config'
+import { gnosisDefaultGasPriceStrategy } from './Config'
 import { DATAUNION_CLIENT_DEFAULTS } from './Config'
 // import { Debug } from './utils/log'
 // import type { Methods } from './utils/Plugin'
 import { Plugin } from './utils/Plugin'
 import DataUnionAPI from './DataUnionAPI'
+import type { DataUnionClientConfig, GasPriceStrategy} from './Config'
 
 import { Chains, RPCProtocol } from '@streamr/config'
 import { JsonRpcProvider, Web3Provider } from '@ethersproject/providers'
@@ -43,13 +44,12 @@ export class DataUnionClient {
         if (!clientOptions.auth) { throw new Error("Must include auth in the config!") }
         const options: DataUnionClientConfig = { ...DATAUNION_CLIENT_DEFAULTS, ...clientOptions }
 
-        // get defaults for networks from @streamr/config
-        const chains = Chains.load()
-        const chain = chains[options.chain]
-
         this.overrides = options.network?.ethersOverrides ?? {}
-        this.gasPriceStrategy = options.gasPriceStrategy
         this.minimumWithdrawTokenWei = options.dataUnion.minimumWithdrawTokenWei
+        this.gasPriceStrategy = options.gasPriceStrategy
+        if (!this.gasPriceStrategy && options.chain === "gnosis") {
+            this.gasPriceStrategy = gnosisDefaultGasPriceStrategy
+        }
 
         if (options.auth.ethereum) {
             // browser: we let Metamask do the signing, and also the RPC connections
@@ -88,6 +88,10 @@ export class DataUnionClient {
         } else {
             throw new Error("Must include auth.ethereum or auth.privateKey in the config!")
         }
+
+        // get defaults for networks from @streamr/config
+        const chains = Chains.load()
+        const chain = chains[options.chain]
 
         // TODO: either tokenAddress -> defaultTokenAddress or delete completely; DUs can have different tokens
         const tokenAddress = getAddress(options.tokenAddress || chain?.contracts.DATA || "Must include tokenAddress or chain in the config!")
