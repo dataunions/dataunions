@@ -1,4 +1,4 @@
-# data-union-joining-server
+# Data Union Join Server
 
 This is a gatekeeper HTTP server for requiring Data Union members to fulfil certain requirements in order to join a Data Union. Example use cases are limiting members to users of a certain application by requiring an application secret to be passed along with the join request, or preventing bots by requiring users to complete a CAPTCHA.
 
