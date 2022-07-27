@@ -1,4 +1,4 @@
-import { inject, Lifecycle, scoped } from 'tsyringe'
+import { Lifecycle, scoped } from 'tsyringe'
 import type { Debugger } from 'debug'
 import type { Response } from 'node-fetch'
 import fetch from 'node-fetch'
