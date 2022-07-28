@@ -1,4 +1,4 @@
-import { pOnce, pLimitFn, pOne } from './index'
+import { pOnce, pOne } from './index'
 import { Plugin } from './Plugin'
 
 export type SignalListener<T extends any[]> = (...args: T) => (unknown | Promise<unknown>)
@@ -94,7 +94,7 @@ export class Signal<ArgsType extends any[] = []> {
                 break
             }
             case TRIGGER_TYPE.QUEUE: {
-                this.trigger = pLimitFn(this.trigger)
+                // this.trigger = pLimitFn(this.trigger)
                 break
             }
             case TRIGGER_TYPE.ONE: {

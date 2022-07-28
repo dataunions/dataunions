@@ -1,11 +1,5 @@
 import { scoped, Lifecycle, inject } from 'tsyringe'
-import type { ContractInterface, ContractReceipt, ContractTransaction } from '@ethersproject/contracts'
-import { Contract } from '@ethersproject/contracts'
-import type { Signer } from '@ethersproject/abstract-signer'
 import { GraphQLClient } from './GraphQLClient'
-import type { ObservableContract} from './contract'
-import { withErrorHandlingAndLogging } from './contract'
-import type { EthereumAddress } from '../types'
 import { Gate } from './Gate'
 import type { Context } from './Context'
 import type { Debugger } from 'debug'
@@ -28,22 +22,22 @@ import { instanceId, wait, withTimeout } from './index'
  * updates the client when something is written to the blockchain via that contract.
  */
 
-export const createWriteContract = <T extends Contract>(
-    address: EthereumAddress,
-    contractInterface: ContractInterface,
-    signer: Signer,
-    name: string,
-    graphQLClient: SynchronizedGraphQLClient
-): ObservableContract<T> => {
-    const contract = withErrorHandlingAndLogging<T>(
-        new Contract(address, contractInterface, signer),
-        name
-    )
-    contract.eventEmitter.on('onTransactionConfirm', (_methodName: string, _tx: ContractTransaction, receipt: ContractReceipt) => {
-        graphQLClient.updateRequiredBlockNumber(receipt.blockNumber)
-    })
-    return contract
-}
+// export const createWriteContract = <T extends Contract>(
+//     address: EthereumAddress,
+//     contractInterface: ContractInterface,
+//     signer: Signer,
+//     name: string,
+//     graphQLClient: SynchronizedGraphQLClient
+// ): ObservableContract<T> => {
+//     const contract = withErrorHandlingAndLogging<T>(
+//         new Contract(address, contractInterface, signer),
+//         name
+//     )
+//     contract.eventEmitter.on('onTransactionConfirm', (_methodName: string, _tx: ContractTransaction, receipt: ContractReceipt) => {
+//         graphQLClient.updateRequiredBlockNumber(receipt.blockNumber)
+//     })
+//     return contract
+// }
 
 class BlockNumberGate extends Gate {
     blockNumber: number
