@@ -21,6 +21,7 @@ export default class DataUnionAPI {
 
     factoryAddress: EthereumAddress
     joinPartAgentAddress: EthereumAddress
+    dataUnionBeneficiaryAddress: EthereumAddress
     tokenAddress: EthereumAddress
     wallet: Signer
     client: DataUnionClient
@@ -28,6 +29,7 @@ export default class DataUnionAPI {
         wallet: Signer,
         factoryAddress: EthereumAddress,
         joinPartAgentAddress: EthereumAddress,
+        dataUnionBeneficiaryAddress: EthereumAddress,
         tokenAddress: EthereumAddress,
         client: DataUnionClient
     ) {
@@ -36,6 +38,7 @@ export default class DataUnionAPI {
         this.tokenAddress = tokenAddress
         this.factoryAddress = factoryAddress
         this.joinPartAgentAddress = joinPartAgentAddress
+        this.dataUnionBeneficiaryAddress = dataUnionBeneficiaryAddress
         this.client = client
     }
 
@@ -89,7 +92,7 @@ export default class DataUnionAPI {
             throw new Error(`${contractAddress} is not a Data Union!`)
         }
 
-        return new DataUnion(contract, this.client)
+        return new DataUnion(contract, this.client.restPlugin, this.client)
     }
 
     async deployDataUnionUsingToken(token: EthereumAddress, options: DataUnionDeployOptions): Promise<DataUnion> {
@@ -98,8 +101,8 @@ export default class DataUnionAPI {
             joinPartAgents = [owner, this.joinPartAgentAddress],
             dataUnionName = `DataUnion-${Date.now()}`, // TODO: use uuid
             adminFee = 0,
-            dataUnionFee = 0, // TODO: decide what the default values should be
-            dataUnionBeneficiary = "0x0000000000000000000000000000000000000000", // TODO: decide what the default values should be
+            dataUnionFee = 0, // TODO: decide what the default value should be
+            dataUnionBeneficiary = this.dataUnionBeneficiaryAddress,
             confirmations = 1,
             gasPrice
         } = options
@@ -151,7 +154,7 @@ export default class DataUnionAPI {
         log(`DataUnion deployed ${contractAddress}`)
 
         const contract = this.getTemplate(contractAddress, this.wallet)
-        return new DataUnion(contract, this.client)
+        return new DataUnion(contract, this.client.restPlugin, this.client)
     }
 
     /**
@@ -165,8 +168,8 @@ export default class DataUnionAPI {
             joinPartAgents = [owner, this.joinPartAgentAddress],
             dataUnionName = `DataUnion-${Date.now()}`, // TODO: use uuid
             adminFee = 0,
-            dataUnionFee = 0, // TODO: decide what the default values should be
-            dataUnionBeneficiary = "0x0000000000000000000000000000000000000000", // TODO: decide what the default values should be
+            dataUnionFee = 0, // TODO: decide what the default value should be
+            dataUnionBeneficiary = this.dataUnionBeneficiaryAddress,
             confirmations = 1,
             gasPrice
         } = options
@@ -215,6 +218,6 @@ export default class DataUnionAPI {
         log(`DataUnion deployed ${contractAddress}`)
 
         const contract = this.getTemplate(contractAddress, this.wallet)
-        return new DataUnion(contract, this.client)
+        return new DataUnion(contract, this.client.restPlugin, this.client)
     }
 }

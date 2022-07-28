@@ -7,10 +7,12 @@ import { arrayify, hexZeroPad } from '@ethersproject/bytes'
 
 import type { DataUnionTemplate as DataUnionContract } from '@dataunions/contracts/typechain'
 
-import type { EthereumAddress } from './types'
-import { sleep } from './utils'
 import { Debug } from './utils/log'
+import { sleep } from './utils'
+import { sign } from './signing'
+import type { EthereumAddress } from './types'
 import type { DataUnionClient } from './DataUnionClient'
+import type { Rest } from './Rest'
 
 export interface DataUnionDeployOptions {
     owner?: EthereumAddress,
@@ -25,19 +27,10 @@ export interface DataUnionDeployOptions {
     gasPrice?: BigNumber
 }
 
-export enum JoinRequestState {
-    PENDING = 'PENDING',
-    ACCEPTED = 'ACCEPTED',
-    REJECTED = 'REJECTED'
-}
-
 export interface JoinResponse {
-    id: string
-    state: JoinRequestState
-}
-
-export interface DataUnionWithdrawOptions {
-    gasPrice?: BigNumber | string
+    member: string
+    dataUnion: EthereumAddress
+    chain: string
 }
 
 export interface DataUnionStats {
@@ -68,16 +61,18 @@ export interface MemberStats {
     withdrawableEarnings: BigNumber
 }
 
-export type AmbMessageHash = string
-
 const log = Debug('DataUnion')
 
 type WaitForTXOptions = {
-    retries?: number
-    retryInterval?: number
+    retries: number
+    retryInterval: number
 }
 
-async function waitOrRetryTx(tx: ContractTransaction, { retries = 60, retryInterval = 60000 }: WaitForTXOptions = {}): Promise<ContractReceipt> {
+// TODO: is this really needed? Could retry logic be already in the ethers library?
+async function waitOrRetryTx(
+    tx: ContractTransaction,
+    { retries = 60, retryInterval = 60000 }: Partial<WaitForTXOptions> = {}
+): Promise<ContractReceipt> {
     return tx.wait().catch(async (err: any) => {
         log('Attempted transaction: %O', tx)
         log('Got error: %O', err)
@@ -102,12 +97,14 @@ export class DataUnion {
 
     // TODO: remove DataUnionClient from here. This coupling makes all of this code a ball of mud, completely inter-connected
     private client: DataUnionClient
+    private joinServer: Rest
     public readonly contract: DataUnionContract
 
     /** @internal */
-    constructor(contract: DataUnionContract, client: DataUnionClient) {
+    constructor(contract: DataUnionContract, joinServerConnection: Rest, client: DataUnionClient) {
         // validate and convert to checksum case
         this.client = client
+        this.joinServer = joinServerConnection
         this.contract = contract
     }
 
@@ -115,14 +112,28 @@ export class DataUnion {
         return this.contract.address
     }
 
+    getChainName(): string {
+        return this.client.chainName
+    }
+
     // Member functions
 
     /**
-     * Send a joinRequest, or get into data union instantly with a data union secret
-     * TODO: this needs to move into some kind of module; won't be part of DU join server vanilla
+     * Send HTTP(s) request to the join server, asking to join the data union
      */
-    async join(_secret?: string): Promise<JoinResponse> {
-        throw new Error("not implemented")
+    async join(params?: object): Promise<JoinResponse> {
+        const request = {
+            chain: this.getChainName(),
+            dataUnion: this.getAddress(),
+            ...params
+        }
+        const signedRequest = await sign(request, this.client.wallet)
+        return this.joinServer.post<JoinResponse>(["join"], signedRequest).catch((err) => {
+            if (err.message?.match(/cannot estimate gas/)) {
+                throw new Error("Data Union join server couldn't send the join transaction. Please contact the join-server administrator.")
+            }
+            throw err
+        })
     }
 
     /**

@@ -18,7 +18,7 @@ class JoinServer {
 		/**
 		 * These options are primarily intended for end users
 		 */
-		
+
 		// Hex-encoded private key for your joinPartAgent address
 		privateKey,
 
@@ -103,12 +103,25 @@ class JoinServer {
 
 	start() {
 		const backlog = 511
-		const callback = () => {
-			this.logger.info(`HTTP server started on port: ${this.port}`)
-		}
-		this.expressApp.listen(this.port, backlog, callback)
+		return new Promise((done, fail) => {
+			this.server = this.expressApp.listen(this.port, backlog, (err) => {
+				if (err) { fail(err) }
+				this.logger.info(`HTTP server started on port: ${this.port}`)
+				done()
+			})
+		})
 	}
-	
+
+	stop() {
+		if (!this.server) { return }
+		return new Promise((done, fail) => {
+			this.server.close((err) => {
+				if (err) { fail(err) }
+				done()
+			})
+		})
+	}
+
 	sendJsonResponse(res, status, response) {
 		res.set('content-type', 'application/json')
 		res.status(status)
@@ -132,7 +145,7 @@ class JoinServer {
 			this.sendJsonError(res, 400, `Invalid member address: '${err.address}'`)
 			return
 		}
-	
+
 		let dataUnion
 		try {
 			dataUnion = new domain.Address(req.validatedRequest.dataUnion)
@@ -144,7 +157,7 @@ class JoinServer {
 		try {
 			await this.customJoinRequestValidator(req.body.address, req.validatedRequest)
 		} catch (err) {
-			this.sendJsonError(res, 400, `Join request failed custom validation: '${err}'`)
+			this.sendJsonError(res, 400, `Join request failed validation: '${err}'`)
 			return
 		}
 

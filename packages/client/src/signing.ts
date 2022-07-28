@@ -32,18 +32,25 @@ export async function sign(requestObject: unknown, signer: Signer, signatureTime
  * Resolves with the parsed request payload, or rejects with an error if the request is not valid.
  */
 export function verify(signedObject: SignedRequest, toleranceMillis = 5 * 60 * 1000): unknown {
+    const {
+        address,
+        request,
+        timestamp,
+        signature,
+    } = signedObject
+
     // Check signature
-    const recoveredAddress = verifyMessage(signedObject.request + signedObject.timestamp, signedObject.signature)
-    if (recoveredAddress.toLowerCase() !== signedObject.address.toLowerCase()) {
-  	    throw new Error(`Invalid signature! recoveredAddress: ${recoveredAddress}, address: ${signedObject.address}!`)
+    const recoveredAddress = verifyMessage(request + timestamp, signature)
+    if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
+  	    throw new Error(`Invalid signature! recoveredAddress: ${recoveredAddress}, address: ${address}!`)
     }
 
     // Check timestamp
     const currentTime = new Date()
-    const diff = currentTime.getTime() - new Date(signedObject.timestamp).getTime()
+    const diff = currentTime.getTime() - new Date(timestamp).getTime()
     if (Math.abs(diff) > toleranceMillis) {
-        throw new Error(`Timestamp rejected! Request: ${signedObject.timestamp},`
-            + `current: ${currentTime.toISOString()}, diff (ms): ${diff}, tolerance: ${toleranceMillis}`)
+        throw new Error("Timestamp rejected! "
+            + `Request: ${timestamp}, current: ${currentTime.toISOString()}, diff (ms): ${diff}, tolerance: ${toleranceMillis}`)
     }
 
     return JSON.parse(signedObject.request)
