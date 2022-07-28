@@ -85,6 +85,7 @@ export async function deployContracts(deployer: Wallet) {
     }
 }
 
+// TODO: remove this, use client.deployDataUnion() instead
 export async function deployDataUnion(duFactory: DataUnionFactory, token: DATAv2): Promise<DataUnionTemplate> {
     const ownerAddress = await duFactory.signer.getAddress()
     // function deployNewDataUnionUsingToken(
