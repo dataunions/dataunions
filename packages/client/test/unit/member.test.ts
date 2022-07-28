@@ -59,15 +59,7 @@ describe('DataUnion member', () => {
         expect(await dataUnion.isMember("0x0000000000000000000000000000000000000000")).toBe(false)
     })
 
-    // TODO: after join server is implemented
-    // it('join with valid secret', async () => {
-    // })
-    // it('cannot join with invalid secret', async () => {
-    // })
-    // it('can leave a join request without secret', async () => {
-    // })
-
-    it.only('can part from the data union', async () => {
+    it('can part from the data union', async () => {
         const client = new DataUnionClient(clientOptions)
         const dataUnion = await client.getDataUnion(duAddress)
 
@@ -79,8 +71,7 @@ describe('DataUnion member', () => {
         expect(isMemberAfter).toBe(false)
     })
 
-    // re-enable after ETH-321 is done
-    it.only('can be added by admin', async () => {
+    it('can be added by admin', async () => {
         const userAddress = Wallet.createRandom().address
 
         const client = new DataUnionClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
@@ -90,14 +81,13 @@ describe('DataUnion member', () => {
         expect(isMember).toBe(true)
     })
 
-    // re-enable after ETH-321 is done
-    it.skip('can be removed by admin', async () => {
+    it('can be removed by admin', async () => {
         const client = new DataUnionClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
         const dataUnion = await client.getDataUnion(duAddress)
         await dataUnion.removeMembers([otherMember.address])
         const isMember = await dataUnion.isMember(otherMember.address)
-        expect(isMember).toBe(true)
-    }, 60000)
+        expect(isMember).toBe(false)
+    })
 
     it('functions fail for invalid address', async () => {
         const client = new DataUnionClient(clientOptions)
