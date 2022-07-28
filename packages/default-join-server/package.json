@@ -6,7 +6,8 @@
   "scripts": {
     "lint": "npx eslint .",
     "lint-fix": "npx eslint --fix .",
-    "test": "mocha --recursive --check-leaks test",
+    "test": "mocha --recursive --check-leaks test/unit",
+    "integration-test": "mocha --recursive --check-leaks test/integration",
     "start": "node src/cmd/index.js"
   },
   "bin": {
