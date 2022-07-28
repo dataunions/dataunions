@@ -40,35 +40,7 @@ export class AuthFetchError extends Error {
     }
 }
 
-export class ValidationError extends AuthFetchError {
-    constructor(message: string, response?: Response, body?: any) {
-        super(message, response, body, ErrorCode.VALIDATION_ERROR)
-    }
-}
-
-export class NotFoundError extends AuthFetchError {
-    constructor(message: string, response?: Response, body?: any) {
-        super(message, response, body, ErrorCode.NOT_FOUND)
-    }
-}
-
-const ERROR_TYPES = new Map<ErrorCode, typeof AuthFetchError>()
-ERROR_TYPES.set(ErrorCode.VALIDATION_ERROR, ValidationError)
-ERROR_TYPES.set(ErrorCode.NOT_FOUND, NotFoundError)
-ERROR_TYPES.set(ErrorCode.UNKNOWN, AuthFetchError)
-
-const parseErrorCode = (body: string) => {
-    let json
-    try {
-        json = JSON.parse(body)
-    } catch (err) {
-        return ErrorCode.UNKNOWN
-    }
-    const { code } = json
-    return code in ErrorCode ? code : ErrorCode.UNKNOWN
-}
-
-export async function authRequest<T extends object>(
+export async function authRequest(
     url: string,
     opts?: any,
     // requireNewToken = false,

@@ -1,8 +1,7 @@
 /**
  * More ergonomic wrapper around fetch/authFetch
  */
-import { authFetch, authRequest } from './authFetch'
-import type { Response } from 'node-fetch'
+import { authFetch } from './authFetch'
 
 export type FetchOptions = {
     query?: any,

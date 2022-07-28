@@ -1,22 +1,20 @@
-import { Wallet } from '@ethersproject/wallet'
+import type { Wallet } from '@ethersproject/wallet'
 
 import { DataUnionClient } from '../../src/DataUnionClient'
 
 import { JoinServer } from '@dataunions/join-server'
 
-import { deployContracts, deployDataUnion, getWallets } from './setup'
+import { deployContracts, getWallets } from './setup'
 
 import type { DataUnionClientConfig } from '../../src/Config'
 import type { DATAv2 } from '@streamr/data-v2'
 import { until } from '../../src/utils'
 import { DataUnion } from '../../src/DataUnion'
-import { server } from 'ganache'
 
 describe('DataUnion joining using join-server', () => {
 
     let admin: Wallet
     let member: Wallet
-    let otherMember: Wallet
     let joinPartAgent: Wallet
     let duAddress: string
     let token: DATAv2
@@ -26,7 +24,6 @@ describe('DataUnion joining using join-server', () => {
         [
             admin,
             member,
-            otherMember,
             joinPartAgent,
         ] = getWallets()
         const {
