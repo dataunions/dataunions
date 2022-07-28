@@ -1,20 +1,19 @@
 // check esm works, as native and via webpack + babel. Also see typescript.ts
 import DefaultExport, * as NamedExports from '@dataunions/client'
 import assert from 'node:assert'
+import { Wallet } from '@ethersproject/wallet'
+
 console.info('import DefaultExport, * as NamedExports from \'@dataunions/client\':', { DefaultExport, NamedExports })
 
 const DataUnionClient = DefaultExport
 
-assert(!!NamedExports.ConfigTest, 'Named exports should contain ConfigTest')
-assert(!!NamedExports.generateEthereumAccount, 'Named exports should contain generateEthereumAccount')
-
-const auth = DataUnionClient.generateEthereumAccount()
+assert(!!NamedExports.DATAUNION_CLIENT_DEFAULTS, 'Named exports should contain DATAUNION_CLIENT_DEFAULTS')
 
 const client = new DataUnionClient({
-  auth,
+  auth: Wallet.createRandom(),
 })
 
-client.getUserInfo().then(async () => {
+client.getAddress().then(async () => {
   console.info('success')
   process.exit(0)
 })

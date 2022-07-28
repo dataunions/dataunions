@@ -18,10 +18,10 @@ describe('DataUnion earnings transfer methods', () => {
     let member: Wallet
     let otherMember: Wallet
     // let outsider: Wallet
-    let clientOptions: DataUnionClientConfig
     let duAddress: string
     let token: DATAv2
     let duContract: DataUnionTemplate
+    let clientOptions: Partial<DataUnionClientConfig>
     beforeAll(async () => {
         [
             admin,
@@ -52,8 +52,6 @@ describe('DataUnion earnings transfer methods', () => {
                 joinPartAgentAddress: "0x0000000000000000000000000000000000000000",
             },
             network: {
-                name: 'dev1',
-                chainId: 8996,
                 rpcs: [{
                     url: ethereumUrl,
                     timeout: 30 * 1000

@@ -14,9 +14,9 @@ describe('DataUnion stats getters', () => {
     let otherMember: Wallet
     let removedMember: Wallet
     let outsider: Wallet
-    let clientOptions: DataUnionClientConfig
     let duAddress: string
     let token: DATAv2
+    let clientOptions: Partial<DataUnionClientConfig>
     beforeAll(async () => {
         [
             admin,
@@ -49,8 +49,6 @@ describe('DataUnion stats getters', () => {
                 joinPartAgentAddress: "0x0000000000000000000000000000000000000000",
             },
             network: {
-                name: 'dev1',
-                chainId: 8996,
                 rpcs: [{
                     url: ethereumUrl,
                     timeout: 30 * 1000

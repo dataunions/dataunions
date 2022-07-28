@@ -12,9 +12,9 @@ describe('DataUnion member', () => {
     let admin: Wallet
     let member: Wallet
     let otherMember: Wallet
-    let clientOptions: DataUnionClientConfig
     let duAddress: string
     let token: DATAv2
+    let clientOptions: Partial<DataUnionClientConfig>
     beforeAll(async () => {
         [
             admin,
@@ -44,8 +44,6 @@ describe('DataUnion member', () => {
                 joinPartAgentAddress: "0x0000000000000000000000000000000000000000",
             },
             network: {
-                name: 'dev1',
-                chainId: 8996,
                 rpcs: [{
                     url: ethereumUrl,
                     timeout: 30 * 1000
@@ -69,7 +67,7 @@ describe('DataUnion member', () => {
     // it('can leave a join request without secret', async () => {
     // })
 
-    it('can part from the data union', async () => {
+    it.only('can part from the data union', async () => {
         const client = new DataUnionClient(clientOptions)
         const dataUnion = await client.getDataUnion(duAddress)
 
@@ -82,7 +80,7 @@ describe('DataUnion member', () => {
     })
 
     // re-enable after ETH-321 is done
-    it.skip('can be added by admin', async () => {
+    it.only('can be added by admin', async () => {
         const userAddress = Wallet.createRandom().address
 
         const client = new DataUnionClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })

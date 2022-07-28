@@ -1,8 +1,6 @@
 import { scoped, Lifecycle, inject } from 'tsyringe'
 import type { Debugger } from 'debug'
 
-import type { ConnectionConfig } from '../Config'
-import { ConfigInjectionToken } from '../Config'
 import { instanceId } from './index'
 import type { Context } from './Context'
 import { HttpFetcher } from './HttpFetcher'
@@ -12,17 +10,18 @@ export class GraphQLClient {
 
     private debug: Debugger
 
+    theGraphUrl: string = "TODO"
+
     constructor(
         context: Context,
         @inject(HttpFetcher) private httpFetcher: HttpFetcher,
-        @inject(ConfigInjectionToken.Connection) private config: ConnectionConfig,
     ) {
         this.debug = context.debug.extend(instanceId(this))
     }
 
     async sendQuery(gqlQuery: string): Promise<any> {
         this.debug('GraphQL query: %s', gqlQuery)
-        const res = await this.httpFetcher.fetch(this.config.theGraphUrl, {
+        const res = await this.httpFetcher.fetch(this.theGraphUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -35,7 +34,7 @@ export class GraphQLClient {
         try {
             resJson = JSON.parse(resText)
         } catch {
-            throw new Error(`GraphQL query failed with "${resText}", check that your theGraphUrl="${this.config.theGraphUrl}" is correct`)
+            throw new Error(`GraphQL query failed with "${resText}", check that your theGraphUrl="${this.theGraphUrl}" is correct`)
         }
         this.debug('GraphQL response: %o', resJson)
         if (!resJson.data) {

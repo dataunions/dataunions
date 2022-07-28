@@ -12,16 +12,18 @@ import type { DATAv2 } from '@streamr/data-v2'
 import debug from 'debug'
 const log = debug('DataUnionClient:unit-tests:adminFee')
 
-describe('DataUnion admin fee', () => {
+describe('DataUnion fees', () => {
 
     let admin: Wallet
     let user: Wallet
-    let clientOptions: DataUnionClientConfig
+    let duDAO: Wallet
+    let clientOptions: Partial<DataUnionClientConfig>
     let token: DATAv2
     beforeAll(async () => {
         [
             admin,
-            user
+            user,
+            duDAO,
         ] = getWallets()
         const {
             token: tokenContract,
@@ -42,8 +44,6 @@ describe('DataUnion admin fee', () => {
                 joinPartAgentAddress: "0x0000000000000000000000000000000000000000",
             },
             network: {
-                name: 'dev1',
-                chainId: 8996,
                 rpcs: [{
                     url: ethereumUrl,
                     timeout: 30 * 1000
@@ -57,7 +57,7 @@ describe('DataUnion admin fee', () => {
         await (await token.transferAndCall(duAddress, amountWei, '0x')).wait()
     }
 
-    it('can set admin fee', async () => {
+    it('admin can set admin fee', async () => {
         const client = new DataUnionClient(clientOptions)
         const dataUnion = await client.deployDataUnion()
         const oldFee = await dataUnion.getAdminFee()
@@ -70,7 +70,7 @@ describe('DataUnion admin fee', () => {
         expect(newFee).toEqual(0.1)
     }, 30000)
 
-    it('receives admin fees', async () => {
+    it('admin receives admin fees', async () => {
         const client = new DataUnionClient(clientOptions)
         const dataUnion = await client.deployDataUnion()
         await dataUnion.addMembers(["0x0000000000000000000000000000000000000001"])
@@ -79,7 +79,7 @@ describe('DataUnion admin fee', () => {
         expect(formatEther(await dataUnion.getWithdrawableEarnings(user.address))).toEqual('0.1')
     }, 30000)
 
-    // it('can set DU fee', async () => {
+    // it('admin can set DU fee', async () => {
     //     const client = new DataUnionClient(clientOptions)
     //     const dataUnion = await client.deployDataUnion()
     //     const oldFee = await dataUnion.getAdminFee()
@@ -92,12 +92,12 @@ describe('DataUnion admin fee', () => {
     //     expect(newFee).toEqual(0.1)
     // }, 30000)
 
-    it('DU admin receives DU fees', async () => {
+    it('DU DAO receives DU fees', async () => {
         const client = new DataUnionClient(clientOptions)
-        const dataUnion = await client.deployDataUnion()
+        const dataUnion = await client.deployDataUnion({ dataUnionBeneficiary: duDAO.address })
         await dataUnion.addMembers(["0x0000000000000000000000000000000000000001"])
         await dataUnion.setDataUnionFee(0.1)
         await fundDataUnion(dataUnion.getAddress(), parseEther('1'))
-        expect(formatEther(await dataUnion.getWithdrawableEarnings(admin.address))).toEqual('0.1')
+        expect(formatEther(await dataUnion.getWithdrawableEarnings(duDAO.address))).toEqual('0.1')
     }, 30000)
 })

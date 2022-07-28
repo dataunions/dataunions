@@ -1,16 +1,9 @@
 /**
  * More ergonomic wrapper around fetch/authFetch
  */
-import type { DependencyContainer } from 'tsyringe'
-import { inject, Lifecycle, scoped } from 'tsyringe'
 import { authFetch, authRequest } from './authFetch'
-import type { ConnectionConfig } from './Config'
-import { ConfigInjectionToken } from './Config'
-import { DataUnionContainer } from './Container'
-import { Session } from './Session'
-import { instanceId } from './utils'
-import { Context } from './utils/Context'
 import type { Debugger } from './utils/log'
+import type { Response } from 'node-fetch'
 
 export type FetchOptions = {
     query?: any,
@@ -33,59 +26,76 @@ export const createQueryString = (query: Record<string, any>) => {
     return new URLSearchParams(withoutEmpty).toString()
 }
 
-@scoped(Lifecycle.ContainerScoped)
-export class Rest implements Context {
-    readonly id
-    readonly debug
+// @scoped(Lifecycle.ContainerScoped)
+// export class Rest implements Context {
+export class Rest {
+    // readonly id
+    // readonly debug
 
+    restUrl: string
     constructor(
-        @inject(Context as any) context: Context,
-        @inject(DataUnionContainer) private container: DependencyContainer,
-        @inject(ConfigInjectionToken.Connection) private options: ConnectionConfig,
+        restUrl: string,
     ) {
-        this.id = instanceId(this)
-        this.debug = context.debug.extend(this.id)
+        // this.id = instanceId(this)
+        // this.debug = context.debug.extend(this.id)
+        this.restUrl = restUrl
     }
 
-    getUrl(urlParts: UrlParts, query = {}, restUrl = this.options.restUrl) {
+    getUrl(urlParts: UrlParts, query = {}, restUrl = this.restUrl): URL {
         const url = new URL(urlParts.map((s) => encodeURIComponent(s)).join('/'), restUrl + '/')
         url.search = createQueryString(query)
         return url
     }
 
-    get session() {
-        return this.container.resolve<Session>(Session)
-    }
+    // get session() {
+    //     return this.container.resolve<Session>(Session)
+    // }
 
-    fetch<T extends object>(urlParts: UrlParts, {
-        query, useSession = true, options, requireNewToken = false, debug = this.debug, restUrl
-    }: FetchOptions) {
+    fetch<T extends object>(
+        urlParts: UrlParts,
+        {
+            query,
+            // useSession = true,
+            options,
+            requireNewToken = false,
+            // debug = this.debug,
+            restUrl
+        }: FetchOptions
+    ): Promise<T> {
         const url = this.getUrl(urlParts, query, restUrl)
         const newOptions = {
             ...options,
-            session: useSession ? this.session : undefined
+            // session: useSession ? this.session : undefined
         }
         return authFetch<T>(
             url.toString(),
             newOptions,
             requireNewToken,
-            debug,
+            // debug,
         )
     }
 
-    request<T extends object>(urlParts: UrlParts, {
-        query, useSession = true, options, requireNewToken = false, debug = this.debug, restUrl
-    }: FetchOptions) {
+    request<T extends object>(
+        urlParts: UrlParts,
+        {
+            query,
+            // useSession = true,
+            options,
+            requireNewToken = false,
+            // debug = this.debug,
+            restUrl
+        }: FetchOptions
+    ): Promise<Response> {
         const url = this.getUrl(urlParts, query, restUrl)
         const newOptions = {
             ...options,
-            session: useSession ? this.session : undefined
+            // session: useSession ? this.session : undefined
         }
         return authRequest<T>(
             url.toString(),
             newOptions,
             requireNewToken,
-            debug,
+            // debug,
         )
     }
 

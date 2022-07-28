@@ -1,144 +1,133 @@
-import 'reflect-metadata'
-import { container as rootContainer } from 'tsyringe'
-import type { DataUnionClientConfig, StrictDataUnionClientConfig } from './Config'
-import { Ethereum } from './Ethereum'
-import { Context } from './utils/Context'
-import { ConfigInjectionToken, createStrictConfig } from './Config'
-import { DataUnionContainer } from './Container'
-import DataUnions from './DataUnionAPI'
-import { LoginEndpoints } from './LoginEndpoints'
-import { Session } from './Session'
-import { counterId, uuid } from './utils'
-import { Debug } from './utils/log'
-import './utils/PatchTsyringe'
-import type { Methods } from './utils/Plugin'
+import { gnosisDefaultGasPriceStrategy } from './Config'
+import { DATAUNION_CLIENT_DEFAULTS } from './Config'
+// import { Debug } from './utils/log'
+// import type { Methods } from './utils/Plugin'
 import { Plugin } from './utils/Plugin'
+import DataUnionAPI from './DataUnionAPI'
+import type { DataUnionClientConfig, GasPriceStrategy} from './Config'
 
-let uid: string = process.pid != null
-    // Use process id in node uid.
-    ? `${process.pid}`
-    // Fall back to `uuid()` later (see initContainer). Doing it here will break browser projects
-    // that utilize server-side rendering (no `window` while build's target is `web`).
-    : ''
+import { Chains, RPCProtocol } from '@streamr/config'
+import { JsonRpcProvider, Web3Provider } from '@ethersproject/providers'
+import { Wallet } from '@ethersproject/wallet'
+import { getAddress } from '@ethersproject/address'
+import type { Overrides as EthersOverrides } from '@ethersproject/contracts'
+import type { Signer } from '@ethersproject/abstract-signer'
+import type { EthereumAddress } from './types'
+import type { BigNumber } from '@ethersproject/bignumber'
 
+// TODO: remove all this plugin/mixin nonsense. Fields don't seem to be mixed in successfully, maybe only functions? Anyway this is pointless.
 // these are mixed in via Plugin function above
 // use MethodNames to only grab methods
-export interface DataUnionClient extends Ethereum,
-    Methods<DataUnions>,
-    Methods<LoginEndpoints>,
-    Methods<Session> {
-}
+// TODO: delete probably the whole plugin architecture since we don't really have plugins anymore
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface DataUnionClient extends DataUnionAPI {}
 
-class DataUnionClientBase implements Context {
-    static generateEthereumAccount = Ethereum.generateEthereumAccount.bind(Ethereum)
+// export class DataUnionClient implements Context {
+export class DataUnionClient {
 
     /** @internal */
-    readonly id
+    // readonly id: string
     /** @internal */
-    readonly debug
+    // readonly debug: Debugger
 
-    constructor(
-        context: Context,
-        private ethereum: Ethereum,
-        private session: Session,
-        private loginEndpoints: LoginEndpoints,
-        private dataunions: DataUnions,
-    ) { // eslint-disable-line function-paren-newline
-        this.id = context.id
-        this.debug = context.debug
-        Plugin(this, this.loginEndpoints)
-        Plugin(this, this.ethereum)
-        Plugin(this, this.session)
-        Plugin(this, this.dataunions)
-    }
+    wallet: Signer
 
-    /** @internal */
-    enableDebugLogging(prefix = 'Streamr*') { // eslint-disable-line class-methods-use-this
-        Debug.enable(prefix)
-    }
+    overrides: EthersOverrides
+    gasPriceStrategy?: GasPriceStrategy
 
-    /** @internal */
-    disableDebugLogging() { // eslint-disable-line class-methods-use-this
-        Debug.disable()
-    }
+    minimumWithdrawTokenWei?: BigNumber | number | string
 
-    async destroy() { }
-}
+    dataunionPlugin: DataUnionAPI
+    constructor(clientOptions: Partial<DataUnionClientConfig> = {}) {
+        // this.id = 'DataUnionClient'
+        // this.debug = Debug('DataUnionClient')
+        if (!clientOptions.auth) { throw new Error("Must include auth in the config!") }
+        const options: DataUnionClientConfig = { ...DATAUNION_CLIENT_DEFAULTS, ...clientOptions }
 
-/**
-* @internal
-*/
-export function initContainer(config: StrictDataUnionClientConfig, parentContainer = rootContainer) {
-    const c = parentContainer //.createChildContainer()
-    uid = uid || `${uuid().slice(-4)}${uuid().slice(0, 4)}`
-    const id = counterId(`DataUnionClient:${uid}${config.id ? `:${config.id}` : ''}`)
-    const debug = Debug(id)
-    // @ts-expect-error not in types
-    if (!debug.inspectOpts) {
-        // @ts-expect-error not in types
-        debug.inspectOpts = {}
-    }
-    // @ts-expect-error not in types
-    Object.assign(debug.inspectOpts, {
-        // @ts-expect-error not in types
-        ...debug.inspectOpts,
-        ...config.debug.inspectOpts
-    })
-    debug('create')
+        // get defaults for networks from @streamr/config
+        const chains = Chains.load()
+        const chain = chains[options.chain]
 
-    const rootContext = {
-        id,
-        debug
-    }
+        this.overrides = options.network?.ethersOverrides ?? {}
+        this.minimumWithdrawTokenWei = options.dataUnion.minimumWithdrawTokenWei
+        this.gasPriceStrategy = options.gasPriceStrategy
+        if (!this.gasPriceStrategy && options.chain === "gnosis") {
+            this.gasPriceStrategy = gnosisDefaultGasPriceStrategy
+        }
 
-    c.register(Context as any, {
-        useValue: rootContext
-    })
+        if (options.auth.ethereum) {
+            // browser: we let Metamask do the signing, and also the RPC connections
 
-    c.register(DataUnionContainer, {
-        useValue: c
-    })
+            if (typeof options.auth.ethereum.request !== 'function') {
+                throw new Error('invalid ethereum provider given to auth.ethereum')
+            }
+            const metamaskProvider = new Web3Provider(options.auth.ethereum)
+            this.wallet = metamaskProvider.getSigner()
 
-    // associate values to config tokens
-    const configTokens: [symbol, object][] = [
-        [ConfigInjectionToken.Root, config],
-        [ConfigInjectionToken.Auth, config.auth],
-        [ConfigInjectionToken.Connection, config],
-        [ConfigInjectionToken.Ethereum, config],
-    ]
+            // TODO: is this really needed? Doesn't simple `await wallet.getAddress()` work?
+            // this._getAddress = async () => {
+            //     try {
+            //         const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
+            //         const account = getAddress(accounts[0]) // convert to checksum case
+            //         return account
+            //     } catch {
+            //         throw new Error('no addresses connected+selected in Metamask')
+            //     }
+            // }
 
-    configTokens.forEach(([token, useValue]) => {
-        c.register(token, { useValue })
-    })
+            // TODO: handle events
+            // ethereum.on('accountsChanged', (accounts) => { })
+            // https://docs.metamask.io/guide/ethereum-provider.html#events says:
+            //   "We recommend reloading the page unless you have a very good reason not to"
+            //   Of course we can't and won't do that, but if we need something chain-dependent...
+            // ethereum.on('chainChanged', (chainId) => { window.location.reload() });
 
-    return {
-        childContainer: c,
-        rootContext
-    }
-}
+        } else if (options.auth.privateKey) {
+            // node.js: we sign with the given private key, and we connect to given provider RPC URL
 
-/**
-* @category Important
-*/
-export class DataUnionClient extends DataUnionClientBase {
-    constructor(options: DataUnionClientConfig = {}, parentContainer = rootContainer) {
-        const config = createStrictConfig(options)
-        const { childContainer: c } = initContainer(config, parentContainer)
+            const rpcUrl = options.network?.rpcs?.[0] || chain?.getRPCEndpointsByProtocol(RPCProtocol.HTTP)[0]
+            const provider = new JsonRpcProvider(rpcUrl)
+            this.wallet = new Wallet(options.auth.privateKey, provider)
 
-        super(
-            c.resolve<Context>(Context as any),
-            c.resolve<Ethereum>(Ethereum),
-            c.resolve<Session>(Session),
-            c.resolve<LoginEndpoints>(LoginEndpoints),
-            c.resolve<DataUnions>(DataUnions),
+        } else {
+            throw new Error("Must include auth.ethereum or auth.privateKey in the config!")
+        }
+
+        // TODO: either tokenAddress -> defaultTokenAddress or delete completely; DUs can have different tokens
+        const tokenAddress = getAddress(options.tokenAddress || chain?.contracts.DATA || "Must include tokenAddress or chain in the config!")
+        const factoryAddress = getAddress(options.dataUnion?.factoryAddress
+            || chain?.contracts.DataUnionFactory
+            || "Must include dataUnion.factoryAddress or chain in the config!")
+        const joinPartAgentAddress = getAddress(options.dataUnion?.joinPartAgentAddress || chains.ethereum.contracts["core-api"])
+
+        this.dataunionPlugin = new DataUnionAPI(
+            this.wallet,
+            factoryAddress,
+            joinPartAgentAddress,
+            tokenAddress,
+            this
         )
+        Plugin(this, this.dataunionPlugin)
+    }
+
+    async getAddress(): Promise<EthereumAddress> {
+        return this.wallet.getAddress()
+    }
+
+    /**
+     * Apply the gasPriceStrategy to the estimated gas price, if given in options.network.gasPriceStrategy
+     * Ethers.js will resolve the gas price promise before sending the tx
+     */
+    getOverrides(): EthersOverrides {
+        return this.gasPriceStrategy ? {
+            ...this.overrides,
+            gasPrice: this.wallet.provider!.getGasPrice().then(this.gasPriceStrategy)
+        } : this.overrides
     }
 }
 
 /** @internal */
-export const Dependencies = {
-    Context,
-    Session,
-    LoginEndpoints,
-    DataUnions,
-}
+// export const Dependencies = {
+//     Context,
+//     DataUnions,
+// }
