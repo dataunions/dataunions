@@ -43,16 +43,16 @@ export default class DataUnionAPI {
         if (await wallet.provider!.getCode(factoryAddress) === '0x') {
             throw new Error(`No Contract found at ${factoryAddress}, check DataUnionClient.options.dataUnion.factoryAddress!`)
         }
-        return new Contract(factoryAddress, DataUnionFactoryJson.abi, wallet) as DataUnionFactory
+        return new Contract(factoryAddress, DataUnionFactoryJson.abi, wallet) as unknown as DataUnionFactory
     }
 
     getTemplate(templateAddress: EthereumAddress, provider: Provider | Signer = this.wallet): DataUnionTemplate {
-        return new Contract(templateAddress, DataUnionTemplateJson.abi, provider) as DataUnionTemplate
+        return new Contract(templateAddress, DataUnionTemplateJson.abi, provider) as unknown as DataUnionTemplate
     }
 
     // TODO decide: use DATAv2 instead of IERC677 for "default token"?
     getToken(tokenAddress: EthereumAddress = this.tokenAddress, provider: Provider | Signer = this.wallet): IERC677 {
-        return new Contract(tokenAddress, IERC677Json.abi, provider) as IERC677
+        return new Contract(tokenAddress, IERC677Json.abi, provider) as unknown as IERC677
     }
 
     /**
