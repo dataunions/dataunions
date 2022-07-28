@@ -24,7 +24,7 @@ export class AuthFetchError extends Error {
     code: ErrorCode
     errorCode: ErrorCode
 
-    constructor(message: string, response?: Response, body?: any, errorCode?: ErrorCode) {
+    constructor(message: string, response?: Response, body?: unknown, errorCode?: ErrorCode) {
         const typePrefix = errorCode ? errorCode + ': ' : ''
         // add leading space if there is a body set
         const bodyMessage = body ? ` ${inspect(body)}` : ''
@@ -91,7 +91,7 @@ export async function authRequest(
 /** @internal */
 export async function authFetch<ResponseType extends object>(
     url: string,
-    opts?: any,
+    opts?: unknown,
     // requireNewToken = false,
     debug?: Debugger,
     fetchFn?: typeof fetch
