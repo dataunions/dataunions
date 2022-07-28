@@ -10,10 +10,10 @@ import MockTokenMediatorJson from "../../artifacts/contracts/test/MockTokenMedia
 import MockAMBJson from "../../artifacts/contracts/test/MockAMB.sol/MockAMB.json"
 
 // Uniswap v2, originally from @uniswap/v2-periphery/build
-import UniswapV2FactoryJson from "../utils/UniswapV2Factory.json"
+import UniswapV2FactoryJson from "./UniswapV2Factory.json"
 // const UniswapV2PairJson = require("@uniswap/v2-core/build/UniswapV2Pair.json")
-import UniswapV2Router02Json from "../utils/UniswapV2Router02.json"
-import WETH9Json from "../utils/WETH9.json"
+import UniswapV2Router02Json from "./UniswapV2Router02.json"
+import WETH9Json from "./WETH9.json"
 
 import Debug from "debug"
 import { DataUnionSidechain, TestToken, BinanceAdapter, MockTokenMediator } from "../../typechain"
