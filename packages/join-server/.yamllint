@@ -1,0 +1,36 @@
+---
+
+# https://yamllint.readthedocs.io/en/stable/configuration.html
+
+extends: default
+rules:
+  new-line-at-end-of-file: enable
+  hyphens:
+    max-spaces-after: 1
+  trailing-spaces:
+    level: error
+  line-length: disable
+  truthy: disable
+  comments: disable
+  comments-indentation: disable
+  braces:
+    forbid: non-empty
+    max-spaces-inside: 0
+    level: error
+  brackets:
+    forbid: non-empty
+    max-spaces-inside: 0
+    level: error
+  colons:
+    max-spaces-before: 0
+    max-spaces-after: 1
+    level: error
+  commas:
+    max-spaces-before: 0
+    min-spaces-after: 1
+    max-spaces-after: 1
+    level: error
+  empty-lines: disable
+  empty-values:
+    forbid-in-block-mappings: true
+    forbid-in-flow-mappings: true
