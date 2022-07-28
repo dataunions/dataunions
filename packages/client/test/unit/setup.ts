@@ -13,8 +13,8 @@ import debug from 'debug'
 import { waitForCondition } from 'streamr-test-utils'
 const log = debug('DataUnionClient:unit-tests:withdraw')
 
-let ganacheProvider: ganache.EthereumProvider
-const server = ganache.server({
+const ethereumRpcPort = Number.parseInt(process.env.GANACHE_PORT || "3456")
+const ethereumRpcServer = ganache.server({
     // options, see https://github.com/trufflesuite/ganache/tree/develop/src/packages/ganache#startup-options
     wallet: {
         mnemonic: "testrpc"
@@ -36,29 +36,29 @@ const privateKeys = [
     "0x2cd9855d17e01ce041953829398af7e48b24ece04ff9d0e183414de54dc52285",
 ]
 
-const port = Number.parseInt(process.env.GANACHE_PORT || "3456")
+let ganacheProvider: ganache.EthereumProvider
 beforeAll(async () => {
-    server.listen(port, async (err) => {
+    ethereumRpcServer.listen(ethereumRpcPort, async (err) => {
         if (err) { throw err }
-        log(`Ganache started in port ${port}`)
-        ganacheProvider = server.provider
+        log(`Ganache started in port ${ethereumRpcPort}`)
+        ganacheProvider = ethereumRpcServer.provider
     })
     await waitForCondition(() => ganacheProvider !== undefined)
 })
 
 afterAll(() => {
-    server.close()
+    ethereumRpcServer.close()
 })
 
 async function deployDataUnionTemplate(deployer: Wallet): Promise<DataUnionTemplate> {
     const factory = new ContractFactory(templateJson.abi, templateJson.bytecode, deployer)
-    const contract = await factory.deploy() as DataUnionTemplate
+    const contract = await factory.deploy() as unknown as DataUnionTemplate
     return contract.deployed()
 }
 
 async function deployDataUnionFactory(deployer: Wallet, templateAddress: string, tokenAddress: string): Promise<DataUnionFactory> {
     const factory = new ContractFactory(factoryJson.abi, factoryJson.bytecode, deployer)
-    const contract = await factory.deploy(templateAddress, tokenAddress) as DataUnionFactory
+    const contract = await factory.deploy(templateAddress, tokenAddress) as unknown as DataUnionFactory
     return contract.deployed()
 }
 
@@ -81,7 +81,7 @@ export async function deployContracts(deployer: Wallet) {
         token,
         dataUnionFactory,
         dataUnionTemplate,
-        ethereumUrl: `http://localhost:${port}`,
+        ethereumUrl: `http://localhost:${ethereumRpcPort}`,
     }
 }
 
@@ -108,5 +108,5 @@ export async function deployDataUnion(duFactory: DataUnionFactory, token: DATAv2
     if (createdEvent == null) { throw new Error('Factory did not emit a DUCreated event!') }
     const contractAddress = createdEvent.args!.du
     log(`DataUnion deployed at ${contractAddress}`)
-    return new Contract(contractAddress, templateJson.abi, duFactory.signer) as DataUnionTemplate
+    return new Contract(contractAddress, templateJson.abi, duFactory.signer) as unknown as DataUnionTemplate
 }
