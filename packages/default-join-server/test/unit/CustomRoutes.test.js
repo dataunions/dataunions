@@ -4,7 +4,7 @@ const { expect } = require('chai')
 const sinon = require('sinon')
 const createCustomRoutes = require('../../src/CustomRoutes')
 
-describe('CustomRoutes', async () => {
+describe('CustomRoutes', () => {
 	let expressApp
 	let client
 	let db
@@ -36,11 +36,11 @@ describe('CustomRoutes', async () => {
 	})
 
 	afterEach(() => {
-		
+
 	})
 
-	const runTest = async (method, endpoint, expectedStatus, body) => {
-		return await request(expressApp)[method](endpoint)
+	const runTest = async (endpoint, expectedStatus, body) => {
+		return await request(expressApp).post(endpoint)
 			.set('Content-Type', 'application/json')
 			.send(body)
 			.expect((res) => (res.status != expectedStatus ? console.error(res.body) : true)) // print debug info if something went wrong
@@ -48,12 +48,12 @@ describe('CustomRoutes', async () => {
 			.expect('Content-Type', 'application/json; charset=utf-8')
 	}
 
-	describe('POST /secrets/list', async () => {
+	describe('POST /secrets/list', () => {
 
 		it('requires the caller to be owner', async () => {
 			db.listSecrets = sinon.stub().rejects(new Error('db.listSecrets should not be called!'))
 
-			await runTest('post', '/secrets/list', 403, {
+			await runTest('/secrets/list', 403, {
 				address: 'not-owner',
 				request: JSON.stringify({
 					dataUnion: '0x12345',
@@ -68,7 +68,7 @@ describe('CustomRoutes', async () => {
 		it('fails if the DU is not found', async () => {
 			db.listSecrets = sinon.stub().rejects(new Error('db.listSecrets should not be called!'))
 
-			await runTest('post', '/secrets/list', 404, {
+			await runTest('/secrets/list', 404, {
 				address: '0xabcdef',
 				request: JSON.stringify({
 					dataUnion: 'not-found',
@@ -87,7 +87,7 @@ describe('CustomRoutes', async () => {
 			}]
 			db.listSecrets = sinon.stub().resolves(results)
 
-			const res = await runTest('post', '/secrets/list', 200, {
+			const res = await runTest('/secrets/list', 200, {
 				address: '0xabcdef',
 				request: JSON.stringify({
 					dataUnion: '0x12345',
@@ -100,12 +100,12 @@ describe('CustomRoutes', async () => {
 		})
 	})
 
-	describe('POST /secrets/create', async () => {
+	describe('POST /secrets/create', () => {
 
 		it('requires the caller to be owner', async () => {
 			db.createAppSecret = sinon.stub().rejects(new Error('db.createAppSecret should not be called!'))
 
-			await runTest('post', '/secrets/create', 403, {
+			await runTest('/secrets/create', 403, {
 				address: 'not-owner',
 				request: JSON.stringify({
 					dataUnion: '0x12345',
@@ -121,7 +121,7 @@ describe('CustomRoutes', async () => {
 		it('fails if the DU is not found', async () => {
 			db.createAppSecret = sinon.stub().rejects(new Error('db.createAppSecret should not be called!'))
 
-			await runTest('post', '/secrets/create', 404, {
+			await runTest('/secrets/create', 404, {
 				address: '0xabcdef',
 				request: JSON.stringify({
 					dataUnion: 'not-found',
@@ -140,7 +140,7 @@ describe('CustomRoutes', async () => {
 			}
 			db.createAppSecret = sinon.stub().resolves(result)
 
-			const res = await runTest('post', '/secrets/create', 200, {
+			const res = await runTest('/secrets/create', 200, {
 				address: '0xabcdef',
 				request: JSON.stringify({
 					dataUnion: '0x12345',
@@ -154,13 +154,13 @@ describe('CustomRoutes', async () => {
 		})
 	})
 
-	describe('POST /secrets/delete', async () => {
+	describe('POST /secrets/delete', () => {
 
 		it('requires the caller to be owner', async () => {
 			db.getAppSecret = sinon.stub().rejects(new Error('db.getAppSecret should not be called!'))
 			db.deleteAppSecret = sinon.stub().rejects(new Error('db.deleteAppSecret should not be called!'))
 
-			await runTest('delete', '/secrets/delete', 403, {
+			await runTest('/secrets/delete', 403, {
 				address: 'not-owner',
 				request: JSON.stringify({
 					dataUnion: '0x12345',
@@ -178,7 +178,7 @@ describe('CustomRoutes', async () => {
 			db.getAppSecret = sinon.stub().rejects(new Error('db.getAppSecret should not be called!'))
 			db.deleteAppSecret = sinon.stub().rejects(new Error('db.deleteAppSecret should not be called!'))
 
-			await runTest('post', '/secrets/create', 404, {
+			await runTest('/secrets/create', 404, {
 				address: '0xabcdef',
 				request: JSON.stringify({
 					dataUnion: 'not-found',
@@ -190,7 +190,7 @@ describe('CustomRoutes', async () => {
 			expect(dataUnion.getOwner.calledOnce).to.be.false
 			expect(db.deleteAppSecret.called).to.be.false
 		})
-		
+
 		it('deletes secrets', async () => {
 			const secret = {
 				secret: 'test-secret'
@@ -199,7 +199,7 @@ describe('CustomRoutes', async () => {
 			db.getAppSecret = sinon.stub().resolves(secret)
 			db.deleteAppSecret = sinon.stub().resolves()
 
-			const res = await runTest('delete', '/secrets/delete', 200, {
+			const res = await runTest('/secrets/delete', 200, {
 				address: '0xabcdef',
 				request: JSON.stringify({
 					dataUnion: '0x12345',

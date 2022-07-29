@@ -42,7 +42,7 @@ module.exports = (client, db) => {
 			res.send(secret)
 		})
 
-		expressApp.delete('/secrets/delete', async (req, res) => {
+		expressApp.post('/secrets/delete', async (req, res) => {
 			const secret = await db.getAppSecret(req.validatedRequest.secret)
 
 			if (secret) {
