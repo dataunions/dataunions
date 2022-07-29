@@ -1,4 +1,4 @@
-import { gnosisDefaultGasPriceStrategy } from './Config'
+import { defaultChainGasPriceStrategy } from './Config'
 import { DATAUNION_CLIENT_DEFAULTS } from './Config'
 // import { Debug } from './utils/log'
 // import type { Methods } from './utils/Plugin'
@@ -14,6 +14,7 @@ import type { Overrides as EthersOverrides } from '@ethersproject/contracts'
 import type { Signer } from '@ethersproject/abstract-signer'
 import type { EthereumAddress } from './types'
 import type { BigNumber } from '@ethersproject/bignumber'
+import { Rest } from './Rest'
 
 // TODO: remove all this plugin/mixin nonsense. Fields don't seem to be mixed in successfully, maybe only functions? Anyway this is pointless.
 // these are mixed in via Plugin function above
@@ -30,14 +31,16 @@ export class DataUnionClient {
     /** @internal */
     // readonly debug: Debugger
 
-    wallet: Signer
+    readonly wallet: Signer
+    readonly chainName: string
 
-    overrides: EthersOverrides
-    gasPriceStrategy?: GasPriceStrategy
+    readonly overrides: EthersOverrides
+    readonly gasPriceStrategy?: GasPriceStrategy
 
-    minimumWithdrawTokenWei?: BigNumber | number | string
+    readonly minimumWithdrawTokenWei?: BigNumber | number | string
 
-    dataunionPlugin: DataUnionAPI
+    readonly dataunionPlugin: DataUnionAPI
+    readonly restPlugin: Rest
     constructor(clientOptions: Partial<DataUnionClientConfig> = {}) {
         // this.id = 'DataUnionClient'
         // this.debug = Debug('DataUnionClient')
@@ -48,16 +51,16 @@ export class DataUnionClient {
         const chains = Chains.load()
         const chain = chains[options.chain]
 
-        this.overrides = options.network?.ethersOverrides ?? {}
-        this.minimumWithdrawTokenWei = options.dataUnion.minimumWithdrawTokenWei
+        this.chainName = options.chain
+        this.overrides = options.network.ethersOverrides ?? {}
+        this.minimumWithdrawTokenWei = options.dataUnion?.minimumWithdrawTokenWei
         this.gasPriceStrategy = options.gasPriceStrategy
-        if (!this.gasPriceStrategy && options.chain === "gnosis") {
-            this.gasPriceStrategy = gnosisDefaultGasPriceStrategy
+        if (!this.gasPriceStrategy && options.chain === DATAUNION_CLIENT_DEFAULTS.chain) {
+            this.gasPriceStrategy = defaultChainGasPriceStrategy
         }
 
         if (options.auth.ethereum) {
             // browser: we let Metamask do the signing, and also the RPC connections
-
             if (typeof options.auth.ethereum.request !== 'function') {
                 throw new Error('invalid ethereum provider given to auth.ethereum')
             }
@@ -84,8 +87,7 @@ export class DataUnionClient {
 
         } else if (options.auth.privateKey) {
             // node.js: we sign with the given private key, and we connect to given provider RPC URL
-
-            const rpcUrl = options.network?.rpcs?.[0] || chain?.getRPCEndpointsByProtocol(RPCProtocol.HTTP)[0]
+            const rpcUrl = options.network.rpcs?.[0] || chain?.getRPCEndpointsByProtocol(RPCProtocol.HTTP)[0]
             const provider = new JsonRpcProvider(rpcUrl)
             this.wallet = new Wallet(options.auth.privateKey, provider)
 
@@ -94,19 +96,21 @@ export class DataUnionClient {
         }
 
         // TODO: either tokenAddress -> defaultTokenAddress or delete completely; DUs can have different tokens
-        const tokenAddress = getAddress(options.tokenAddress || chain?.contracts.DATA || "Must include tokenAddress or chain in the config!")
-        const factoryAddress = getAddress(options.dataUnion?.factoryAddress
-            || chain?.contracts.DataUnionFactory
-            || "Must include dataUnion.factoryAddress or chain in the config!")
-        const joinPartAgentAddress = getAddress(options.dataUnion?.joinPartAgentAddress || chains.ethereum.contracts["core-api"])
+        const tokenAddress = getAddress(options.tokenAddress ?? chain?.contracts.DATA ?? "Must include tokenAddress or chain in the config!")
+        const factoryAddress = getAddress(options.dataUnion?.factoryAddress ?? chain?.contracts.DataUnionFactory
+                                            ?? "Must include dataUnion.factoryAddress or chain in the config!")
+        const joinPartAgentAddress = getAddress(options.dataUnion?.joinPartAgentAddress ?? chains.ethereum.contracts["core-api"])
+        const dataUnionBeneficiaryAddress = getAddress(options.dataUnion?.duBeneficiaryAddress ?? chain?.contracts.DATA)
 
         this.dataunionPlugin = new DataUnionAPI(
             this.wallet,
             factoryAddress,
             joinPartAgentAddress,
+            dataUnionBeneficiaryAddress,
             tokenAddress,
             this
         )
+        this.restPlugin = new Rest(options.joinServerUrl)
         Plugin(this, this.dataunionPlugin)
     }
 

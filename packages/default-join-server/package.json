@@ -1,0 +1,42 @@
+{
+  "name": "@dataunions/default-join-server",
+  "version": "3.0.0-alpha.1",
+  "description": "A join server that extends the base join server by adding app secret validation and Streamr-awareness",
+  "main": "src/DefaultJoinServer.js",
+  "scripts": {
+    "lint": "npx eslint .",
+    "lint-fix": "npx eslint --fix .",
+    "test": "mocha --recursive --check-leaks test/unit",
+    "integration-test": "mocha --recursive --check-leaks test/integration",
+    "start": "node src/cmd/index.js"
+  },
+  "bin": {
+    "default-join-server": "src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dataunions/default-join-server.git"
+  },
+  "homepage": "https://github.com/dataunions/default-join-server",
+  "dependencies": {
+    "@dataunions/client": "3.0.0-beta.4",
+    "@dataunions/join-server": "3.0.0-alpha.1",
+    "dotenv": "^16.0.1",
+    "mysql2": "^2.3.3",
+    "sequelize": "^6.21.3",
+    "streamr-client": "6.0.9",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "chai": "^4.3.6",
+    "chai-as-promised": "7.1.1",
+    "eslint": "^8.20.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.0.0",
+    "express": "5.0.0-beta.1",
+    "mocha": "^10.0.0",
+    "sinon": "^14.0.0",
+    "supertest": "6.2.4"
+  }
+}

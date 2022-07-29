@@ -2,7 +2,7 @@ import { inspect } from 'util'
 import type EventEmitter from 'events'
 import { SEPARATOR } from './uuid'
 import pMemoize from 'p-memoize'
-import pLimit from 'p-limit'
+// import pLimit from 'p-limit'
 import mem from 'mem'
 import type { L } from 'ts-toolbelt'
 
@@ -11,13 +11,12 @@ import LRU from '../../vendor/quick-lru'
 import type { MaybeAsync } from '../types'
 
 import { AggregatedError } from './AggregatedError'
-import { Scaffold } from './Scaffold'
 import { Debug } from './log'
 
 export const debug = Debug('utils')
 
 export { uuid } from './uuid'
-export { AggregatedError, Scaffold }
+export { AggregatedError }
 
 export function randomString(length = 20) {
     // eslint-disable-next-line no-bitwise
@@ -354,80 +353,80 @@ export function Defer<T>(executor: (...args: Parameters<Promise<T>['then']>) => 
  * limit('channel2', fn)
  * ```
  */
-type LimitFn = ReturnType<typeof pLimit>
+// type LimitFn = ReturnType<typeof pLimit>
 
-export function LimitAsyncFnByKey<KeyType>(limit = 1) {
-    const pending = new Map<KeyType, LimitFn>()
-    const f = async (id: KeyType, fn: () => Promise<any>) => {
-        const limitFn: LimitFn = (pending.get(id) || pending.set(id, pLimit(limit)).get(id)) as LimitFn
-        try {
-            return await limitFn(fn)
-        } finally {
-            if (!limitFn.activeCount && !limitFn.pendingCount) {
-                if (pending.get(id) === limitFn) {
-                    // clean up if no more active entries (if not cleared)
-                    pending.delete(id)
-                }
-            }
-        }
-    }
+// export function LimitAsyncFnByKey<KeyType>(limit = 1) {
+//     const pending = new Map<KeyType, LimitFn>()
+//     const f = async (id: KeyType, fn: () => Promise<any>) => {
+//         const limitFn: LimitFn = (pending.get(id) || pending.set(id, pLimit(limit)).get(id)) as LimitFn
+//         try {
+//             return await limitFn(fn)
+//         } finally {
+//             if (!limitFn.activeCount && !limitFn.pendingCount) {
+//                 if (pending.get(id) === limitFn) {
+//                     // clean up if no more active entries (if not cleared)
+//                     pending.delete(id)
+//                 }
+//             }
+//         }
+//     }
 
-    f.getActiveCount = (id: KeyType): number => {
-        const limitFn = pending.get(id)
-        if (!limitFn) { return 0 }
-        return limitFn.activeCount
-    }
+//     f.getActiveCount = (id: KeyType): number => {
+//         const limitFn = pending.get(id)
+//         if (!limitFn) { return 0 }
+//         return limitFn.activeCount
+//     }
 
-    f.getPendingCount = (id: KeyType): number => {
-        const limitFn = pending.get(id)
-        if (!limitFn) { return 0 }
-        return limitFn.pendingCount
-    }
+//     f.getPendingCount = (id: KeyType): number => {
+//         const limitFn = pending.get(id)
+//         if (!limitFn) { return 0 }
+//         return limitFn.pendingCount
+//     }
 
-    f.clear = () => {
-        // note: does not cancel promises
-        pending.forEach((p) => p.clearQueue())
-        pending.clear()
-    }
-    return f
-}
+//     f.clear = () => {
+//         // note: does not cancel promises
+//         pending.forEach((p) => p.clearQueue())
+//         pending.clear()
+//     }
+//     return f
+// }
 
 /**
  * Execute functions in parallel, but ensure they resolve in the order they were executed
  */
 
-export function pOrderedResolve<ArgsType extends unknown[], ReturnType>(
-    fn: (...args: ArgsType) => ReturnType
-) {
-    const queue = pLimit(1)
-    return Object.assign(async (...args: ArgsType) => {
-        const d = Defer<ReturnType>()
-        const done = queue(() => d)
-        // eslint-disable-next-line promise/catch-or-return
-        await Promise.resolve(fn(...args)).then(d.resolve, d.reject)
-        return done
-    }, {
-        clear() {
-            queue.clearQueue()
-        }
-    })
-}
+// export function pOrderedResolve<ArgsType extends unknown[], ReturnType>(
+//     fn: (...args: ArgsType) => ReturnType
+// ) {
+//     const queue = pLimit(1)
+//     return Object.assign(async (...args: ArgsType) => {
+//         const d = Defer<ReturnType>()
+//         const done = queue(() => d)
+//         // eslint-disable-next-line promise/catch-or-return
+//         await Promise.resolve(fn(...args)).then(d.resolve, d.reject)
+//         return done
+//     }, {
+//         clear() {
+//             queue.clearQueue()
+//         }
+//     })
+// }
 
 /**
  * Returns a function that executes with limited concurrency.
  */
 
-export function pLimitFn<ArgsType extends unknown[], ReturnType>(
-    fn: (...args: ArgsType) => ReturnType | Promise<ReturnType>,
-    limit = 1
-): ((...args: ArgsType) => Promise<ReturnType>) & { clear(): void } {
-    const queue = pLimit(limit)
-    return Object.assign((...args: ArgsType) => queue(() => fn(...args)), {
-        clear() {
-            queue.clearQueue()
-        }
-    })
-}
+// export function pLimitFn<ArgsType extends unknown[], ReturnType>(
+//     fn: (...args: ArgsType) => ReturnType | Promise<ReturnType>,
+//     limit = 1
+// ): ((...args: ArgsType) => Promise<ReturnType>) & { clear(): void } {
+//     const queue = pLimit(limit)
+//     return Object.assign((...args: ArgsType) => queue(() => fn(...args)), {
+//         clear() {
+//             queue.clearQueue()
+//         }
+//     })
+// }
 
 /**
  * Only allows one outstanding call.

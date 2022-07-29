@@ -24,7 +24,7 @@ export class AuthFetchError extends Error {
     code: ErrorCode
     errorCode: ErrorCode
 
-    constructor(message: string, response?: Response, body?: any, errorCode?: ErrorCode) {
+    constructor(message: string, response?: Response, body?: unknown, errorCode?: ErrorCode) {
         const typePrefix = errorCode ? errorCode + ': ' : ''
         // add leading space if there is a body set
         const bodyMessage = body ? ` ${inspect(body)}` : ''
@@ -40,38 +40,10 @@ export class AuthFetchError extends Error {
     }
 }
 
-export class ValidationError extends AuthFetchError {
-    constructor(message: string, response?: Response, body?: any) {
-        super(message, response, body, ErrorCode.VALIDATION_ERROR)
-    }
-}
-
-export class NotFoundError extends AuthFetchError {
-    constructor(message: string, response?: Response, body?: any) {
-        super(message, response, body, ErrorCode.NOT_FOUND)
-    }
-}
-
-const ERROR_TYPES = new Map<ErrorCode, typeof AuthFetchError>()
-ERROR_TYPES.set(ErrorCode.VALIDATION_ERROR, ValidationError)
-ERROR_TYPES.set(ErrorCode.NOT_FOUND, NotFoundError)
-ERROR_TYPES.set(ErrorCode.UNKNOWN, AuthFetchError)
-
-const parseErrorCode = (body: string) => {
-    let json
-    try {
-        json = JSON.parse(body)
-    } catch (err) {
-        return ErrorCode.UNKNOWN
-    }
-    const { code } = json
-    return code in ErrorCode ? code : ErrorCode.UNKNOWN
-}
-
-export async function authRequest<T extends object>(
+export async function authRequest(
     url: string,
     opts?: any,
-    requireNewToken = false,
+    // requireNewToken = false,
     debug?: Debugger,
     fetchFn: typeof fetch = fetch
 ): Promise<Response> {
@@ -96,15 +68,7 @@ export async function authRequest<T extends object>(
 
     debug('%s >> %o', url, opts)
 
-    const response: Response = await fetchFn(url, {
-        ...opts,
-        headers: {
-            ...(opts?.session && !opts.session.isUnauthenticated() ? {
-                Authorization: `Bearer ${await opts.session.getSessionToken(requireNewToken)}`,
-            } : {}),
-            ...options.headers,
-        },
-    })
+    const response: Response = await fetchFn(url, opts)
     const timeEnd = Date.now()
     debug('%s << %d %s %s %s', url, response.status, response.statusText, Debug.humanize(timeEnd - timeStart))
 
@@ -112,30 +76,30 @@ export async function authRequest<T extends object>(
         return response
     }
 
-    if ([400, 401].includes(response.status) && !requireNewToken) {
-        debug('%d %s – revalidating session')
-        return authRequest<T>(url, options, true)
-    }
+    // no more sessions since DU3
+    // if ([400, 401].includes(response.status) && !requireNewToken) {
+    //     debug('%d %s – revalidating session')
+    //     return authRequest<T>(url, options, true)
+    // }
 
     debug('%s – failed', url)
-    const body = await response.text()
-    const errorCode = parseErrorCode(body)
-    const ErrorClass = ERROR_TYPES.get(errorCode)!
-    throw new ErrorClass(`Request ${debug.namespace} to ${url} returned with error code ${response.status}.`, response, body, errorCode)
-
+    const errorBody = await response.json()
+    throw new Error(errorBody.error?.message
+        ?? `Request ${debug.namespace} to ${url} returned with error code ${response.status}: ${JSON.stringify(errorBody)}`)
 }
+
 /** @internal */
-export async function authFetch<T extends object>(
+export async function authFetch<ResponseType extends object>(
     url: string,
-    opts?: any,
-    requireNewToken = false,
+    opts?: unknown,
+    // requireNewToken = false,
     debug?: Debugger,
     fetchFn?: typeof fetch
-): Promise<T> {
+): Promise<ResponseType> {
     const id = counterId('authFetch')
     debug = debug || Debug('utils').extend(id) // eslint-disable-line no-param-reassign
 
-    const response = await authRequest(url, opts, requireNewToken, debug, fetchFn)
+    const response = await authRequest(url, opts, debug, fetchFn)
     // can only be ok response
     const body = await response.text()
     try {

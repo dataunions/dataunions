@@ -1,16 +1,14 @@
 /**
  * More ergonomic wrapper around fetch/authFetch
  */
-import { authFetch, authRequest } from './authFetch'
-import type { Debugger } from './utils/log'
-import type { Response } from 'node-fetch'
+import { authFetch } from './authFetch'
 
 export type FetchOptions = {
     query?: any,
     useSession?: boolean,
     options?: any,
     requireNewToken?: boolean
-    debug?: Debugger
+    // debug?: Debugger
     restUrl?: string
 }
 
@@ -26,8 +24,6 @@ export const createQueryString = (query: Record<string, any>) => {
     return new URLSearchParams(withoutEmpty).toString()
 }
 
-// @scoped(Lifecycle.ContainerScoped)
-// export class Rest implements Context {
 export class Rest {
     // readonly id
     // readonly debug
@@ -57,7 +53,7 @@ export class Rest {
             query,
             // useSession = true,
             options,
-            requireNewToken = false,
+            // requireNewToken = false,
             // debug = this.debug,
             restUrl
         }: FetchOptions
@@ -70,31 +66,7 @@ export class Rest {
         return authFetch<T>(
             url.toString(),
             newOptions,
-            requireNewToken,
-            // debug,
-        )
-    }
-
-    request<T extends object>(
-        urlParts: UrlParts,
-        {
-            query,
-            // useSession = true,
-            options,
-            requireNewToken = false,
-            // debug = this.debug,
-            restUrl
-        }: FetchOptions
-    ): Promise<Response> {
-        const url = this.getUrl(urlParts, query, restUrl)
-        const newOptions = {
-            ...options,
-            // session: useSession ? this.session : undefined
-        }
-        return authRequest<T>(
-            url.toString(),
-            newOptions,
-            requireNewToken,
+            // requireNewToken,
             // debug,
         )
     }

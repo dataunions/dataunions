@@ -9,14 +9,19 @@ import type { EthereumAddress } from './types'
  * Top-level DU client config
  */
 export type DataUnionClientConfig = {
-    /** Custom human-readable debug id for client. Used in logging. Unique id will be generated regardless. */
+    /** Custom human-readable debug id for client. Used in logging. Unique id will be generated regardless. TODO: delete probably */
     id?: string,
+
+    joinServerUrl: string,
+
     /**
     * Authentication: identity used by this DataUnionClient instance.
     * Can contain member privateKey or (window.)ethereum
     */
     auth: AuthConfig
-    dataUnion: DataUnionConfig
+
+    // TODO: refactor out this, once it's okay to break compatibility
+    dataUnion: Partial<DataUnionConfig>
 
     gasPriceStrategy?: (estimatedGasPrice: BigNumber) => BigNumber
 
@@ -24,18 +29,17 @@ export type DataUnionClientConfig = {
     // see https://github.com/streamr-dev/network-contracts/blob/master/packages/config/src/networks.json
     chain: string
 
-    /** @internal */
-    // _timeouts: TimeoutsConfig
-
-    // from Ethereum.ts:EthereumConfig
+    // overrides to what @streamr/config provides via the "chain" option above
     tokenAddress?: EthereumAddress
-    network?: NetworkConfigOverrides
+    network: NetworkConfigOverrides
 
     // ConnectionConfig
     /** Core HTTP API calls go here */
     // restUrl: string
     /** Some TheGraph instance, that indexes the streamr registries */
     // theGraphUrl: string
+    /** @internal */
+    // _timeouts: TimeoutsConfig
 }
 
 // under config.dataunion
@@ -45,7 +49,7 @@ export type DataUnionConfig = {
      * someone else pays for the gas when transporting the withdraw tx to mainnet;
      * otherwise the client does the transport as self-service and pays the mainnet gas costs
      */
-    minimumWithdrawTokenWei?: BigNumber | number | string
+    minimumWithdrawTokenWei: BigNumber | number | string
 
     factoryAddress: EthereumAddress
     templateAddress: EthereumAddress
@@ -59,9 +63,10 @@ export type DataUnionConfig = {
 
 // these can override values from @streamr/config
 export type NetworkConfigOverrides = {
+    // For ethers.js provider params, see https://docs.ethers.io/ethers.js/v5-beta/api-providers.html#provider
+    ethersOverrides?: Overrides
     chainId?: number
     rpcs?: ConnectionInfo[]
-    ethersOverrides?: Overrides
 }
 
 export type GasPriceStrategy = (estimatedGasPrice: BigNumber) => (BigNumber | Promise<BigNumber>)
@@ -93,24 +98,20 @@ export type AuthConfig = XOR<ProviderAuthConfig, PrivateKeyAuthConfig>
  * @category Important
  */
 export const DATAUNION_CLIENT_DEFAULTS: DataUnionClientConfig = {
-    auth: { privateKey: '' }, // TODO: this isn't a great default...
+    auth: { privateKey: '' }, // TODO: this isn't a great default... must check in constructor that auth info really was given
 
-    // Streamr Core options
-    // restUrl: 'https://streamr.network/api/v2',
-    // theGraphUrl: 'https://api.thegraph.com/subgraphs/name/streamr-dev/streams',
+    joinServerUrl: 'https://join.dataunions.org', // TODO
+    // theGraphUrl: 'https://api.thegraph.com/subgraphs/name/streamr-dev/streams', // TODO
 
     // Ethereum and Data Union related overrides to what @streamr/config provides
-    // For ethers.js provider params, see https://docs.ethers.io/ethers.js/v5-beta/api-providers.html#provider
     chain: 'gnosis',
 
-    // tokenAddress: '', // get from @streamr/config
     dataUnion: {
         minimumWithdrawTokenWei: '1000000',
-        factoryAddress: '0xE41439BF434F9CfBF0153f5231C205d4ae0C22e3',
-        templateAddress: '0x67352e3F7dBA907aF877020aE7E9450C0029C70c',
-        joinPartAgentAddress: '0xf3E5A65851C3779f468c9EcB32E6f25D9D68601a',
         duBeneficiaryAddress: '0xf3E5A65851C3779f468c9EcB32E6f25D9D68601a'  // TODO: decide what this should be
     },
+
+    network: {},
     // _timeouts: {
     //     theGraph: {
     //         timeout: 60 * 1000,
@@ -129,4 +130,5 @@ export const DATAUNION_CLIENT_DEFAULTS: DataUnionClientConfig = {
     // }
 }
 
-export const gnosisDefaultGasPriceStrategy: GasPriceStrategy = (estimatedGasPrice: BigNumber) => estimatedGasPrice.add('10000000000')
+/** Sensible default for working in gnosis chain: add a bit more gas, TODO: how did we end up with this? */
+export const defaultChainGasPriceStrategy: GasPriceStrategy = (estimatedGasPrice: BigNumber) => estimatedGasPrice.add('10000000000')

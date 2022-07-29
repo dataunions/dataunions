@@ -1,6 +1,6 @@
 {
     "name": "@dataunions/client",
-    "version": "3.0.0-beta.4",
+    "version": "3.0.0-beta.5",
     "description": "JavaScript client library for DataUnions",
     "private": false,
     "repository": {
@@ -36,7 +36,6 @@
         "test": "npm run test-exports && npm run unit-test",
         "unit-test": "jest --runInBand test/unit",
         "test-exports": "cd test/exports && npm run link && tsc --noEmit --project ./tsconfig.json && npm test",
-        "integration-test": "jest --forceExit --maxWorkers=1 test/end-to-end",
         "vendor": "SRCDIR=`node -p \"path.dirname(require.resolve('quick-lru'))\"` bash -c 'mkdir -p vendor/quick-lru; cp -n $SRCDIR/index.d.ts vendor/quick-lru; cp -n $SRCDIR/index.js vendor/quick-lru'; true"
     },
     "engines": {
@@ -45,6 +44,7 @@
     "author": "Streamr",
     "license": "Apache-2.0",
     "devDependencies": {
+        "@dataunions/join-server": "3.0.0-alpha.2",
         "@dataunions/dev-config": "latest",
         "@dataunions/eslint-config": "latest",
         "@ethersproject/wordlists": "^5.5.0",

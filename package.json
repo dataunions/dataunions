@@ -11,6 +11,8 @@
         "packages/eslint-config",
         "packages/dev-config",
         "packages/client",
+        "packages/join-server",
+        "packages/default-join-server",
         "packages/thegraph-subgraph"
     ],
     "scripts": {
