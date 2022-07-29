@@ -105,7 +105,7 @@ The response returns the deleted secret:
 	"secret": "0fc6b4d6-6558-4c04-b42e-49a8ae5b5ebf",
 	"dataUnion": "0x12345",
 	"chain": "polygon",
-	"name": "A human-readable label for the new secret"
+	"name": "A human-readable label for the deleted secret"
 }
 ```
 
