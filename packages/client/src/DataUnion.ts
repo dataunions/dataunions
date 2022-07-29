@@ -61,6 +61,13 @@ export interface MemberStats {
     withdrawableEarnings: BigNumber
 }
 
+export interface SecretsResponse {
+    secret: string
+    dataUnion: EthereumAddress
+    chain: string
+    name: string
+}
+
 const log = Debug('DataUnion')
 
 type WaitForTXOptions = {
@@ -136,6 +143,22 @@ export class DataUnion {
 
     async getActiveMemberCount(): Promise<number> {
         return this.contract.getActiveMemberCount()
+    }
+
+    /** Sign and send HTTP POST request to join-server, TODO: put signing and error handling into the Rest class maybe? */
+    private async post<T extends object>(endpointPath: string[], params?: object): Promise<T> {
+        const request = {
+            chain: this.getChainName(),
+            dataUnion: this.getAddress(),
+            ...params
+        }
+        const signedRequest = await sign(request, this.client.wallet)
+        return this.joinServer.post<T>(endpointPath, signedRequest).catch((err) => {
+            if (err.message?.match(/cannot estimate gas/)) {
+                throw new Error("Data Union join-server couldn't send the join transaction. Please contact the join-server administrator.")
+            }
+            throw err
+        })
     }
 
     /**
@@ -231,18 +254,7 @@ export class DataUnion {
      * Send HTTP(s) request to the join server, asking to join the data union
      */
     async join(params?: object): Promise<JoinResponse> {
-        const request = {
-            chain: this.getChainName(),
-            dataUnion: this.getAddress(),
-            ...params
-        }
-        const signedRequest = await sign(request, this.client.wallet)
-        return this.joinServer.post<JoinResponse>(["join"], signedRequest).catch((err) => {
-            if (err.message?.match(/cannot estimate gas/)) {
-                throw new Error("Data Union join server couldn't send the join transaction. Please contact the join-server administrator.")
-            }
-            throw err
-        })
+        return this.post<JoinResponse>(["join"], params)
     }
 
     /**
@@ -375,9 +387,18 @@ export class DataUnion {
 
     /**
      * Add a new data union secret
+     * For data unions that use the default-join-server, members can join without specific approval using this secret
      */
-    async createSecret(_name: string = 'Untitled DataUnion Secret'): Promise<string> {
-        throw new Error("not implemented")
+    async createSecret(name: string = 'Untitled Data Union Secret'): Promise<SecretsResponse> {
+        return this.post<SecretsResponse>(['secrets', 'create'], { name })
+    }
+
+    async deleteSecret(secretId: string): Promise<SecretsResponse> {
+        return this.post<SecretsResponse>(['secrets', 'delete'], { secretId })
+    }
+
+    async listSecrets(): Promise<SecretsResponse[]> {
+        return this.post<SecretsResponse[]>(['secrets', 'list'])
     }
 
     /**

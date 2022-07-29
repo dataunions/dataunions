@@ -10,6 +10,11 @@ import type { DataUnionClientConfig } from '../../src/Config'
 
 import { deployContracts, getWallets } from './setup'
 
+/**
+ * NOTE: joining with secret using default-join-server is tested in default-join-server
+ *  This concerns the following functions in DataUnion.ts: createSecret, deleteSecret, listSecrets.
+ *  They're not covered here. See data-union/packages/default-join-server/test/integration/client.test.ts
+ **/
 describe('DataUnion joining using join-server', () => {
 
     let admin: Wallet
