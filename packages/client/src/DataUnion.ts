@@ -121,6 +121,24 @@ export class DataUnion {
     }
 
     /**
+     * Get data union admin fee fraction (between 0.0 and 1.0) that admin gets from each revenue event
+     * Version 2.2: admin fee is collected in DataUnionSidechain
+     * Version 2.0: admin fee was collected in DataUnionMainnet
+     */
+    async getAdminFee(): Promise<number> {
+        const adminFeeBN = await this.contract.adminFeeFraction()
+        return +adminFeeBN.toString() / 1e18
+    }
+
+    async getAdminAddress(): Promise<EthereumAddress> {
+        return this.contract.owner()
+    }
+
+    async getActiveMemberCount(): Promise<number> {
+        return this.contract.getActiveMemberCount()
+    }
+
+    /**
      * TODO: drop old DU support already probably...
      * Get stats for the DataUnion (version 2).
      * Most of the interface has remained stable, but getStats has been implemented in functions that return
@@ -203,24 +221,6 @@ export class DataUnion {
             }
             throw error
         })
-    }
-
-    /**
-     * Get data union admin fee fraction (between 0.0 and 1.0) that admin gets from each revenue event
-     * Version 2.2: admin fee is collected in DataUnionSidechain
-     * Version 2.0: admin fee was collected in DataUnionMainnet
-     */
-    async getAdminFee(): Promise<number> {
-        const adminFeeBN = await this.contract.adminFeeFraction()
-        return +adminFeeBN.toString() / 1e18
-    }
-
-    async getAdminAddress(): Promise<EthereumAddress> {
-        return this.contract.owner()
-    }
-
-    async getActiveMemberCount(): Promise<number> {
-        return this.contract.getActiveMemberCount()
     }
 
     ///////////////////////////////
