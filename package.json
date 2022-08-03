@@ -18,7 +18,7 @@
   "author": "Data Union DAO <contact@dataunions.org>",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
-    "@dataunions/client": "3.0.0-beta.4",
+    "@dataunions/client": "3.0.0-beta.6",
     "commander": "9.3.0",
     "ethers": "5.6.9",
     "express": "5.0.0-beta.1",
