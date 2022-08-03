@@ -31,5 +31,4 @@ fi
 
 ./release-validate-semver.bash "$version"
 ./release-git-tag.bash "$version"
-make build
 make npm-publish
