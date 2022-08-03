@@ -1,4 +1,8 @@
 /data-union-src-deploy-aws-*.zip
+*.patch
+*.diff
+/.idea
+/.vscode
 
 # Logs
 logs
