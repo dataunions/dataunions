@@ -4,8 +4,8 @@
   "description": "",
   "main": "src/app/index.js",
   "engines": {
-    "node": "16.13.1",
-    "npm": "8.1.2"
+    "node": ">=16.13.1",
+    "npm": ">=8.1.2"
   },
   "bin": {
     "join-server": "src/cmd/duj-srv/main.js"
