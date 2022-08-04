@@ -33,7 +33,7 @@ npm-install: ## Run npm install
 
 .PHONY: npm-publish
 npm-publish: ## Run npm publish
-	$(call npm, publish . --access private)
+	$(call npm, publish .)
 
 .PHONY: npm-pack
 npm-pack: ## Run npm pack
