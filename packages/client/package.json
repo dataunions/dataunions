@@ -44,9 +44,9 @@
     "author": "Streamr",
     "license": "Apache-2.0",
     "devDependencies": {
-        "@dataunions/join-server": "3.0.0-alpha.2",
         "@dataunions/dev-config": "latest",
         "@dataunions/eslint-config": "latest",
+        "@dataunions/join-server": "3.0.0-alpha.3",
         "@ethersproject/wordlists": "^5.5.0",
         "@streamr/data-v2": "1.0.1",
         "@types/cors": "^2.8.12",
@@ -89,7 +89,6 @@
         "weak-napi": "^2.0.2"
     },
     "dependencies": {
-        "@streamr/config": "latest",
         "@dataunions/contracts": "3.0.0-beta.1",
         "@ethersproject/abi": "5.6.1",
         "@ethersproject/abstract-signer": "5.6.0",
@@ -104,6 +103,7 @@
         "@ethersproject/units": "5.6.0",
         "@ethersproject/wallet": "5.6.0",
         "@ethersproject/web": "5.6.0",
+        "@streamr/config": "latest",
         "debug": "4.3.4",
         "eventemitter3": "4.0.4",
         "lodash": "4.17.21",
