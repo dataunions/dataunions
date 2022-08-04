@@ -18,7 +18,7 @@ describe('DataUnion joining using join-server', () => {
     let duAddress: string
     let token: DATAv2
     let clientOptions: Partial<DataUnionClientConfig>
-    let server: JoinServer
+    let server: JoinServer | undefined
     beforeAll(async () => {
         [
             admin,
@@ -77,8 +77,8 @@ describe('DataUnion joining using join-server', () => {
         await server.start()
     })
 
-    afterAll(async () => {
-        await server.stop()
+    afterAll(() => {
+        server = undefined
     })
 
     it('joins using the server', async () => {
