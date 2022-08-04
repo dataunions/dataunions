@@ -105,6 +105,6 @@ describe('DataUnion joining using join-server', () => {
     it('cannot join if denied by the customJoinRequestValidator', async () => {
         const client = new DataUnionClient(clientOptions)
         const dataUnion = await client.getDataUnion(duAddress)
-        await expect(dataUnion.join({ extra: "testing" })).rejects.toThrow("Join request failed validation: 'Error: Denied!'")
+        await expect(dataUnion.join({ extra: "testing" })).rejects.toThrow("Join request failed custom validation: 'Error: Denied!'")
     })
 })
