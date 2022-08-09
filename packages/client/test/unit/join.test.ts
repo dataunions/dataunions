@@ -66,7 +66,7 @@ describe('DataUnion joining using join-server', () => {
         server = new JoinServer({
             privateKey: joinPartAgent.privateKey,
             port: 5678,
-            customJoinRequestValidator: async (memberAddress, request) => {
+            customJoinRequestValidator: async (_memberAddress, request) => {
                 if (request.extra) {
                     throw new Error("Denied!")
                 }
