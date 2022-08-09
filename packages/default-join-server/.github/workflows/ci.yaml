@@ -1,3 +1,4 @@
+# NOTE: this file is from the separate repo era and is NOT used (so probably outdated). TODO: delete?
 ---
 defaults:
   run:
@@ -23,7 +24,7 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm run lint
-  test: # TODO: move this test into root ci.yaml so it's actually run...
+  test:
     needs:
       - lint
     runs-on: ubuntu-20.04
