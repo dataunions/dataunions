@@ -46,7 +46,7 @@
     "devDependencies": {
         "@dataunions/dev-config": "latest",
         "@dataunions/eslint-config": "latest",
-        "@dataunions/join-server": "3.0.0-alpha.2",
+        "@dataunions/join-server": "3.0.0-alpha.3",
         "@ethersproject/wordlists": "^5.5.0",
         "@streamr/data-v2": "1.0.1",
         "@types/debug": "^4.1.7",
