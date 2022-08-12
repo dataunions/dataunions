@@ -98,7 +98,7 @@
         "@ethersproject/keccak256": "5.6.0",
         "@ethersproject/providers": "5.6.5",
         "@ethersproject/transactions": "5.6.0",
-        "@ethersproject/units": "5.6.1",
+        "@ethersproject/units": "5.6.0",
         "@ethersproject/wallet": "5.6.0",
         "@ethersproject/web": "5.6.0",
         "@streamr/config": "2.2.1",
