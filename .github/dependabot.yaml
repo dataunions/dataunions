@@ -6,9 +6,7 @@ updates:
     directory: /
     open-pull-requests-limit: 3
     schedule:
-      interval: daily
-      time: "08:00"
-      timezone: Europe/Helsinki
+      interval: weekly
     commit-message:
       prefix: ci
       include: scope
@@ -22,9 +20,7 @@ updates:
     directory: /
     open-pull-requests-limit: 3
     schedule:
-      interval: daily
-      time: "08:00"
-      timezone: Europe/Helsinki
+      interval: weekly
     commit-message:
       prefix: build
       include: scope
@@ -36,11 +32,9 @@ updates:
     directory: /
     open-pull-requests-limit: 3
     schedule:
-      interval: daily
-      time: "08:00"
-      timezone: Europe/Helsinki
+      interval: weekly
     commit-message:
-      prefix: test
+      prefix: build
       include: scope
     assignees:
       - jtakalai
