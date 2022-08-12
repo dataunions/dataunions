@@ -45,12 +45,13 @@ make help
 ```
 
 ### API
-
 - [NodeJS 16.x](https://nodejs.org/dist/latest-v16.x/docs/api/)
+- [@dataunions/client 3.x](https://github.com/dataunions/data-unions/tree/master/packages/client)
+- [@streamr/config 2.x](https://github.com/streamr-dev/network-contracts/tree/master/packages/config)
 - [Express 5.x](https://expressjs.com/en/5x/api.html)
 - [Commander.js](https://www.npmjs.com/package/commander)
 - [Ethers API 5.x](https://docs.ethers.io/v5/api/)
-- [Pino API 7.x](https://github.com/pinojs/pino/blob/master/docs/api.md)
+- [Pino API 8.x](https://github.com/pinojs/pino/blob/master/docs/api.md)
 
 #### Testing
 - [Mocha](https://mochajs.org/api/)

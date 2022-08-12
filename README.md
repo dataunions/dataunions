@@ -37,7 +37,7 @@ const srv = new JoinServer({
     // Additional options, see below
     ...
 })
-srv.start()
+srv.listen()
 ```
 
 That's exactly what's happening in the [default join server](https://github.com/dataunions/default-join-server). Forking that may be a faster starting point for your own customizations, or you can study this readme to start your customizations from scratch.

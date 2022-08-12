@@ -26,15 +26,8 @@ async function validate(signedObject, toleranceMillis = 5 * 60 * 1000) {
 	const currentTime = new Date()
 	const diff = currentTime.getTime() - new Date(signedObject.timestamp).getTime()
 	if (Math.abs(diff) > toleranceMillis) {
-		throw new InvalidTimestampError(`Timestamp rejected! Request: ${
-			signedObject.timestamp
-		}, current: ${
-			currentTime.toISOString()
-		}, diff (ms): ${
-			diff
-		}, tolerance: ${
-			toleranceMillis
-		}`)
+		const msg = `Timestamp rejected! Request: ${signedObject.timestamp}, current: ${currentTime.toISOString()}, diff (ms): ${diff}, tolerance: ${toleranceMillis}`
+		throw new InvalidTimestampError(msg)
 	}
 
 	return JSON.parse(signedObject.request)

@@ -5,7 +5,7 @@ describe('Address', () => {
 	it('throws on undefined value', () => {
 		try {
 			new domain.Address(undefined)
-			assert.fail('expected create etherem address to fail with error')
+			assert.fail('expected create ethereum address to fail with error')
 		} catch (e) {
 			if (!(e instanceof domain.InvalidEthereumAddressError)) {
 				assert.fail('error is not an instance of domain.InvalidEthereumAddressError')

@@ -1,18 +1,28 @@
 class JoinRequestService {
-	constructor(logger, dataUnionClient, onMemberJoin) {
+	constructor(logger, clients, onMemberJoin) {
+		if (logger === undefined) {
+			throw new Error(`Variable logger is required`)
+		}
 		this.logger = logger
-		this.dataUnionClient = dataUnionClient
+		if (clients === undefined) {
+			throw new Error(`Variable clients is required`)
+		}
+		this.clients = clients
+		if (onMemberJoin === undefined) {
+			throw new Error(`Function onMemberJoin is required`)
+		}
 		this.onMemberJoin = onMemberJoin
 	}
 
 	async create(member, dataUnion, chain) {
+		const dataUnionClient = this.clients.get(chain)
 		let du
 		try {
-			du = await this.dataUnionClient.getDataUnion(dataUnion)
+			du = await dataUnionClient.getDataUnion(dataUnion)
 		} catch (err) {
 			throw new DataUnionRetrievalError(`Error while retrieving data union ${dataUnion}: ${err.message}`)
 		}
-		
+
 		if (await du.isMember(member)) {
 			throw new DataUnionJoinError(`Member ${member} is already a member of ${dataUnion}!`)
 		}
@@ -34,6 +44,12 @@ class JoinRequestService {
 			dataUnion,
 			chain: chain,
 		}
+	}
+
+	close() {
+		this.clients.forEach((dataUnionClient) => {
+			dataUnionClient.close()
+		})
 	}
 }
 

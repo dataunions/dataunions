@@ -39,9 +39,9 @@ npm-publish: ## Run npm publish
 npm-pack: ## Run npm pack
 	$(call npm, pack)
 
-.PHONY: npm-test
-npm-test: node_modules ## Run npm test
-	$(call npm, test)
+.PHONY: test
+test: node_modules ## Run all test
+	$(call node, $(NODE_BIN)/mocha --node-option trace-warnings --recursive --check-leaks --full-trace test)
 
 NODE_BIN:=$(shell pwd)/node_modules/.bin
 .PHONY: eslint
@@ -52,9 +52,6 @@ eslint: ## Run eslint
 eslint-fix: ## Run eslint with fix options
 	$(call node, $(NODE_BIN)/eslint --config .eslintrc.js --ext .js --fix .)
 
-.PHONY: test
-test: npm-test ## Run all tests
-
 # private key: 0x7013b52cd5bcefcb813252ba4fd19de4ffbc7be60cd3da017448bbd883b15457
 # address: 0x516115E2a11393d1C91c41a14cCf2eFC1D6F5931
 # public: 470e7f7704c995fcf1847e3543f9388809e57d1262afdc5b73781808ef57a0fb470f7fd2ac1056e6ae84a9d49f1631d145408807963ed3ba3df4dce4f96407a7
@@ -64,25 +61,12 @@ run: export NODE_ENV=development
 run: export LOG_LEVEL=trace
 run: export PRIVATE_KEY=0x7013b52cd5bcefcb813252ba4fd19de4ffbc7be60cd3da017448bbd883b15457
 run: ## Run Data Union Join Server
-	$(call node, src/cmd/duj-srv/main.js)
-
-.PHONY: aws-src-bundle
-ZIP:=/usr/bin/zip
-FILE=$(PWD)/data-union-src-deploy-aws-$(shell date +"%F_%H.%M.%S").zip
-IGNORED_FILES:=.git .DS_Store *.diff *.patch *.bash *.zip
-FILES:=package.json package-lock.json src Procfile .ebextensions
-aws-src-bundle:
-	$(ZIP) -r $(FILE) $(FILES) -x $(IGNORED_FILES)
+	$(call node, src/cmd/join-server/main.js)
 
 .PHONY: clean
 clean: ## Remove generated files
 	$(RM) -r \
 		node_modules
-
-.PHONY: clean-dist
-clean-dist: clean ## Remove generated files and distributable files
-	$(RM) -r \
-		data-union-src-deploy-aws-*.zip
 
 .PHONY: help
 help: ## Show Help

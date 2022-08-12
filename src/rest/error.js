@@ -1,3 +1,5 @@
+const { ErrorMessage } = require("./ErrorMessage")
+
 function error(logger) {
 	return function(err, req, res, _next) {
 		if (err !== undefined) {
@@ -5,11 +7,7 @@ function error(logger) {
 		}
 		res.status(500)
 		res.set('content-type', 'application/json')
-		const errorMessage = {
-			error: {
-				message: err.message,
-			},
-		}
+		const errorMessage = new ErrorMessage(err.message)
 		res.send(errorMessage)
 	}
 }

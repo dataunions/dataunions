@@ -8,17 +8,18 @@
     "npm": ">=8.1.2"
   },
   "bin": {
-    "join-server": "src/cmd/duj-srv/main.js"
+    "join-server": "src/cmd/join-server/main.js"
   },
   "scripts": {
-    "test": "mocha --recursive --check-leaks test",
+    "test": "make test",
     "eslint": "make eslint",
     "eslint-fix": "make eslint-fix"
   },
   "author": "Data Union DAO <contact@dataunions.org>",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
-    "@dataunions/client": "3.0.0-beta.6",
+    "@dataunions/client": "3.0.0-beta.7",
+    "@streamr/config": "2.2.1",
     "commander": "9.4.0",
     "ethers": "5.6.9",
     "express": "5.0.0-beta.1",
@@ -37,6 +38,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:dataunions/data-union-join-server.git"
+    "url": "git@github.com:dataunions/join-server.git"
   }
 }
