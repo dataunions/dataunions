@@ -425,7 +425,6 @@ export class DataUnion {
 
     /**
      * Admin: withdraw earnings (pay gas) on behalf of a member
-     * TODO: add test
      * @param memberAddress - the other member who gets their tokens out of the DataUnion
      */
     async withdrawAllToMember(
