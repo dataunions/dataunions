@@ -89,7 +89,7 @@ Setting a new admin fee:
 const receipt = await dataUnion.setAdminFee(0.4)
 ```
 
-If the Data Union is set up to use the [default join server](../default-join-server/README.md) then members can join the Data Union by giving a correct secret.
+If the Data Union is set up to use the [default join server](https://github.com/dataunions/data-unions/tree/main/packages/default-join-server) then members can join the Data Union by giving a correct secret.
 
 Admin can add secrets that allow anyone to join, as well as revoke those secrets, using the following functions:
 ```js
