@@ -95,7 +95,7 @@ Admin can add secrets that allow anyone to join, as well as revoke those secrets
 ```js
 await dataUnion.createSecret() // returns the newly created secret
 await dataUnion.createSecret('user XYZ') // admin can also give the secret a more human-readable name
-await dataUnion.deleteSecret(secretId) // id is what was returned from createSecret
+await dataUnion.deleteSecret(secret) // secret as returned by createSecret
 await dataUnion.listSecrets() // in case you forgot ;)
 ```
 
