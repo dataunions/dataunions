@@ -195,7 +195,9 @@ export class DataUnion {
                 joinPartAgentCount,
                 lifetimeMemberEarnings,
             }
-        } catch (e) {
+        } catch (e) { }
+
+        try {
             const [[
                 totalEarnings, totalEarningsWithdrawn, activeMemberCount, inactiveMemberCount,
                 lifetimeMemberEarnings, joinPartAgentCount
@@ -208,7 +210,9 @@ export class DataUnion {
                 joinPartAgentCount,
                 lifetimeMemberEarnings,
             }
-        } // TODO: maybe catch and re-throw with a better error message
+        } catch (e) {
+            throw new Error(`getStats failed to decode response: ${e.message}`)
+        }
     }
 
     /**
