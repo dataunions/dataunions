@@ -1,13 +1,8 @@
 import { inspect } from 'util'
 import type EventEmitter from 'events'
-import { SEPARATOR } from './uuid'
-import pMemoize from 'p-memoize'
-// import pLimit from 'p-limit'
-import mem from 'mem'
 import type { L } from 'ts-toolbelt'
 
 import pkg from '../../package.json'
-import LRU from '../../vendor/quick-lru'
 import type { MaybeAsync } from '../types'
 
 import { AggregatedError } from './AggregatedError'
@@ -15,13 +10,7 @@ import { Debug } from './log'
 
 export const debug = Debug('utils')
 
-export { uuid } from './uuid'
 export { AggregatedError }
-
-export function randomString(length = 20) {
-    // eslint-disable-next-line no-bitwise
-    return [...Array(length)].map(() => (~~(Math.random() * 36)).toString(36)).join('')
-}
 
 /**
  * Generates counter-based ids.
@@ -37,6 +26,7 @@ export function randomString(length = 20) {
  */
 
 export const CounterId = (rootPrefix?: string, { maxPrefixes = 256 }: { maxPrefixes?: number } = {}) => {
+    const SEPARATOR = '-'
     let counts: { [prefix: string]: number } = {} // possible we could switch this to WeakMap and pass functions or classes.
     let didWarn = false
     const counterIdFn = (prefix = 'ID', separator = SEPARATOR) => {
@@ -129,119 +119,6 @@ export function waitFor(emitter: EventEmitter, event: Parameters<EventEmitter['o
 export const getEndpointUrl = (baseUrl: string, ...pathParts: string[]) => {
     return baseUrl + '/' + pathParts.map((part) => encodeURIComponent(part)).join('/')
 }
-
-type Collection<K, V> = {
-    keys: Map<K, V>['keys']
-    delete: Map<K, V>['delete']
-}
-
-function clearMatching<K>(cache: Collection<K, unknown>, matchFn: (key: K) => boolean) {
-    for (const key of cache.keys()) {
-        if (matchFn(key)) {
-            cache.delete(key)
-        }
-    }
-}
-
-/* eslint-disable object-curly-newline */
-
-/**
- * Returns a cached async fn, cached keyed on first argument passed. See documentation for mem/p-memoize.
- * Caches into a LRU cache capped at options.maxSize
- * Won't call asyncFn again until options.maxAge or options.maxSize exceeded, or cachedAsyncFn.clear() is called.
- * Won't cache rejections by default. Override with options.cachePromiseRejection = true.
- *
- * ```js
- * const cachedAsyncFn = CacheAsyncFn(asyncFn, options)
- * await cachedAsyncFn(key)
- * await cachedAsyncFn(key)
- * cachedAsyncFn.clear()
- * ```
- */
-export function CacheAsyncFn<ArgsType extends any[], ReturnType, KeyType = ArgsType[0]>(asyncFn: (...args: ArgsType) => PromiseLike<ReturnType>, {
-    maxSize = 10000,
-    maxAge = 30 * 60 * 1000, // 30 minutes
-    cachePromiseRejection = false,
-    onEviction = () => {},
-    cacheKey = (args: ArgsType) => args[0], // type+provide default so we can infer KeyType
-    ...opts
-}: {
-    maxSize?: number
-    maxAge?: number
-    cachePromiseRejection?: boolean
-    onEviction?: (...args: any[]) => void
-    cacheKey?: (args: ArgsType) => KeyType
-} = {}): ((...args: ArgsType) => Promise<ReturnType>) & { clear: () => void; clearMatching: (matchFn: (key: KeyType) => boolean) => void } {
-    const cache = new LRU<KeyType, { data: ReturnType, maxAge: number }>({
-        maxSize,
-        maxAge,
-        onEviction,
-    })
-
-    const cachedFn = Object.assign(pMemoize(asyncFn, {
-        cachePromiseRejection,
-        cache,
-        cacheKey,
-        ...opts,
-    }), {
-        clear: () => {
-            pMemoize.clear(cachedFn as any)
-            cache.clear()
-        },
-        clearMatching: (matchFn: ((key: KeyType) => boolean)) => clearMatching(cache, matchFn),
-    })
-
-    return cachedFn
-}
-
-/**
- * Returns a cached fn, cached keyed on first argument passed. See documentation for mem.
- * Caches into a LRU cache capped at options.maxSize
- * Won't call fn again until options.maxAge or options.maxSize exceeded, or cachedFn.clear() is called.
- *
- * ```js
- * const cachedFn = CacheFn(fn, options)
- * cachedFn(key)
- * cachedFn(key)
- * cachedFn(...args)
- * cachedFn.clear()
- * ```
- */
-
-export function CacheFn<ArgsType extends any[], ReturnType, KeyType = ArgsType[0]>(fn: (...args: ArgsType) => ReturnType, {
-    maxSize = 10000,
-    maxAge = 30 * 60 * 1000, // 30 minutes
-    onEviction = () => {},
-    cacheKey = (args: ArgsType) => args[0], // type+provide default so we can infer KeyType
-    ...opts
-}: {
-    maxSize?: number
-    maxAge?: number
-    onEviction?: (...args: any[]) => void
-    cacheKey?: (args: ArgsType) => KeyType
-} = {}) {
-    const cache = new LRU<KeyType, { data: ReturnType, maxAge: number }>({
-        maxSize,
-        maxAge,
-        onEviction,
-    })
-
-    const cachedFn = Object.assign(mem(fn, {
-        cache,
-        cacheKey,
-        ...opts,
-    }), {
-        clear: () => {
-            mem.clear(cachedFn as any)
-            cache.clear()
-        },
-        clearMatching: (matchFn: ((key: KeyType) => boolean)) => clearMatching(cache, matchFn),
-    })
-
-    return cachedFn
-}
-
-/* eslint-enable object-curly-newline */
 
 /**
  * Deferred promise allowing external control of resolve/reject.
@@ -342,91 +219,6 @@ export function Defer<T>(executor: (...args: Parameters<Promise<T>['then']>) => 
         },
     })
 }
-
-/**
- * Returns a limit function that limits concurrency per-key.
- *
- * ```js
- * const limit = LimitAsyncFnByKey(1)
- * limit('channel1', fn)
- * limit('channel2', fn)
- * limit('channel2', fn)
- * ```
- */
-// type LimitFn = ReturnType<typeof pLimit>
-
-// export function LimitAsyncFnByKey<KeyType>(limit = 1) {
-//     const pending = new Map<KeyType, LimitFn>()
-//     const f = async (id: KeyType, fn: () => Promise<any>) => {
-//         const limitFn: LimitFn = (pending.get(id) || pending.set(id, pLimit(limit)).get(id)) as LimitFn
-//         try {
-//             return await limitFn(fn)
-//         } finally {
-//             if (!limitFn.activeCount && !limitFn.pendingCount) {
-//                 if (pending.get(id) === limitFn) {
-//                     // clean up if no more active entries (if not cleared)
-//                     pending.delete(id)
-//                 }
-//             }
-//         }
-//     }
-
-//     f.getActiveCount = (id: KeyType): number => {
-//         const limitFn = pending.get(id)
-//         if (!limitFn) { return 0 }
-//         return limitFn.activeCount
-//     }
-
-//     f.getPendingCount = (id: KeyType): number => {
-//         const limitFn = pending.get(id)
-//         if (!limitFn) { return 0 }
-//         return limitFn.pendingCount
-//     }
-
-//     f.clear = () => {
-//         // note: does not cancel promises
-//         pending.forEach((p) => p.clearQueue())
-//         pending.clear()
-//     }
-//     return f
-// }
-
-/**
- * Execute functions in parallel, but ensure they resolve in the order they were executed
- */
-
-// export function pOrderedResolve<ArgsType extends unknown[], ReturnType>(
-//     fn: (...args: ArgsType) => ReturnType
-// ) {
-//     const queue = pLimit(1)
-//     return Object.assign(async (...args: ArgsType) => {
-//         const d = Defer<ReturnType>()
-//         const done = queue(() => d)
-//         // eslint-disable-next-line promise/catch-or-return
-//         await Promise.resolve(fn(...args)).then(d.resolve, d.reject)
-//         return done
-//     }, {
-//         clear() {
-//             queue.clearQueue()
-//         }
-//     })
-// }
-
-/**
- * Returns a function that executes with limited concurrency.
- */
-
-// export function pLimitFn<ArgsType extends unknown[], ReturnType>(
-//     fn: (...args: ArgsType) => ReturnType | Promise<ReturnType>,
-//     limit = 1
-// ): ((...args: ArgsType) => Promise<ReturnType>) & { clear(): void } {
-//     const queue = pLimit(limit)
-//     return Object.assign((...args: ArgsType) => queue(() => fn(...args)), {
-//         clear() {
-//             queue.clearQueue()
-//         }
-//     })
-// }
 
 /**
  * Only allows one outstanding call.
