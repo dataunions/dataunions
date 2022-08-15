@@ -145,7 +145,8 @@ export class DataUnion {
         return this.contract.getActiveMemberCount()
     }
 
-    /** Sign and send HTTP POST request to join-server, TODO: put signing and error handling into the Rest class maybe? */
+    // TODO: put signing and error handling into the Rest class maybe?
+    /** Sign and send HTTP POST request to join-server */
     private async post<T extends object>(endpointPath: string[], params?: object): Promise<T> {
         const request = {
             chain: this.getChainName(),
@@ -161,8 +162,8 @@ export class DataUnion {
         })
     }
 
+    // TODO: drop old DU support already probably...
     /**
-     * TODO: drop old DU support already probably...
      * Get stats for the DataUnion (version 2).
      * Most of the interface has remained stable, but getStats has been implemented in functions that return
      *   a different number of stats, hence the need for the more complex and very manually decoded query.
