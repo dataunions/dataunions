@@ -19,7 +19,7 @@ function serialize(body: any): string | undefined {
     return typeof body === 'string' ? body : JSON.stringify(body)
 }
 
-export const createQueryString = (query: Record<string, any>) => {
+export const createQueryString = (query: Record<string, any>): string => {
     const withoutEmpty = Object.fromEntries(Object.entries(query).filter(([_k, v]) => v != null))
     return new URLSearchParams(withoutEmpty).toString()
 }
@@ -71,7 +71,7 @@ export class Rest {
         )
     }
 
-    post<T extends object>(urlParts: UrlParts, body?: any, options: FetchOptions = {}) {
+    post<T extends object>(urlParts: UrlParts, body?: null | string | any, options: FetchOptions = {}): Promise<T> {
         return this.fetch<T>(urlParts, {
             ...options,
             options: {
@@ -86,7 +86,7 @@ export class Rest {
         })
     }
 
-    get<T extends object>(urlParts: UrlParts, options: FetchOptions = {}) {
+    get<T extends object>(urlParts: UrlParts, options: FetchOptions = {}): Promise<T> {
         return this.fetch<T>(urlParts, {
             ...options,
             options: {
@@ -96,7 +96,7 @@ export class Rest {
         })
     }
 
-    put<T extends object>(urlParts: UrlParts, body?: any, options: FetchOptions = {}) {
+    put<T extends object>(urlParts: UrlParts, body?: null | string | any, options: FetchOptions = {}): Promise<T> {
         return this.fetch<T>(urlParts, {
             ...options,
             options: {
@@ -111,7 +111,7 @@ export class Rest {
         })
     }
 
-    del<T extends object>(urlParts: UrlParts, options: FetchOptions = {}) {
+    del<T extends object>(urlParts: UrlParts, options: FetchOptions = {}): Promise<T> {
         return this.fetch<T>(urlParts, {
             ...options,
             options: {
