@@ -34,31 +34,32 @@ jobs:
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --no-audit
-      - name: Run lint
-        run: npm run lint --workspaces --if-present
+      # - name: Run lint
+      #   run: npm run lint --workspaces --if-present
       - name: Build and unit test
         run: |
           npm run build
-          npm run test
-      - name: Start MySQL for the monorepo integration test
-        uses: mirromutth/mysql-action@v1.1
-        with:
-          host port: 3800
-          mysql version: '8.0'
-          mysql database: 'join-server-test'
-          mysql root password: 'password'
-      - name: Integration tests (inside monorepo)
-        env:
-          SECRET_DB_SCHEMA: join-server-test
-          SECRET_DB_USER: root
-          SECRET_DB_PASSWORD: password
-          SECRET_DB_HOST: localhost
-          SECRET_DB_PORT: 3800
-        run: |
-          sleep 10 # need to allow some time for mysql to start up
-          mysql --user=root --password=password --host=127.0.0.1 --port=3800 < packages/default-join-server/create_tables.sql
-          echo "./node_modules/.bin" >> $GITHUB_PATH
-          npm run integration-test
+          npm run -w packages/client unit-test
+      #    npm run test
+      # - name: Start MySQL for the monorepo integration test
+      #   uses: mirromutth/mysql-action@v1.1
+      #   with:
+      #     host port: 3800
+      #     mysql version: '8.0'
+      #     mysql database: 'join-server-test'
+      #     mysql root password: 'password'
+      # - name: Integration tests (inside monorepo)
+      #   env:
+      #     SECRET_DB_SCHEMA: join-server-test
+      #     SECRET_DB_USER: root
+      #     SECRET_DB_PASSWORD: password
+      #     SECRET_DB_HOST: localhost
+      #     SECRET_DB_PORT: 3800
+      #   run: |
+      #     sleep 10 # need to allow some time for mysql to start up
+      #     mysql --user=root --password=password --host=127.0.0.1 --port=3800 < packages/default-join-server/create_tables.sql
+      #     echo "./node_modules/.bin" >> $GITHUB_PATH
+      #     npm run integration-test
       # - name: Start Streamr Docker Stack
       #   uses: streamr-dev/streamr-docker-dev-action@v1.0.0
       #   with:
