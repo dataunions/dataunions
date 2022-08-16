@@ -36,10 +36,10 @@ jobs:
         run: npm ci --no-audit
       # - name: Run lint
       #   run: npm run lint --workspaces --if-present
-      # - name: Build and unit test
-      #   run: |
-      #     npm run build
-      #     npm run -w packages/client unit-test
+      - name: Build and unit test
+        run: |
+          npm run build
+          npm run -w packages/client unit-test
       #    npm run test
       # - name: Start MySQL for the monorepo integration test
       #   uses: mirromutth/mysql-action@v1.1
