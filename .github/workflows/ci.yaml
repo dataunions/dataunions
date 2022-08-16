@@ -45,6 +45,7 @@ jobs:
           sudo npm run -w packages/client unit-test || true
           sudo chmod -R +rwx /cores/* # Enable access to core dumps (doesn't need to be in same run block)
       - uses: actions/upload-artifact@master # capture all crashes as build artifacts
+        if: failure()
         with:
           name: crashes
           path: /cores
