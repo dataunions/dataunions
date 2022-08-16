@@ -41,6 +41,8 @@ jobs:
           ulimit -c unlimited         # Enable core dumps to be captured (must be in same run block)
           npm run build
           sudo npm run -w packages/client unit-test || true
+          sudo npm run -w packages/client unit-test || true
+          sudo npm run -w packages/client unit-test || true
           sudo chmod -R +rwx /cores/* # Enable access to core dumps (doesn't need to be in same run block)
       - uses: actions/upload-artifact@master # capture all crashes as build artifacts
         with:
