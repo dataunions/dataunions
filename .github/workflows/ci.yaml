@@ -38,12 +38,14 @@ jobs:
       #   run: npm run lint --workspaces --if-present
       - name: Build and unit test
         run: |
+          ulimit -c unlimited         # Enable core dumps to be captured (must be in same run block)
           npm run build
-          npm run -w packages/client unit-test
-          npm run -w packages/client unit-test
-          npm run -w packages/client unit-test
-          npm run -w packages/client unit-test
-          npm run -w packages/client unit-test
+          sudo npm run -w packages/client unit-test || true
+          sudo chmod -R +rwx /cores/* # Enable access to core dumps (doesn't need to be in same run block)
+      - uses: actions/upload-artifact@master # capture all crashes as build artifacts
+        with:
+          name: crashes
+          path: /cores
       #    npm run test
       # - name: Start MySQL for the monorepo integration test
       #   uses: mirromutth/mysql-action@v1.1
