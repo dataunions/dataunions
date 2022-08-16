@@ -105,7 +105,6 @@
         "lodash": "4.17.21",
         "mem": "8.1.1",
         "node-fetch": "2.6.7",
-        "p-memoize": "4.0.3",
         "readable-stream": "3.6.0",
         "reflect-metadata": "0.1.13",
         "ts-toolbelt": "9.6.0",
