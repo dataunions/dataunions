@@ -1,0 +1,41 @@
+---
+defaults:
+  run:
+    shell: bash
+concurrency:
+  group: ci-${{ github.head_ref }}
+  cancel-in-progress: false
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - uses: ibiqlik/action-yamllint@v3.1.0
+        with:
+          file_or_dir: .
+          strict: true
+          no_warnings: false
+          config_file: .yamllint
+      - run: shellcheck --color=never --check-sourced --shell=bash release*.bash
+  build:
+    needs:
+      - lint
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - uses: actions/setup-node@v3.4.1
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: echo "./node_modules/.bin" >> $GITHUB_PATH
+      - run: npm ci
+      - run: mocha --recursive --check-leaks  test
+      - run: eslint --config .eslintrc.js --ext .js .
