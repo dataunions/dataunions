@@ -46,8 +46,8 @@ beforeAll(async () => {
     await waitForCondition(() => ganacheProvider !== undefined)
 })
 
-afterAll(() => {
-    ethereumRpcServer.close()
+afterAll(async () => {
+    await ethereumRpcServer.close()
 })
 
 async function deployDataUnionTemplate(deployer: Wallet): Promise<DataUnionTemplate> {
