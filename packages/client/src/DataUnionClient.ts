@@ -1,6 +1,6 @@
 import { defaultChainGasPriceStrategy } from './Config'
 import { DATAUNION_CLIENT_DEFAULTS } from './Config'
-import { Plugin } from './utils/Plugin'
+import { Plugin } from './Plugin'
 import DataUnionAPI from './DataUnionAPI'
 import type { DataUnionClientConfig, GasPriceStrategy} from './Config'
 

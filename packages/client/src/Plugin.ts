@@ -1,9 +1,16 @@
+export type AnyInstance = {
+    constructor: {
+        name: string
+        prototype: null | AnyInstance
+    }
+}
+
 /**
  * Take prototype functions from srcInstance and attach them to targetInstance while keeping them bound to srcInstance.
  */
 export function Plugin<
     TargetType,
-    SrcType, //extends AnyInstance,
+    SrcType extends AnyInstance,
     // eslint-disable-next-line
     ResultType extends (TargetType & Methods<SrcType>),
 >(targetInstance: TargetType, srcInstance: SrcType): ResultType {
