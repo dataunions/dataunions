@@ -126,9 +126,3 @@ export class DataUnionClient {
         } : this.overrides
     }
 }
-
-/** @internal */
-// export const Dependencies = {
-//     Context,
-//     DataUnions,
-// }
