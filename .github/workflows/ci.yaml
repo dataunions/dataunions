@@ -45,7 +45,7 @@ jobs:
           sudo npm run -w packages/client unit-test
           sudo npm run -w packages/client unit-test
       - name: make crash dump readable for uploader
-        if: failure()
+        # if: failure()
         run: |
           sudo chmod -R a+rwx /var/crash/*
           exit 1 # trigger next step too
