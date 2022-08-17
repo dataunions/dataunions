@@ -1,5 +1,5 @@
-import type { MaybeAsync } from '../MaybeAsync'
-import { sleep } from '../sleep'
+import type { MaybeAsync } from './MaybeAsync'
+import { sleep } from '../src/sleep'
 
 /**
  * Wait until a condition is true
