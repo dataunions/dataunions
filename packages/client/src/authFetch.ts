@@ -4,8 +4,8 @@
 import pkg from '../package.json'
 import type { Response } from 'node-fetch'
 import fetch from 'node-fetch'
-import type { Debugger} from './utils/log'
-import { Debug, inspect } from './utils/log'
+import type { Debugger} from './log'
+import { Debug, inspect } from './log'
 
 /**
  * Generates counter-based ids.

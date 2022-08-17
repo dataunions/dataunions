@@ -10,7 +10,7 @@ import * as IERC677Json from '@dataunions/contracts/artifacts/contracts/IERC677.
 import type { DataUnionFactory, DataUnionTemplate, IERC677 } from '@dataunions/contracts/typechain'
 
 import { DataUnion } from './DataUnion'
-import { Debug } from './utils/log'
+import { Debug } from './log'
 import type { DataUnionDeployOptions } from './DataUnion'
 import type { EthereumAddress } from './EthereumAddress'
 import type { DataUnionClient } from './DataUnionClient'

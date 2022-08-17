@@ -7,7 +7,7 @@ import { arrayify, hexZeroPad } from '@ethersproject/bytes'
 
 import type { DataUnionTemplate as DataUnionContract } from '@dataunions/contracts/typechain'
 
-import { Debug } from './utils/log'
+import { Debug } from './log'
 import { sleep } from './sleep'
 import { sign } from './signing'
 import type { EthereumAddress } from './EthereumAddress'
