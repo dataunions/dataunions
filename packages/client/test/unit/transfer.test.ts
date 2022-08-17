@@ -3,7 +3,7 @@ import type { Wallet } from '@ethersproject/wallet'
 
 // import { DataUnionClient } from '../../src/DataUnionClient'
 
-import { deployContracts, startServer, getWallets } from './setup'
+import { deployContracts, startServer } from './setup'
 
 // import type { DataUnionClientConfig } from '../../src/Config'
 // import type { DATAv2 } from '@streamr/data-v2'
@@ -24,13 +24,15 @@ describe('DataUnion earnings transfer methods', () => {
     // let clientOptions: Partial<DataUnionClientConfig>
     let server: any
     beforeAll(async () => {
-        server = await startServer(3457)
-        ;[
-            admin,
-        //     // member,
-        //     // otherMember,
-        //     // outsider,
-        ] = getWallets()
+        ({
+            server,
+            wallets: [
+                admin,
+                // member,
+                // otherMember,
+                // outsider
+            ]
+        } = await startServer(3457))
         // const {
         //     token: tokenContract,
         //     dataUnionFactory,

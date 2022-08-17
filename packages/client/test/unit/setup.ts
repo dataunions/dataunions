@@ -30,7 +30,8 @@ const privateKeys = [
 let ganacheProvider: ganache.EthereumProvider
 let ethereumRpcPort: number
 // beforeAll(async () => {
-export async function startServer(port: number): Promise<ganache.Server<"ethereum">> {
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export async function startServer(port: number) {
     ethereumRpcPort = port
     // const ethereumRpcPort = Number.parseInt(process.env.GANACHE_PORT || "3456")
     const ethereumRpcServer = ganache.server({
@@ -48,7 +49,13 @@ export async function startServer(port: number): Promise<ganache.Server<"ethereu
         ganacheProvider = ethereumRpcServer.provider
     })
     await waitForCondition(() => ganacheProvider !== undefined)
-    return ethereumRpcServer
+
+    // @ts-expect-error probably some incompatibility between ethers and ganache
+    const provider = new Web3Provider(ganacheProvider)
+    return {
+        server: ethereumRpcServer,
+        wallets: privateKeys.map((key) => new Wallet(key, provider))
+    }
 }
 
 // afterAll(async () => {
@@ -65,12 +72,6 @@ async function deployDataUnionFactory(deployer: Wallet, templateAddress: string,
     const factory = new ContractFactory(factoryJson.abi, factoryJson.bytecode, deployer)
     const contract = await factory.deploy(templateAddress, tokenAddress) as unknown as DataUnionFactory
     return contract.deployed()
-}
-
-export function getWallets(): Wallet[] {
-    // @ts-expect-error probably some incompatibility between ethers and ganache
-    const provider = new Web3Provider(ganacheProvider)
-    return privateKeys.map((key) => new Wallet(key, provider))
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
