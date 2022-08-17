@@ -3,7 +3,7 @@ import type { Wallet } from '@ethersproject/wallet'
 
 import { DataUnionClient } from '../../src/DataUnionClient'
 
-import { deployContracts, deployDataUnion, getWallets } from './setup'
+import { deployContracts, deployDataUnion, getWallets, startServer } from './setup'
 
 import type { DataUnionClientConfig } from '../../src/Config'
 import type { DATAv2 } from '@streamr/data-v2'
@@ -17,8 +17,10 @@ describe('DataUnion withdrawX functions', () => {
     let duAddress: string
     let token: DATAv2
     let clientOptions: Partial<DataUnionClientConfig>
+    let server: any
     beforeAll(async () => {
-        [
+        server = await startServer(3456)
+        ;[
             admin,
             member,
             otherMember,
@@ -53,6 +55,9 @@ describe('DataUnion withdrawX functions', () => {
                 }]
             }
         }
+    })
+    afterAll(async () => {
+        await server.close()
     })
 
     async function fundDataUnion() {

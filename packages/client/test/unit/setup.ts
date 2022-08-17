@@ -13,16 +13,7 @@ import debug from 'debug'
 import { waitForCondition } from 'streamr-test-utils'
 const log = debug('DataUnionClient:unit-tests:withdraw')
 
-const ethereumRpcPort = Number.parseInt(process.env.GANACHE_PORT || "3456")
-const ethereumRpcServer = ganache.server({
-    // options, see https://github.com/trufflesuite/ganache/tree/develop/src/packages/ganache#startup-options
-    wallet: {
-        mnemonic: "testrpc"
-    },
-    logging: {
-        quiet: true // if only I could make it log to debug, not stdout...
-    }
-})
+// const ganacheProvider = new JsonRpcProvider('http://localhost:3456')
 
 const privateKeys = [
     "0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0",
@@ -37,18 +28,32 @@ const privateKeys = [
 ]
 
 let ganacheProvider: ganache.EthereumProvider
-beforeAll(async () => {
+let ethereumRpcPort: number
+// beforeAll(async () => {
+export async function startServer(port: number): Promise<ganache.Server<"ethereum">> {
+    ethereumRpcPort = port
+    // const ethereumRpcPort = Number.parseInt(process.env.GANACHE_PORT || "3456")
+    const ethereumRpcServer = ganache.server({
+        // options, see https://github.com/trufflesuite/ganache/tree/develop/src/packages/ganache#startup-options
+        wallet: {
+            mnemonic: "testrpc"
+        },
+        logging: {
+            quiet: true // if only I could make it log to debug, not stdout...
+        }
+    })
     ethereumRpcServer.listen(ethereumRpcPort, async (err) => {
         if (err) { throw err }
         log(`Ganache started in port ${ethereumRpcPort}`)
         ganacheProvider = ethereumRpcServer.provider
     })
     await waitForCondition(() => ganacheProvider !== undefined)
-})
+    return ethereumRpcServer
+}
 
-afterAll(async () => {
-    await ethereumRpcServer.close()
-})
+// afterAll(async () => {
+//     await ethereumRpcServer.close()
+// })
 
 async function deployDataUnionTemplate(deployer: Wallet): Promise<DataUnionTemplate> {
     const factory = new ContractFactory(templateJson.abi, templateJson.bytecode, deployer)
