@@ -81,6 +81,7 @@
         "streamr-test-utils": "^2.0.0",
         "ts-jest": "28.0.5",
         "ts-loader": "^9.2.6",
+        "ts-toolbelt": "9.6.0",
         "typescript": "4.7.4",
         "util": "^0.12.4",
         "weak-napi": "^2.0.2"
@@ -107,7 +108,6 @@
         "node-fetch": "2.6.7",
         "readable-stream": "3.6.0",
         "reflect-metadata": "0.1.13",
-        "ts-toolbelt": "9.6.0",
         "tsyringe": "4.6.0",
         "uuid": "8.3.2"
     },
