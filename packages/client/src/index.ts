@@ -19,7 +19,7 @@ export type { ExternalProvider } from '@ethersproject/providers'
 export type { ConnectionInfo } from '@ethersproject/web'
 
 export { DataUnionConfig, DATAUNION_CLIENT_DEFAULTS } from './Config'
-export * from './types'
+export * from './EthereumAddress'
 
 export * from './DataUnionClient'
 

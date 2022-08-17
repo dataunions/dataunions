@@ -12,7 +12,7 @@ import type { DataUnionFactory, DataUnionTemplate, IERC677 } from '@dataunions/c
 import { DataUnion } from './DataUnion'
 import { Debug } from './utils/log'
 import type { DataUnionDeployOptions } from './DataUnion'
-import type { EthereumAddress } from './types'
+import type { EthereumAddress } from './EthereumAddress'
 import type { DataUnionClient } from './DataUnionClient'
 
 const log = Debug('DataUnionAPI')
