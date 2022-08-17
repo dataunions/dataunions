@@ -1,5 +1,21 @@
+import { deployContracts, getWallets } from './setup'
+
 describe('DataUnion joining using join-server', () => {
-    it('', () => {})
+    it('sets up', async () => {
+        const [
+            admin,
+        ] = getWallets()
+        const {
+            token,
+            dataUnionFactory,
+            dataUnionTemplate,
+            ethereumUrl
+        } = await deployContracts(admin)
+        console.log(`tokenContract.address: ${token.address}`)
+        console.log(`dataUnionFactory.address: ${dataUnionFactory.address}`)
+        console.log(`dataUnionTemplate.address: ${dataUnionTemplate.address}`)
+        console.log(`ethereumUrl: ${ethereumUrl}`)
+    })
 })
 /* TODO
 import type { Wallet } from '@ethersproject/wallet'
