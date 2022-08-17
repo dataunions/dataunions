@@ -2,7 +2,7 @@ import type { BigNumber } from '@ethersproject/bignumber'
 import type { Overrides } from '@ethersproject/contracts'
 import type { ExternalProvider } from '@ethersproject/providers'
 import type { ConnectionInfo } from '@ethersproject/web'
-import type { EthereumAddress } from './types'
+import type { EthereumAddress } from './EthereumAddress'
 
 /**
  * @category Important

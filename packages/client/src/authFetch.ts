@@ -1,12 +1,66 @@
 /**
  * Wrap fetch with default headers performing authentication if required.
  */
+import pkg from '../package.json'
 import type { Response } from 'node-fetch'
 import fetch from 'node-fetch'
-import type { Debugger} from './utils/log'
-import { Debug, inspect } from './utils/log'
+import type { Debugger} from './log'
+import { Debug, inspect } from './log'
 
-import { getVersionString, counterId } from './utils'
+/**
+ * Generates counter-based ids.
+ * Basically lodash.uniqueid but per-prefix.
+ * Not universally unique.
+ * Generally useful for tracking instances.
+ *
+ * Careful not to use too many prefixes since it needs to hold all prefixes in memory
+ * e.g. don't pass new uuid as a prefix
+ *
+ * counterId('test') => test.0
+ * counterId('test') => test.1
+ */
+const CounterId = (rootPrefix?: string, { maxPrefixes = 256 }: { maxPrefixes?: number } = {}) => {
+    const SEPARATOR = '-'
+    let counts: { [prefix: string]: number } = {} // possible we could switch this to WeakMap and pass functions or classes.
+    let didWarn = false
+    const counterIdFn = (prefix = 'ID', separator = SEPARATOR) => {
+        // pedantic: wrap around if count grows too large
+        counts[prefix] = (counts[prefix] + 1 || 0) % Number.MAX_SAFE_INTEGER
+
+        // warn once if too many prefixes
+        if (!didWarn) {
+            const numTracked = Object.keys(counts).length
+            if (numTracked > maxPrefixes) {
+                didWarn = true
+                console.warn(`counterId should not be used for a large number of unique prefixes: ${numTracked} > ${maxPrefixes}`)
+            }
+        }
+
+        // connect prefix with separator
+        return [rootPrefix, prefix, counts[prefix]]
+            .filter((v) => v != null) // remove {root}Prefix if not set
+            .join(separator)
+    }
+
+    /**
+     * Clears counts for prefix or all if no prefix supplied.
+     *
+     * @param {string?} prefix
+     */
+    counterIdFn.clear = (...args: [string] | []) => {
+        // check length to differentiate between clear(undefined) & clear()
+        if (args.length) {
+            const [prefix] = args
+            delete counts[prefix]
+        } else {
+            // clear all
+            counts = {}
+        }
+    }
+    return counterIdFn
+}
+
+const counterId = CounterId()
 
 export enum ErrorCode {
     NOT_FOUND = 'NOT_FOUND',
@@ -14,8 +68,18 @@ export enum ErrorCode {
     UNKNOWN = 'UNKNOWN'
 }
 
+function getVersion() {
+    // dev deps are removed for production build
+    const hasDevDependencies = !!(pkg.devDependencies && Object.keys(pkg.devDependencies).length)
+    const isProduction = process.env.NODE_ENV === 'production' || hasDevDependencies
+    return `${pkg.version}${!isProduction ? 'dev' : ''}`
+}
+
+// hardcode this at module exec time as can't change
+const versionString = getVersion()
+
 export const DEFAULT_HEADERS = {
-    'Data-Union-Client': `data-union-client-javascript/${getVersionString()}`,
+    'Data-Union-Client': `data-union-client-javascript/${versionString}`,
 }
 
 export class AuthFetchError extends Error {
