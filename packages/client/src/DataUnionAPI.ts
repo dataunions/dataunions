@@ -122,8 +122,8 @@ export default class DataUnionAPI {
         const dataUnionFeeBN = BigNumber.from((dataUnionFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish
         const dataUnionBeneficiaryAddress = getAddress(dataUnionBeneficiary)
 
-        const ethersOptions: any = {}
-        if (gasPrice) { ethersOptions.gasPrice = gasPrice }
+        const ethersOverrides = this.client.getOverrides()
+        if (gasPrice) { ethersOverrides.gasPrice = gasPrice }
 
         // function deployNewDataUnionUsingToken(
         //     address token,
@@ -141,7 +141,7 @@ export default class DataUnionAPI {
             adminFeeBN,
             dataUnionFeeBN,
             dataUnionBeneficiaryAddress,
-            ethersOptions
+            ethersOverrides
         )
         const receipt = await tx.wait(confirmations)
 
@@ -188,8 +188,8 @@ export default class DataUnionAPI {
         const dataUnionFeeBN = BigNumber.from((dataUnionFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish
         const dataUnionBeneficiaryAddress = getAddress(dataUnionBeneficiary)
 
-        const ethersOptions: any = {}
-        if (gasPrice) { ethersOptions.gasPrice = gasPrice }
+        const ethersOverrides = this.client.getOverrides()
+        if (gasPrice) { ethersOverrides.gasPrice = gasPrice }
 
         // function deployNewDataUnion(
         //     address payable owner,
@@ -205,7 +205,7 @@ export default class DataUnionAPI {
             dataUnionFeeBN,
             dataUnionBeneficiaryAddress,
             agentAddressList,
-            ethersOptions
+            ethersOverrides
         )
         const receipt = await tx.wait(confirmations)
 

@@ -61,6 +61,13 @@ export interface MemberStats {
     withdrawableEarnings: BigNumber
 }
 
+export interface SecretsResponse {
+    secret: string
+    dataUnion: EthereumAddress
+    chain: string
+    name: string
+}
+
 const log = Debug('DataUnion')
 
 type WaitForTXOptions = {
@@ -116,24 +123,143 @@ export class DataUnion {
         return this.client.chainName
     }
 
-    // Member functions
+    async getOwner(): Promise<EthereumAddress> {
+        return this.contract.owner()
+    }
 
     /**
-     * Send HTTP(s) request to the join server, asking to join the data union
+     * Get data union admin fee fraction (between 0.0 and 1.0) that admin gets from each revenue event
+     * Version 2.2: admin fee is collected in DataUnionSidechain
+     * Version 2.0: admin fee was collected in DataUnionMainnet
      */
-    async join(params?: object): Promise<JoinResponse> {
+    async getAdminFee(): Promise<number> {
+        const adminFeeBN = await this.contract.adminFeeFraction()
+        return +adminFeeBN.toString() / 1e18
+    }
+
+    async getAdminAddress(): Promise<EthereumAddress> {
+        return this.contract.owner()
+    }
+
+    async getActiveMemberCount(): Promise<number> {
+        return this.contract.getActiveMemberCount()
+    }
+
+    // TODO: put signing and error handling into the Rest class maybe?
+    /** Sign and send HTTP POST request to join-server */
+    private async post<T extends object>(endpointPath: string[], params?: object): Promise<T> {
         const request = {
             chain: this.getChainName(),
             dataUnion: this.getAddress(),
             ...params
         }
         const signedRequest = await sign(request, this.client.wallet)
-        return this.joinServer.post<JoinResponse>(["join"], signedRequest).catch((err) => {
+        return this.joinServer.post<T>(endpointPath, signedRequest).catch((err) => {
             if (err.message?.match(/cannot estimate gas/)) {
-                throw new Error("Data Union join server couldn't send the join transaction. Please contact the join-server administrator.")
+                throw new Error("Data Union join-server couldn't send the join transaction. Please contact the join-server administrator.")
             }
             throw err
         })
+    }
+
+    // TODO: drop old DU support already probably...
+    /**
+     * Get stats for the DataUnion (version 2).
+     * Most of the interface has remained stable, but getStats has been implemented in functions that return
+     *   a different number of stats, hence the need for the more complex and very manually decoded query.
+     */
+    async getStats(): Promise<DataUnionStats> {
+        const provider = this.client.wallet.provider!
+        const getStatsResponse = await provider.call({
+            to: this.getAddress(),
+            data: '0xc59d4847', // getStats()
+        })
+        log('getStats raw response (length = %d) %s', getStatsResponse.length, getStatsResponse)
+
+        // Attempt to decode longer response first; if that fails, try the shorter one. Decoding too little won't throw, but decoding too much will
+        // for uint[9] returning getStats, see e.g. https://blockscout.com/xdai/mainnet/address/0x15287E573007d5FbD65D87ed46c62Cf4C71Dd66d/contracts
+        // for uint[6] returning getStats, see e.g. https://blockscout.com/xdai/mainnet/address/0x71586e2eb532612F0ae61b624cb0a9c26e2F4c3B/contracts
+        try {
+            const [[
+                totalRevenue, totalEarnings, totalAdminFees, totalDataUnionFees, totalWithdrawn,
+                activeMemberCount, inactiveMemberCount, lifetimeMemberEarnings, joinPartAgentCount
+            ]] = defaultAbiCoder.decode(['uint256[9]'], getStatsResponse) as BigNumber[][]
+            return {
+                totalRevenue, // == earnings (that go to members) + adminFees + dataUnionFees
+                totalAdminFees,
+                totalDataUnionFees,
+                totalEarnings,
+                totalWithdrawable: totalEarnings.sub(totalWithdrawn),
+                activeMemberCount,
+                inactiveMemberCount,
+                joinPartAgentCount,
+                lifetimeMemberEarnings,
+            }
+        } catch (e) { }
+
+        try {
+            const [[
+                totalEarnings, totalEarningsWithdrawn, activeMemberCount, inactiveMemberCount,
+                lifetimeMemberEarnings, joinPartAgentCount
+            ]] = defaultAbiCoder.decode(['uint256[6]'], getStatsResponse) as BigNumber[][]
+            return {
+                totalEarnings,
+                totalWithdrawable: totalEarnings.sub(totalEarningsWithdrawn),
+                activeMemberCount,
+                inactiveMemberCount,
+                joinPartAgentCount,
+                lifetimeMemberEarnings,
+            }
+        } catch (e) {
+            throw new Error(`getStats failed to decode response: ${e.message}`)
+        }
+    }
+
+    /**
+     * Get stats of a single data union member
+     */
+    async getMemberStats(memberAddress: EthereumAddress): Promise<MemberStats> {
+        const address = getAddress(memberAddress)
+        // TODO: use duSidechain.getMemberStats(address) once it's implemented, to ensure atomic read
+        //        (so that memberData is from same block as getEarnings, otherwise withdrawable will be foobar)
+        const [
+            [statusCode, earningsBeforeLastJoin, , withdrawnEarnings],
+            totalEarnings
+        ] = await Promise.all([
+            this.contract.memberData(address),
+            this.contract.getEarnings(address).catch(() => BigNumber.from(0)),
+        ])
+        const withdrawable = totalEarnings.gt(withdrawnEarnings) ? totalEarnings.sub(withdrawnEarnings) : BigNumber.from(0)
+        const statusStrings = [MemberStatus.NONE, MemberStatus.ACTIVE, MemberStatus.INACTIVE]
+        return {
+            status: statusStrings[statusCode],
+            earningsBeforeLastJoin,
+            totalEarnings,
+            withdrawableEarnings: withdrawable,
+        }
+    }
+
+    /**
+     * Get the amount of tokens the member would get from a successful withdraw
+     */
+    async getWithdrawableEarnings(memberAddress: EthereumAddress): Promise<BigNumber> {
+        return this.contract.getWithdrawableEarnings(getAddress(memberAddress)).catch((error) => {
+            if (error.message.includes('error_notMember')) {
+                throw new Error(`${memberAddress} is not a member of this DataUnion`)
+            }
+            throw error
+        })
+    }
+
+    ///////////////////////////////
+    // Member functions
+    ///////////////////////////////
+
+    /**
+     * Send HTTP(s) request to the join server, asking to join the data union
+     */
+    async join(params?: object): Promise<JoinResponse> {
+        return this.post<JoinResponse>(["join"], params)
     }
 
     /**
@@ -244,117 +370,40 @@ export class DataUnion {
         return signature
     }
 
-    // Query functions
-
     /**
-     * Get stats for the DataUnion (version 2).
-     * Most of the interface has remained stable, but getStats has been implemented in functions that return
-     *   a different number of stats, hence the need for the more complex and very manually decoded query.
+     * Transfer an amount of earnings to another member in DataunionSidechain
+     * @param memberAddress - the other member who gets their tokens out of the DataUnion
+     * @param amountTokenWei - the amount that want to add to the member
+     * @returns receipt once transfer transaction is confirmed
      */
-    async getStats(): Promise<DataUnionStats> {
-        const provider = this.client.wallet.provider!
-        const getStatsResponse = await provider.call({
-            to: this.getAddress(),
-            data: '0xc59d4847', // getStats()
-        })
-        log('getStats raw response (length = %d) %s', getStatsResponse.length, getStatsResponse)
-
-        // Attempt to decode longer response first; if that fails, try the shorter one. Decoding too little won't throw, but decoding too much will
-        // for uint[9] returning getStats, see e.g. https://blockscout.com/xdai/mainnet/address/0x15287E573007d5FbD65D87ed46c62Cf4C71Dd66d/contracts
-        // for uint[6] returning getStats, see e.g. https://blockscout.com/xdai/mainnet/address/0x71586e2eb532612F0ae61b624cb0a9c26e2F4c3B/contracts
-        try {
-            const [[
-                totalRevenue, totalEarnings, totalAdminFees, totalDataUnionFees, totalWithdrawn,
-                activeMemberCount, inactiveMemberCount, lifetimeMemberEarnings, joinPartAgentCount
-            ]] = defaultAbiCoder.decode(['uint256[9]'], getStatsResponse) as BigNumber[][]
-            return {
-                totalRevenue, // == earnings (that go to members) + adminFees + dataUnionFees
-                totalAdminFees,
-                totalDataUnionFees,
-                totalEarnings,
-                totalWithdrawable: totalEarnings.sub(totalWithdrawn),
-                activeMemberCount,
-                inactiveMemberCount,
-                joinPartAgentCount,
-                lifetimeMemberEarnings,
-            }
-        } catch (e) {
-            const [[
-                totalEarnings, totalEarningsWithdrawn, activeMemberCount, inactiveMemberCount,
-                lifetimeMemberEarnings, joinPartAgentCount
-            ]] = defaultAbiCoder.decode(['uint256[6]'], getStatsResponse) as BigNumber[][]
-            return {
-                totalEarnings,
-                totalWithdrawable: totalEarnings.sub(totalEarningsWithdrawn),
-                activeMemberCount,
-                inactiveMemberCount,
-                joinPartAgentCount,
-                lifetimeMemberEarnings,
-            }
-        } // TODO: maybe catch and re-throw with a better error message
+    async transferWithinContract(
+        memberAddress: EthereumAddress,
+        amountTokenWei: BigNumber | number | string
+    ): Promise<ContractReceipt> {
+        const address = getAddress(memberAddress) // throws if bad address
+        const ethersOverrides = this.client.getOverrides()
+        const tx = await this.contract.transferWithinContract(address, amountTokenWei, ethersOverrides)
+        return waitOrRetryTx(tx)
     }
 
-    /**
-     * Get stats of a single data union member
-     */
-    async getMemberStats(memberAddress: EthereumAddress): Promise<MemberStats> {
-        const address = getAddress(memberAddress)
-        // TODO: use duSidechain.getMemberStats(address) once it's implemented, to ensure atomic read
-        //        (so that memberData is from same block as getEarnings, otherwise withdrawable will be foobar)
-        const [
-            [statusCode, earningsBeforeLastJoin, , withdrawnEarnings],
-            totalEarnings
-        ] = await Promise.all([
-            this.contract.memberData(address),
-            this.contract.getEarnings(address).catch(() => BigNumber.from(0)),
-        ])
-        const withdrawable = totalEarnings.gt(withdrawnEarnings) ? totalEarnings.sub(withdrawnEarnings) : BigNumber.from(0)
-        const statusStrings = [MemberStatus.NONE, MemberStatus.ACTIVE, MemberStatus.INACTIVE]
-        return {
-            status: statusStrings[statusCode],
-            earningsBeforeLastJoin,
-            totalEarnings,
-            withdrawableEarnings: withdrawable,
-        }
-    }
-
-    /**
-     * Get the amount of tokens the member would get from a successful withdraw
-     */
-    async getWithdrawableEarnings(memberAddress: EthereumAddress): Promise<BigNumber> {
-        return this.contract.getWithdrawableEarnings(getAddress(memberAddress)).catch((error) => {
-            if (error.message.includes('error_notMember')) {
-                throw new Error(`${memberAddress} is not a member of this DataUnion`)
-            }
-            throw error
-        })
-    }
-
-    /**
-     * Get data union admin fee fraction (between 0.0 and 1.0) that admin gets from each revenue event
-     * Version 2.2: admin fee is collected in DataUnionSidechain
-     * Version 2.0: admin fee was collected in DataUnionMainnet
-     */
-    async getAdminFee(): Promise<number> {
-        const adminFeeBN = await this.contract.adminFeeFraction()
-        return +adminFeeBN.toString() / 1e18
-    }
-
-    async getAdminAddress(): Promise<EthereumAddress> {
-        return this.contract.owner()
-    }
-
-    async getActiveMemberCount(): Promise<number> {
-        return this.contract.getActiveMemberCount()
-    }
-
+    ///////////////////////////////
     // Admin functions
+    ///////////////////////////////
 
     /**
      * Add a new data union secret
+     * For data unions that use the default-join-server, members can join without specific approval using this secret
      */
-    async createSecret(_name: string = 'Untitled DataUnion Secret'): Promise<string> {
-        throw new Error("not implemented")
+    async createSecret(name: string = 'Untitled Data Union Secret'): Promise<SecretsResponse> {
+        return this.post<SecretsResponse>(['secrets', 'create'], { name })
+    }
+
+    async deleteSecret(secretId: string): Promise<SecretsResponse> {
+        return this.post<SecretsResponse>(['secrets', 'delete'], { secretId })
+    }
+
+    async listSecrets(): Promise<SecretsResponse[]> {
+        return this.post<SecretsResponse[]>(['secrets', 'list'])
     }
 
     /**
@@ -381,7 +430,6 @@ export class DataUnion {
 
     /**
      * Admin: withdraw earnings (pay gas) on behalf of a member
-     * TODO: add test
      * @param memberAddress - the other member who gets their tokens out of the DataUnion
      */
     async withdrawAllToMember(
@@ -510,25 +558,5 @@ export class DataUnion {
 
         const tx = await this.contract.transferToMemberInContract(address, amount, ethersOverrides)
         return waitOrRetryTx(tx)
-    }
-
-    /**
-     * Transfer an amount of earnings to another member in DataunionSidechain
-     * @param memberAddress - the other member who gets their tokens out of the DataUnion
-     * @param amountTokenWei - the amount that want to add to the member
-     * @returns receipt once transfer transaction is confirmed
-     */
-    async transferWithinContract(
-        memberAddress: EthereumAddress,
-        amountTokenWei: BigNumber | number | string
-    ): Promise<ContractReceipt> {
-        const address = getAddress(memberAddress) // throws if bad address
-        const ethersOverrides = this.client.getOverrides()
-        const tx = await this.contract.transferWithinContract(address, amountTokenWei, ethersOverrides)
-        return waitOrRetryTx(tx)
-    }
-
-    async getOwner(): Promise<EthereumAddress> {
-        return this.contract.owner()
     }
 }

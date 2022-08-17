@@ -95,7 +95,7 @@ export class Rest {
         })
     }
 
-    del<T extends object>(urlParts: UrlParts, options: FetchOptions = {}): Promise<T> {
+    delete<T extends object>(urlParts: UrlParts, options: FetchOptions = {}): Promise<T> {
         return this.fetch<T>(urlParts, {
             ...options,
             options: {

@@ -115,6 +115,10 @@ export class DataUnionClient {
         return this.wallet.getAddress()
     }
 
+    close(): void {
+        this.wallet.provider!.removeAllListeners()
+    }
+
     /**
      * Apply the gasPriceStrategy to the estimated gas price, if given in options.network.gasPriceStrategy
      * Ethers.js will resolve the gas price promise before sending the tx
