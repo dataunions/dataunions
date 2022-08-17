@@ -1,12 +1,13 @@
 /**
  * Wrap fetch with default headers performing authentication if required.
  */
+import pkg from '../package.json'
 import type { Response } from 'node-fetch'
 import fetch from 'node-fetch'
 import type { Debugger} from './utils/log'
 import { Debug, inspect } from './utils/log'
 
-import { getVersionString, counterId } from './utils'
+import { counterId } from './utils'
 
 export enum ErrorCode {
     NOT_FOUND = 'NOT_FOUND',
@@ -14,8 +15,18 @@ export enum ErrorCode {
     UNKNOWN = 'UNKNOWN'
 }
 
+function getVersion() {
+    // dev deps are removed for production build
+    const hasDevDependencies = !!(pkg.devDependencies && Object.keys(pkg.devDependencies).length)
+    const isProduction = process.env.NODE_ENV === 'production' || hasDevDependencies
+    return `${pkg.version}${!isProduction ? 'dev' : ''}`
+}
+
+// hardcode this at module exec time as can't change
+const versionString = getVersion()
+
 export const DEFAULT_HEADERS = {
-    'Data-Union-Client': `data-union-client-javascript/${getVersionString()}`,
+    'Data-Union-Client': `data-union-client-javascript/${versionString}`,
 }
 
 export class AuthFetchError extends Error {

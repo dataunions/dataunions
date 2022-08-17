@@ -1,4 +1,3 @@
-import pkg from '../../package.json'
 import type { MaybeAsync } from '../types'
 import { Debug } from './log'
 
@@ -69,20 +68,6 @@ export type AnyInstance = {
 
 export function instanceId(instance: AnyInstance, suffix = '') {
     return counterId(instance.constructor.name) + suffix
-}
-
-function getVersion() {
-    // dev deps are removed for production build
-    const hasDevDependencies = !!(pkg.devDependencies && Object.keys(pkg.devDependencies).length)
-    const isProduction = process.env.NODE_ENV === 'production' || hasDevDependencies
-    return `${pkg.version}${!isProduction ? 'dev' : ''}`
-}
-
-// hardcode this at module exec time as can't change
-const versionString = getVersion()
-
-export function getVersionString() {
-    return versionString
 }
 
 export async function sleep(ms: number = 0) {
