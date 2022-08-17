@@ -108,9 +108,6 @@
         "reflect-metadata": "0.1.13",
         "uuid": "8.3.2"
     },
-    "optionalDependencies": {
-        "utf-8-validate": "^5.0.7"
-    },
     "bugs": {
         "url": "https://github.com/dataunions/data-union/issues"
     },
