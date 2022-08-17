@@ -48,7 +48,7 @@ jobs:
           sudo npm run -w packages/client unit-test
           sudo npm run -w packages/client unit-test
           sudo npm run -w packages/client unit-test
-          sudo chmod -R +rwx /var/crash/*
+          sudo chmod -R a+rwx /var/crash/*
       - uses: actions/upload-artifact@master # capture all crashes as build artifacts
         if: failure()
         with:
