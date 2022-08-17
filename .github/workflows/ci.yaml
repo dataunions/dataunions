@@ -45,25 +45,6 @@ jobs:
           sudo npm run -w packages/client unit-test || true
           sudo npm run -w packages/client unit-test || true
           sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
-          sudo npm run -w packages/client unit-test || true
           sudo chmod -R +rwx /var/crash/*
       - uses: actions/upload-artifact@master # capture all crashes as build artifacts
         if: failure()
