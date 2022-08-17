@@ -1,12 +1,12 @@
 // import { parseEther, formatEther } from '@ethersproject/units'
-// import type { Wallet } from '@ethersproject/wallet'
+import type { Wallet } from '@ethersproject/wallet'
 
 // import { DataUnionClient } from '../../src/DataUnionClient'
 
-// import { deployContracts, deployDataUnion, getWallets } from './setup'
+import { deployContracts, deployDataUnion, getWallets } from './setup'
 
 // import type { DataUnionClientConfig } from '../../src/Config'
-// import type { DATAv2 } from '@streamr/data-v2'
+import type { DATAv2 } from '@streamr/data-v2'
 // import type { BigNumberish } from '@ethersproject/bignumber'
 // import type { DataUnionTemplate } from '@dataunions/contracts/typechain'
 
@@ -14,51 +14,52 @@ const { log } = console
 
 describe('DataUnion earnings transfer methods', () => {
 
-    // let admin: Wallet
+    let admin: Wallet
     // let member: Wallet
     // let otherMember: Wallet
-    // // let outsider: Wallet
+    // let outsider: Wallet
     // let duAddress: string
-    // let token: DATAv2
+    let token: DATAv2
     // let duContract: DataUnionTemplate
     // let clientOptions: Partial<DataUnionClientConfig>
-    // beforeAll(async () => {
-    //     [
-    //         admin,
-    //         member,
-    //         otherMember,
-    //         // outsider,
-    //     ] = getWallets()
-    //     const {
-    //         token: tokenContract,
-    //         dataUnionFactory,
-    //         dataUnionTemplate,
-    //         ethereumUrl
-    //     } = await deployContracts(admin)
-    //     token = tokenContract
-    //     duContract = await deployDataUnion(dataUnionFactory, token)
-    //     duAddress = duContract.address
-    //     await (await duContract.addMembers([member.address, otherMember.address])).wait()
+    beforeAll(async () => {
+        [
+            admin,
+            // member,
+            // otherMember,
+            // outsider,
+        ] = getWallets()
+        const {
+            token: tokenContract,
+            dataUnionFactory,
+            // dataUnionTemplate,
+            // ethereumUrl
+        } = await deployContracts(admin)
+        token = tokenContract
+        // duContract =
+        await deployDataUnion(dataUnionFactory, token)
+        // duAddress = duContract.address
+        // await (await duContract.addMembers([member.address, otherMember.address])).wait()
 
-    //     clientOptions = {
-    //         auth: {
-    //             privateKey: member.privateKey
-    //         },
-    //         tokenAddress: token.address,
-    //         dataUnion: {
-    //             factoryAddress: dataUnionFactory.address,
-    //             templateAddress: dataUnionTemplate.address,
-    //             duBeneficiaryAddress: admin.address,
-    //             joinPartAgentAddress: "0x0000000000000000000000000000000000000000",
-    //         },
-    //         network: {
-    //             rpcs: [{
-    //                 url: ethereumUrl,
-    //                 timeout: 30 * 1000
-    //             }]
-    //         }
-    //     }
-    // })
+        // clientOptions = {
+        //     auth: {
+        //         privateKey: member.privateKey
+        //     },
+        //     tokenAddress: token.address,
+        //     dataUnion: {
+        //         factoryAddress: dataUnionFactory.address,
+        //         templateAddress: dataUnionTemplate.address,
+        //         duBeneficiaryAddress: admin.address,
+        //         joinPartAgentAddress: "0x0000000000000000000000000000000000000000",
+        //     },
+        //     network: {
+        //         rpcs: [{
+        //             url: ethereumUrl,
+        //             timeout: 30 * 1000
+        //         }]
+        //     }
+        // }
+    })
 
     // async function fundDataUnion(dataUnionAddress: string, amountWei: BigNumberish) {
     //     await (await token.mint(await token.signer.getAddress(), amountWei)).wait()
@@ -69,6 +70,7 @@ describe('DataUnion earnings transfer methods', () => {
     it('transfer earnings to another member within data union', async () => {
         // const client = new DataUnionClient(clientOptions)
         // const dataUnion = await client.getDataUnion(duAddress)
+        // console.log('dataUnion: %o', dataUnion)
         log('testing')
 
         // await fundDataUnion(duAddress, parseEther('2'))
