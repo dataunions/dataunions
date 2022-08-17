@@ -3,7 +3,6 @@ const { assert } = require('chai')
 const DB = require('../../src/db/SecretDB')
 require('dotenv').config()
 
-// TODO: add test setup to root ci.yaml, see ./.github/workflows/ci.yaml (which should be deleted)
 describe('DB', () => {
 
 	let sequelize

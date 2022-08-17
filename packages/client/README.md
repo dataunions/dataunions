@@ -88,6 +88,33 @@ Setting a new admin fee:
 // Any number between 0 and 1, inclusive
 const receipt = await dataUnion.setAdminFee(0.4)
 ```
+
+If the Data Union is set up to use the [default join server](https://github.com/dataunions/data-unions/tree/main/packages/default-join-server) then members can join the Data Union by giving a correct secret.
+
+Admin can add secrets that allow anyone to join, as well as revoke those secrets, using the following functions:
+```js
+await dataUnion.createSecret() // returns the newly created secret
+await dataUnion.createSecret('user XYZ') // admin can also give the secret a more human-readable name
+await dataUnion.deleteSecret(secret) // secret as returned by createSecret
+await dataUnion.listSecrets() // in case you forgot ;)
+```
+
+The `dataUnion.createSecret()` response will look like the following:
+```js
+{
+	"secret": "0fc6b4d6-6558-4c04-b42e-49a8ae5b5ebf",
+	"dataUnion": "0x12345",
+	"chain": "polygon",
+	"name": "A human-readable label for the new secret"
+}
+```
+
+The member can then join using that same response object, or simply an object with the correct field "secret":
+```js
+await dataUnion.join(secretResponse)
+await dataUnion.join({ secret: "0fc6b4d6-6558-4c04-b42e-49a8ae5b5ebf" })
+```
+
 #### Query functions
 These are available for everyone and anyone, to query publicly available info from a Data Union.
 
