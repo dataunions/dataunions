@@ -97,42 +97,42 @@ describe('DataUnion earnings transfer methods', () => {
 
     // TODO: add test for error_insufficientBalance (remove fundDataUnion, basically)
 
-    it.each([true, false])('transfer token from outside to member earnings, approveFirst=%p', async (approveFirst: boolean) => {
-        // TODO: use outsider once it works, see ETH-321; remove these 2 lines and use the commented-out below
-        const client = new DataUnionClient(clientOptions)
-        await (await token.mint(member.address, parseEther('1'))).wait()
+    // it.each([true, false])('transfer token from outside to member earnings, approveFirst=%p', async (approveFirst: boolean) => {
+    //     // TODO: use outsider once it works, see ETH-321; remove these 2 lines and use the commented-out below
+    //     const client = new DataUnionClient(clientOptions)
+    //     await (await token.mint(member.address, parseEther('1'))).wait()
 
-        // const client = new DataUnionClient({ ...clientOptions, auth: { privateKey: outsider.privateKey } })
-        // await (await token.mint(outsider.address, parseEther('1'))).wait()
-        const dataUnion = await client.getDataUnion(duAddress)
-        const statsBefore = await dataUnion.getMemberStats(member.address)
-        const stats2Before = await dataUnion.getMemberStats(otherMember.address)
-        log('Stats before: %O, %O', statsBefore, stats2Before)
+    //     // const client = new DataUnionClient({ ...clientOptions, auth: { privateKey: outsider.privateKey } })
+    //     // await (await token.mint(outsider.address, parseEther('1'))).wait()
+    //     const dataUnion = await client.getDataUnion(duAddress)
+    //     const statsBefore = await dataUnion.getMemberStats(member.address)
+    //     const stats2Before = await dataUnion.getMemberStats(otherMember.address)
+    //     log('Stats before: %O, %O', statsBefore, stats2Before)
 
-        // if approval hasn't been done, transferToMemberInContract should do it; test both with and without
-        // TODO: this can be removed as soon as ERC677 feature is deployed; see DataUnion.ts:transferToMemberInContract
-        if (approveFirst) {
-            // await (await token.connect(outsider).approve(duAddress, parseEther('1'))).wait()
-            await (await token.connect(member).approve(duAddress, parseEther('1'))).wait()
-            // log(`Approved DU ${dataUnion.getAddress()} to spend 1 token from ${outsider.address}`)
-        }
+    //     // if approval hasn't been done, transferToMemberInContract should do it; test both with and without
+    //     // TODO: this can be removed as soon as ERC677 feature is deployed; see DataUnion.ts:transferToMemberInContract
+    //     if (approveFirst) {
+    //         // await (await token.connect(outsider).approve(duAddress, parseEther('1'))).wait()
+    //         await (await token.connect(member).approve(duAddress, parseEther('1'))).wait()
+    //         // log(`Approved DU ${dataUnion.getAddress()} to spend 1 token from ${outsider.address}`)
+    //     }
 
-        log(`Transfer 1 token with transferToMemberInContract to ${member.address}`)
-        await dataUnion.transferToMemberInContract(member.address, parseEther('1'))
+    //     log(`Transfer 1 token with transferToMemberInContract to ${member.address}`)
+    //     await dataUnion.transferToMemberInContract(member.address, parseEther('1'))
 
-        const statsAfter = await dataUnion.getMemberStats(member.address)
-        const stats2After = await dataUnion.getMemberStats(otherMember.address)
-        log('Stats after: %O, %O', statsAfter, stats2After)
+    //     const statsAfter = await dataUnion.getMemberStats(member.address)
+    //     const stats2After = await dataUnion.getMemberStats(otherMember.address)
+    //     log('Stats after: %O, %O', statsAfter, stats2After)
 
-        const earningsChange = statsAfter.totalEarnings.sub(statsBefore.totalEarnings)
-        const earnings2Change = stats2After.totalEarnings.sub(stats2Before.totalEarnings)
-        const withdrawableChange = statsAfter.withdrawableEarnings.sub(statsBefore.withdrawableEarnings)
-        const withdrawable2Change = stats2After.withdrawableEarnings.sub(stats2Before.withdrawableEarnings)
+    //     const earningsChange = statsAfter.totalEarnings.sub(statsBefore.totalEarnings)
+    //     const earnings2Change = stats2After.totalEarnings.sub(stats2Before.totalEarnings)
+    //     const withdrawableChange = statsAfter.withdrawableEarnings.sub(statsBefore.withdrawableEarnings)
+    //     const withdrawable2Change = stats2After.withdrawableEarnings.sub(stats2Before.withdrawableEarnings)
 
-        // 1 token is added to recipient's earnings, other members remain unaffected
-        expect(formatEther(earningsChange)).toEqual('1.0')
-        expect(formatEther(withdrawableChange)).toEqual('1.0')
-        expect(formatEther(earnings2Change)).toEqual('0.0')
-        expect(formatEther(withdrawable2Change)).toEqual('0.0')
-    }, 1500000)
+    //     // 1 token is added to recipient's earnings, other members remain unaffected
+    //     expect(formatEther(earningsChange)).toEqual('1.0')
+    //     expect(formatEther(withdrawableChange)).toEqual('1.0')
+    //     expect(formatEther(earnings2Change)).toEqual('0.0')
+    //     expect(formatEther(withdrawable2Change)).toEqual('0.0')
+    // }, 30000)
 })
