@@ -1,8 +1,9 @@
+---
 name: Close stale issues and PRs CI
 
 on:
   schedule:
-  - cron: "0 0 * * *"
+    - cron: "0 0 * * *"
 
 # https://github.com/marketplace/actions/close-stale-issues
 
@@ -11,15 +12,14 @@ jobs:
     name: Close stale issues and PRs
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/stale@v5
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        days-before-stale: 60
-        days-before-close: 7
-        stale-issue-message: 'This issue is stale because it has been open 60 days with no activity. Remove no-issue-activity label or comment or this will be closed in 7 days'
-        close-issue-message: 'This issue is closed due to inactivity.'
-        stale-issue-label: 'no-issue-activity'
-        stale-pr-message: 'This pull request is stale because it has been open 60 days with no activity. Remove no-pr-activity label or comment or this will be closed in 7 days'
-        close-pr-message: 'This pull request is closed due to inactivity.'
-        stale-pr-label: 'no-pr-activity'
-
+      - uses: actions/stale@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-stale: 60
+          days-before-close: 7
+          stale-issue-message: 'This issue is stale because it has been open 60 days with no activity. Remove no-issue-activity label or comment or this will be closed in 7 days'
+          close-issue-message: 'This issue is closed due to inactivity.'
+          stale-issue-label: 'no-issue-activity'
+          stale-pr-message: 'This pull request is stale because it has been open 60 days with no activity. Remove no-pr-activity label or comment or this will be closed in 7 days'
+          close-pr-message: 'This pull request is closed due to inactivity.'
+          stale-pr-label: 'no-pr-activity'
