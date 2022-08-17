@@ -8,7 +8,6 @@ export type FetchOptions = {
     useSession?: boolean,
     options?: any,
     requireNewToken?: boolean
-    // debug?: Debugger
     restUrl?: string
 }
 
@@ -25,15 +24,10 @@ export const createQueryString = (query: Record<string, any>): string => {
 }
 
 export class Rest {
-    // readonly id
-    // readonly debug
-
     restUrl: string
     constructor(
         restUrl: string,
     ) {
-        // this.id = instanceId(this)
-        // this.debug = context.debug.extend(this.id)
         this.restUrl = restUrl
     }
 
@@ -43,31 +37,21 @@ export class Rest {
         return url
     }
 
-    // get session() {
-    //     return this.container.resolve<Session>(Session)
-    // }
-
     fetch<T extends object>(
         urlParts: UrlParts,
         {
             query,
-            // useSession = true,
             options,
-            // requireNewToken = false,
-            // debug = this.debug,
             restUrl
         }: FetchOptions
     ): Promise<T> {
         const url = this.getUrl(urlParts, query, restUrl)
         const newOptions = {
             ...options,
-            // session: useSession ? this.session : undefined
         }
         return authFetch<T>(
             url.toString(),
             newOptions,
-            // requireNewToken,
-            // debug,
         )
     }
 
