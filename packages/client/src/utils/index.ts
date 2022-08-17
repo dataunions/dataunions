@@ -1,10 +1,5 @@
 import type { MaybeAsync } from '../MaybeAsync'
-
-export async function sleep(ms: number = 0) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms)
-    })
-}
+import { sleep } from '../sleep'
 
 /**
  * Wait until a condition is true
