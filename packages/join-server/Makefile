@@ -44,12 +44,12 @@ test: node_modules ## Run all test
 	$(call node, $(NODE_BIN)/mocha --node-option trace-warnings --recursive --check-leaks --full-trace test)
 
 NODE_BIN:=$(shell pwd)/node_modules/.bin
-.PHONY: eslint
-eslint: ## Run eslint
+.PHONY: lint
+lint: ## Run eslint
 	$(call node, $(NODE_BIN)/eslint --config .eslintrc.js --ext .js .)
 
-.PHONY: eslint-fix
-eslint-fix: ## Run eslint with fix options
+.PHONY: lint-fix
+lint-fix: ## Run eslint with fix options
 	$(call node, $(NODE_BIN)/eslint --config .eslintrc.js --ext .js --fix .)
 
 # private key: 0x7013b52cd5bcefcb813252ba4fd19de4ffbc7be60cd3da017448bbd883b15457

@@ -12,8 +12,8 @@
   },
   "scripts": {
     "test": "mocha --node-option trace-warnings --recursive --check-leaks --full-trace test",
-    "eslint": "make eslint",
-    "eslint-fix": "make eslint-fix"
+    "lint": "eslint --config .eslintrc.js --ext .js .",
+    "lint-fix": "make lint-fix"
   },
   "author": "Data Union DAO <contact@dataunions.org>",
   "license": "AGPL-3.0-or-later",

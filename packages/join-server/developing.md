@@ -26,12 +26,12 @@ make run
 
 Run eslint
 ```
-make eslint
+make lint
 ```
 
 Run eslint with fix option
 ```
-make eslint-fix
+make lint-fix
 ```
 
 Run clean
