@@ -54,16 +54,29 @@ jobs:
           --health-retries=3
     steps:
       - uses: actions/checkout@v3.0.2
-      - uses: actions/setup-node@v3.4.1
+      - name: Install Node
+        run: |
+          source $HOME/.nvm/nvm.sh
+          nvm install $(cat .nvmrc)
+          echo "$HOME/.nvm/versions/node/$(cat .nvmrc)/bin" >> $GITHUB_PATH
+          echo "$(pwd)/node_modules/.bin" >> $GITHUB_PATH
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - uses: actions/cache@v3
+        id: npm-cache # use this to check for `cache-hit` ==> if: steps.npm-cache.outputs.cache-hit != 'true'
         with:
-          node-version-file: '.nvmrc'
-          cache: npm
-          cache-dependency-path: package-lock.json
-      - run: echo "./node_modules/.bin" >> $GITHUB_PATH
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm ci
       - name: Run lint
-        run: npm run lint
+        run: |
+          npm run lint
       - name: Build and unit test
         run: |
           npm run build
