@@ -1,7 +1,0 @@
-.DS_Store
-*.patch
-*.diff
-*.tgz
-/.idea
-/.vscode
-/node_modules
