@@ -11,7 +11,7 @@ nvm_default = $(HOME)/.nvm/nvm.sh
 ifneq ("$(wildcard $(nvm_default))", "")
 	nvm_sh = $(nvm_default)
 endif
-node_version = $(shell cat .nvmrc)
+node_version = $(shell cat ../../.nvmrc)
 define npm
 	@$(eval args=$(1))
 	bash -e -o pipefail -l -c "source $(nvm_sh) && nvm exec $(node_version) npm $(args)"
