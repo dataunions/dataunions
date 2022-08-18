@@ -1,10 +1,9 @@
-import { Contract, ContractFactory } from '@ethersproject/contracts'
+import { ContractFactory } from '@ethersproject/contracts'
 import { Web3Provider } from '@ethersproject/providers'
 import { Wallet } from '@ethersproject/wallet'
 import * as ganache from 'ganache'
 
 import { deployToken } from '@streamr/data-v2'
-import type { DATAv2 } from '@streamr/data-v2'
 
 import { dataUnionTemplate as templateJson, dataUnionFactory as factoryJson } from '@dataunions/contracts'
 import type { DataUnionTemplate, DataUnionFactory } from '@dataunions/contracts/typechain'
@@ -83,31 +82,4 @@ export async function deployContracts(deployer: Wallet) {
         dataUnionTemplate,
         ethereumUrl: `http://localhost:${ethereumRpcPort}`,
     }
-}
-
-// TODO: remove this, use client.deployDataUnion() instead
-export async function deployDataUnion(duFactory: DataUnionFactory, token: DATAv2): Promise<DataUnionTemplate> {
-    const ownerAddress = await duFactory.signer.getAddress()
-    // function deployNewDataUnionUsingToken(
-    //     address token,
-    //     address payable owner,
-    //     address[] memory agents,
-    //     uint256 initialAdminFeeFraction,
-    //     uint256 initialDataUnionFeeFraction,
-    //     address initialDataUnionBeneficiary
-    // )
-    const tx = await duFactory.deployNewDataUnionUsingToken(
-        token.address,
-        ownerAddress,
-        [ownerAddress],
-        "0",
-        "0",
-        "0x0000000000000000000000000000000000000000"
-    )
-    const receipt = await tx.wait()
-    const createdEvent = receipt.events?.find((e) => e.event === 'DUCreated')
-    if (createdEvent == null) { throw new Error('Factory did not emit a DUCreated event!') }
-    const contractAddress = createdEvent.args!.du
-    log(`DataUnion deployed at ${contractAddress}`)
-    return new Contract(contractAddress, templateJson.abi, duFactory.signer) as unknown as DataUnionTemplate
 }

@@ -68,7 +68,7 @@ describe('DataUnion fees', () => {
         const newFee = await dataUnion.getAdminFee()
         expect(oldFee).toEqual(0)
         expect(newFee).toEqual(0.1)
-    }, 30000)
+    })
 
     it('admin receives admin fees', async () => {
         const client = new DataUnionClient(clientOptions)
@@ -77,7 +77,7 @@ describe('DataUnion fees', () => {
         await dataUnion.setAdminFee(0.1)
         await fundDataUnion(dataUnion.getAddress(), parseEther('1'))
         expect(formatEther(await dataUnion.getWithdrawableEarnings(user.address))).toEqual('0.1')
-    }, 30000)
+    })
 
     // it('admin can set DU fee', async () => {
     //     const client = new DataUnionClient(clientOptions)
@@ -90,7 +90,7 @@ describe('DataUnion fees', () => {
     //     const newFee = await dataUnion.getAdminFee()
     //     expect(oldFee).toEqual(0)
     //     expect(newFee).toEqual(0.1)
-    // }, 30000)
+    // })
 
     it('DU DAO receives DU fees', async () => {
         const client = new DataUnionClient(clientOptions)
@@ -99,5 +99,5 @@ describe('DataUnion fees', () => {
         await dataUnion.setDataUnionFee(0.1)
         await fundDataUnion(dataUnion.getAddress(), parseEther('1'))
         expect(formatEther(await dataUnion.getWithdrawableEarnings(duDAO.address))).toEqual('0.1')
-    }, 30000)
+    })
 })
