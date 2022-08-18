@@ -31,12 +31,29 @@ jobs:
       - lint
     name: Build
     runs-on: ubuntu-20.04
+    env:
+      SECRET_DB_SCHEMA: join-server-test
+      SECRET_DB_USER: root
+      SECRET_DB_PASSWORD: password
+      SECRET_DB_HOST: localhost
+      SECRET_DB_PORT: 3800
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ env.SECRET_DB_PASSWORD }}
+          MYSQL_DATABASE: ${{ env.SECRET_DB_SCHEMA }}
+          MYSQL_USER: ${{ env.SECRED_DB_USER }}
+          MYSQL_PASSWORD: ${{ env.SECRET_DB_PASSWORD }}
+        ports:
+          - 3800:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
     steps:
       - uses: actions/checkout@v3.0.2
-      # - name: Build Solidity contracts using makefile
-      #   working-directory: packages/contracts
-      #   run: |
-      #      make build
       - uses: actions/setup-node@v3.4.1
         with:
           node-version-file: '.nvmrc'
@@ -46,35 +63,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run lint
-        run: npm run lint --workspaces --if-present
+        run: npm run lint
       - name: Build and unit test
         run: |
           npm run build
           npm run test
-      - name: Start MySQL for the monorepo integration test
-        uses: mirromutth/mysql-action@v1.1
-        with:
-          host port: 3800
-          mysql version: '8.0'
-          mysql database: 'join-server-test'
-          mysql root password: 'password'
-      - name: Integration tests (inside monorepo)
-        env:
-          SECRET_DB_SCHEMA: join-server-test
-          SECRET_DB_USER: root
-          SECRET_DB_PASSWORD: password
-          SECRET_DB_HOST: localhost
-          SECRET_DB_PORT: 3800
+      - name: Integration tests
         run: |
-          sleep 10 # need to allow some time for mysql to start up
-          mysql --user=root --password=password --host=127.0.0.1 --port=3800 < packages/default-join-server/create_tables.sql
-          echo "./node_modules/.bin" >> $GITHUB_PATH
+          mysql --user=${{env.SECRET_DB_USER}} --password=${{env.SECRET_DB_PASSWORD}} --host=${{env.SECRET_DB_HOST}} --port=${{env.SECRET_DB_PORT}} < packages/default-join-server/create_tables.sql
           npm run integration-test
-      # - name: Start Streamr Docker Stack
-      #   uses: streamr-dev/streamr-docker-dev-action@v1.0.0
-      #   with:
-      #     services-to-start: 'parity-sidechain-node0 parity-node0'
-      # - name: Integration Test (with dev-docker environment)
-      #   env:
-      #     TEST_TIMEOUT: '600000'
-      #   run: npm run integration-test --workspaces --if-present
