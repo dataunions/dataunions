@@ -11,7 +11,7 @@
     "join-server": "src/cmd/join-server/main.js"
   },
   "scripts": {
-    "test": "make test",
+    "test": "mocha --node-option trace-warnings --recursive --check-leaks --full-trace test",
     "eslint": "make eslint",
     "eslint-fix": "make eslint-fix"
   },
