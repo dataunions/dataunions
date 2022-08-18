@@ -1,4 +1,9 @@
-import type { AnyInstance } from './index'
+export type AnyInstance = {
+    constructor: {
+        name: string
+        prototype: null | AnyInstance
+    }
+}
 
 /**
  * Take prototype functions from srcInstance and attach them to targetInstance while keeping them bound to srcInstance.

@@ -8,7 +8,6 @@ export type FetchOptions = {
     useSession?: boolean,
     options?: any,
     requireNewToken?: boolean
-    // debug?: Debugger
     restUrl?: string
 }
 
@@ -19,21 +18,16 @@ function serialize(body: any): string | undefined {
     return typeof body === 'string' ? body : JSON.stringify(body)
 }
 
-export const createQueryString = (query: Record<string, any>) => {
+export const createQueryString = (query: Record<string, any>): string => {
     const withoutEmpty = Object.fromEntries(Object.entries(query).filter(([_k, v]) => v != null))
     return new URLSearchParams(withoutEmpty).toString()
 }
 
 export class Rest {
-    // readonly id
-    // readonly debug
-
     restUrl: string
     constructor(
         restUrl: string,
     ) {
-        // this.id = instanceId(this)
-        // this.debug = context.debug.extend(this.id)
         this.restUrl = restUrl
     }
 
@@ -43,35 +37,25 @@ export class Rest {
         return url
     }
 
-    // get session() {
-    //     return this.container.resolve<Session>(Session)
-    // }
-
     fetch<T extends object>(
         urlParts: UrlParts,
         {
             query,
-            // useSession = true,
             options,
-            // requireNewToken = false,
-            // debug = this.debug,
             restUrl
         }: FetchOptions
     ): Promise<T> {
         const url = this.getUrl(urlParts, query, restUrl)
         const newOptions = {
             ...options,
-            // session: useSession ? this.session : undefined
         }
         return authFetch<T>(
             url.toString(),
             newOptions,
-            // requireNewToken,
-            // debug,
         )
     }
 
-    post<T extends object>(urlParts: UrlParts, body?: any, options: FetchOptions = {}) {
+    post<T extends object>(urlParts: UrlParts, body?: null | string | any, options: FetchOptions = {}): Promise<T> {
         return this.fetch<T>(urlParts, {
             ...options,
             options: {
@@ -86,7 +70,7 @@ export class Rest {
         })
     }
 
-    get<T extends object>(urlParts: UrlParts, options: FetchOptions = {}) {
+    get<T extends object>(urlParts: UrlParts, options: FetchOptions = {}): Promise<T> {
         return this.fetch<T>(urlParts, {
             ...options,
             options: {
@@ -96,7 +80,7 @@ export class Rest {
         })
     }
 
-    put<T extends object>(urlParts: UrlParts, body?: any, options: FetchOptions = {}) {
+    put<T extends object>(urlParts: UrlParts, body?: null | string | any, options: FetchOptions = {}): Promise<T> {
         return this.fetch<T>(urlParts, {
             ...options,
             options: {
@@ -111,7 +95,7 @@ export class Rest {
         })
     }
 
-    delete<T extends object>(urlParts: UrlParts, options: FetchOptions = {}) {
+    delete<T extends object>(urlParts: UrlParts, options: FetchOptions = {}): Promise<T> {
         return this.fetch<T>(urlParts, {
             ...options,
             options: {

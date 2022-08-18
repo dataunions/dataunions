@@ -18,17 +18,8 @@ export type { ContractReceipt, ContractTransaction } from '@ethersproject/contra
 export type { ExternalProvider } from '@ethersproject/providers'
 export type { ConnectionInfo } from '@ethersproject/web'
 
-// export { ErrorCode, NotFoundError } from './authFetch'
 export { DataUnionConfig, DATAUNION_CLIENT_DEFAULTS } from './Config'
-// export { ConfigTest } from './ConfigTest'
-// export {
-//     AuthConfig,
-//     AuthenticatedConfig,
-//     EthereumConfig, PrivateKeyAuthConfig, ProviderAuthConfig,
-//     ProviderConfig, UnauthenticatedAuthConfig, Without, XOR
-// } from './Ethereum'
-export * from './types'
-// export { SignalListener } from './utils/Signal'
+export * from './EthereumAddress'
 
 export * from './DataUnionClient'
 

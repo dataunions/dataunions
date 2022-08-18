@@ -1,8 +1,6 @@
 import { defaultChainGasPriceStrategy } from './Config'
 import { DATAUNION_CLIENT_DEFAULTS } from './Config'
-// import { Debug } from './utils/log'
-// import type { Methods } from './utils/Plugin'
-import { Plugin } from './utils/Plugin'
+import { Plugin } from './Plugin'
 import DataUnionAPI from './DataUnionAPI'
 import type { DataUnionClientConfig, GasPriceStrategy} from './Config'
 
@@ -12,7 +10,7 @@ import { Wallet } from '@ethersproject/wallet'
 import { getAddress } from '@ethersproject/address'
 import type { Overrides as EthersOverrides } from '@ethersproject/contracts'
 import type { Signer } from '@ethersproject/abstract-signer'
-import type { EthereumAddress } from './types'
+import type { EthereumAddress } from './EthereumAddress'
 import type { BigNumber } from '@ethersproject/bignumber'
 import { Rest } from './Rest'
 
@@ -23,7 +21,6 @@ import { Rest } from './Rest'
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface DataUnionClient extends DataUnionAPI {}
 
-// export class DataUnionClient implements Context {
 export class DataUnionClient {
 
     /** @internal */
@@ -133,9 +130,3 @@ export class DataUnionClient {
         } : this.overrides
     }
 }
-
-/** @internal */
-// export const Dependencies = {
-//     Context,
-//     DataUnions,
-// }

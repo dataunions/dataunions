@@ -23,7 +23,7 @@ import type { Wallet } from '@ethersproject/wallet'
 import { JoinServer } from '@dataunions/join-server'
 import type { DATAv2 } from '@streamr/data-v2'
 
-import { until } from '../../src/utils'
+import { until } from '../until'
 import { DataUnion } from '../../src/DataUnion'
 import { DataUnionClient } from '../../src/DataUnionClient'
 import type { DataUnionClientConfig } from '../../src/Config'

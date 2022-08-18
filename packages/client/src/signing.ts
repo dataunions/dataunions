@@ -1,6 +1,6 @@
 import { verifyMessage } from "@ethersproject/wallet"
 import type { Signer } from "@ethersproject/abstract-signer"
-import type { EthereumAddress } from "./types"
+import type { EthereumAddress } from "./EthereumAddress"
 
 /** Request object ready to be sent to @dataunions/join-server */
 type SignedRequest = {
