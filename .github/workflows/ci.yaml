@@ -44,10 +44,6 @@ jobs:
           npm run -w packages/client build
           npx ganache -p 3456 -m testrpc &
           sudo npm run -w packages/client unit-test
-          sudo npm run -w packages/client unit-test
-          sudo npm run -w packages/client unit-test
-          sudo npm run -w packages/client unit-test
-          sudo npm run -w packages/client unit-test
           exit 0
       - name: make crash dump readable for uploader
         if: failure()
