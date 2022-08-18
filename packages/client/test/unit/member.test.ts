@@ -50,7 +50,7 @@ describe('DataUnion member', () => {
                 }]
             }
         }
-    }, 30000)
+    })
 
     it('cannot be just any random address', async () => {
         const client = new DataUnionClient(clientOptions)

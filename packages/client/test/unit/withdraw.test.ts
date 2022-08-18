@@ -53,7 +53,7 @@ describe('DataUnion withdrawX functions', () => {
                 }]
             }
         }
-    }, 30000)
+    })
 
     async function fundDataUnion() {
         await (await token.mint(await token.signer.getAddress(), parseEther('1'))).wait()

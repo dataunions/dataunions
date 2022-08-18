@@ -43,7 +43,7 @@ describe('Simple DataUnion object getters', () => {
                 }]
             }
         }
-    }, 30000)
+    })
 
     it('getTokenBalance', async () => {
         const client = new DataUnionClient(clientOptions)

@@ -58,7 +58,7 @@ describe('DataUnion earnings transfer methods', () => {
                 }]
             }
         }
-    }, 30000)
+    })
 
     async function fundDataUnion(dataUnionAddress: string, amountWei: BigNumberish) {
         await (await token.mint(await token.signer.getAddress(), amountWei)).wait()

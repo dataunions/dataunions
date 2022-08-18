@@ -34,7 +34,7 @@ describe('DataUnion deploy', () => {
                 }]
             },
         }
-    }, 30000)
+    })
 
     describe('owner', () => {
         it('not specified: defaults to deployer', async () => {

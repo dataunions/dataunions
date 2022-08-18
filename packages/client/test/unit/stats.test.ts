@@ -55,7 +55,7 @@ describe('DataUnion stats getters', () => {
                 }]
             }
         }
-    }, 30000)
+    })
 
     it('DataUnion stats', async () => {
         const client = new DataUnionClient(clientOptions)
