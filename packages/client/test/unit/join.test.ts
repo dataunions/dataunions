@@ -1,19 +1,10 @@
-import type { Wallet } from '@ethersproject/wallet'
-import { deployContracts, startServer } from './setup'
+import { deployContracts, getWallets } from './setup'
 
 describe('DataUnion joining using join-server', () => {
-    let server: any
-    let admin: Wallet
     it('sets up', async () => {
-        ({
-            server,
-            wallets: [
-                admin,
-                // member,
-                // otherMember,
-                // outsider
-            ]
-        } = await startServer(3458))
+        const [
+            admin,
+        ] = getWallets()
         const {
             token,
             dataUnionFactory,
@@ -24,10 +15,6 @@ describe('DataUnion joining using join-server', () => {
         console.log(`dataUnionFactory.address: ${dataUnionFactory.address}`)
         console.log(`dataUnionTemplate.address: ${dataUnionTemplate.address}`)
         console.log(`ethereumUrl: ${ethereumUrl}`)
-    })
-
-    afterAll(async () => {
-        await server.close()
     })
 })
 /* TODO

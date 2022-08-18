@@ -1,7 +1,7 @@
 import { Contract, ContractFactory } from '@ethersproject/contracts'
-import { Web3Provider } from '@ethersproject/providers'
+import { JsonRpcProvider } from '@ethersproject/providers'
 import { Wallet } from '@ethersproject/wallet'
-import * as ganache from 'ganache'
+// import * as ganache from 'ganache'
 
 import { deployToken } from '@streamr/data-v2'
 import type { DATAv2 } from '@streamr/data-v2'
@@ -10,10 +10,19 @@ import { dataUnionTemplate as templateJson, dataUnionFactory as factoryJson } fr
 import type { DataUnionTemplate, DataUnionFactory } from '@dataunions/contracts/typechain'
 
 import debug from 'debug'
-import { waitForCondition } from 'streamr-test-utils'
+// import { waitForCondition } from 'streamr-test-utils'
 const log = debug('DataUnionClient:unit-tests:withdraw')
 
-// const ganacheProvider = new JsonRpcProvider('http://localhost:3456')
+const ethereumRpcPort = Number.parseInt(process.env.GANACHE_PORT || "3456")
+// const ethereumRpcServer = ganache.server({
+//     // options, see https://github.com/trufflesuite/ganache/tree/develop/src/packages/ganache#startup-options
+//     wallet: {
+//         mnemonic: "testrpc"
+//     },
+//     logging: {
+//         quiet: true // if only I could make it log to debug, not stdout...
+//     }
+// })
 
 const privateKeys = [
     "0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0",
@@ -27,40 +36,20 @@ const privateKeys = [
     "0x2cd9855d17e01ce041953829398af7e48b24ece04ff9d0e183414de54dc52285",
 ]
 
-let ganacheProvider: ganache.EthereumProvider
-let ethereumRpcPort: number
+// let ganacheProvider: ganache.EthereumProvider
 // beforeAll(async () => {
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export async function startServer(port: number) {
-    ethereumRpcPort = port
-    // const ethereumRpcPort = Number.parseInt(process.env.GANACHE_PORT || "3456")
-    const ethereumRpcServer = ganache.server({
-        // options, see https://github.com/trufflesuite/ganache/tree/develop/src/packages/ganache#startup-options
-        wallet: {
-            mnemonic: "testrpc"
-        },
-        logging: {
-            quiet: true // if only I could make it log to debug, not stdout...
-        }
-    })
-    ethereumRpcServer.listen(ethereumRpcPort, async (err) => {
-        if (err) { throw err }
-        log(`Ganache started in port ${ethereumRpcPort}`)
-        ganacheProvider = ethereumRpcServer.provider
-    })
-    await waitForCondition(() => ganacheProvider !== undefined)
-
-    // @ts-expect-error probably some incompatibility between ethers and ganache
-    const provider = new Web3Provider(ganacheProvider)
-    return {
-        server: ethereumRpcServer,
-        wallets: privateKeys.map((key) => new Wallet(key, provider))
-    }
-}
+//     ethereumRpcServer.listen(ethereumRpcPort, async (err) => {
+//         if (err) { throw err }
+//         log(`Ganache started in port ${ethereumRpcPort}`)
+//         ganacheProvider = ethereumRpcServer.provider
+//     })
+//     await waitForCondition(() => ganacheProvider !== undefined)
+// })
 
 // afterAll(async () => {
 //     await ethereumRpcServer.close()
 // })
+const provider = new JsonRpcProvider(`http://localhost:${ethereumRpcPort}`)
 
 async function deployDataUnionTemplate(deployer: Wallet): Promise<DataUnionTemplate> {
     const factory = new ContractFactory(templateJson.abi, templateJson.bytecode, deployer)
@@ -74,9 +63,15 @@ async function deployDataUnionFactory(deployer: Wallet, templateAddress: string,
     return contract.deployed()
 }
 
+export function getWallets(): Wallet[] {
+    // // @ts-expect-error probably some incompatibility between ethers and ganache
+    // const provider = new Web3Provider(ganacheProvider)
+    return privateKeys.map((key) => new Wallet(key, provider))
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function deployContracts(deployer: Wallet) {
-    await waitForCondition(() => ganacheProvider !== undefined)
+    // await waitForCondition(() => ganacheProvider !== undefined)
 
     const token = await deployToken(deployer)
     await (await token.grantRole(await token.MINTER_ROLE(), deployer.address)).wait()
