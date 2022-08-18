@@ -15,7 +15,7 @@ const ethereumRpcPort = Number.parseInt(process.env.GANACHE_PORT || "3456")
 const ethereumUrl = `http://localhost:${ethereumRpcPort}`
 const provider = new JsonRpcProvider(ethereumUrl)
 
-// start ganache with `npx ganache -p 3456 -m testrpc &`
+// These privateKeys correspond to "testrpc" mnemonic (start ganache with e.g. `npx ganache -p 3456 -m testrpc &`)
 const privateKeys = [
     "0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0",
     "0xe5af7834455b7239881b85be89d905d6881dcb4751063897f12be1b0dd546bdb",
