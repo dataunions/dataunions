@@ -50,7 +50,7 @@ describe('DataUnion fees', () => {
                 }]
             }
         }
-    })
+    }, 30000)
 
     async function fundDataUnion(duAddress: string, amountWei: BigNumberish) {
         await (await token.mint(await token.signer.getAddress(), amountWei)).wait()

@@ -84,7 +84,7 @@ describe('DataUnion joining using join-server', () => {
             })
         })
         await server.start()
-    })
+    }, 30000)
 
     afterAll(async () => {
         await server.stop()
