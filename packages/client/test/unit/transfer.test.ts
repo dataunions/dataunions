@@ -3,7 +3,7 @@ import type { Wallet } from '@ethersproject/wallet'
 
 // import { DataUnionClient } from '../../src/DataUnionClient'
 
-import { deployContracts } from './setup'
+import { deployContracts, getWallets } from './setup'
 
 // import type { DataUnionClientConfig } from '../../src/Config'
 // import type { DATAv2 } from '@streamr/data-v2'
@@ -23,12 +23,12 @@ describe('DataUnion earnings transfer methods', () => {
     // let duContract: DataUnionTemplate
     // let clientOptions: Partial<DataUnionClientConfig>
     beforeAll(async () => {
-        // [
-        //     admin,
+        [
+            admin,
         //     // member,
         //     // otherMember,
         //     // outsider,
-        // ] = getWallets()
+        ] = getWallets()
         // const {
         //     token: tokenContract,
         //     dataUnionFactory,
@@ -60,7 +60,7 @@ describe('DataUnion earnings transfer methods', () => {
         //         }]
         //     }
         // }
-    })
+    }, 30000)
 
     // async function fundDataUnion(dataUnionAddress: string, amountWei: BigNumberish) {
     //     await (await token.mint(await token.signer.getAddress(), amountWei)).wait()
