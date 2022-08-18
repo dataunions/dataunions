@@ -42,7 +42,7 @@ jobs:
           ulimit -c unlimited         # Enable core dumps to be captured (must be in same run block)
           npm run -w packages/contracts build
           npm run -w packages/client build
-          npx ganache -p 3456 -m testrpc
+          npx ganache -p 3456 -m testrpc &
           sudo npm run -w packages/client unit-test
           sudo npm run -w packages/client unit-test
           sudo npm run -w packages/client unit-test
