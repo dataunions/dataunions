@@ -34,7 +34,7 @@
         "postbuild-node": "npm run copy-package",
         "start-browser": "npm run build-browser-iife -- --servedir=test/browser --outdir=test/browser",
         "test": "npm run test-exports && npm run unit-test",
-        "unit-test": "jest --runInBand test/unit",
+        "unit-test": "make unit-test",
         "test-exports": "cd test/exports && npm run link && tsc --noEmit --project ./tsconfig.json && npm test"
     },
     "engines": {
