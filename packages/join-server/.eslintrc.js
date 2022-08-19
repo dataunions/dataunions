@@ -3,14 +3,17 @@ module.exports = {
 		browser: false,
 		commonjs: true,
 		node: true,
-		es2022: true,
+		es2020: true,
 		mocha: true,
 	},
 	extends: [
 		'eslint:recommended',
 	],
 	parserOptions: {
-		ecmaVersion: 2022,
+		ecmaVersion: 2020,
+		ecmaFeatures: {
+			modules: true
+		}
 	},
 	rules: {
 		semi: [
