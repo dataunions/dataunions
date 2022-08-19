@@ -11,8 +11,8 @@
     "join-server": "src/cmd/join-server/main.js"
   },
   "scripts": {
-    "test": "mocha --node-option trace-warnings --recursive --check-leaks --full-trace test",
-    "lint": "eslint --config .eslintrc.js --ext .js .",
+    "test": "make test",
+    "lint": "make lint",
     "lint-fix": "make lint-fix"
   },
   "author": "Data Union DAO <contact@dataunions.org>",
