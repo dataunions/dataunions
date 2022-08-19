@@ -31,6 +31,40 @@ jobs:
       - lint
     name: Build
     runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - name: Install Node
+        run: |
+          source $HOME/.nvm/nvm.sh
+          nvm install $(cat .nvmrc)
+          echo "$HOME/.nvm/versions/node/$(cat .nvmrc)/bin" >> $GITHUB_PATH
+          echo "$(pwd)/node_modules/.bin" >> $GITHUB_PATH
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - uses: actions/cache@v3
+        id: npm-cache # use this to check for `cache-hit` ==> if: steps.npm-cache.outputs.cache-hit != 'true'
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Install dependencies
+        run: |
+          npm ci
+      - name: Run lint
+        run: |
+          npm run lint
+      - name: Build and unit test
+        run: |
+          npm run build
+          npm run test
+  integration-test:
+    needs:
+      - build
+    name: Integration Test
+    runs-on: ubuntu-20.04
     env:
       SECRET_DB_SCHEMA: join-server-test
       SECRET_DB_USER: root
@@ -74,14 +108,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci
-      - name: Run lint
-        run: |
-          npm run lint
-      - name: Build and unit test
-        run: |
-          npm run build
-          npm run test
       - name: Integration tests
         run: |
-          mysql --user=${{env.SECRET_DB_USER}} --password=${{env.SECRET_DB_PASSWORD}} --host=${{env.SECRET_DB_HOST}} --port=${{env.SECRET_DB_PORT}} < packages/default-join-server/create_tables.sql
+          mysql --user=${{env.SECRET_DB_USER}} --password=${{env.SECRET_DB_PASSWORD}} --host=127.0.0.1 --port=${{env.SECRET_DB_PORT}} < packages/default-join-server/create_tables.sql
           npm run integration-test
