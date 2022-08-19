@@ -21,15 +21,15 @@ define node
 	bash -e -o pipefail -l -c "source $(nvm_sh) && nvm exec $(node_version) node $(args)"
 endef
 
-node_modules: ## Run 'npm ci' if directory doesn't exist
-	$(call npm, ci)
+../../node_modules: ## Run 'npm ci' if directory doesn't exist
+	cd ../../ && $(MAKE) -f Makefile npm-ci
 
 .PHONY: npm-ci
-npm-ci: node_modules ## Run npm ci
+npm-ci: ../../node_modules ## Run npm ci
 
 .PHONY: npm-install
 npm-install: ## Run npm install
-	$(call npm, install)
+	cd ../../ && $(MAKE) -f Makefile npm-install
 
 .PHONY: npm-publish
 npm-publish: ## Run npm publish
@@ -40,10 +40,10 @@ npm-pack: ## Run npm pack
 	$(call npm, pack)
 
 .PHONY: test
-test: node_modules ## Run all test
+test: ../../node_modules ## Run all test
 	$(call node, $(NODE_BIN)/mocha --node-option trace-warnings --recursive --check-leaks --full-trace test)
 
-NODE_BIN:=$(shell pwd)/node_modules/.bin
+NODE_BIN:=$(shell pwd)/../../node_modules/.bin
 .PHONY: lint
 lint: ## Run eslint
 	$(call node, $(NODE_BIN)/eslint --config .eslintrc.js --ext .js .)
@@ -62,11 +62,6 @@ run: export LOG_LEVEL=trace
 run: export PRIVATE_KEY=0x7013b52cd5bcefcb813252ba4fd19de4ffbc7be60cd3da017448bbd883b15457
 run: ## Run Data Union Join Server
 	$(call node, src/cmd/join-server/main.js)
-
-.PHONY: clean
-clean: ## Remove generated files
-	$(RM) -r \
-		node_modules
 
 .PHONY: help
 help: ## Show Help

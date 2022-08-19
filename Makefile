@@ -31,3 +31,8 @@ npm-ci: node_modules ## Run npm ci
 npm-install: ## Run npm install
 	$(call npm, --workspaces install)
 
+.PHONY: clean
+clean: ## Remove generated files
+	$(RM) -r \
+		node_modules
+
