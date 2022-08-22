@@ -1,3 +1,7 @@
+.DS_Store
+*.patch
+*.diff
+*.tgz
 node_modules
 coverage
 .coverage_contracts
@@ -6,4 +10,5 @@ coverage
 /packages/*/build
 /packages/*/generated
 .idea
+.vscode
 dist

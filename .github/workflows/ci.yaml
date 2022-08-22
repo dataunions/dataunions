@@ -1,5 +1,11 @@
-name: Continuous Integration
-
+---
+name: CI
+defaults:
+  run:
+    shell: bash
+concurrency:
+  group: ci-${{ github.head_ref }}
+  cancel-in-progress: false
 on:
   pull_request:
     branches:
@@ -9,61 +15,100 @@ on:
       - main
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - uses: ibiqlik/action-yamllint@v3.1.0
+        with:
+          file_or_dir: .
+          strict: true
+          no_warnings: false
+          config_file: .yamllint
+      - run: shellcheck --color=never --check-sourced --shell=bash release*.bash
   build:
+    needs:
+      - lint
     name: Build
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
-      # - name: Build Solidity contracts using makefile
-      #   working-directory: packages/contracts
-      #   run: |
-      #      make build
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v3.0.2
+      - name: Install Node
+        run: |
+          source $HOME/.nvm/nvm.sh
+          nvm install $(cat .nvmrc)
+          echo "$HOME/.nvm/versions/node/$(cat .nvmrc)/bin" >> $GITHUB_PATH
+          echo "$(pwd)/node_modules/.bin" >> $GITHUB_PATH
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - uses: actions/cache@v3
+        id: npm-cache # use this to check for `cache-hit` ==> if: steps.npm-cache.outputs.cache-hit != 'true'
         with:
-          node-version-file: '.nvmrc'
-      - name: Cache node_modules
-        id: cache-node-modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            node_modules
-            packages/*/node_modules
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --no-audit
+        run: |
+          npm ci
       - name: Run lint
-        run: npm run lint --workspaces --if-present
+        run: |
+          npm run lint
       - name: Build and unit test
         run: |
           npm run build
           npm run test
-      - name: Start MySQL for the monorepo integration test
-        uses: mirromutth/mysql-action@v1.1
-        with:
-          host port: 3800
-          mysql version: '8.0'
-          mysql database: 'join-server-test'
-          mysql root password: 'password'
-      - name: Integration tests (inside monorepo)
+  integration-test:
+    needs:
+      - build
+    name: Integration Test
+    runs-on: ubuntu-20.04
+    env:
+      SECRET_DB_SCHEMA: join-server-test
+      SECRET_DB_USER: root
+      SECRET_DB_PASSWORD: password
+      SECRET_DB_HOST: localhost
+      SECRET_DB_PORT: 3800
+    services:
+      mysql:
+        image: mysql:8.0
         env:
-          SECRET_DB_SCHEMA: join-server-test
-          SECRET_DB_USER: root
-          SECRET_DB_PASSWORD: password
-          SECRET_DB_HOST: localhost
-          SECRET_DB_PORT: 3800
+          MYSQL_ROOT_PASSWORD: ${{ env.SECRET_DB_PASSWORD }}
+          MYSQL_DATABASE: ${{ env.SECRET_DB_SCHEMA }}
+          MYSQL_USER: ${{ env.SECRED_DB_USER }}
+          MYSQL_PASSWORD: ${{ env.SECRET_DB_PASSWORD }}
+        ports:
+          - 3800:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - name: Install Node
         run: |
-          sleep 10 # need to allow some time for mysql to start up
-          mysql --user=root --password=password --host=127.0.0.1 --port=3800 < packages/default-join-server/create_tables.sql
-          echo "./node_modules/.bin" >> $GITHUB_PATH
+          source $HOME/.nvm/nvm.sh
+          nvm install $(cat .nvmrc)
+          echo "$HOME/.nvm/versions/node/$(cat .nvmrc)/bin" >> $GITHUB_PATH
+          echo "$(pwd)/node_modules/.bin" >> $GITHUB_PATH
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)"
+      - uses: actions/cache@v3
+        id: npm-cache # use this to check for `cache-hit` ==> if: steps.npm-cache.outputs.cache-hit != 'true'
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Install dependencies
+        run: |
+          npm ci
+      - name: Integration tests
+        run: |
+          mysql --user=${{env.SECRET_DB_USER}} --password=${{env.SECRET_DB_PASSWORD}} --host=127.0.0.1 --port=${{env.SECRET_DB_PORT}} < packages/default-join-server/create_tables.sql
           npm run integration-test
-      # - name: Start Streamr Docker Stack
-      #   uses: streamr-dev/streamr-docker-dev-action@v1.0.0
-      #   with:
-      #     services-to-start: 'parity-sidechain-node0 parity-node0'
-      # - name: Integration Test (with dev-docker environment)
-      #   env:
-      #     TEST_TIMEOUT: '600000'
-      #   run: npm run integration-test --workspaces --if-present
