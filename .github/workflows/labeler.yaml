@@ -1,0 +1,24 @@
+# https://github.com/actions/labeler
+---
+name: Labeler
+defaults:
+  run:
+    shell: bash
+concurrency:
+  group: labeler-${{ github.head_ref }}
+  cancel-in-progress: false
+on:
+  - pull_request_target
+jobs:
+  triage:
+    name: Triage
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@v4
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yaml
+          sync-labels: true

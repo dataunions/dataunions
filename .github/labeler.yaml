@@ -1,0 +1,29 @@
+---
+documentation:
+  - "LICENSE*"
+  - "*.md"
+  - "**.md"
+ci:
+  - ".github/*"
+  - ".github/**"
+  - ".yamllint"
+test:
+  - "packages/client/test/**"
+  - "packages/contracts/test/**"
+  - "packages/default-join-server/test/**"
+  - "packages/join-server/test/**"
+build:
+  - ".gitignore"
+  - "Makefile"
+  - "packages/client/Makefile"
+  - "packages/contracts/Makefile"
+  - "packages/join-server/Makefile"
+  - "package.json"
+  - "package-lock.json"
+  - "packages/client/package.js"
+  - "packages/default-join-server/package.json"
+  - "packages/thegraph-subgraph/package.json"
+  - "packages/config/package.json"
+  - "packages/dev-config/package.json"
+  - "packages/contracts/package.json"
+  - "packages/eslint-config/package.json"
