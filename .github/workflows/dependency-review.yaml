@@ -1,5 +1,5 @@
 ---
-name: Dependency Review
+name: Dependency
 on:
   - pull_request
 
@@ -8,6 +8,7 @@ permissions:
 
 jobs:
   dependency-review:
+    name: Review
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
