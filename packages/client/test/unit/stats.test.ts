@@ -1,11 +1,11 @@
 import type { Wallet } from '@ethersproject/wallet'
 
 import { DataUnionClient } from '../../src/DataUnionClient'
-
-import { deployContracts, deployDataUnion, getWallets } from './setup'
-
 import type { DataUnionClientConfig } from '../../src/Config'
 import type { DATAv2 } from '@streamr/data-v2'
+import type { DataUnion } from '../../src/DataUnion'
+
+import { deployContracts, getWallets } from './setup'
 
 describe('DataUnion stats getters', () => {
 
@@ -14,7 +14,7 @@ describe('DataUnion stats getters', () => {
     let otherMember: Wallet
     let removedMember: Wallet
     let outsider: Wallet
-    let duAddress: string
+    let dataUnion: DataUnion
     let token: DATAv2
     let clientOptions: Partial<DataUnionClientConfig>
     beforeAll(async () => {
@@ -32,10 +32,6 @@ describe('DataUnion stats getters', () => {
             ethereumUrl
         } = await deployContracts(admin)
         token = tokenContract
-        const duContract = await deployDataUnion(dataUnionFactory, token)
-        duAddress = duContract.address
-        await (await duContract.addMembers([member.address, otherMember.address, removedMember.address])).wait()
-        await (await duContract.removeMember(removedMember.address, "0")).wait()
 
         clientOptions = {
             auth: {
@@ -55,23 +51,26 @@ describe('DataUnion stats getters', () => {
                 }]
             }
         }
+        const adminClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
+        const adminDataUnion = await adminClient.deployDataUnion()
+        await adminDataUnion.addMembers([member.address, otherMember.address, removedMember.address])
+        await adminDataUnion.removeMembers([removedMember.address])
+
+        const client = new DataUnionClient(clientOptions)
+        dataUnion = await client.getDataUnion(adminDataUnion.getAddress())
     })
 
     it('DataUnion stats', async () => {
-        const client = new DataUnionClient(clientOptions)
-        const dataUnion = await client.getDataUnion(duAddress)
         const stats = await dataUnion.getStats()
         expect(stats.activeMemberCount.toString()).toEqual("2")
         expect(stats.inactiveMemberCount.toString()).toEqual("1")
-        expect(stats.joinPartAgentCount.toString()).toEqual("1")
+        expect(stats.joinPartAgentCount.toString()).toEqual("2")
         expect(stats.totalEarnings.toString()).toEqual("0")
         expect(stats.totalWithdrawable.toString()).toEqual("0")
         expect(stats.lifetimeMemberEarnings.toString()).toEqual("0")
-    }, 30000)
+    })
 
     it('member stats', async () => {
-        const client = new DataUnionClient(clientOptions)
-        const dataUnion = await client.getDataUnion(duAddress)
         const memberStats = await dataUnion.getMemberStats(member.address)
         const memberStats2 = await dataUnion.getMemberStats(otherMember.address)
         const memberStats3 = await dataUnion.getMemberStats(removedMember.address)
@@ -96,17 +95,13 @@ describe('DataUnion stats getters', () => {
         expect(memberStats4.earningsBeforeLastJoin.toString()).toEqual("0")
         expect(memberStats4.totalEarnings.toString()).toEqual("0")
         expect(memberStats4.withdrawableEarnings.toString()).toEqual("0")
-    }, 30000)
+    })
 
     it('member stats: invalid address', async () => {
-        const client = new DataUnionClient(clientOptions)
-        const dataUnion = await client.getDataUnion(duAddress)
         expect(dataUnion.getMemberStats('invalid-address')).rejects.toThrow(/invalid address/)
     })
 
     it('gives DU owner correctly', async () => {
-        const client = new DataUnionClient(clientOptions)
-        const dataUnion = await client.getDataUnion(duAddress)
         const owner = await dataUnion.getOwner()
         expect(owner).toEqual(admin.address)
     })

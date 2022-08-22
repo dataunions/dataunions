@@ -1,15 +1,14 @@
-import { Contract, ContractFactory } from '@ethersproject/contracts'
+import { ContractFactory } from '@ethersproject/contracts'
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { Wallet } from '@ethersproject/wallet'
 
 import { deployToken } from '@streamr/data-v2'
-import type { DATAv2 } from '@streamr/data-v2'
 
 import { dataUnionTemplate as templateJson, dataUnionFactory as factoryJson } from '@dataunions/contracts'
 import type { DataUnionTemplate, DataUnionFactory } from '@dataunions/contracts/typechain'
 
-import debug from 'debug'
-const log = debug('DataUnionClient:unit-tests:withdraw')
+// import debug from 'debug'
+// const log = debug('DataUnionClient:unit-tests:withdraw')
 
 const ethereumRpcPort = Number.parseInt(process.env.GANACHE_PORT || "3456")
 const ethereumUrl = `http://localhost:${ethereumRpcPort}`
@@ -61,31 +60,4 @@ export async function deployContracts(deployer: Wallet) {
         dataUnionTemplate,
         ethereumUrl,
     }
-}
-
-// TODO: remove this, use client.deployDataUnion() instead
-export async function deployDataUnion(duFactory: DataUnionFactory, token: DATAv2): Promise<DataUnionTemplate> {
-    const ownerAddress = await duFactory.signer.getAddress()
-    // function deployNewDataUnionUsingToken(
-    //     address token,
-    //     address payable owner,
-    //     address[] memory agents,
-    //     uint256 initialAdminFeeFraction,
-    //     uint256 initialDataUnionFeeFraction,
-    //     address initialDataUnionBeneficiary
-    // )
-    const tx = await duFactory.deployNewDataUnionUsingToken(
-        token.address,
-        ownerAddress,
-        [ownerAddress],
-        "0",
-        "0",
-        "0x0000000000000000000000000000000000000000"
-    )
-    const receipt = await tx.wait()
-    const createdEvent = receipt.events?.find((e) => e.event === 'DUCreated')
-    if (createdEvent == null) { throw new Error('Factory did not emit a DUCreated event!') }
-    const contractAddress = createdEvent.args!.du
-    log(`DataUnion deployed at ${contractAddress}`)
-    return new Contract(contractAddress, templateJson.abi, duFactory.signer) as unknown as DataUnionTemplate
 }
