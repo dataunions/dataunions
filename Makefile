@@ -40,7 +40,7 @@ endif
 
 .PHONY: npm-publish
 npm-publish:
-	$(call npm, publish . --access public)
+	$(call npm, publish . --access public --workspaces)
 
 .PHONY: clean
 clean: ## Remove generated files
