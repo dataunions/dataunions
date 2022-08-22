@@ -38,6 +38,10 @@ $(error VERSION environment variable is not set)
 endif
 	$(call npm, --workspaces version $(VERSION))
 
+.PHONY: npm-publish
+npm-publish:
+	$(call npm, publish . --access public)
+
 .PHONY: clean
 clean: ## Remove generated files
 	$(RM) -r \
