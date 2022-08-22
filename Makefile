@@ -34,7 +34,7 @@ npm-install: ## Run npm install
 .PHONY: npm-version
 npm-version: ## Run npm install
 ifndef VERSION
-$(error VERSION environment variable is not set)
+	$(error VERSION environment variable is not set)
 endif
 	$(call npm, --workspaces version $(VERSION))
 
