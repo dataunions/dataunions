@@ -38,8 +38,8 @@ ifndef VERSION
 endif
 	$(call npm, --workspaces version $(VERSION))
 
-.PHONY: npm-publish
-npm-publish:
+.PHONY: npm-publish-all-workspace-packages
+npm-publish-all-workspace-packages:
 	$(call npm, publish . --access public --workspaces)
 
 .PHONY: clean
