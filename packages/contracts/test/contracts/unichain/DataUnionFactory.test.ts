@@ -69,12 +69,14 @@ describe("DataUnionFactory", (): void => {
         // function deployNewDataUnion(
         //     address payable owner,
         //     uint256 adminFeeFraction,
-        //     address[] memory agents
+        //     address[] memory agents,
+        //     string calldata metadataJsonString
         // )
-        const args : [EthereumAddress, BigNumber, EthereumAddress[]] = [
+        const args : [EthereumAddress, BigNumber, EthereumAddress[], string] = [
             creator.address,
             parseEther("0.1"),
             agents.map(a => a.address),
+            "",
         ]
         log("deployNewDUSidechain args: %o", args)
 

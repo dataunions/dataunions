@@ -79,7 +79,8 @@ contract DataUnionFactory is Ownable {
     function deployNewDataUnion(
         address payable owner,
         uint256 adminFeeFraction,
-        address[] memory agents
+        address[] memory agents,
+        string calldata metadataJsonString
     )
         public
         returns (address)
@@ -88,18 +89,17 @@ contract DataUnionFactory is Ownable {
             defaultToken,
             owner,
             agents,
-            adminFeeFraction
+            adminFeeFraction,
+            metadataJsonString
         );
     }
 
-    /**
-     * @dev CREATE2 salt = mainnet_address.
-     */
     function deployNewDataUnionUsingToken(
         address token,
         address payable owner,
         address[] memory agents,
-        uint256 initialAdminFeeFraction
+        uint256 initialAdminFeeFraction,
+        string calldata metadataJsonString
     ) public returns (address) {
         address payable du = payable(Clones.clone(dataUnionTemplate));
         DataUnionTemplate(du).initialize(
@@ -109,7 +109,8 @@ contract DataUnionFactory is Ownable {
             defaultNewMemberEth,
             initialAdminFeeFraction,
             protocolBeneficiary,
-            protocolFeeOracle
+            protocolFeeOracle,
+            metadataJsonString
         );
 
         emit SidechainDUCreated(du, du, owner, dataUnionTemplate);
