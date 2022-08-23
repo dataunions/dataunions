@@ -34,11 +34,6 @@ Run eslint with fix option
 make lint-fix
 ```
 
-Run clean
-```
-make clean
-```
-
 Run help
 ```
 make help
