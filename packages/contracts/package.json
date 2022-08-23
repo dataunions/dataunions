@@ -22,7 +22,6 @@
     "author": "Streamr Network AG",
     "license": "AGPL-3.0",
     "devDependencies": {
-        "@dataunions/config": "latest",
         "@nomiclabs/hardhat-ethers": "^2.0.3",
         "@nomiclabs/hardhat-waffle": "^2.0.1",
         "@streamr/config": "2.3.0",
