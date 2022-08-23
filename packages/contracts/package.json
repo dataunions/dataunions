@@ -39,7 +39,7 @@
         "hardhat": "^2.6.1",
         "hardhat-typechain": "^0.3.5",
         "prettier": "2.3.2",
-        "prettier-plugin-solidity": "1.0.0-beta.18",
+        "prettier-plugin-solidity": "1.0.0-beta.24",
         "solhint": "3.3.6",
         "solhint-plugin-prettier": "0.0.5",
         "solidity-coverage": "^0.7.16",
