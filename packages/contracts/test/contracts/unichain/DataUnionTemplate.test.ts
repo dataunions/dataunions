@@ -9,8 +9,9 @@ const log = Debug("Streamr:du:test:DataUnionTemplate")
 import DataUnionTemplateJson from "../../../artifacts/contracts/unichain/DataUnionTemplate.sol/DataUnionTemplate.json"
 
 import TestTokenJson from "../../../artifacts/contracts/test/TestToken.sol/TestToken.json"
+import FeeOracleJson from "../../../artifacts/contracts/DefaultFeeOracle.sol/DefaultFeeOracle.json"
 
-import type { DataUnionTemplate, MockTokenMediator, TestToken, MockAMB } from "../../../typechain"
+import type { DataUnionTemplate, TestToken } from "../../../typechain"
 
 type EthereumAddress = string
 
@@ -59,6 +60,7 @@ describe("DataUnionTemplate", () => {
     const o = others.map(outsider => outsider.address)
 
     let testToken: TestToken
+    let feeOracle: Contract
     let dataUnionSidechain: DataUnionTemplate
     let dataUnionSidechainAgent: DataUnionTemplate
     let dataUnionSidechainMember0: DataUnionTemplate
@@ -66,6 +68,7 @@ describe("DataUnionTemplate", () => {
     before(async () => {
         testToken = await deployContract(creator, TestTokenJson, ["name", "symbol"]) as TestToken
         await testToken.mint(creator.address, parseEther("10000"))
+        feeOracle = await deployContract(creator, FeeOracleJson, [parseEther("0.1")])
 
         log("List of relevant addresses:")
         log("  testToken: ", testToken.address)
@@ -85,13 +88,11 @@ describe("DataUnionTemplate", () => {
         // function initialize(
         //     address initialOwner,
         //     address tokenAddress,
-        //     address tokenMediatorAddress,
         //     address[] memory initialJoinPartAgents,
-        //     address mainnetDataUnionAddress,
         //     uint256 defaultNewMemberEth,
         //     uint256 initialAdminFeeFraction,
-        //     uint256 initialDataUnionFeeFraction,
-        //     address initialDataUnionBeneficiary
+        //     address protocolBeneficiaryAddress,
+        //     address protocolFeeOracleAddress
         // )
         await dataUnionSidechain.initialize(
             creator.address,
@@ -99,8 +100,8 @@ describe("DataUnionTemplate", () => {
             a,
             "1",
             parseEther("0.1"),
-            parseEther("0.1"),
-            duBeneficiary.address
+            duBeneficiary.address,
+            feeOracle.address,
         )
         await dataUnionSidechainAgent.addMembers(m)
 
@@ -120,7 +121,7 @@ describe("DataUnionTemplate", () => {
 
         expect(await dataUnionSidechain.totalEarnings()).to.equal(2400)
         expect(await dataUnionSidechain.totalAdminFees()).to.equal(300)
-        expect(await dataUnionSidechain.totalDataUnionFees()).to.equal(300)
+        expect(await dataUnionSidechain.totalProtocolFees()).to.equal(300)
         expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(800)
         expect(await dataUnionSidechain.getEarnings(m[1])).to.equal(800)
         expect(await dataUnionSidechain.getEarnings(m[2])).to.equal(800)
@@ -132,7 +133,7 @@ describe("DataUnionTemplate", () => {
         await dataUnionSidechain.connect(randomOutsider).refreshRevenue()
         expect(await dataUnionSidechain.totalEarnings()).to.equal(4000)
         expect(await dataUnionSidechain.totalAdminFees()).to.equal(500)
-        expect(await dataUnionSidechain.totalDataUnionFees()).to.equal(500)
+        expect(await dataUnionSidechain.totalProtocolFees()).to.equal(500)
         expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(800)
         expect(await dataUnionSidechain.getEarnings(m[1])).to.equal(1600)
         expect(await dataUnionSidechain.getEarnings(m[2])).to.equal(1600)
@@ -144,7 +145,7 @@ describe("DataUnionTemplate", () => {
         await dataUnionSidechain.connect(randomOutsider).refreshRevenue()
         expect(await dataUnionSidechain.totalEarnings()).to.equal(7200)
         expect(await dataUnionSidechain.totalAdminFees()).to.equal(900)
-        expect(await dataUnionSidechain.totalDataUnionFees()).to.equal(900)
+        expect(await dataUnionSidechain.totalProtocolFees()).to.equal(900)
         expect(await dataUnionSidechain.getEarnings(newMember.address)).to.equal(800)
         expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(1600)
         expect(await dataUnionSidechain.getEarnings(m[1])).to.equal(2400)
@@ -343,7 +344,7 @@ describe("DataUnionTemplate", () => {
             totalRevenue,
             totalEarnings,
             totalAdminFees,
-            totalDataUnionFees,
+            totalProtocolFees,
             totalEarningsWithdrawn,
             activeMemberCount,
             inactiveMemberCount,
@@ -353,7 +354,7 @@ describe("DataUnionTemplate", () => {
         expect(totalRevenue).to.equal(3000)
         expect(totalEarnings).to.equal(2400)
         expect(totalAdminFees).to.equal(300)
-        expect(totalDataUnionFees).to.equal(300)
+        expect(totalProtocolFees).to.equal(300)
         expect(totalEarningsWithdrawn).to.equal(500)
         expect(activeMemberCount).to.equal(3)
         expect(inactiveMemberCount).to.equal(0) // creator and duBeneficiary are cleaned out of this number though they show up in the "inactiveMemberCount"
@@ -386,8 +387,8 @@ describe("DataUnionTemplate", () => {
             a,
             "1",
             parseEther("0.1"),
-            parseEther("0.1"),
-            duBeneficiary.address
+            duBeneficiary.address,
+            feeOracle.address,
         )).to.be.revertedWith("error_alreadyInitialized")
     })
 
@@ -431,7 +432,7 @@ describe("DataUnionTemplate", () => {
     })
 
     it("rejects fees that sum above 1.0", async () => {
-        await expect(dataUnionSidechain.setFees(parseEther("0.5"), parseEther("0.6"))).to.be.revertedWith("error_fees")
+        await expect(dataUnionSidechain.setAdminFee(parseEther("0.95"))).to.be.revertedWith("error_adminFee")
     })
 
     it("cannot swap modules after locking", async () => {
