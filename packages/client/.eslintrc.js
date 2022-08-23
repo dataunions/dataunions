@@ -3,7 +3,7 @@ module.exports = {
         'import'
     ],
     extends: [
-        '@dataunions/eslint-config'
+        'eslint-config-streamr-ts'
     ],
     parserOptions: {
         ecmaVersion: 2020,
@@ -16,6 +16,8 @@ module.exports = {
         es6: true
     },
     rules: {
+        'no-console': ['error', {allow: ['warn', 'error', 'info']}],
+        '@typescript-eslint/no-inferrable-types': 'off',
         'max-len': ['warn', {
             code: 150
         }],

@@ -6,9 +6,6 @@
     "author": "Streamr Network AG",
     "license": "AGPL-3.0",
     "workspaces": [
-        "packages/config",
-        "packages/eslint-config",
-        "packages/dev-config",
         "packages/contracts",
         "packages/join-server",
         "packages/client",
