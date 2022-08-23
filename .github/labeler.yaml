@@ -1,4 +1,7 @@
 ---
+#
+# Tags by conventional commit prefix
+#
 documentation:
   - "LICENSE*"
   - "*.md"
@@ -15,6 +18,7 @@ test:
 build:
   - ".gitignore"
   - "Makefile"
+  - "release*.bash"
   - "packages/client/Makefile"
   - "packages/contracts/Makefile"
   - "packages/join-server/Makefile"
@@ -27,3 +31,30 @@ build:
   - "packages/dev-config/package.json"
   - "packages/contracts/package.json"
   - "packages/eslint-config/package.json"
+#
+# Tags per npm package and conventional commit scope.
+#
+config:
+  - "packages/config/*"
+  - "packages/config/**"
+eslint-config:
+  - "packages/eslint-config/*"
+  - "packages/eslint-config/**"
+dev-config:
+  - "packages/dev-config/*"
+  - "packages/dev-config/**"
+contracts:
+  - "packages/contracts/*"
+  - "packages/contracts/**"
+client:
+  - "packages/client/*"
+  - "packages/client/**"
+join-server:
+  - "packages/join-server/*"
+  - "packages/join-server/**"
+default-join-server:
+  - "packages/default-join-server/*"
+  - "packages/default-join-server/**"
+thegraph-subgraph:
+  - "packages/thegraph-subgraph/*"
+  - "packages/thegraph-subgraph/**"
