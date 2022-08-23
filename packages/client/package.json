@@ -43,7 +43,6 @@
     "author": "Streamr",
     "license": "Apache-2.0",
     "devDependencies": {
-        "@dataunions/eslint-config": "latest",
         "@ethersproject/wordlists": "5.6.1",
         "@streamr/data-v2": "1.0.1",
         "@types/debug": "4.1.7",
