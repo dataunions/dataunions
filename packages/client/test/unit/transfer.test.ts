@@ -13,51 +13,50 @@ const { log } = console
 
 describe('DataUnion earnings transfer methods', () => {
 
+    let dao: Wallet
     let admin: Wallet
     let member: Wallet
     let otherMember: Wallet
+    let outsider: Wallet
     let token: DATAv2
     let dataUnion: DataUnion
+    let outsiderDataUnion: DataUnion
     beforeAll(async () => {
         [
+            dao,
             admin,
             member,
             otherMember,
-            // outsider,
+            outsider,
         ] = getWallets()
         const {
             token: tokenContract,
             dataUnionFactory,
             dataUnionTemplate,
             ethereumUrl
-        } = await deployContracts(admin)
+        } = await deployContracts(dao)
         token = tokenContract
 
         const clientOptions = {
-            auth: {
-                privateKey: member.privateKey
-            },
+            auth: { privateKey: member.privateKey },
             tokenAddress: token.address,
             dataUnion: {
                 factoryAddress: dataUnionFactory.address,
                 templateAddress: dataUnionTemplate.address,
-                duBeneficiaryAddress: admin.address,
-                joinPartAgentAddress: "0x0000000000000000000000000000000000000000",
             },
-            network: {
-                rpcs: [{
-                    url: ethereumUrl,
-                    timeout: 30 * 1000
-                }]
-            }
+            network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
         }
 
+        // deploy a DU with admin fee 9% + DU fee 1% = total 10% fees
         const adminClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
-        const adminDataUnion = await adminClient.deployDataUnion()
+        const adminDataUnion = await adminClient.deployDataUnion({ adminFee: 0.09 })
         await adminDataUnion.addMembers([member.address, otherMember.address])
 
         const client = new DataUnionClient(clientOptions)
         dataUnion = await client.getDataUnion(adminDataUnion.getAddress())
+
+        const outsiderClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: outsider.privateKey } })
+        outsiderDataUnion = await outsiderClient.getDataUnion(dataUnion.getAddress())
     })
 
     async function fundDataUnion(dataUnionAddress: string, amountWei: BigNumberish) {
@@ -74,7 +73,7 @@ describe('DataUnion earnings transfer methods', () => {
         log('Stats before: %O, %O', statsBefore, stats2Before)
 
         log('Transfer 1 token worth of earnings with transferWithinContract: %s -> %s', member.address, otherMember.address)
-        await dataUnion.transferWithinContract(otherMember.address, parseEther('1'))
+        await dataUnion.transferWithinContract(otherMember.address, parseEther('0.9')) // 1 - 10% fees
 
         const statsAfter = await dataUnion.getMemberStats(member.address)
         const stats2After = await dataUnion.getMemberStats(otherMember.address)
@@ -87,19 +86,18 @@ describe('DataUnion earnings transfer methods', () => {
 
         // 1 token is withdrawn from sender's earnings, and added to recipient's earnings as "special income" (mixed with "withdrawable before join")
         expect(formatEther(earningsChange)).toEqual('0.0')
-        expect(formatEther(withdrawableChange)).toEqual('-1.0')
-        expect(formatEther(earnings2Change)).toEqual('1.0')
-        expect(formatEther(withdrawable2Change)).toEqual('1.0')
+        expect(formatEther(withdrawableChange)).toEqual('-0.9')
+        expect(formatEther(earnings2Change)).toEqual('0.9')
+        expect(formatEther(withdrawable2Change)).toEqual('0.9')
     })
 
     // TODO: add test for error_insufficientBalance (remove fundDataUnion, basically)
 
     it.each([true, false])('transfer token from outside to member earnings, approveFirst=%p', async (approveFirst: boolean) => {
         // TODO: use outsider once it works, see ETH-321; remove these 2 lines and use the commented-out below
-        await (await token.mint(member.address, parseEther('1'))).wait()
+        // await (await token.mint(member.address, parseEther('1'))).wait()
 
-        // const client = new DataUnionClient({ ...clientOptions, auth: { privateKey: outsider.privateKey } })
-        // await (await token.mint(outsider.address, parseEther('1'))).wait()
+        await (await token.mint(outsider.address, parseEther('1'))).wait()
         const statsBefore = await dataUnion.getMemberStats(member.address)
         const stats2Before = await dataUnion.getMemberStats(otherMember.address)
         log('Stats before: %O, %O', statsBefore, stats2Before)
@@ -107,13 +105,13 @@ describe('DataUnion earnings transfer methods', () => {
         // if approval hasn't been done, transferToMemberInContract should do it; test both with and without
         // TODO: this can be removed as soon as ERC677 feature is deployed; see DataUnion.ts:transferToMemberInContract
         if (approveFirst) {
-            // await (await token.connect(outsider).approve(duAddress, parseEther('1'))).wait()
-            await (await token.connect(member).approve(dataUnion.getAddress(), parseEther('1'))).wait()
+            await (await token.connect(outsider).approve(dataUnion.getAddress(), parseEther('1'))).wait()
+            // await (await token.connect(member).approve(dataUnion.getAddress(), parseEther('1'))).wait()
             // log(`Approved DU ${dataUnion.getAddress()} to spend 1 token from ${outsider.address}`)
         }
 
         log(`Transfer 1 token with transferToMemberInContract to ${member.address}`)
-        await dataUnion.transferToMemberInContract(member.address, parseEther('1'))
+        await outsiderDataUnion.transferToMemberInContract(member.address, parseEther('1'))
 
         const statsAfter = await dataUnion.getMemberStats(member.address)
         const stats2After = await dataUnion.getMemberStats(otherMember.address)

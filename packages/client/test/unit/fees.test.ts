@@ -14,41 +14,27 @@ const log = debug('DataUnionClient:unit-tests:adminFee')
 
 describe('DataUnion fees', () => {
 
-    let admin: Wallet
+    let dao: Wallet
     let user: Wallet
-    let duDAO: Wallet
     let clientOptions: Partial<DataUnionClientConfig>
     let token: DATAv2
     beforeAll(async () => {
-        [
-            admin,
-            user,
-            duDAO,
-        ] = getWallets()
+        [ dao, user ] = getWallets()
         const {
             token: tokenContract,
             dataUnionFactory,
             dataUnionTemplate,
             ethereumUrl
-        } = await deployContracts(admin)
+        } = await deployContracts(dao)
         token = tokenContract
         clientOptions = {
-            auth: {
-                privateKey: user.privateKey
-            },
+            auth: { privateKey: user.privateKey },
             tokenAddress: token.address,
             dataUnion: {
                 factoryAddress: dataUnionFactory.address,
                 templateAddress: dataUnionTemplate.address,
-                duBeneficiaryAddress: admin.address,
-                joinPartAgentAddress: "0x0000000000000000000000000000000000000000",
             },
-            network: {
-                rpcs: [{
-                    url: ethereumUrl,
-                    timeout: 30 * 1000
-                }]
-            }
+            network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
         }
     })
 
@@ -94,10 +80,9 @@ describe('DataUnion fees', () => {
 
     it('DU DAO receives DU fees', async () => {
         const client = new DataUnionClient(clientOptions)
-        const dataUnion = await client.deployDataUnion({ dataUnionBeneficiary: duDAO.address })
+        const dataUnion = await client.deployDataUnion()
         await dataUnion.addMembers(["0x0000000000000000000000000000000000000001"])
-        await dataUnion.setDataUnionFee(0.1)
         await fundDataUnion(dataUnion.getAddress(), parseEther('1'))
-        expect(formatEther(await dataUnion.getWithdrawableEarnings(duDAO.address))).toEqual('0.1')
+        expect(formatEther(await dataUnion.getWithdrawableEarnings(dao.address))).toEqual('0.01')
     })
 })
