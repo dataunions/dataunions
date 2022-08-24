@@ -7,10 +7,6 @@ pragma solidity 0.8.6;
  *   where the PurchaseListener is set as the data product's beneficiary.
  */
 interface PurchaseListener {
-    // TODO: find out about how to best detect who implements an interface
-    //   see at least https://github.com/ethereum/EIPs/blob/master/EIPS/eip-165.md
-    // function isPurchaseListener() external returns (bool);
-
     /**
      * Similarly to ETH transfer, returning false will decline the transaction
      *   (declining should probably cause revert, but that's up to the caller)

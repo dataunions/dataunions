@@ -2,8 +2,6 @@
 
 pragma solidity 0.8.6;
 
-// TODO: maybe replace this with OpenZeppelin ownable if we give up the factory pattern: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol
-
 /**
  * @title Ownable
  * @dev The Ownable contract has an owner address, and provides basic authorization control

@@ -4,7 +4,6 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../IERC677.sol";
-// TODO: switch to "@openzeppelin/contracts/access/Ownable.sol";
 import "../Ownable.sol";
 import "../xdai-mainnet-bridge/IERC20Receiver.sol";
 import "../IERC677Receiver.sol";
@@ -60,9 +59,6 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
 
     // Modules
     IWithdrawModule public withdrawModule;
-    // TODO: once we can cast  address[] storage listeners = joinListeners;  then use these interface types
-    // IJoinListener[] public joinListeners;
-    // IPartListener[] public partListeners;
     address[] public joinListeners;
     address[] public partListeners;
     bool public modulesLocked;
@@ -624,19 +620,16 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
      */
     function setWithdrawModule(IWithdrawModule newWithdrawModule) external onlyOwner {
         require(!modulesLocked, "error_modulesLocked");
-        // TODO: check EIP-165?
         withdrawModule = newWithdrawModule;
         emit WithdrawModuleChanged(newWithdrawModule);
     }
 
     function addJoinListener(IJoinListener newListener) external onlyOwner {
-        // TODO: check EIP-165?
         joinListeners.push(address(newListener));
         emit JoinListenerAdded(newListener);
     }
 
     function addPartListener(IPartListener newListener) external onlyOwner {
-        // TODO: check EIP-165?
         partListeners.push(address(newListener));
         emit PartListenerAdded(newListener);
     }
