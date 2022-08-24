@@ -1,4 +1,4 @@
-specVersion: 0.0.2
+specVersion: 0.0.4
 description: Subgraph definitions for sidechain data unions
 repository:
 schema:
@@ -14,7 +14,7 @@ dataSources:
       startBlock: 0
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/factory.ts
       entities:
@@ -37,7 +37,7 @@ dataSources:
       startBlock: 0
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/factory.ts
       entities:
@@ -59,7 +59,7 @@ templates:
       abi: DataUnionSidechain
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/dataunion.ts
       entities:
@@ -83,7 +83,7 @@ templates:
       abi: DataUnionTemplate
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/dataunion.ts
       entities:
