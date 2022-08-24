@@ -41,14 +41,14 @@ describe('DataUnion deploy', () => {
             const client = new DataUnionClient(clientOptions)
             const dataUnion = await client.deployDataUnion()
             expect(await dataUnion.getAdminAddress()).toBe(await client.getAddress())
-        }, 30000)
+        })
 
         it('specified', async () => {
             const owner = "0x0000000000000000000000000000000000000123"
             const client = new DataUnionClient(clientOptions)
             const dataUnion = await client.deployDataUnion({ owner })
             expect(await dataUnion.getAdminAddress()).toBe(owner)
-        }, 30000)
+        })
 
         it('invalid', async () => {
             const client = new DataUnionClient(clientOptions)

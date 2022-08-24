@@ -1,6 +1,7 @@
-specVersion: 0.0.5
+---
+specVersion: 0.0.4
 description: Subgraph definitions for sidechain data unions
-repository:
+repository: ""
 schema:
   file: ./schema.graphql
 dataSources:

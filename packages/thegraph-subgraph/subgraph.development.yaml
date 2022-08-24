@@ -1,6 +1,7 @@
-specVersion: 0.0.4
+---
+specVersion: 0.0.2
 description: Subgraph definitions for sidechain data unions
-repository:
+repository: ""
 schema:
   file: ./schema.graphql
 dataSources:
@@ -14,7 +15,7 @@ dataSources:
       startBlock: 0
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./src/factory.ts
       entities:
@@ -37,7 +38,7 @@ dataSources:
       startBlock: 0
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./src/factory.ts
       entities:
@@ -59,7 +60,7 @@ templates:
       abi: DataUnionSidechain
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./src/dataunion.ts
       entities:
@@ -83,7 +84,7 @@ templates:
       abi: DataUnionTemplate
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./src/dataunion.ts
       entities:
