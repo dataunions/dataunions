@@ -85,7 +85,7 @@
         "@ethersproject/address": "5.7.0",
         "@ethersproject/bignumber": "5.7.0",
         "@ethersproject/bytes": "5.7.0",
-        "@ethersproject/contracts": "5.6.0",
+        "@ethersproject/contracts": "5.7.0",
         "@ethersproject/providers": "5.7.0",
         "@ethersproject/units": "5.7.0",
         "@ethersproject/wallet": "5.6.0",
