@@ -21,7 +21,6 @@ export default class DataUnionAPI {
 
     factoryAddress: EthereumAddress
     joinPartAgentAddress: EthereumAddress
-    dataUnionBeneficiaryAddress: EthereumAddress
     tokenAddress: EthereumAddress
     wallet: Signer
     client: DataUnionClient
@@ -29,7 +28,6 @@ export default class DataUnionAPI {
         wallet: Signer,
         factoryAddress: EthereumAddress,
         joinPartAgentAddress: EthereumAddress,
-        dataUnionBeneficiaryAddress: EthereumAddress,
         tokenAddress: EthereumAddress,
         client: DataUnionClient
     ) {
@@ -38,7 +36,6 @@ export default class DataUnionAPI {
         this.tokenAddress = tokenAddress
         this.factoryAddress = factoryAddress
         this.joinPartAgentAddress = joinPartAgentAddress
-        this.dataUnionBeneficiaryAddress = dataUnionBeneficiaryAddress
         this.client = client
     }
 
@@ -101,8 +98,6 @@ export default class DataUnionAPI {
             joinPartAgents = [owner, this.joinPartAgentAddress],
             dataUnionName = `DataUnion-${Date.now()}`, // TODO: use uuid
             adminFee = 0,
-            dataUnionFee = 0, // TODO: decide what the default value should be
-            dataUnionBeneficiary = this.dataUnionBeneficiaryAddress,
             confirmations = 1,
             gasPrice
         } = options
@@ -116,12 +111,6 @@ export default class DataUnionAPI {
         if (adminFee < 0 || adminFee > 1) { throw new Error('DataUnionDeployOptions.adminFee must be a number between 0...1, got: ' + adminFee) }
         const adminFeeBN = BigNumber.from((adminFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish, but that's not much value
 
-        if (dataUnionFee < 0 || dataUnionFee > 1) {
-            throw new Error('DataUnionDeployOptions.dataUnionFee must be a number between 0...1, got: ' + dataUnionFee)
-        }
-        const dataUnionFeeBN = BigNumber.from((dataUnionFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish
-        const dataUnionBeneficiaryAddress = getAddress(dataUnionBeneficiary)
-
         const ethersOverrides = this.client.getOverrides()
         if (gasPrice) { ethersOverrides.gasPrice = gasPrice }
 
@@ -129,9 +118,7 @@ export default class DataUnionAPI {
         //     address token,
         //     address payable owner,
         //     address[] memory agents,
-        //     uint256 initialAdminFeeFraction,
-        //     uint256 initialDataUnionFeeFraction,
-        //     address initialDataUnionBeneficiary
+        //     uint256 initialAdminFeeFraction
         // )
         const duFactory = await this.getFactory()
         const tx = await duFactory.deployNewDataUnionUsingToken(
@@ -139,8 +126,6 @@ export default class DataUnionAPI {
             ownerAddress,
             agentAddressList,
             adminFeeBN,
-            dataUnionFeeBN,
-            dataUnionBeneficiaryAddress,
             ethersOverrides
         )
         const receipt = await tx.wait(confirmations)
@@ -168,8 +153,6 @@ export default class DataUnionAPI {
             joinPartAgents = [owner, this.joinPartAgentAddress],
             dataUnionName = `DataUnion-${Date.now()}`, // TODO: use uuid
             adminFee = 0,
-            dataUnionFee = 0, // TODO: decide what the default value should be
-            dataUnionBeneficiary = this.dataUnionBeneficiaryAddress,
             confirmations = 1,
             gasPrice
         } = options
@@ -182,28 +165,18 @@ export default class DataUnionAPI {
         if (adminFee < 0 || adminFee > 1) { throw new Error('DataUnionDeployOptions.adminFee must be a number between 0...1, got: ' + adminFee) }
         const adminFeeBN = BigNumber.from((adminFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish, but that's not much value
 
-        if (dataUnionFee < 0 || dataUnionFee > 1) {
-            throw new Error('DataUnionDeployOptions.dataUnionFee must be a number between 0...1, got: ' + dataUnionFee)
-        }
-        const dataUnionFeeBN = BigNumber.from((dataUnionFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish
-        const dataUnionBeneficiaryAddress = getAddress(dataUnionBeneficiary)
-
         const ethersOverrides = this.client.getOverrides()
         if (gasPrice) { ethersOverrides.gasPrice = gasPrice }
 
         // function deployNewDataUnion(
         //     address payable owner,
         //     uint256 adminFeeFraction,
-        //     uint256 duFeeFraction,
-        //     address duBeneficiary,
         //     address[] memory agents
         // )
         const duFactory = await this.getFactory()
         const tx = await duFactory.deployNewDataUnion(
             ownerAddress,
             adminFeeBN,
-            dataUnionFeeBN,
-            dataUnionBeneficiaryAddress,
             agentAddressList,
             ethersOverrides
         )
