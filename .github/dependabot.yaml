@@ -30,11 +30,14 @@ updates:
       - build
   - package-ecosystem: npm
     directory: /
-    open-pull-requests-limit: 3
     schedule:
-      interval: weekly
+      interval: daily
+      time: "13:00"
+      timezone: Europe/Helsinki
     commit-message:
       prefix: build
       include: scope
     assignees:
       - jtakalai
+    labels:
+      - build
