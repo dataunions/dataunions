@@ -35,7 +35,7 @@
         "debug": "4.3.4",
         "eslint": "7.32.0",
         "ethereum-waffle": "3.4.4",
-        "hardhat": "2.10.2",
+        "hardhat": "2.9.3",
         "hardhat-typechain": "0.3.5",
         "prettier": "2.3.2",
         "prettier-plugin-solidity": "1.0.0-beta.24",
