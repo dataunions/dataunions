@@ -82,7 +82,7 @@
         "@dataunions/contracts": "3.0.0-beta.1",
         "@ethersproject/abi": "5.7.0",
         "@ethersproject/abstract-signer": "5.7.0",
-        "@ethersproject/address": "5.6.0",
+        "@ethersproject/address": "5.7.0",
         "@ethersproject/bignumber": "5.6.0",
         "@ethersproject/bytes": "5.7.0",
         "@ethersproject/contracts": "5.6.0",
