@@ -1,5 +1,17 @@
 # Subgraph definitions for sidechain data unions
 
+# Prod deployment
+First set the deployment token, it can be found on the top right of the subgraphs page, i.e. https://thegraph.com/hosted-service/subgraph/dataunions/data-unions-gnosis
+You need to be owner in the DataunionDAO organisation in github.
+```
+npx graph auth --product hosted-service https://api.thegraph.com/deploy/ <token>
+```
+Next run deploy-priduction command for each subgraph, using the corresponding file and name:
+```
+npm run deploy-production --config=subgraph.gnosis.production.yaml --subgraph=dataunions/data-unions-gnosis
+```
+
+# Development
 first run a local eth blockchain (ganache, ganache-cli, harhat, ...) and deploy the contracts into that blockchain. You should also be abple to interact with the contract, for example with the REMIX IDE
 
 then set up the graph infrastructure locally in docker (thegraph, ipfs, postgres):
