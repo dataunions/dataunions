@@ -7,11 +7,8 @@
     "license": "AGPL-3.0",
     "workspaces": [
         "packages/contracts",
-        "packages/config",
-        "packages/eslint-config",
-        "packages/dev-config",
-        "packages/client",
         "packages/join-server",
+        "packages/client",
         "packages/default-join-server",
         "packages/thegraph-subgraph"
     ],

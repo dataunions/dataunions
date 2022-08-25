@@ -28,7 +28,6 @@ fi
 
 ./release-validate-semver.bash "$version"
 
-sed -i '' -e 's/"version": ".*",$/"version": "'"$version"'",/g' package.json
+VERSION=$version make npm-version
 git add package.json
-make npm-install
 git add package-lock.json
