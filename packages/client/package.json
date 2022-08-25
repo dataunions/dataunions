@@ -47,7 +47,7 @@
         "@ethersproject/wordlists": "5.7.0",
         "@streamr/data-v2": "1.0.1",
         "@types/debug": "4.1.7",
-        "@types/jest": "28.1.7",
+        "@types/jest": "28.1.8",
         "@types/node": "18.7.13",
         "@types/node-fetch": "2.5.12",
         "@types/uuid": "8.3.4",
