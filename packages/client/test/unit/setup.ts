@@ -1,11 +1,12 @@
 import { ContractFactory } from '@ethersproject/contracts'
 import { JsonRpcProvider } from '@ethersproject/providers'
+import { parseEther } from '@ethersproject/units'
 import { Wallet } from '@ethersproject/wallet'
 
 import { deployToken } from '@streamr/data-v2'
 
-import { dataUnionTemplate as templateJson, dataUnionFactory as factoryJson } from '@dataunions/contracts'
-import type { DataUnionTemplate, DataUnionFactory } from '@dataunions/contracts/typechain'
+import { dataUnionTemplate as templateJson, dataUnionFactory as factoryJson, defaultFeeOracle as feeOracleJson } from '@dataunions/contracts'
+import type { DataUnionTemplate, DataUnionFactory, IFeeOracle } from '@dataunions/contracts/typechain'
 
 // import debug from 'debug'
 // const log = debug('DataUnionClient:unit-tests:withdraw')
@@ -33,9 +34,26 @@ async function deployDataUnionTemplate(deployer: Wallet): Promise<DataUnionTempl
     return contract.deployed()
 }
 
-async function deployDataUnionFactory(deployer: Wallet, templateAddress: string, tokenAddress: string): Promise<DataUnionFactory> {
+async function deployFeeOracle(deployer: Wallet): Promise<IFeeOracle> {
+    const factory = new ContractFactory(feeOracleJson.abi, feeOracleJson.bytecode, deployer)
+    const contract = await factory.deploy(parseEther("0.01")) as unknown as IFeeOracle
+    return contract.deployed()
+}
+
+async function deployDataUnionFactory(
+    deployer: Wallet,
+    templateAddress: string,
+    tokenAddress: string,
+    protocolBeneficiaryAddress: string,
+    protocolFeeOracleAddress: string,
+): Promise<DataUnionFactory> {
     const factory = new ContractFactory(factoryJson.abi, factoryJson.bytecode, deployer)
-    const contract = await factory.deploy(templateAddress, tokenAddress) as unknown as DataUnionFactory
+    const contract = await factory.deploy(
+        templateAddress,
+        tokenAddress,
+        protocolBeneficiaryAddress,
+        protocolFeeOracleAddress,
+    ) as unknown as DataUnionFactory
     return contract.deployed()
 }
 
@@ -52,7 +70,14 @@ export async function deployContracts(deployer: Wallet) {
     const token = await deployToken(deployer)
     await (await token.grantRole(await token.MINTER_ROLE(), deployer.address)).wait()
     const dataUnionTemplate = await deployDataUnionTemplate(deployer)
-    const dataUnionFactory = await deployDataUnionFactory(deployer, dataUnionTemplate.address, token.address)
+    const feeOracle = await deployFeeOracle(deployer)
+    const dataUnionFactory = await deployDataUnionFactory(
+        deployer,
+        dataUnionTemplate.address,
+        token.address,
+        deployer.address, // make deployer (the DAO) also protocol beneficiary
+        feeOracle.address
+    )
 
     return {
         token,

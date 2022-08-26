@@ -9,47 +9,38 @@ import type { DATAv2 } from '@streamr/data-v2'
 
 describe('Simple DataUnion object getters', () => {
 
-    let admin: Wallet
-    let member: Wallet
+    let dao: Wallet
+    let user: Wallet
     let token: DATAv2
     let clientOptions: Partial<DataUnionClientConfig>
     beforeAll(async () => {
         [
-            admin,
-            member,
+            dao,
+            user,
         ] = getWallets()
         const {
             token: tokenContract,
             dataUnionFactory,
             dataUnionTemplate,
             ethereumUrl
-        } = await deployContracts(admin)
+        } = await deployContracts(dao)
         token = tokenContract
         clientOptions = {
-            auth: {
-                privateKey: member.privateKey
-            },
+            auth: { privateKey: user.privateKey },
             tokenAddress: token.address,
             dataUnion: {
                 factoryAddress: dataUnionFactory.address,
                 templateAddress: dataUnionTemplate.address,
-                duBeneficiaryAddress: admin.address,
-                joinPartAgentAddress: "0x0000000000000000000000000000000000000000",
             },
-            network: {
-                rpcs: [{
-                    url: ethereumUrl,
-                    timeout: 30 * 1000
-                }]
-            }
+            network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
         }
     })
 
     it('getTokenBalance', async () => {
         const client = new DataUnionClient(clientOptions)
         const balanceBefore = await client.getTokenBalance()
-        await (await token.mint(member.address, parseEther('123'))).wait()
-        const balanceAfter = await client.getTokenBalance(member.address)
+        await (await token.mint(user.address, parseEther('123'))).wait()
+        const balanceAfter = await client.getTokenBalance(user.address)
 
         expect(formatEther(balanceBefore)).toEqual('0.0')
         expect(formatEther(balanceAfter)).toEqual('123.0')
@@ -59,8 +50,8 @@ describe('Simple DataUnion object getters', () => {
         const client = new DataUnionClient(clientOptions)
         await expect(async () => client.getDataUnion('invalid-address')).rejects.toThrow(/invalid Ethereum address/)
         await expect(client.getDataUnion('0x2222222222222222222222222222222222222222')).rejects.toThrow(/not an Ethereum contract/)
-        await expect(client.getDataUnion(member.address)).rejects.toThrow(/not an Ethereum contract/)
-        await expect(client.getDataUnion(admin.address)).rejects.toThrow(/not an Ethereum contract/)
+        await expect(client.getDataUnion(user.address)).rejects.toThrow(/not an Ethereum contract/)
+        await expect(client.getDataUnion(dao.address)).rejects.toThrow(/not an Ethereum contract/)
         await expect(client.getDataUnion(token.address)).rejects.toThrow(/not a Data Union/)
     })
 })

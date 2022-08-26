@@ -54,9 +54,6 @@ export type DataUnionConfig = {
     factoryAddress: EthereumAddress
     templateAddress: EthereumAddress
 
-    /** recipient of DU fees */
-    duBeneficiaryAddress: EthereumAddress
-
     /** joinPartAgent when using EE for join part handling */
     joinPartAgentAddress: EthereumAddress
 }
@@ -108,7 +105,6 @@ export const DATAUNION_CLIENT_DEFAULTS: DataUnionClientConfig = {
 
     dataUnion: {
         minimumWithdrawTokenWei: '1000000',
-        duBeneficiaryAddress: '0xf3E5A65851C3779f468c9EcB32E6f25D9D68601a'  // TODO: decide what this should be
     },
 
     network: {},

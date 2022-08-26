@@ -5,6 +5,7 @@ const { parseEther } = utils
 
 import DataUnionFactoryJson from "../../../artifacts/contracts/unichain/DataUnionFactory.sol/DataUnionFactory.json"
 import DataUnionTemplateJson from "../../../artifacts/contracts/unichain/DataUnionTemplate.sol/DataUnionTemplate.json"
+import FeeOracleJson from "../../../artifacts/contracts/DefaultFeeOracle.sol/DefaultFeeOracle.json"
 
 import TestTokenJson from "../../../artifacts/contracts/test/TestToken.sol/TestToken.json"
 
@@ -25,6 +26,7 @@ describe("DataUnionFactory", (): void => {
     const agents = accounts.slice(1, 3)
     const members = accounts.slice(3, 6)
     const others = accounts.slice(6)
+    const protocolBeneficiary = accounts[8]
 
     const m = members.map(member => member.address)
     const o = others.map(outsider => outsider.address)
@@ -35,8 +37,13 @@ describe("DataUnionFactory", (): void => {
     before(async () => {
         testToken = await deployContract(creator, TestTokenJson, ["name", "symbol"]) as TestToken
         const dataUnionSidechainTemplate = await deployContract(creator, DataUnionTemplateJson, [])
-        factory = await deployContract(creator, DataUnionFactoryJson,
-            [dataUnionSidechainTemplate.address, testToken.address]) as DataUnionFactory
+        const feeOracle = await deployContract(creator, FeeOracleJson, [parseEther("0.1")])
+        factory = await deployContract(creator, DataUnionFactoryJson, [
+            dataUnionSidechainTemplate.address,
+            testToken.address,
+            protocolBeneficiary.address,
+            feeOracle.address,
+        ]) as DataUnionFactory
     })
 
     it("sidechain ETH flow", async () => {
@@ -48,9 +55,9 @@ describe("DataUnionFactory", (): void => {
         await expect(factoryOutsider.setNewDUInitialEth(newMemberEth)).to.be.reverted
         await expect(factoryOutsider.setNewDUOwnerInitialEth(newMemberEth)).to.be.reverted
         await expect(factoryOutsider.setNewMemberInitialEth(newMemberEth)).to.be.reverted
-        await expect(factory.setNewDUInitialEth(newDUEth)).to.emit(factory, "UpdateNewDUInitialEth")
-        await expect(factory.setNewDUOwnerInitialEth(ownerEth)).to.emit(factory, "UpdateNewDUOwnerInitialEth")
-        await expect(factory.setNewMemberInitialEth(newMemberEth)).to.emit(factory, "UpdateDefaultNewMemberInitialEth")
+        await expect(factory.setNewDUInitialEth(newDUEth)).to.emit(factory, "NewDUInitialEthUpdated")
+        await expect(factory.setNewDUOwnerInitialEth(ownerEth)).to.emit(factory, "NewDUOwnerInitialEthUpdated")
+        await expect(factory.setNewMemberInitialEth(newMemberEth)).to.emit(factory, "DefaultNewMemberInitialEthUpdated")
 
         await others[0].sendTransaction({
             to: factory.address,
@@ -59,18 +66,14 @@ describe("DataUnionFactory", (): void => {
 
         const creatorBalanceBefore = await provider.getBalance(creator.address)
 
-        //  function deployNewDUSidechain(
+        // function deployNewDataUnion(
         //     address payable owner,
-        //     uint256 initialAdminFeeFraction,
-        //     uint256 initialDataUnionFeeFraction,
-        //     address initialDataUnionBeneficiary
-        //     address[] memory agents,
-        //  )
-        const args : [EthereumAddress, BigNumber, BigNumber, EthereumAddress, EthereumAddress[]] = [
+        //     uint256 adminFeeFraction,
+        //     address[] memory agents
+        // )
+        const args : [EthereumAddress, BigNumber, EthereumAddress[]] = [
             creator.address,
             parseEther("0.1"),
-            parseEther("0.1"),
-            others[0].address,
             agents.map(a => a.address),
         ]
         log("deployNewDUSidechain args: %o", args)
@@ -111,7 +114,7 @@ describe("DataUnionFactory", (): void => {
         // change the setting from within DU. check member Eth
         const newMemberEth2 = parseEther("0.2")
         await expect(newDuOutsider.setNewMemberEth(newMemberEth2)).to.be.reverted
-        await expect(newDuCreator.setNewMemberEth(newMemberEth2)).to.emit(newDuCreator, "UpdateNewMemberEth")
+        await expect(newDuCreator.setNewMemberEth(newMemberEth2)).to.emit(newDuCreator, "NewMemberEthUpdated")
 
         // 2nd added member should have been given newMemberEth
         const balanceBefore2 = await provider.getBalance(others[0].address)
