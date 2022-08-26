@@ -29,8 +29,8 @@ export function handleMemberParted(event: MemberParted): void {
     let memberId = getMemberId(memberAddress, duAddress)
     let member = Member.load(memberId)
 
-    member.status = 'INACTIVE'
-    member.save()
+    member!.status = 'INACTIVE'
+    member!.save()
 
     addToBucket(duAddress, event.block.timestamp, 'HOUR', -1)
     addToBucket(duAddress, event.block.timestamp, 'DAY', -1)
@@ -65,8 +65,8 @@ function addToBucket(duAddress: Address, timestamp: BigInt, length: string, chan
     log.warning('addToBucket: timestamp={} length={}', [timestamp.toString(), length])
 
     let bucket = getBucket(length, timestamp, duAddress)
-    bucket.memberCountChange += change
-    bucket.save()
+    bucket!.memberCountChange += change
+    bucket!.save()
 }
 
 function getBucket(length: string, timestamp: BigInt, duAddress: Address): DataUnionStatsBucket | null {

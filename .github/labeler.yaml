@@ -27,22 +27,10 @@ build:
   - "packages/client/package.js"
   - "packages/default-join-server/package.json"
   - "packages/thegraph-subgraph/package.json"
-  - "packages/config/package.json"
-  - "packages/dev-config/package.json"
   - "packages/contracts/package.json"
-  - "packages/eslint-config/package.json"
 #
 # Tags per npm package and conventional commit scope.
 #
-config:
-  - "packages/config/*"
-  - "packages/config/**"
-eslint-config:
-  - "packages/eslint-config/*"
-  - "packages/eslint-config/**"
-dev-config:
-  - "packages/dev-config/*"
-  - "packages/dev-config/**"
 contracts:
   - "packages/contracts/*"
   - "packages/contracts/**"

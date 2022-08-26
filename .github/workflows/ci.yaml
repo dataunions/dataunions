@@ -67,7 +67,7 @@ jobs:
            make build
   integration-test:
     needs:
-      - build
+      - lint
     name: Integration Test
     runs-on: ubuntu-20.04
     env:
