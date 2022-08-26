@@ -90,7 +90,7 @@
         "@ethersproject/web": "5.7.0",
         "@streamr/config": "2.3.0",
         "debug": "4.3.4",
-        "node-fetch": "2.6.7",
+        "node-fetch": "3.2.10",
         "readable-stream": "4.1.0",
         "reflect-metadata": "0.1.13",
         "uuid": "8.3.2"
