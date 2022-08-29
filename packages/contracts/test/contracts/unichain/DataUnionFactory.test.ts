@@ -116,7 +116,7 @@ describe("DataUnionFactory", (): void => {
         // change the setting from within DU. check member Eth
         const newMemberEth2 = parseEther("0.2")
         await expect(newDuOutsider.setNewMemberEth(newMemberEth2)).to.be.reverted
-        await expect(newDuCreator.setNewMemberEth(newMemberEth2)).to.emit(newDuCreator, "NewMemberEthUpdated")
+        await expect(newDuCreator.setNewMemberEth(newMemberEth2)).to.emit(newDuCreator, "NewMemberEthChanged")
 
         // 2nd added member should have been given newMemberEth
         const balanceBefore2 = await provider.getBalance(others[0].address)
