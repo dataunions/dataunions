@@ -2,8 +2,6 @@ import type { Wallet } from '@ethersproject/wallet'
 
 import { DataUnionClient } from '../../src/DataUnionClient'
 import type { DataUnionClientConfig } from '../../src/Config'
-import type { DATAv2 } from '@streamr/data-v2'
-import type { DataUnion } from '../../src/DataUnion'
 
 import { deployContracts, getWallets } from './setup'
 

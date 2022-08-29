@@ -58,14 +58,14 @@ export {
     DataUnionDebug as Debug,
 }
 
-export function inspect(value: any, inspectOptions: Parameters<typeof util.inspect>[1] = {}): string {
+export function inspect(value: unknown, inspectOptions: Parameters<typeof util.inspect>[1] = {}): string {
     return util.inspect(value, {
         ...DEFAULT_INSPECT_OPTS,
         ...inspectOptions,
     })
 }
 
-export function formatWithOptions(inspectOptions: Parameters<typeof util.formatWithOptions>[0], msgFormat?: any, ...param: any[]): string {
+export function formatWithOptions(inspectOptions: Parameters<typeof util.formatWithOptions>[0], msgFormat?: string, ...param: any[]): string {
     if (typeof util.formatWithOptions !== 'function') {
         // util.formatWithOptions is not browserified, use util.format instead
         return util.format(msgFormat, ...param)
@@ -77,6 +77,6 @@ export function formatWithOptions(inspectOptions: Parameters<typeof util.formatW
     }, msgFormat, ...param)
 }
 
-export function format(msgFormat?: any, ...param: any[]): string {
+export function format(msgFormat?: string, ...param: any[]): string {
     return formatWithOptions(DEFAULT_INSPECT_OPTS, msgFormat, ...param)
 }

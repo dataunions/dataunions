@@ -1,8 +1,9 @@
+import type { BigNumberish } from '@ethersproject/bignumber'
 import type { ContractReceipt, ContractTransaction } from '@ethersproject/contracts'
 import type { Signer } from '@ethersproject/abstract-signer'
 import { defaultAbiCoder } from '@ethersproject/abi'
 import { getAddress } from '@ethersproject/address'
-import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
+import { BigNumber } from '@ethersproject/bignumber'
 import { arrayify, hexZeroPad } from '@ethersproject/bytes'
 
 import type { DataUnionTemplate as DataUnionContract } from '@dataunions/contracts/typechain'
