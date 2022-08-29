@@ -52,7 +52,6 @@ describe('DataUnion joining using join-server', () => {
             dataUnion: {
                 factoryAddress: dataUnionFactory.address,
                 templateAddress: dataUnionTemplate.address,
-                duBeneficiaryAddress: admin.address,
                 joinPartAgentAddress: joinPartAgent.address,
             },
             network: {

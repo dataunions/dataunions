@@ -1,10 +1,9 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../IERC677.sol";
-// TODO: switch to "@openzeppelin/contracts/access/Ownable.sol";
 import "../Ownable.sol";
 import "../xdai-mainnet-bridge/IERC20Receiver.sol";
 import "../IERC677Receiver.sol";
@@ -12,6 +11,7 @@ import "../IWithdrawModule.sol";
 import "../IJoinListener.sol";
 import "../IPartListener.sol";
 import "../LeaveConditionCode.sol";
+import "../IFeeOracle.sol";
 
 contract DataUnionTemplate is Ownable, IERC677Receiver {
     // Used to describe both members and join part agents
@@ -44,9 +44,9 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
     event TransferToAddressInContract(address indexed from, address indexed to, uint amount);
 
     // Variable properties change events
-    event UpdateNewMemberEth(uint value);
-    event FeesSet(uint256 adminFee, uint256 dataUnionFee);
-    event DataUnionBeneficiaryChanged(address indexed current, address indexed old);
+    event NewMemberEthChanged(uint newMemberStipendWei, uint oldMemberStipendWei);
+    event AdminFeeChanged(uint newAdminFee, uint oldAdminFee);
+    event MetadataChanged(string newMetadata); // string could be long, so don't log the old one
 
     struct MemberInfo {
         ActiveStatus status;
@@ -57,12 +57,11 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
 
     // Constant properties (only set in initialize)
     IERC677 public token;
+    IFeeOracle public protocolFeeOracle;
+    address public protocolBeneficiary;
 
     // Modules
     IWithdrawModule public withdrawModule;
-    // TODO: once we can cast  address[] storage listeners = joinListeners;  then use these interface types
-    // IJoinListener[] public joinListeners;
-    // IPartListener[] public partListeners;
     address[] public joinListeners;
     address[] public partListeners;
     bool public modulesLocked;
@@ -70,14 +69,13 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
     // Variable properties
     uint256 public newMemberEth;
     uint256 public adminFeeFraction;
-    uint256 public dataUnionFeeFraction;
-    address public dataUnionBeneficiary;
+    string public metadataJsonString;
 
     // Useful stats
     uint256 public totalRevenue;
     uint256 public totalEarnings;
     uint256 public totalAdminFees;
-    uint256 public totalDataUnionFees;
+    uint256 public totalProtocolFees;
     uint256 public totalWithdrawn;
     uint256 public activeMemberCount;
     uint256 public inactiveMemberCount;
@@ -98,16 +96,19 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
         address[] memory initialJoinPartAgents,
         uint256 defaultNewMemberEth,
         uint256 initialAdminFeeFraction,
-        uint256 initialDataUnionFeeFraction,
-        address initialDataUnionBeneficiary
+        address protocolBeneficiaryAddress,
+        address protocolFeeOracleAddress,
+        string calldata initialMetadataJsonString
     ) public {
         require(!isInitialized(), "error_alreadyInitialized");
+        protocolBeneficiary = protocolBeneficiaryAddress;
+        protocolFeeOracle = IFeeOracle(protocolFeeOracleAddress);
         owner = msg.sender; // set real owner at the end. During initialize, addJoinPartAgents can be called by owner only
         token = IERC677(tokenAddress);
         addJoinPartAgents(initialJoinPartAgents);
-        setFees(initialAdminFeeFraction, initialDataUnionFeeFraction);
-        setDataUnionBeneficiary(initialDataUnionBeneficiary);
+        setAdminFee(initialAdminFeeFraction);
         setNewMemberEth(defaultNewMemberEth);
+        setMetadata(initialMetadataJsonString);
         owner = initialOwner;
     }
 
@@ -122,12 +123,12 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
     function getStats() public view returns (uint256[9] memory) {
         uint256 cleanedInactiveMemberCount = inactiveMemberCount;
         if (memberData[owner].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
-        if (memberData[dataUnionBeneficiary].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
+        if (memberData[protocolBeneficiary].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
         return [
             totalRevenue,
             totalEarnings,
             totalAdminFees,
-            totalDataUnionFees,
+            totalProtocolFees,
             totalWithdrawn,
             activeMemberCount,
             cleanedInactiveMemberCount,
@@ -137,26 +138,27 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
     }
 
     /**
-     * Admin and DU fees as a fraction of revenue,
+     * Admin fee as a fraction of revenue,
      *   using fixed-point decimal in the same way as ether: 50% === 0.5 ether === "500000000000000000"
      * @param newAdminFee fee that goes to the DU owner
-     * @param newDataUnionFee fee that goes to the DU beneficiary
      */
-    function setFees(uint256 newAdminFee, uint256 newDataUnionFee) public onlyOwner {
-        require((newAdminFee + newDataUnionFee) <= 1 ether, "error_fees");
+    function setAdminFee(uint256 newAdminFee) public onlyOwner {
+        uint protocolFeeFraction = protocolFeeOracle.protocolFeeFor(address(this));
+        require(newAdminFee + protocolFeeFraction <= 1 ether, "error_adminFee");
+        uint oldAdminFee = adminFeeFraction;
         adminFeeFraction = newAdminFee;
-        dataUnionFeeFraction = newDataUnionFee;
-        emit FeesSet(adminFeeFraction, dataUnionFeeFraction);
+        emit AdminFeeChanged(newAdminFee, oldAdminFee);
     }
 
-    function setDataUnionBeneficiary(address newDataUnionBeneficiary) public onlyOwner {
-        emit DataUnionBeneficiaryChanged(newDataUnionBeneficiary, dataUnionBeneficiary);
-        dataUnionBeneficiary = newDataUnionBeneficiary;
+    function setNewMemberEth(uint newMemberStipendWei) public onlyOwner {
+        uint oldMemberStipendWei = newMemberEth;
+        newMemberEth = newMemberStipendWei;
+        emit NewMemberEthChanged(newMemberStipendWei, oldMemberStipendWei);
     }
 
-    function setNewMemberEth(uint val) public onlyOwner {
-        newMemberEth = val;
-        emit UpdateNewMemberEth(val);
+    function setMetadata(string calldata newMetadata) public onlyOwner {
+        metadataJsonString = newMetadata;
+        emit MetadataChanged(newMetadata);
     }
 
     //------------------------------------------------------------
@@ -175,18 +177,25 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
         emit RevenueReceived(newTokens);
 
         // fractions are expressed as multiples of 10^18 just like tokens, so must divide away the extra 10^18 factor
-        // overflow in multiplication is not an issue: 256bits ~= 10^77
-        uint256 adminFee = (newTokens * adminFeeFraction) / (1 ether);
-        uint256 duFee = (newTokens * dataUnionFeeFraction) / (1 ether);
-        uint256 newEarnings = newTokens - adminFee - duFee;
+        //   overflow in multiplication is not an issue: 256bits ~= 10^77
+        uint protocolFeeFraction = protocolFeeOracle.protocolFeeFor(address(this));
 
-        _increaseBalance(owner, adminFee);
-        _increaseBalance(dataUnionBeneficiary, duFee);
-        totalAdminFees += adminFee;
-        totalDataUnionFees += duFee;
-        emit FeesCharged(adminFee, duFee);
+        // sanity check: adjust oversize admin fee (prevent over 100% fees)
+        if (adminFeeFraction + protocolFeeFraction > 1 ether) {
+            adminFeeFraction = 1 ether - protocolFeeFraction;
+        }
 
-        uint256 earningsPerMember = newEarnings / activeMemberCount;
+        uint adminFeeWei = (newTokens * adminFeeFraction) / (1 ether);
+        uint protocolFeeWei = (newTokens * protocolFeeFraction) / (1 ether);
+        uint newEarnings = newTokens - adminFeeWei - protocolFeeWei;
+
+        _increaseBalance(owner, adminFeeWei);
+        _increaseBalance(protocolBeneficiary, protocolFeeWei);
+        totalAdminFees += adminFeeWei;
+        totalProtocolFees += protocolFeeWei;
+        emit FeesCharged(adminFeeWei, protocolFeeWei);
+
+        uint earningsPerMember = newEarnings / activeMemberCount;
         lifetimeMemberEarnings = lifetimeMemberEarnings + earningsPerMember;
         totalEarnings = totalEarnings + newEarnings;
         emit NewEarnings(earningsPerMember, activeMemberCount);
@@ -624,19 +633,16 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
      */
     function setWithdrawModule(IWithdrawModule newWithdrawModule) external onlyOwner {
         require(!modulesLocked, "error_modulesLocked");
-        // TODO: check EIP-165?
         withdrawModule = newWithdrawModule;
         emit WithdrawModuleChanged(newWithdrawModule);
     }
 
     function addJoinListener(IJoinListener newListener) external onlyOwner {
-        // TODO: check EIP-165?
         joinListeners.push(address(newListener));
         emit JoinListenerAdded(newListener);
     }
 
     function addPartListener(IPartListener newListener) external onlyOwner {
-        // TODO: check EIP-165?
         partListeners.push(address(newListener));
         emit PartListenerAdded(newListener);
     }

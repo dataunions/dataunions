@@ -7,32 +7,25 @@ import { deployContracts, getWallets } from './setup'
 
 describe('DataUnion deploy', () => {
 
-    let admin: Wallet
+    let dao: Wallet
     let user: Wallet
     let clientOptions: Partial<DataUnionClientConfig>
     beforeAll(async () => {
-        [ admin, user ] = getWallets()
+        [ dao, user ] = getWallets()
         const {
             token,
             dataUnionFactory,
             dataUnionTemplate,
             ethereumUrl
-        } = await deployContracts(admin)
+        } = await deployContracts(dao)
         clientOptions = {
             auth: { privateKey: user.privateKey },
             tokenAddress: token.address,
             dataUnion: {
                 factoryAddress: dataUnionFactory.address,
                 templateAddress: dataUnionTemplate.address,
-                duBeneficiaryAddress: admin.address,
-                joinPartAgentAddress: "0x0000000000000000000000000000000000000000",
             },
-            network: {
-                rpcs: [{
-                    url: ethereumUrl,
-                    timeout: 30 * 1000
-                }]
-            },
+            network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
         }
     })
 
