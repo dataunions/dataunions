@@ -90,7 +90,8 @@ describe("DataUnionTemplate", () => {
         //     uint256 defaultNewMemberEth,
         //     uint256 initialAdminFeeFraction,
         //     address protocolBeneficiaryAddress,
-        //     address protocolFeeOracleAddress
+        //     address protocolFeeOracleAddress,
+        //     string calldata metadataJsonString
         // )
         await dataUnionSidechain.initialize(
             admin.address,
@@ -100,6 +101,7 @@ describe("DataUnionTemplate", () => {
             parseEther("0.09"), // total fees are 1% + 9% = 10%
             dao.address,
             feeOracle.address,
+            "{}"
         )
         await dataUnionSidechainAgent.addMembers(m)
 
@@ -396,6 +398,7 @@ describe("DataUnionTemplate", () => {
             parseEther("0.1"),
             dao.address,
             feeOracle.address,
+            "{}"
         )).to.be.revertedWith("error_alreadyInitialized")
     })
 
@@ -449,6 +452,20 @@ describe("DataUnionTemplate", () => {
         assert(await testToken.transfer(dataUnionSidechain.address, "3000"))
         await dataUnionSidechain.refreshRevenue()
         expect(await dataUnionSidechain.adminFeeFraction()).to.equal(parseEther("0.8"))
+    })
+
+    it("lets only admin change the metadata", async () => {
+        await expect(dataUnionSidechain.connect(members[0]).setMetadata("foo")).to.be.revertedWith("error_onlyOwner")
+        expect(await dataUnionSidechain.metadataJsonString()).to.equal("{}")
+        await expect(dataUnionSidechain.connect(admin).setMetadata("foo")).to.emit(dataUnionSidechain, "MetadataChanged")
+        expect(await dataUnionSidechain.metadataJsonString()).to.equal("foo")
+    })
+
+    it("lets only admin change the admin fee", async () => {
+        await expect(dataUnionSidechain.connect(members[0]).setAdminFee(parseEther("0.5"))).to.be.revertedWith("error_onlyOwner")
+        expect(await dataUnionSidechain.adminFeeFraction()).to.equal(parseEther("0.09"))
+        await expect(dataUnionSidechain.connect(admin).setAdminFee(parseEther("0.5"))).to.emit(dataUnionSidechain, "AdminFeeChanged")
+        expect(await dataUnionSidechain.adminFeeFraction()).to.equal(parseEther("0.5"))
     })
 
     it("cannot swap modules after locking", async () => {

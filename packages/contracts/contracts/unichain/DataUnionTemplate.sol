@@ -44,8 +44,9 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
     event TransferToAddressInContract(address indexed from, address indexed to, uint amount);
 
     // Variable properties change events
-    event NewMemberEthUpdated(uint value);
+    event NewMemberEthChanged(uint newMemberStipendWei, uint oldMemberStipendWei);
     event AdminFeeChanged(uint newAdminFee, uint oldAdminFee);
+    event MetadataChanged(string newMetadata); // string could be long, so don't log the old one
 
     struct MemberInfo {
         ActiveStatus status;
@@ -68,6 +69,7 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
     // Variable properties
     uint256 public newMemberEth;
     uint256 public adminFeeFraction;
+    string public metadataJsonString;
 
     // Useful stats
     uint256 public totalRevenue;
@@ -95,7 +97,8 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
         uint256 defaultNewMemberEth,
         uint256 initialAdminFeeFraction,
         address protocolBeneficiaryAddress,
-        address protocolFeeOracleAddress
+        address protocolFeeOracleAddress,
+        string calldata initialMetadataJsonString
     ) public {
         require(!isInitialized(), "error_alreadyInitialized");
         protocolBeneficiary = protocolBeneficiaryAddress;
@@ -105,6 +108,7 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
         addJoinPartAgents(initialJoinPartAgents);
         setAdminFee(initialAdminFeeFraction);
         setNewMemberEth(defaultNewMemberEth);
+        setMetadata(initialMetadataJsonString);
         owner = initialOwner;
     }
 
@@ -147,8 +151,14 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
     }
 
     function setNewMemberEth(uint newMemberStipendWei) public onlyOwner {
+        uint oldMemberStipendWei = newMemberEth;
         newMemberEth = newMemberStipendWei;
-        emit NewMemberEthUpdated(newMemberStipendWei);
+        emit NewMemberEthChanged(newMemberStipendWei, oldMemberStipendWei);
+    }
+
+    function setMetadata(string calldata newMetadata) public onlyOwner {
+        metadataJsonString = newMetadata;
+        emit MetadataChanged(newMetadata);
     }
 
     //------------------------------------------------------------
