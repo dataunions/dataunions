@@ -31,6 +31,17 @@ npm-ci: node_modules ## Run npm ci
 npm-install: ## Run npm install
 	$(call npm, --workspaces install)
 
+.PHONY: npm-version
+npm-version: ## Run npm install
+ifndef VERSION
+	$(error VERSION environment variable is not set)
+endif
+	$(call npm, --workspaces version $(VERSION))
+
+.PHONY: npm-publish-all-workspace-packages
+npm-publish-all-workspace-packages:
+	$(call npm, publish . --access public --workspaces)
+
 .PHONY: clean
 clean: ## Remove generated files
 	$(RM) -r \

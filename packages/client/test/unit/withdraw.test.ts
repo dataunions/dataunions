@@ -11,6 +11,7 @@ import type { DataUnionClientConfig } from '../../src/Config'
 
 describe('DataUnion withdrawX functions', () => {
 
+    let dao: Wallet
     let admin: Wallet
     let member: Wallet
     let otherMember: Wallet
@@ -21,6 +22,7 @@ describe('DataUnion withdrawX functions', () => {
     let clientOptions: Partial<DataUnionClientConfig>
     beforeAll(async () => {
         [
+            dao,
             admin,
             member,
             otherMember,
@@ -31,29 +33,22 @@ describe('DataUnion withdrawX functions', () => {
             dataUnionFactory,
             dataUnionTemplate,
             ethereumUrl
-        } = await deployContracts(admin)
+        } = await deployContracts(dao)
         token = tokenContract
 
         clientOptions = {
-            auth: {
-                privateKey: member.privateKey
-            },
+            auth: { privateKey: member.privateKey },
             tokenAddress: token.address,
             dataUnion: {
                 factoryAddress: dataUnionFactory.address,
                 templateAddress: dataUnionTemplate.address,
-                duBeneficiaryAddress: admin.address,
-                joinPartAgentAddress: "0x0000000000000000000000000000000000000000",
             },
-            network: {
-                rpcs: [{
-                    url: ethereumUrl,
-                    timeout: 30 * 1000
-                }]
-            }
+            network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
         }
+
+        // deploy a DU with admin fee 9% + DU fee 1% = total 10% fees
         const adminClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })
-        const adminDataUnion = await adminClient.deployDataUnion()
+        const adminDataUnion = await adminClient.deployDataUnion({ adminFee: 0.09 })
         await adminDataUnion.addMembers([member.address, otherMember.address])
 
         const client = new DataUnionClient(clientOptions)
@@ -63,26 +58,26 @@ describe('DataUnion withdrawX functions', () => {
         otherDataUnion = await otherClient.getDataUnion(dataUnion.getAddress())
     })
 
-    async function fundDataUnion() {
-        await (await token.mint(await token.signer.getAddress(), parseEther('1'))).wait()
-        await (await token.transferAndCall(dataUnion.getAddress(), parseEther('1'), '0x')).wait()
+    async function fundDataUnion(tokens: number) {
+        await (await token.mint(await token.signer.getAddress(), parseEther(tokens.toFixed(10)))).wait()
+        await (await token.transferAndCall(dataUnion.getAddress(), parseEther(tokens.toFixed(10)), '0x')).wait()
     }
 
     describe('by the member itself', () => {
         it('to itself', async () => {
             const balanceBefore = await token.balanceOf(member.address)
-            await fundDataUnion()
+            await fundDataUnion(1)
             await dataUnion.withdrawAll()
             const balanceChange = (await token.balanceOf(member.address)).sub(balanceBefore)
-            expect(formatEther(balanceChange)).toEqual("0.5")
+            expect(formatEther(balanceChange)).toEqual("0.45") // 0.5 - 10% fees
         })
 
         it('to any address', async () => {
             const balanceBefore = await token.balanceOf(outsider.address)
-            await fundDataUnion()
+            await fundDataUnion(1)
             await dataUnion.withdrawAllTo(outsider.address)
             const balanceChange = (await token.balanceOf(outsider.address)).sub(balanceBefore)
-            expect(formatEther(balanceChange)).toEqual("0.5")
+            expect(formatEther(balanceChange)).toEqual("0.45") // 0.5 - 10% fees
         })
     })
 
@@ -91,22 +86,22 @@ describe('DataUnion withdrawX functions', () => {
         // TODO: for some reason this is actually blocked in the smart contract. Why? It used to be possible.
         it.skip('to a member without signature', async () => {
             const balanceBefore = await token.balanceOf(member.address)
-            await fundDataUnion()
+            await fundDataUnion(1)
             await otherDataUnion.withdrawAllToMember(member.address)
             const balanceChange = (await token.balanceOf(member.address)).sub(balanceBefore)
 
-            expect(formatEther(balanceChange)).toEqual("0.5")
+            expect(formatEther(balanceChange)).toEqual("0.45") // 0.5 - 10% fees
         })
 
         it("to anyone with member's signature", async () => {
             const signature = await dataUnion.signWithdrawAllTo(outsider.address)
 
             const balanceBefore = await token.balanceOf(outsider.address)
-            await fundDataUnion()
+            await fundDataUnion(1)
             await otherDataUnion.withdrawAllToSigned(member.address, outsider.address, signature)
             const balanceChange = (await token.balanceOf(outsider.address)).sub(balanceBefore)
 
-            expect(formatEther(balanceChange)).toEqual("0.5")
+            expect(formatEther(balanceChange)).toEqual("0.45") // 0.5 - 10% fees
         })
 
         it("to anyone a specific amount with member's signature", async () => {
@@ -114,7 +109,7 @@ describe('DataUnion withdrawX functions', () => {
             const signature = await dataUnion.signWithdrawAmountTo(outsider.address, withdrawAmount)
 
             const balanceBefore = await token.balanceOf(outsider.address)
-            await fundDataUnion()
+            await fundDataUnion(1)
             await otherDataUnion.withdrawAmountToSigned(member.address, outsider.address, withdrawAmount, signature)
             const balanceChange = (await token.balanceOf(outsider.address)).sub(balanceBefore)
 
@@ -123,7 +118,7 @@ describe('DataUnion withdrawX functions', () => {
     })
 
     it('validates input addresses', async () => {
-        await fundDataUnion()
+        await fundDataUnion(1)
         return Promise.all([
             expect(() => dataUnion.getWithdrawableEarnings('invalid-address')).rejects.toThrow(/invalid address/),
             expect(() => dataUnion.withdrawAllTo('invalid-address')).rejects.toThrow(/invalid address/),

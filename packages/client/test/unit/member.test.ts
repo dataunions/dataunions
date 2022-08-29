@@ -9,6 +9,7 @@ import type { DataUnion } from '../../src/DataUnion'
 
 describe('DataUnion member', () => {
 
+    let dao: Wallet
     let admin: Wallet
     let member: Wallet
     let otherMember: Wallet
@@ -17,6 +18,7 @@ describe('DataUnion member', () => {
     let adminDataUnion: DataUnion
     beforeAll(async () => {
         [
+            dao,
             admin,
             member,
             otherMember,
@@ -26,26 +28,17 @@ describe('DataUnion member', () => {
             dataUnionFactory,
             dataUnionTemplate,
             ethereumUrl
-        } = await deployContracts(admin)
+        } = await deployContracts(dao)
         token = tokenContract
 
         const clientOptions = {
-            auth: {
-                privateKey: member.privateKey
-            },
+            auth: { privateKey: member.privateKey },
             tokenAddress: token.address,
             dataUnion: {
                 factoryAddress: dataUnionFactory.address,
                 templateAddress: dataUnionTemplate.address,
-                duBeneficiaryAddress: admin.address,
-                joinPartAgentAddress: "0x0000000000000000000000000000000000000000",
             },
-            network: {
-                rpcs: [{
-                    url: ethereumUrl,
-                    timeout: 30 * 1000
-                }]
-            }
+            network: { rpcs: [{ url: ethereumUrl, timeout: 30 * 1000 }] }
         }
 
         const adminClient = new DataUnionClient({ ...clientOptions, auth: { privateKey: admin.privateKey } })

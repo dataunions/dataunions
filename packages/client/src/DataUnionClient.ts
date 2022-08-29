@@ -97,13 +97,11 @@ export class DataUnionClient {
         const factoryAddress = getAddress(options.dataUnion?.factoryAddress ?? chain?.contracts.DataUnionFactory
                                             ?? "Must include dataUnion.factoryAddress or chain in the config!")
         const joinPartAgentAddress = getAddress(options.dataUnion?.joinPartAgentAddress ?? chains.ethereum.contracts["core-api"])
-        const dataUnionBeneficiaryAddress = getAddress(options.dataUnion?.duBeneficiaryAddress ?? chain?.contracts.DATA)
 
         this.dataunionPlugin = new DataUnionAPI(
             this.wallet,
             factoryAddress,
             joinPartAgentAddress,
-            dataUnionBeneficiaryAddress,
             tokenAddress,
             this
         )

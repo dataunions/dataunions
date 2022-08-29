@@ -2,9 +2,9 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "Node 16 – DataUnions",
   "extends": "@tsconfig/node16/tsconfig.json",
-  "compilerOptions": {
-    "allowJs": true,
-    "declaration": true,
+    "compilerOptions": {
+      "allowJs": true,
+      "declaration": true,
     "module": "commonjs",
     "target": "es2019",
     "esModuleInterop": true,

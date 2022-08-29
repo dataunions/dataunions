@@ -1,0 +1,29 @@
+{
+  "name": "@dataunions/client-test-browser",
+  "version": "0.0.0",
+  "description": "Data Union Client Browser Tests",
+  "main": "test/github.js",
+  "scripts": {
+    "test": "tsc && nightwatch"
+  },
+  "author": "Streamr Developers",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/nightwatch": "2.3.4",
+    "chromedriver": "104.0.0",
+    "nightwatch": "2.3.3",
+    "typescript": "4.7.4"
+  },
+  "repository": {
+      "type": "git",
+      "url": "git+https://github.com/dataunions/data-union.git",
+      "directory": "packages/client-test-browser"
+  },
+  "bugs": {
+      "url": "https://github.com/dataunions/data-union/issues"
+  },
+  "homepage": "https://github.com/dataunions/data-union#readme",
+  "publishConfig": {
+      "access": "public"
+  }
+}

@@ -11,9 +11,13 @@ import "../Ownable.sol";
 contract DataUnionFactory is Ownable {
     event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
     event DUCreated(address indexed du, address indexed owner, address template);
-    event UpdateNewDUInitialEth(uint amount);
-    event UpdateNewDUOwnerInitialEth(uint amount);
-    event UpdateDefaultNewMemberInitialEth(uint amount);
+
+    event NewDUInitialEthUpdated(uint amount);
+    event NewDUOwnerInitialEthUpdated(uint amount);
+    event DefaultNewMemberInitialEthUpdated(uint amount);
+    event ProtocolBeneficiaryUpdated(address newBeneficiaryAddress);
+    event ProtocolFeeOracleUpdated(address newFeeOracleAddress);
+
     event DUInitialEthSent(uint amountWei);
     event OwnerInitialEthSent(uint amountWei);
 
@@ -24,13 +28,19 @@ contract DataUnionFactory is Ownable {
     uint public newDUInitialEth;
     uint public newDUOwnerInitialEth;
     uint public defaultNewMemberEth;
+    address public protocolBeneficiary;
+    address public protocolFeeOracle;
 
     constructor(
         address _dataUnionTemplate,
-        address _defaultToken
+        address _defaultToken,
+        address _protocolBeneficiary,
+        address _protocolFeeOracle
     ) Ownable(msg.sender) {
         setTemplate(_dataUnionTemplate);
         defaultToken = _defaultToken;
+        protocolBeneficiary = _protocolBeneficiary;
+        protocolFeeOracle = _protocolFeeOracle;
     }
 
     function setTemplate(address _dataUnionTemplate) public onlyOwner {
@@ -40,26 +50,34 @@ contract DataUnionFactory is Ownable {
     // contract is payable so it can receive and hold the new member eth stipends
     receive() external payable {}
 
-    function setNewDUInitialEth(uint val) public onlyOwner {
-        newDUInitialEth = val;
-        emit UpdateNewDUInitialEth(val);
+    function setNewDUInitialEth(uint initialEthWei) public onlyOwner {
+        newDUInitialEth = initialEthWei;
+        emit NewDUInitialEthUpdated(initialEthWei);
     }
 
-    function setNewDUOwnerInitialEth(uint val) public onlyOwner {
-        newDUOwnerInitialEth = val;
-        emit UpdateNewDUOwnerInitialEth(val);
+    function setNewDUOwnerInitialEth(uint initialEthWei) public onlyOwner {
+        newDUOwnerInitialEth = initialEthWei;
+        emit NewDUOwnerInitialEthUpdated(initialEthWei);
     }
 
-    function setNewMemberInitialEth(uint val) public onlyOwner {
-        defaultNewMemberEth = val;
-        emit UpdateDefaultNewMemberInitialEth(val);
+    function setNewMemberInitialEth(uint initialEthWei) public onlyOwner {
+        defaultNewMemberEth = initialEthWei;
+        emit DefaultNewMemberInitialEthUpdated(initialEthWei);
+    }
+
+    function setProtocolBeneficiary(address newBeneficiaryAddress) public onlyOwner {
+        protocolBeneficiary = newBeneficiaryAddress;
+        emit ProtocolBeneficiaryUpdated(newBeneficiaryAddress);
+    }
+
+    function setProtocolFeeOracle(address newFeeOracleAddress) public onlyOwner {
+        protocolFeeOracle = newFeeOracleAddress;
+        emit ProtocolFeeOracleUpdated(newFeeOracleAddress);
     }
 
     function deployNewDataUnion(
         address payable owner,
         uint256 adminFeeFraction,
-        uint256 duFeeFraction,
-        address duBeneficiary,
         address[] memory agents
     )
         public
@@ -69,9 +87,7 @@ contract DataUnionFactory is Ownable {
             defaultToken,
             owner,
             agents,
-            adminFeeFraction,
-            duFeeFraction,
-            duBeneficiary
+            adminFeeFraction
         );
     }
 
@@ -82,9 +98,7 @@ contract DataUnionFactory is Ownable {
         address token,
         address payable owner,
         address[] memory agents,
-        uint256 initialAdminFeeFraction,
-        uint256 initialDataUnionFeeFraction,
-        address initialDataUnionBeneficiary
+        uint256 initialAdminFeeFraction
     ) public returns (address) {
         address payable du = payable(Clones.clone(dataUnionTemplate));
         DataUnionTemplate(du).initialize(
@@ -93,8 +107,8 @@ contract DataUnionFactory is Ownable {
             agents,
             defaultNewMemberEth,
             initialAdminFeeFraction,
-            initialDataUnionFeeFraction,
-            initialDataUnionBeneficiary
+            protocolBeneficiary,
+            protocolFeeOracle
         );
 
         emit SidechainDUCreated(du, du, owner, dataUnionTemplate);
