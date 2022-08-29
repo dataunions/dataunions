@@ -2,7 +2,7 @@ import type { ContractReceipt, ContractTransaction } from '@ethersproject/contra
 import type { Signer } from '@ethersproject/abstract-signer'
 import { defaultAbiCoder } from '@ethersproject/abi'
 import { getAddress } from '@ethersproject/address'
-import { BigNumber } from '@ethersproject/bignumber'
+import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 import { arrayify, hexZeroPad } from '@ethersproject/bytes'
 
 import type { DataUnionTemplate as DataUnionContract } from '@dataunions/contracts/typechain'
@@ -142,6 +142,23 @@ export class DataUnion {
 
     async getActiveMemberCount(): Promise<number> {
         return this.contract.getActiveMemberCount()
+    }
+
+    async getMetadata(): Promise<object> {
+        const metadataJsonString = await this.contract.metadataJsonString()
+        try {
+            return JSON.parse(metadataJsonString)
+        } catch (e) {
+            throw new Error(`Data Union ${this.getAddress()} metadata is not valid JSON: ${metadataJsonString}`)
+        }
+    }
+
+    async getMetadataString(): Promise<string> {
+        return this.contract.metadataJsonString()
+    }
+
+    async getNewMemberStipend(): Promise<BigNumber> {
+        return this.contract.newMemberEth()
     }
 
     // TODO: put signing and error handling into the Rest class maybe?
@@ -478,6 +495,23 @@ export class DataUnion {
         return waitOrRetryTx(tx)
     }
 
+    async sendAdminTx(
+        func: (...args: any[]) => Promise<ContractTransaction>,
+        ...args: Parameters<typeof func>
+    ): Promise<ContractReceipt> {
+        let tx: ContractTransaction
+        try {
+            tx = await func(...args.concat(this.client.getOverrides()))
+            return waitOrRetryTx(tx)
+        } catch(error) {
+            if (error.message.includes('error_onlyOwner')) {
+                const myAddress = await this.contract.signer.getAddress()
+                throw new Error(`Call to data union ${this.contract.address} failed: ${myAddress} is not the DataUnion admin!`)
+            }
+            throw error
+        }
+    }
+
     /**
      * Admin: set admin fee (between 0.0 and 1.0) for the data union
      */
@@ -487,18 +521,27 @@ export class DataUnion {
         }
 
         const adminFeeBN = BigNumber.from((newFeeFraction * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish
-        const ethersOverrides = this.client.getOverrides()
-        let tx
-        try {
-            tx = await this.contract.setAdminFee(adminFeeBN, ethersOverrides)
-        } catch(error) {
-            if (error.message.includes('error_onlyOwner')) {
-                const myAddress = await this.contract.signer.getAddress()
-                throw new Error(`Setting admin fee for data union ${this.contract.address} failed: ${myAddress} is not the DataUnion admin!`)
-            }
-            throw error
-        }
-        return waitOrRetryTx(tx)
+        return this.sendAdminTx(this.contract.setAdminFee, adminFeeBN)
+    }
+
+    /**
+     * Stores a Javascript object in JSON format in the data union contract, can be retrieved with `getMetadata`
+     * @param metadata object to be stored in the data union contract
+     */
+    async setMetadata(metadata: object): Promise<ContractReceipt> {
+        return this.sendAdminTx(this.contract.setMetadata, JSON.stringify(metadata))
+    }
+
+    async setMetadataString(metadata: string): Promise<ContractReceipt> {
+        return this.sendAdminTx(this.contract.setMetadata, metadata)
+    }
+
+    /**
+     * Admin can automate sending ETH to new members so that they can afford to do a withdraw without first having to acquire ETH
+     * @param stipendWei in native tokens (ETH) that is sent to every new DU member
+     */
+    async setNewMemberStipend(stipendWei: BigNumberish): Promise<ContractReceipt> {
+        return this.sendAdminTx(this.contract.setNewMemberEth, stipendWei)
     }
 
     /**
