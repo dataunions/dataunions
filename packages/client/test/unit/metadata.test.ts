@@ -55,17 +55,4 @@ describe('DataUnion metadata', () => {
         expect(metadataBefore2).toEqual({})
         expect(metadataAfter).toEqual({ testing: 123 })
     })
-
-    it('can be set as raw string by admin only', async () => {
-        const { adminDataUnion, dataUnion } = await deployDataUnion()
-        const metadataBefore = await dataUnion.getMetadataString()
-        await expect(dataUnion.setMetadataString("http://test.com")).rejects.toThrow(/not the DataUnion admin/)
-        const metadataBefore2 = await dataUnion.getMetadataString()
-        await adminDataUnion.setMetadataString("http://test.com")
-        const metadataAfter = await dataUnion.getMetadataString()
-        expect(metadataBefore).toEqual("{}")
-        expect(metadataBefore2).toEqual("{}")
-        expect(metadataAfter).toEqual("http://test.com")
-        expect(dataUnion.getMetadata()).rejects.toThrow(/not valid JSON/)
-    })
 })

@@ -145,17 +145,19 @@ export class DataUnion {
         return this.contract.getActiveMemberCount()
     }
 
-    async getMetadata(): Promise<object> {
+    /**
+     * If metadata is not valid JSON, simply return the raw string.
+     * This shouldn't happen if `setMetadata` was used to write the metadata;
+     *   however direct access to the smart contract is of course possible, and the contract won't validate the JSON.
+     * @returns object that was stored using `setMetadata`
+     */
+    async getMetadata(): Promise<object | string> {
         const metadataJsonString = await this.contract.metadataJsonString()
         try {
             return JSON.parse(metadataJsonString)
         } catch (e) {
-            throw new Error(`Data Union ${this.getAddress()} metadata is not valid JSON: ${metadataJsonString}`)
+            return metadataJsonString
         }
-    }
-
-    async getMetadataString(): Promise<string> {
-        return this.contract.metadataJsonString()
     }
 
     async getNewMemberStipend(): Promise<BigNumber> {
@@ -531,10 +533,6 @@ export class DataUnion {
      */
     async setMetadata(metadata: object): Promise<ContractReceipt> {
         return this.sendAdminTx(this.contract.setMetadata, JSON.stringify(metadata))
-    }
-
-    async setMetadataString(metadata: string): Promise<ContractReceipt> {
-        return this.sendAdminTx(this.contract.setMetadata, metadata)
     }
 
     /**
