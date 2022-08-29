@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.8.6;
 
@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "../xdai-mainnet-bridge/IAMB.sol";
 import "./DataUnionTemplate.sol";
-// TODO: switch to "@openzeppelin/contracts/access/Ownable.sol";
 import "../Ownable.sol";
 
 contract DataUnionFactory is Ownable {

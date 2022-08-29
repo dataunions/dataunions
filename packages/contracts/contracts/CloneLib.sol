@@ -1,11 +1,8 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 
 pragma solidity 0.8.6;
 //solhint-disable avoid-low-level-calls
 //solhint-disable no-inline-assembly
-
-// TODO: replace with OpenZeppelin Clones library, see https://blog.openzeppelin.com/workshop-recap-cheap-contract-deployment-through-clones/
-// TODO: ...or remove completely if we give up the factory pattern
 
 /** NOTE: DO NOT MODIFY. This code has been audited, and the test was removed in truffle -> waffle transition */
 library CloneLib {
