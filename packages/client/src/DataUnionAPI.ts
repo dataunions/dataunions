@@ -99,7 +99,8 @@ export default class DataUnionAPI {
             dataUnionName = `DataUnion-${Date.now()}`, // TODO: use uuid
             adminFee = 0,
             confirmations = 1,
-            gasPrice
+            gasPrice,
+            metadata = {},
         } = options
 
         log(`Going to deploy DataUnion with name: ${dataUnionName}`)
@@ -126,6 +127,7 @@ export default class DataUnionAPI {
             ownerAddress,
             agentAddressList,
             adminFeeBN,
+            JSON.stringify(metadata),
             ethersOverrides
         )
         const receipt = await tx.wait(confirmations)
@@ -154,7 +156,8 @@ export default class DataUnionAPI {
             dataUnionName = `DataUnion-${Date.now()}`, // TODO: use uuid
             adminFee = 0,
             confirmations = 1,
-            gasPrice
+            gasPrice,
+            metadata = {},
         } = options
 
         log(`Going to deploy DataUnion with name: ${dataUnionName}`)
@@ -178,6 +181,7 @@ export default class DataUnionAPI {
             ownerAddress,
             adminFeeBN,
             agentAddressList,
+            JSON.stringify(metadata),
             ethersOverrides
         )
         const receipt = await tx.wait(confirmations)
