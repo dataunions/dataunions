@@ -106,6 +106,7 @@ export class AuthFetchError extends Error {
 
 export async function authRequest(
     url: string,
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     opts?: any,
     // requireNewToken = false,
     debug?: Debugger,
