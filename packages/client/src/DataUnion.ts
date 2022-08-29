@@ -23,7 +23,7 @@ export interface DataUnionDeployOptions {
     sidechainRetryTimeoutMs?: number
     confirmations?: number
     gasPrice?: BigNumber
-    metadata: object
+    metadata?: object
 }
 
 export interface JoinResponse {
