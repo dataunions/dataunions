@@ -67,7 +67,7 @@ describe("DataUnionTemplate", () => {
     before(async () => {
         testToken = await deployContract(dao, TestTokenJson, ["name", "symbol"]) as TestToken
         await testToken.mint(dao.address, parseEther("100000"))
-        feeOracle = await deployContract(dao, FeeOracleJson, [parseEther("0.01")]) as DefaultFeeOracle
+        feeOracle = await deployContract(dao, FeeOracleJson, [parseEther("0.01"), dao.address]) as DefaultFeeOracle
 
         log("List of relevant addresses:")
         log("  testToken: %s", testToken.address)
@@ -89,7 +89,6 @@ describe("DataUnionTemplate", () => {
         //     address[] memory initialJoinPartAgents,
         //     uint256 defaultNewMemberEth,
         //     uint256 initialAdminFeeFraction,
-        //     address protocolBeneficiaryAddress,
         //     address protocolFeeOracleAddress,
         //     string calldata metadataJsonString
         // )
@@ -99,7 +98,6 @@ describe("DataUnionTemplate", () => {
             a,
             "1",
             parseEther("0.09"), // total fees are 1% + 9% = 10%
-            dao.address,
             feeOracle.address,
             "{}"
         )
@@ -396,7 +394,6 @@ describe("DataUnionTemplate", () => {
             a,
             "1",
             parseEther("0.1"),
-            dao.address,
             feeOracle.address,
             "{}"
         )).to.be.revertedWith("error_alreadyInitialized")

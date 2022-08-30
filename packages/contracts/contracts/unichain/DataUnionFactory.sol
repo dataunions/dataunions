@@ -15,7 +15,6 @@ contract DataUnionFactory is Ownable {
     event NewDUInitialEthUpdated(uint amount);
     event NewDUOwnerInitialEthUpdated(uint amount);
     event DefaultNewMemberInitialEthUpdated(uint amount);
-    event ProtocolBeneficiaryUpdated(address newBeneficiaryAddress);
     event ProtocolFeeOracleUpdated(address newFeeOracleAddress);
 
     event DUInitialEthSent(uint amountWei);
@@ -28,18 +27,15 @@ contract DataUnionFactory is Ownable {
     uint public newDUInitialEth;
     uint public newDUOwnerInitialEth;
     uint public defaultNewMemberEth;
-    address public protocolBeneficiary;
     address public protocolFeeOracle;
 
     constructor(
         address _dataUnionTemplate,
         address _defaultToken,
-        address _protocolBeneficiary,
         address _protocolFeeOracle
     ) Ownable(msg.sender) {
         setTemplate(_dataUnionTemplate);
         defaultToken = _defaultToken;
-        protocolBeneficiary = _protocolBeneficiary;
         protocolFeeOracle = _protocolFeeOracle;
     }
 
@@ -63,11 +59,6 @@ contract DataUnionFactory is Ownable {
     function setNewMemberInitialEth(uint initialEthWei) public onlyOwner {
         defaultNewMemberEth = initialEthWei;
         emit DefaultNewMemberInitialEthUpdated(initialEthWei);
-    }
-
-    function setProtocolBeneficiary(address newBeneficiaryAddress) public onlyOwner {
-        protocolBeneficiary = newBeneficiaryAddress;
-        emit ProtocolBeneficiaryUpdated(newBeneficiaryAddress);
     }
 
     function setProtocolFeeOracle(address newFeeOracleAddress) public onlyOwner {
@@ -107,7 +98,6 @@ contract DataUnionFactory is Ownable {
             agents,
             defaultNewMemberEth,
             initialAdminFeeFraction,
-            protocolBeneficiary,
             protocolFeeOracle,
             metadataJsonString
         );
