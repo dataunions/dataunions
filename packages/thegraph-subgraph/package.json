@@ -20,9 +20,9 @@
     "devDependencies": {
         "@graphprotocol/graph-cli": "0.33.0",
         "@humanwhocodes/gitignore-to-minimatch": "1.0.2",
-        "@typescript-eslint/eslint-plugin": "5.35.1",
+        "@typescript-eslint/eslint-plugin": "5.36.0",
         "@typescript-eslint/parser": "5.35.1",
-        "eslint": "8.22.0",
+        "eslint": "8.23.0",
         "eslint-config-streamr-ts": "4.1.0",
         "eslint-plugin-chai-friendly": "0.7.2",
         "eslint-plugin-import": "2.26.0",
