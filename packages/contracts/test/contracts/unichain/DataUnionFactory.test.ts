@@ -37,11 +37,10 @@ describe("DataUnionFactory", (): void => {
     before(async () => {
         testToken = await deployContract(creator, TestTokenJson, ["name", "symbol"]) as TestToken
         const dataUnionSidechainTemplate = await deployContract(creator, DataUnionTemplateJson, [])
-        const feeOracle = await deployContract(creator, FeeOracleJson, [parseEther("0.1")])
+        const feeOracle = await deployContract(creator, FeeOracleJson, [parseEther("0.1"), protocolBeneficiary.address])
         factory = await deployContract(creator, DataUnionFactoryJson, [
             dataUnionSidechainTemplate.address,
             testToken.address,
-            protocolBeneficiary.address,
             feeOracle.address,
         ]) as DataUnionFactory
     })
