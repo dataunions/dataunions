@@ -124,7 +124,9 @@ export class DataUnionClient {
     getOverrides(): EthersOverrides {
         return this.gasPriceStrategy ? {
             ...this.overrides,
-            gasPrice: this.wallet.provider!.getGasPrice().then(this.gasPriceStrategy)
+            maxFeePerGas: this.wallet.provider!.getFeeData().then(
+                (feeData) => this.gasPriceStrategy!(feeData.maxFeePerGas!)
+            )
         } : this.overrides
     }
 }
