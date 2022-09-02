@@ -122,11 +122,14 @@ export class DataUnionClient {
      * Ethers.js will resolve the gas price promise before sending the tx
      */
     getOverrides(): EthersOverrides {
-        return this.gasPriceStrategy ? {
+        if (!this.gasPriceStrategy) {
+            return this.overrides
+        }
+        return {
             ...this.overrides,
             maxFeePerGas: this.wallet.provider!.getFeeData().then(
                 (feeData) => this.gasPriceStrategy!(feeData.maxFeePerGas!)
             )
-        } : this.overrides
+        }
     }
 }
