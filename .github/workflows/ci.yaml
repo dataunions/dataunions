@@ -51,15 +51,15 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-      - name: Install dependencies
+      - name: Setup
         run: |
           npm ci
+          npm run build
       - name: Run lint
         run: |
           npm run lint
-      - name: Build and unit test
+      - name: Unit test
         run: |
-          npm run build
           npm run test
       - name: Build Solidity contracts using Makefile
         working-directory: packages/contracts
