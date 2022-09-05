@@ -1,7 +1,20 @@
 {
   "name": "@dataunions/join-server",
   "version": "3.0.0-alpha.3",
-  "description": "",
+  "description": "Data Union join server base implementation",
+  "private": false,
+  "publishConfig": {
+      "access": "public"
+  },
+  "repository": {
+      "type": "git",
+      "url": "git+https://github.com/dataunions/data-unions.git",
+      "directory": "packages/join-server"
+  },
+  "bugs": {
+      "url": "https://github.com/dataunions/data-unions/issues"
+  },
+  "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/join-server#readme",
   "main": "src/app/index.js",
   "engines": {
     "node": ">=16.13.1",
@@ -35,9 +48,5 @@
     "mocha": "10.0.0",
     "sinon": "14.0.0",
     "supertest": "6.2.4"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:dataunions/data-unions.git"
   }
 }

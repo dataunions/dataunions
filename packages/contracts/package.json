@@ -1,7 +1,21 @@
 {
     "name": "@dataunions/contracts",
-    "description": "Smart contracts for Data Union with sidechain accounting",
     "version": "3.0.0-beta.1",
+    "description": "Smart contracts for Data Union with sidechain accounting",
+    "private": false,
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/dataunions/data-unions.git",
+        "directory": "packages/contracts"
+    },
+    "bugs": {
+        "url": "https://github.com/dataunions/data-unions/issues"
+    },
+    "license": "UNLICENSED",
+    "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/contracts#readme",
     "scripts": {
         "build": "hardhat compile",
         "prepare": "npm run build",
@@ -20,7 +34,6 @@
         "index.*"
     ],
     "author": "Streamr Network AG",
-    "license": "AGPL-3.0",
     "devDependencies": {
         "@nomiclabs/hardhat-ethers": "2.1.1",
         "@nomiclabs/hardhat-waffle": "2.0.3",
@@ -47,11 +60,8 @@
         "typescript": "4.7.4"
     },
     "dependencies": {
-        "@openzeppelin/contracts": "4.2.0",
+        "@openzeppelin/contracts": "4.4.2",
+        "@openzeppelin/contracts-upgradeable": "4.4.2",
         "ethers": "5.7.0"
-    },
-    "private": false,
-    "publishConfig": {
-        "access": "public"
     }
 }

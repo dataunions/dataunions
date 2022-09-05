@@ -3,11 +3,18 @@
     "version": "3.0.0-beta.8",
     "description": "JavaScript client library for DataUnions",
     "private": false,
+    "publishConfig": {
+        "access": "public"
+    },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/dataunions/data-union.git",
+        "url": "git+https://github.com/dataunions/data-unions.git",
         "directory": "packages/client"
     },
+    "bugs": {
+        "url": "https://github.com/dataunions/data-unions/issues"
+    },
+    "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/client#readme",
     "types": "./dist/types/src/index.d.ts",
     "main": "./dist/src/index.js",
     "browser": "./dist/web/index.js",
@@ -94,12 +101,5 @@
         "readable-stream": "4.1.0",
         "reflect-metadata": "0.1.13",
         "uuid": "8.3.2"
-    },
-    "bugs": {
-        "url": "https://github.com/dataunions/data-union/issues"
-    },
-    "homepage": "https://github.com/dataunions/data-union#readme",
-    "publishConfig": {
-        "access": "public"
     }
 }
