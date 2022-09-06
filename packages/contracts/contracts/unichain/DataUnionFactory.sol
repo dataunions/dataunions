@@ -4,11 +4,17 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
+
+// upgradeable proxy imports
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 import "../xdai-mainnet-bridge/IAMB.sol";
 import "./DataUnionTemplate.sol";
 import "../Ownable.sol";
 
-contract DataUnionFactory is Ownable {
+contract DataUnionFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
     event DUCreated(address indexed du, address indexed owner, address template);
 
@@ -29,11 +35,14 @@ contract DataUnionFactory is Ownable {
     uint public defaultNewMemberEth;
     address public protocolFeeOracle;
 
-    constructor(
+	/** Two phase hand-over to minimize the chance that the product ownership is lost to a non-existent address. */
+	address public pendingOwner;
+
+    function initialize(
         address _dataUnionTemplate,
         address _defaultToken,
         address _protocolFeeOracle
-    ) Ownable(msg.sender) {
+    ) public initializer {
         setTemplate(_dataUnionTemplate);
         defaultToken = _defaultToken;
         protocolFeeOracle = _protocolFeeOracle;
@@ -120,4 +129,30 @@ contract DataUnionFactory is Ownable {
         }
         return du;
     }
+
+    /**
+     * @dev Override openzeppelin implementation
+	 * @dev Allows the current owner to set the pendingOwner address.
+	 * @param newOwner The address to transfer ownership to.
+	 */
+	function transferOwnership(address newOwner) public override onlyOwner {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
+		pendingOwner = newOwner;
+	}
+
+    /**
+	 * @dev Allows the pendingOwner address to finalize the transfer.
+	 */
+	function claimOwnership() public {
+		require(msg.sender == pendingOwner, "onlyPendingOwner");
+		_transferOwnership(pendingOwner);
+		pendingOwner = address(0);
+	}
+
+    /**
+     * @dev Disable openzeppelin renounce ownership functionality
+     */
+    function renounceOwnership() public override onlyOwner {}
+
+    function _authorizeUpgrade(address) internal override onlyOwner {}
 }

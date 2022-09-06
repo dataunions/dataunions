@@ -1,6 +1,6 @@
 import { expect, use } from "chai"
-import { waffle } from "hardhat"
-import { Contract, utils, BigNumber } from "ethers"
+import { waffle, upgrades } from "hardhat"
+import { Contract, ContractFactory, utils, BigNumber } from "ethers"
 const { parseEther } = utils
 
 import DataUnionFactoryJson from "../../../artifacts/contracts/unichain/DataUnionFactory.sol/DataUnionFactory.json"
@@ -9,7 +9,7 @@ import FeeOracleJson from "../../../artifacts/contracts/DefaultFeeOracle.sol/Def
 
 import TestTokenJson from "../../../artifacts/contracts/test/TestToken.sol/TestToken.json"
 
-import { DataUnionFactory, TestToken } from "../../../typechain"
+import { DataUnionFactory, DefaultFeeOracle, TestToken } from "../../../typechain"
 
 import Debug from "debug"
 const log = Debug("Streamr:du:test:BinanceAdapter")
@@ -37,12 +37,17 @@ describe("DataUnionFactory", (): void => {
     before(async () => {
         testToken = await deployContract(creator, TestTokenJson, ["name", "symbol"]) as TestToken
         const dataUnionSidechainTemplate = await deployContract(creator, DataUnionTemplateJson, [])
-        const feeOracle = await deployContract(creator, FeeOracleJson, [parseEther("0.1"), protocolBeneficiary.address])
-        factory = await deployContract(creator, DataUnionFactoryJson, [
+        const feeOracleFactory = new ContractFactory(FeeOracleJson.abi, FeeOracleJson.bytecode, creator)
+        const feeOracle = upgrades.deployProxy(feeOracleFactory, [
+            parseEther("0.1"),
+            protocolBeneficiary.address
+        ], { kind: "uups" }) as DefaultFeeOracle
+        const factoryFactory = new ContractFactory(DataUnionFactoryJson.abi, DataUnionFactoryJson.bytecode, creator)
+        factory = upgrades.deployProxy(factoryFactory, [
             dataUnionSidechainTemplate.address,
             testToken.address,
             feeOracle.address,
-        ]) as DataUnionFactory
+        ], { kind: "uups" }) as DataUnionFactory
     })
 
     it("sidechain ETH flow", async () => {

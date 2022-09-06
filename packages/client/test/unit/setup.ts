@@ -36,10 +36,11 @@ async function deployDataUnionTemplate(deployer: Wallet): Promise<DataUnionTempl
 
 async function deployFeeOracle(deployer: Wallet, protocolBeneficiaryAddress: string): Promise<IFeeOracle> {
     const factory = new ContractFactory(feeOracleJson.abi, feeOracleJson.bytecode, deployer)
-    const contract = await factory.deploy(
+    const contract = await factory.deploy() as unknown as IFeeOracle
+    await contract.initialize(
         parseEther("0.01"),
         protocolBeneficiaryAddress,
-    ) as unknown as IFeeOracle
+    )
     return contract.deployed()
 }
 
@@ -50,11 +51,12 @@ async function deployDataUnionFactory(
     protocolFeeOracleAddress: string,
 ): Promise<DataUnionFactory> {
     const factory = new ContractFactory(factoryJson.abi, factoryJson.bytecode, deployer)
-    const contract = await factory.deploy(
+    const contract = await factory.deploy() as unknown as DataUnionFactory
+    await contract.initialize(
         templateAddress,
         tokenAddress,
         protocolFeeOracleAddress,
-    ) as unknown as DataUnionFactory
+    )
     return contract.deployed()
 }
 
