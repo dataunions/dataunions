@@ -2,9 +2,7 @@
   DataUnion Client
 </h1>
 
-> ⚠️  The code examples in this section are not up to date.
-
-The Data Union framework is a data crowdsourcing and crowdselling solution. Working in tandem with the Streamr Network and Ethereum, the framework powers applications that enable people to earn by sharing valuable data. You can [read more about it here](https://dataunions.network/docs/data-unions/intro-to-data-unions)
+The Data Union framework is a data crowdsourcing and crowdselling solution. Working in tandem with the Streamr Network and Ethereum, the framework powers applications that enable people to earn by sharing valuable data. You can [read more about it here](https://docs.dataunions.org/getting-started/intro-to-data-unions)
 
 #### Basic use
 
@@ -12,10 +10,13 @@ Start by obtaining a DataUnionClient object:
 
 ```js
 import { DataUnionClient } from '@dataunions/client'
-const DU = new DataUnionClient(clientOptions)
+const DU = new DataUnionClient({
+  auth: {
+    privateKey: PRIVATE_KEY,
+  },
+  chain: 'polygon',
+});
 ```
-
-_TODO: document `clientOptions`_
 
 To deploy a new DataUnion with default [deployment options](#deployment-options):
 ```js
