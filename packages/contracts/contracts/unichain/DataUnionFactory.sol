@@ -136,7 +136,7 @@ contract DataUnionFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable 
 	 * @param newOwner The address to transfer ownership to.
 	 */
 	function transferOwnership(address newOwner) public override onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        require(newOwner != address(0), "error_zeroAddress");
 		pendingOwner = newOwner;
 	}
 
@@ -144,7 +144,7 @@ contract DataUnionFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable 
 	 * @dev Allows the pendingOwner address to finalize the transfer.
 	 */
 	function claimOwnership() public {
-		require(msg.sender == pendingOwner, "onlyPendingOwner");
+		require(msg.sender == pendingOwner, "error_onlyPendingOwner");
 		_transferOwnership(pendingOwner);
 		pendingOwner = address(0);
 	}
