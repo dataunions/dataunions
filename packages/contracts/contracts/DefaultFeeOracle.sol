@@ -17,6 +17,8 @@ contract DefaultFeeOracle is Initializable, OwnableUpgradeable, UUPSUpgradeable,
     event BeneficiaryChanged(address newProtocolFeeBeneficiaryAddress);
 
     function initialize(uint feeWei, address protocolFeeBeneficiaryAddress) public initializer {
+        __Ownable_init();
+        __UUPSUpgradeable_init();
         setFee(feeWei);
         setBeneficiary(protocolFeeBeneficiaryAddress);
     }

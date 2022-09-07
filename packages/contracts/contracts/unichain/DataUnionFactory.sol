@@ -43,6 +43,8 @@ contract DataUnionFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable 
         address _defaultToken,
         address _protocolFeeOracle
     ) public initializer {
+        __Ownable_init();
+        __UUPSUpgradeable_init();
         setTemplate(_dataUnionTemplate);
         defaultToken = _defaultToken;
         protocolFeeOracle = _protocolFeeOracle;
