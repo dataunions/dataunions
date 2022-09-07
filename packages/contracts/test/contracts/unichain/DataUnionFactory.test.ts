@@ -38,12 +38,12 @@ describe("DataUnionFactory", (): void => {
         testToken = await deployContract(creator, TestTokenJson, ["name", "symbol"]) as TestToken
         const dataUnionSidechainTemplate = await deployContract(creator, DataUnionTemplateJson, [])
         const feeOracleFactory = new ContractFactory(FeeOracleJson.abi, FeeOracleJson.bytecode, creator)
-        const feeOracle = upgrades.deployProxy(feeOracleFactory, [
+        const feeOracle = await upgrades.deployProxy(feeOracleFactory, [
             parseEther("0.1"),
             protocolBeneficiary.address
         ], { kind: "uups" }) as DefaultFeeOracle
         const factoryFactory = new ContractFactory(DataUnionFactoryJson.abi, DataUnionFactoryJson.bytecode, creator)
-        factory = upgrades.deployProxy(factoryFactory, [
+        factory = await upgrades.deployProxy(factoryFactory, [
             dataUnionSidechainTemplate.address,
             testToken.address,
             feeOracle.address,
