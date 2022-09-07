@@ -1,9 +1,9 @@
-import { HardhatUserConfig } from "hardhat/types"
 import "@nomiclabs/hardhat-waffle"
 import "@nomiclabs/hardhat-ethers"
+import "@openzeppelin/hardhat-upgrades"
 import "hardhat-typechain"
-
 import "solidity-coverage"
+import type { HardhatUserConfig } from "hardhat/types"
 
 const config: HardhatUserConfig = {
     solidity: {
