@@ -6,9 +6,12 @@ You need to be owner in the DataunionDAO organisation in github.
 ```
 npx graph auth --product hosted-service https://api.thegraph.com/deploy/ <token>
 ```
-Next run deploy-priduction command for each subgraph, using the corresponding file and name:
+The old deployment scripts (giving the manifest name as param) are not working reliably any more, probably the hosted service changed a few things.
+New way: 
+- rename the file you want to deploy (i.e. subgraph.gnosis.production.yaml) to subgraph.yaml,
+- then run the deploy command with the corresponding name:
 ```
-npm run deploy-production --config=subgraph.gnosis.production.yaml --subgraph=dataunions/data-unions-gnosis
+npx graph deploy dataunions/data-unions-gnosis
 ```
 
 # Development
