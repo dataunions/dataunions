@@ -35,8 +35,8 @@ contract DataUnionFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable 
     uint public defaultNewMemberEth;
     address public protocolFeeOracle;
 
-	/** Two phase hand-over to minimize the chance that the product ownership is lost to a non-existent address. */
-	address public pendingOwner;
+    /** Two phase hand-over to minimize the chance that the product ownership is lost to a non-existent address. */
+    address public pendingOwner;
 
     function initialize(
         address _dataUnionTemplate,
@@ -134,22 +134,22 @@ contract DataUnionFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable 
 
     /**
      * @dev Override openzeppelin implementation
-	 * @dev Allows the current owner to set the pendingOwner address.
-	 * @param newOwner The address to transfer ownership to.
-	 */
-	function transferOwnership(address newOwner) public override onlyOwner {
+     * @dev Allows the current owner to set the pendingOwner address.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address newOwner) public override onlyOwner {
         require(newOwner != address(0), "error_zeroAddress");
-		pendingOwner = newOwner;
-	}
+        pendingOwner = newOwner;
+    }
 
     /**
-	 * @dev Allows the pendingOwner address to finalize the transfer.
-	 */
-	function claimOwnership() public {
-		require(msg.sender == pendingOwner, "error_onlyPendingOwner");
-		_transferOwnership(pendingOwner);
-		pendingOwner = address(0);
-	}
+     * @dev Allows the pendingOwner address to finalize the transfer.
+     */
+    function claimOwnership() public {
+        require(msg.sender == pendingOwner, "error_onlyPendingOwner");
+        _transferOwnership(pendingOwner);
+        pendingOwner = address(0);
+    }
 
     /**
      * @dev Disable openzeppelin renounce ownership functionality
