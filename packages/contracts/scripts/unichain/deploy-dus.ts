@@ -1,19 +1,42 @@
-import hhat from "hardhat"
+import { ethers, upgrades } from "hardhat"
+
+import { getAddress } from "@ethersproject/address"
+
 import { Chains } from "@streamr/config"
 
-const { ethers } = hhat
+import { DataUnionFactory, DefaultFeeOracle } from "../../typechain"
+import { parseEther } from "@ethersproject/units"
+
+const {
+    PROTOCOL_BENEFICIARY_ADDRESS,
+    CHAIN = "dev0"
+} = process.env
+
+const { DATA: tokenAddress } = Chains.load()[CHAIN].contracts
+if (!PROTOCOL_BENEFICIARY_ADDRESS) { throw new Error("Environment variable PROTOCOL_BENEFICIARY_ADDRESS not set") }
+const protocolBeneficiaryAddress = getAddress(PROTOCOL_BENEFICIARY_ADDRESS)
 
 async function main() {
-    const factoryTemplate = await ethers.getContractFactory("DataUnionTemplate")
-    const contractTemplate = await factoryTemplate.deploy()
-    await contractTemplate.deployed()
-    console.log(contractTemplate.address)
+    const dataUnionTemplateFactory = await ethers.getContractFactory("DataUnionTemplate")
+    const dataUnionTemplate = await dataUnionTemplateFactory.deploy()
+    await dataUnionTemplate.deployed()
+    console.log("DU template deployed at %s", dataUnionTemplate.address)
 
-    const tokenAddress = Chains.load("development").streamr.contracts.Token
-    const factory = await ethers.getContractFactory("DataUnionFactory")
-    const contract = await factory.deploy(contractTemplate.address, tokenAddress)
-    await contract.deployed()
-    console.log(contract.address)
+    const feeOracleFactory = await ethers.getContractFactory("DefaultFeeOracle")
+    const feeOracle = await upgrades.deployProxy(feeOracleFactory, [
+        parseEther("0.01"),
+        protocolBeneficiaryAddress
+    ], { kind: "uups" }) as DefaultFeeOracle
+    await feeOracle.deployed()
+    console.log("Fee oracle deployed at %s", feeOracle.address)
+
+    const factoryFactory = await ethers.getContractFactory("DataUnionFactory")
+    const factory = await upgrades.deployProxy(factoryFactory, [
+        dataUnionTemplate.address,
+        tokenAddress,
+        feeOracle.address,
+    ], { kind: "uups" }) as DataUnionFactory
+    console.log("DU factory deployed at %s", factory.address)
 }
 
 main()
