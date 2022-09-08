@@ -61,10 +61,6 @@ jobs:
         run: |
           npm run build
           npm run test
-      - name: Build Solidity contracts using Makefile
-        working-directory: packages/contracts
-        run: |
-           make build
   integration-test:
     needs:
       - lint
