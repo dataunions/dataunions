@@ -16,18 +16,19 @@ const config: HardhatUserConfig = {
             evmVersion: "istanbul",
         }
     },
+    // for network names, see https://github.com/streamr-dev/network-contracts/blob/master/packages/config/src/networks.json
     networks: {
-        dev_xdai: {
+        dev1: {
             chainId: 8997,
             url: "http://localhost:8546",
             accounts: ["0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0"]
         },
-        dev: {
+        dev0: {
             chainId: 8995,
             url: "http://localhost:8545",
             accounts: ["0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0"]
         },
-        xdai: {
+        gnosis: {
             chainId: 100,
             url: "https://rpc.gnosischain.com",
             accounts: [process.env.KEY || "0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0"] // dummy key
@@ -37,7 +38,7 @@ const config: HardhatUserConfig = {
             url: "https://polygon-rpc.com",
             accounts: [process.env.KEY || "0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0"] // dummy key
         },
-        mainnet: {
+        ethereum: {
             chainId: 1,
             url: "https://mainnet.infura.io/v3/" + process.env.INFURA_KEY || "",
             accounts: [process.env.KEY || "0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0"] // dummy key
