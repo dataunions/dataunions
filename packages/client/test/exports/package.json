@@ -1,9 +1,11 @@
 {
     "name": "@dataunions/test-exports",
     "version": "1.0.0",
-    "description": "",
-    "main": "commonjs.js",
+    "description": "Test DU client packaging",
+    "author": "Data Union DAO <contact@dataunions.org>",
+    "license": "Apache-2.0",
     "private": true,
+    "main": "commonjs.js",
     "scripts": {
         "pretest": "rm -Rf dist",
         "test": "npm run test-commonjs && npm run test-esm && npm run test-ts",
@@ -14,7 +16,5 @@
         "test-commonjs": "node tests/commonjs.js",
         "link": "mkdir -p node_modules/@dataunions && ln -fs ../../dist/ node_modules/@dataunions/client"
     },
-    "author": "Tim Oxley <secoif@gmail.com>",
-    "license": "ISC",
     "dependencies": {}
 }

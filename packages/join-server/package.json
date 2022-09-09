@@ -1,7 +1,22 @@
 {
   "name": "@dataunions/join-server",
   "version": "3.0.0-alpha.3",
-  "description": "",
+  "description": "Data Union join server base implementation",
+  "author": "Data Union DAO <contact@dataunions.org>",
+  "license": "AGPL-3.0-or-later",
+  "private": false,
+  "publishConfig": {
+      "access": "public"
+  },
+  "repository": {
+      "type": "git",
+      "url": "git+https://github.com/dataunions/data-unions.git",
+      "directory": "packages/join-server"
+  },
+  "bugs": {
+      "url": "https://github.com/dataunions/data-unions/issues"
+  },
+  "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/join-server#readme",
   "main": "src/app/index.js",
   "engines": {
     "node": ">=16.13.1",
@@ -15,8 +30,6 @@
     "lint": "make lint",
     "lint-fix": "make lint-fix"
   },
-  "author": "Data Union DAO <contact@dataunions.org>",
-  "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@dataunions/client": "3.0.0-beta.7",
     "@streamr/config": "2.3.0",
@@ -35,9 +48,5 @@
     "mocha": "10.0.0",
     "sinon": "14.0.0",
     "supertest": "6.2.4"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:dataunions/data-unions.git"
   }
 }
