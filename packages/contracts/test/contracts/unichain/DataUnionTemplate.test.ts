@@ -67,7 +67,8 @@ describe("DataUnionTemplate", () => {
     before(async () => {
         testToken = await deployContract(dao, TestTokenJson, ["name", "symbol"]) as TestToken
         await testToken.mint(dao.address, parseEther("100000"))
-        feeOracle = await deployContract(dao, FeeOracleJson, [parseEther("0.01"), dao.address]) as DefaultFeeOracle
+        feeOracle = await deployContract(dao, FeeOracleJson) as DefaultFeeOracle
+        await feeOracle.initialize(parseEther("0.01"), dao.address)
 
         log("List of relevant addresses:")
         log("  testToken: %s", testToken.address)
