@@ -3,7 +3,6 @@
     "description": "Smart contracts, client and The Graph subgraph for dataunions.",
     "version": "3.0.0-beta.1",
     "author": "Data Union DAO <contact@dataunions.org>",
-    "license": "Apache-2.0",
     "private": true,
     "workspaces": [
         "packages/contracts",
