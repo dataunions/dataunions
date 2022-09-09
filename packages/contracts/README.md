@@ -6,7 +6,7 @@ Data Union builders are encouraged to not use this package directly, but rather 
 
 ## @dataunions/contracts
 
-The contracts for the upcoming "multi-chain" Data Unions are found in `contracts/unichain`. They are also what this NPM package exports:
+The contracts for the multi-chain Data Unions (DU3) are found in `contracts/unichain`. They are also what this NPM package exports:
 ```typescript
 import { dataUnionTemplate as templateJson, dataUnionFactory as factoryJson } from '@dataunions/contracts'
 import type { DataUnionTemplate, DataUnionFactory } from '@dataunions/contracts/typechain'
