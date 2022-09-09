@@ -1,6 +1,6 @@
 {
   "name": "@dataunions/join-server",
-  "version": "3.0.0-alpha.3",
+  "version": "3.0.0-alpha.4",
   "description": "Data Union join server base implementation",
   "author": "Data Union DAO <contact@dataunions.org>",
   "license": "AGPL-3.0-or-later",
@@ -31,8 +31,8 @@
     "lint-fix": "make lint-fix"
   },
   "dependencies": {
-    "@dataunions/client": "3.0.0-beta.7",
-    "@streamr/config": "2.3.0",
+    "@dataunions/client": "3.0.0-beta.12",
+    "@streamr/config": "2.4.0",
     "commander": "9.4.0",
     "ethers": "5.7.0",
     "express": "5.0.0-beta.1",
