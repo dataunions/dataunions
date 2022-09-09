@@ -2,6 +2,8 @@
   "name": "@dataunions/client-test-browser",
   "version": "0.0.0",
   "description": "Data Union Client Browser Tests",
+  "author": "Data Union DAO <contact@dataunions.org>",
+  "license": "Apache-2.0",
   "private": false,
   "publishConfig": {
       "access": "public"
@@ -19,8 +21,6 @@
   "scripts": {
     "test": "tsc && nightwatch"
   },
-  "author": "Streamr Developers",
-  "license": "MIT",
   "devDependencies": {
     "@types/nightwatch": "2.3.4",
     "chromedriver": "104.0.0",

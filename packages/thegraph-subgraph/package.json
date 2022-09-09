@@ -2,6 +2,8 @@
     "name": "@dataunions/thegraph-subgraph",
     "version": "3.0.0-beta.1",
     "description": "Subgraph definitions for sidechain data unions",
+    "author": "Data Union DAO <contact@dataunions.org>",
+    "license": "UNLICENSED",
     "private": true,
     "publishConfig": {
         "access": "restricted"

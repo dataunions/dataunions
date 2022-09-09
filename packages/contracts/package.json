@@ -2,6 +2,8 @@
     "name": "@dataunions/contracts",
     "version": "3.0.0-beta.1",
     "description": "Smart contracts for Data Union with sidechain accounting",
+    "author": "Data Union DAO <contact@dataunions.org>",
+    "license": "UNLICENSED",
     "private": false,
     "publishConfig": {
         "access": "public"
@@ -14,7 +16,6 @@
     "bugs": {
         "url": "https://github.com/dataunions/data-unions/issues"
     },
-    "license": "UNLICENSED",
     "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/contracts#readme",
     "scripts": {
         "build": "hardhat compile",
@@ -33,7 +34,6 @@
         "artifacts/contracts/*",
         "index.*"
     ],
-    "author": "Streamr Network AG",
     "devDependencies": {
         "@nomiclabs/hardhat-ethers": "2.1.1",
         "@nomiclabs/hardhat-waffle": "2.0.3",
