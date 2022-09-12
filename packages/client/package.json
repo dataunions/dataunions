@@ -1,13 +1,22 @@
 {
     "name": "@dataunions/client",
-    "version": "3.0.0-beta.8",
-    "description": "JavaScript client library for DataUnions",
+    "version": "3.0.0-beta.13",
+    "description": "JavaScript/TypeScript client library for DataUnions",
+    "author": "Data Union DAO <contact@dataunions.org>",
+    "license": "Apache-2.0",
     "private": false,
+    "publishConfig": {
+        "access": "public"
+    },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/dataunions/data-union.git",
+        "url": "git+https://github.com/dataunions/data-unions.git",
         "directory": "packages/client"
     },
+    "bugs": {
+        "url": "https://github.com/dataunions/data-unions/issues"
+    },
+    "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/client#readme",
     "types": "./dist/types/src/index.d.ts",
     "main": "./dist/src/index.js",
     "browser": "./dist/web/index.js",
@@ -40,8 +49,6 @@
     "engines": {
         "node": ">= 16"
     },
-    "author": "Streamr",
-    "license": "Apache-2.0",
     "devDependencies": {
         "@dataunions/join-server": "3.0.0-alpha.3",
         "@ethersproject/wordlists": "5.7.0",
@@ -77,7 +84,7 @@
         "util": "0.12.4"
     },
     "dependencies": {
-        "@dataunions/contracts": "3.0.0-beta.1",
+        "@dataunions/contracts": "3.0.0-beta.2",
         "@ethersproject/abi": "5.7.0",
         "@ethersproject/abstract-signer": "5.7.0",
         "@ethersproject/address": "5.7.0",
@@ -88,18 +95,11 @@
         "@ethersproject/units": "5.7.0",
         "@ethersproject/wallet": "5.7.0",
         "@ethersproject/web": "5.7.0",
-        "@streamr/config": "2.3.0",
+        "@streamr/config": "2.4.0",
         "debug": "4.3.4",
         "node-fetch": "2.6.7",
         "readable-stream": "4.1.0",
         "reflect-metadata": "0.1.13",
         "uuid": "8.3.2"
-    },
-    "bugs": {
-        "url": "https://github.com/dataunions/data-union/issues"
-    },
-    "homepage": "https://github.com/dataunions/data-union#readme",
-    "publishConfig": {
-        "access": "public"
     }
 }

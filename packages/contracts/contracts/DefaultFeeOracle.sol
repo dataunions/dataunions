@@ -2,17 +2,23 @@
 
 pragma solidity 0.8.6;
 
-import "./IFeeOracle.sol";
-import "./Ownable.sol";
+// upgradeable proxy imports
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract DefaultFeeOracle is Ownable, IFeeOracle {
+import "./IFeeOracle.sol";
+
+contract DefaultFeeOracle is Initializable, OwnableUpgradeable, UUPSUpgradeable, IFeeOracle {
     uint public fee;
     address public override beneficiary;
 
     event FeeChanged(uint newFeeWei);
     event BeneficiaryChanged(address newProtocolFeeBeneficiaryAddress);
 
-    constructor(uint feeWei, address protocolFeeBeneficiaryAddress) Ownable(msg.sender) {
+    function initialize(uint feeWei, address protocolFeeBeneficiaryAddress) public initializer {
+        __Ownable_init();
+        __UUPSUpgradeable_init();
         setFee(feeWei);
         setBeneficiary(protocolFeeBeneficiaryAddress);
     }
@@ -30,4 +36,6 @@ contract DefaultFeeOracle is Ownable, IFeeOracle {
     function protocolFeeFor(address) override public view returns(uint feeWei) {
         return fee;
     }
+
+    function _authorizeUpgrade(address) internal override onlyOwner {}
 }

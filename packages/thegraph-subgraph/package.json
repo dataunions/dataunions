@@ -2,6 +2,12 @@
     "name": "@dataunions/thegraph-subgraph",
     "version": "3.0.0-beta.1",
     "description": "Subgraph definitions for sidechain data unions",
+    "author": "Data Union DAO <contact@dataunions.org>",
+    "license": "UNLICENSED",
+    "private": true,
+    "publishConfig": {
+        "access": "restricted"
+    },
     "scripts": {
         "clean": "rm -rf build generated",
         "build": "graph codegen subgraph.development.yaml && graph build subgraph.development.yaml",
@@ -32,9 +38,5 @@
     "dependencies": {
         "@graphprotocol/graph-ts": "0.27.0",
         "lodash.merge": "4.6.2"
-    },
-    "private": true,
-    "publishConfig": {
-        "access": "private"
     }
 }
