@@ -29,7 +29,7 @@
     "default-join-server": "src/index.js"
   },
   "dependencies": {
-    "@dataunions/client": "3.0.0-beta.12",
+    "@dataunions/client": "3.0.0-beta.13",
     "@dataunions/join-server": "3.0.0-alpha.4",
     "dotenv": "16.0.2",
     "mysql2": "2.3.3",
