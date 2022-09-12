@@ -4,14 +4,18 @@
 First set the deployment token, it can be found on the top right of the subgraphs page, i.e. https://thegraph.com/hosted-service/subgraph/dataunions/data-unions-gnosis
 You need to be owner in the DataunionDAO organisation in github.
 ```
-npx graph auth --product hosted-service https://api.thegraph.com/deploy/ <token>
+npx graph auth --product hosted-service
 ```
-The old deployment scripts (giving the manifest name as param) are not working reliably any more, probably the hosted service changed a few things.
-New way: 
-- rename the file you want to deploy (i.e. subgraph.gnosis.production.yaml) to subgraph.yaml,
-- then run the deploy command with the corresponding name:
+Then when it asks for Deploy key, paste the accesstoken from the subgraphs page.
+
+Then rename the file you want to deploy (i.e. subgraph.gnosis.production.yaml) to subgraph.yaml,
+Then then run the deploy command with the corresponding name:
 ```
-npx graph deploy dataunions/data-unions-gnosis
+npm run deploy-production-gnosis
+```
+or
+```
+npm run deploy-production-polygon
 ```
 
 # Development
