@@ -6,15 +6,15 @@
   "license": "AGPL-3.0-or-later",
   "private": false,
   "publishConfig": {
-      "access": "public"
+    "access": "public"
   },
   "repository": {
-      "type": "git",
-      "url": "git+https://github.com/dataunions/data-unions.git",
-      "directory": "packages/join-server"
+    "type": "git",
+    "url": "git+https://github.com/dataunions/data-unions.git",
+    "directory": "packages/join-server"
   },
   "bugs": {
-      "url": "https://github.com/dataunions/data-unions/issues"
+    "url": "https://github.com/dataunions/data-unions/issues"
   },
   "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/join-server#readme",
   "main": "src/app/index.js",
@@ -31,7 +31,7 @@
     "lint-fix": "make lint-fix"
   },
   "dependencies": {
-    "@dataunions/client": "3.0.0-beta.12",
+    "@dataunions/client": "3.0.0-beta.13",
     "@streamr/config": "2.4.0",
     "commander": "9.4.0",
     "ethers": "5.7.0",
