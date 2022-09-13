@@ -1,6 +1,6 @@
 {
   "name": "@dataunions/default-join-server",
-  "version": "3.0.0-alpha.2",
+  "version": "3.0.0-alpha.3",
   "description": "A join server that extends the base join server by adding app secret validation and Streamr-awareness",
   "author": "Data Union DAO <contact@dataunions.org>",
   "license": "AGPL-3.0-or-later",
@@ -17,7 +17,7 @@
       "url": "https://github.com/dataunions/data-unions/issues"
   },
   "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/default-join-server#readme",
-  "main": "src/DefaultJoinServer.js",
+  "main": "src/cmd/index.js",
   "scripts": {
     "lint": "npx eslint .",
     "lint-fix": "npx eslint --fix .",
