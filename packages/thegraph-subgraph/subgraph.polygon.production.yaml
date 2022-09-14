@@ -1,6 +1,6 @@
 ---
 specVersion: 0.0.2
-description: Subgraph definitions for sidechain data unions
+description: Subgraph definitions for data unions
 repository: ""
 schema:
   file: ./schema.graphql
@@ -10,9 +10,9 @@ dataSources:
     name: DataUnionFactory
     network: matic
     source:
-      address: '0x3dBDf6C439FC2C90F98C351c90682A7cCe3366E5'
+      address: '0xd0B3a09A6bCee8446d10e6E7e12c78F8725C9B18'
       abi: DataUnionFactory
-      startBlock: 26778390
+      startBlock: 32836939
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
