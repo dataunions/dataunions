@@ -101,7 +101,7 @@ export const DATAUNION_CLIENT_DEFAULTS: DataUnionClientConfig = {
     // theGraphUrl: 'https://api.thegraph.com/subgraphs/name/streamr-dev/streams', // TODO
 
     // Ethereum and Data Union related overrides to what @streamr/config provides
-    chain: 'gnosis',
+    chain: 'polygon',
 
     dataUnion: {
         minimumWithdrawTokenWei: '1000000',

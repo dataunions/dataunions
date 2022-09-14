@@ -6,7 +6,7 @@ An instance of this join server is run by the Data Union DAO to make it easier f
 
 ## Running
 
-- Create a `.env` file containing your private key and DB config (see `.env.template` in the repo)
+- Create a `.env` file containing database configs and the private key of a permitted `joinPartAgent` for your Data Union (see `.env.template` in the repo)
 - Install: `npm install -g @dataunions/default-join-server`
 - Start: `default-join-server`
 

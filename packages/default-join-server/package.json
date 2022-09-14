@@ -1,20 +1,20 @@
 {
   "name": "@dataunions/default-join-server",
-  "version": "3.0.0-alpha.2",
+  "version": "3.0.0-alpha.6",
   "description": "A join server that extends the base join server by adding app secret validation and Streamr-awareness",
   "author": "Data Union DAO <contact@dataunions.org>",
   "license": "AGPL-3.0-or-later",
   "private": false,
   "publishConfig": {
-      "access": "public"
+    "access": "public"
   },
   "repository": {
-      "type": "git",
-      "url": "git+https://github.com/dataunions/data-unions.git",
-      "directory": "packages/default-join-server"
+    "type": "git",
+    "url": "git+https://github.com/dataunions/data-unions.git",
+    "directory": "packages/default-join-server"
   },
   "bugs": {
-      "url": "https://github.com/dataunions/data-unions/issues"
+    "url": "https://github.com/dataunions/data-unions/issues"
   },
   "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/default-join-server#readme",
   "main": "src/DefaultJoinServer.js",
@@ -26,11 +26,11 @@
     "start": "node src/cmd/index.js"
   },
   "bin": {
-    "default-join-server": "src/index.js"
+    "default-join-server": "src/cmd/index.js"
   },
   "dependencies": {
-    "@dataunions/client": "3.0.0-beta.12",
-    "@dataunions/join-server": "3.0.0-alpha.4",
+    "@dataunions/client": "3.0.0-beta.13",
+    "@dataunions/join-server": "3.0.0-alpha.5",
     "dotenv": "16.0.2",
     "mysql2": "2.3.3",
     "sequelize": "6.21.4",

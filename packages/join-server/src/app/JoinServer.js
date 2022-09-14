@@ -133,6 +133,11 @@ class JoinServer {
 		this.expressApp.use(express.json({
 			limit: '1kb',
 		}))
+		// Unauthenticated endpoint for uptime monitoring
+		this.expressApp.post('/ping', (req, res) => {
+			res.status(200)
+			res.send()
+		})
 		this.expressApp.use((req, res, next) => this.signedRequestValidator(req).then(next).catch((err) => next(err)))
 		this.expressApp.post('/join', (req, res, next) => new rest.JoinHandler(this.logger, this.joinRequestService, this.customJoinRequestValidator).handle(req, res, next))
 		this.customRoutes(this.expressApp)

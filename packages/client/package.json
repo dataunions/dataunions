@@ -50,7 +50,6 @@
         "node": ">= 16"
     },
     "devDependencies": {
-        "@dataunions/join-server": "3.0.0-alpha.3",
         "@ethersproject/wordlists": "5.7.0",
         "@streamr/data-v2": "1.0.1",
         "@types/debug": "4.1.7",
@@ -68,7 +67,7 @@
         "eslint": "8.23.0",
         "eslint-config-airbnb": "19.0.4",
         "eslint-config-streamr-ts": "4.1.0",
-        "eslint-plugin-import": "2.25.3",
+        "eslint-plugin-import": "2.26.0",
         "eslint-plugin-promise": "6.0.1",
         "ganache": "7.4.1",
         "git-revision-webpack-plugin": "5.0.0",
