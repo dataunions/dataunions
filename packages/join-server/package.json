@@ -36,7 +36,7 @@
     "commander": "9.4.0",
     "ethers": "5.7.0",
     "express": "5.0.0-beta.1",
-    "pino": "8.4.2"
+    "pino": "8.5.0"
   },
   "devDependencies": {
     "chai": "4.3.6",
