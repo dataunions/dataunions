@@ -5,14 +5,37 @@ repository: ""
 schema:
   file: ./schema.graphql
 dataSources:
+  # Old DU gnosis/xdai >>
+  - kind: ethereum/contract
+    name: DataUnionFactorySidechain
+    network: xdai
+    source:
+      address: '0xFCE1FBFAaE61861B011B379442c8eE1DC868ABd0'
+      abi: DataUnionFactorySidechain
+      startBlock: 18589701
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/factory.ts
+      entities:
+        - DataUnion
+      abis:
+        - name: DataUnionFactorySidechain
+          file: ./abis/DataUnionFactorySidechain.json
+      eventHandlers:
+        - event: SidechainDUCreated(indexed address,indexed address,indexed address,address)
+          handler: handleDUCreated
+  # Old DU gnosis/xdai <<
+
   # New DU gnosis/xdai >>
   - kind: ethereum/contract
     name: DataUnionFactory
     network: xdai
     source:
-      address: '0xf2BC99bb4f482D20fFD2d462B85d0f1a3Dbc60Cc'
+      address: '0xe4515702878931b45Dfe4D89d3Fb3208910C913C'
       abi: DataUnionFactory
-      startBlock: 24091571
+      startBlock: 24091573
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -29,6 +52,30 @@ dataSources:
   # New DU gnosis/xdai <<
 
 templates:
+  # Old DU gnosis/xdai >>
+  - name: DataUnionSidechain
+    kind: ethereum/contract
+    network: xdai
+    source:
+      abi: DataUnionSidechain
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/dataunion.ts
+      entities:
+        - Member
+        - DataUnionStatsBucket
+      abis:
+        - name: DataUnionSidechain
+          file: ./abis/DataUnionSidechain.json
+      eventHandlers:
+        - event: MemberJoined(indexed address)
+          handler: handleMemberJoined
+        - event: MemberParted(indexed address)
+          handler: handleMemberParted
+  # Old DU gnosis/xdai <<
+
   # New DU gnosis/xdai >>
   - name: DataUnion
     kind: ethereum/contract
