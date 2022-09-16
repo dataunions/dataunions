@@ -311,6 +311,7 @@ export class DataUnion {
         return (state === ACTIVE)
     }
 
+    /** @internal */
     async checkMinimumWithdraw(memberAddress: EthereumAddress): Promise<void> {
         const withdrawable = await this.contract.getWithdrawableEarnings(memberAddress)
         if (withdrawable.eq(0)) {
