@@ -289,6 +289,7 @@ export class DataUnion {
 
     /**
      * Send HTTP(s) request to the join server, asking to join the data union
+     * Typically you would send a sharedSecret with the request. Read more in {@link https://docs.dataunions.org/main-concepts/joinpart-server joinPart server}
      */
     async join(params?: object): Promise<JoinResponse> {
         return this.post<JoinResponse>(["join"], params)
@@ -425,17 +426,19 @@ export class DataUnion {
     ///////////////////////////////
 
     /**
-     * Add a new data union secret to enable members to join without specific approval using this secret.
+     * Admin: Add a new data union secret to enable members to join without specific approval using this secret.
      * For data unions that use the default-join-server
      */
     async createSecret(name: string = 'Untitled Data Union Secret'): Promise<SecretsResponse> {
         return this.post<SecretsResponse>(['secrets', 'create'], { name })
     }
 
+    /** Admin: */
     async deleteSecret(secretId: string): Promise<SecretsResponse> {
         return this.post<SecretsResponse>(['secrets', 'delete'], { secretId })
     }
 
+    /** Admin: */
     async listSecrets(): Promise<SecretsResponse[]> {
         return this.post<SecretsResponse[]>(['secrets', 'list'])
     }
