@@ -112,7 +112,7 @@ export default class DataUnionAPI {
         if (adminFee < 0 || adminFee > 1) { throw new Error('DataUnionDeployOptions.adminFee must be a number between 0...1, got: ' + adminFee) }
         const adminFeeBN = BigNumber.from((adminFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish, but that's not much value
 
-        const ethersOverrides = this.client.getOverrides()
+        const ethersOverrides = await this.client.getOverrides()
         if (gasPrice) { ethersOverrides.gasPrice = gasPrice }
 
         // function deployNewDataUnionUsingToken(
@@ -168,7 +168,7 @@ export default class DataUnionAPI {
         if (adminFee < 0 || adminFee > 1) { throw new Error('DataUnionDeployOptions.adminFee must be a number between 0...1, got: ' + adminFee) }
         const adminFeeBN = BigNumber.from((adminFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish, but that's not much value
 
-        const ethersOverrides = this.client.getOverrides()
+        const ethersOverrides = await this.client.getOverrides()
         if (gasPrice) { ethersOverrides.gasPrice = gasPrice }
 
         // function deployNewDataUnion(

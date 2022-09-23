@@ -1,18 +1,19 @@
-import { defaultChainGasPriceStrategy } from './Config'
-import { DATAUNION_CLIENT_DEFAULTS } from './Config'
-import { Plugin } from './Plugin'
-import DataUnionAPI from './DataUnionAPI'
-import type { DataUnionClientConfig, GasPriceStrategy} from './Config'
-
 import { Chains, RPCProtocol } from '@streamr/config'
 import { JsonRpcProvider, Web3Provider } from '@ethersproject/providers'
 import { Wallet } from '@ethersproject/wallet'
 import { getAddress } from '@ethersproject/address'
 import type { Overrides as EthersOverrides } from '@ethersproject/contracts'
 import type { Signer } from '@ethersproject/abstract-signer'
-import type { EthereumAddress } from './EthereumAddress'
 import type { BigNumber } from '@ethersproject/bignumber'
+
+import { DATAUNION_CLIENT_DEFAULTS } from './Config'
+import { Plugin } from './Plugin'
 import { Rest } from './Rest'
+import { gasPriceStrategies } from './gasPriceStrategies'
+import DataUnionAPI from './DataUnionAPI'
+import type { DataUnionClientConfig } from './Config'
+import type { EthereumAddress } from './EthereumAddress'
+import type { GasPriceStrategy } from './gasPriceStrategies'
 
 // TODO: remove all this plugin/mixin nonsense. Fields don't seem to be mixed in successfully, maybe only functions? Anyway this is pointless.
 // these are mixed in via Plugin function above
@@ -51,10 +52,7 @@ export class DataUnionClient {
         this.chainName = options.chain
         this.overrides = options.network.ethersOverrides ?? {}
         this.minimumWithdrawTokenWei = options.dataUnion?.minimumWithdrawTokenWei
-        this.gasPriceStrategy = options.gasPriceStrategy
-        if (!this.gasPriceStrategy && options.chain === DATAUNION_CLIENT_DEFAULTS.chain) {
-            this.gasPriceStrategy = defaultChainGasPriceStrategy
-        }
+        this.gasPriceStrategy = options.gasPriceStrategy ?? gasPriceStrategies[options.chain]
 
         if (options.auth.ethereum) {
             // browser: we let Metamask do the signing, and also the RPC connections
@@ -121,12 +119,27 @@ export class DataUnionClient {
      * Apply the gasPriceStrategy to the estimated gas price, if given in options.network.gasPriceStrategy
      * Ethers.js will resolve the gas price promise before sending the tx
      */
-    getOverrides(): EthersOverrides {
-        return this.gasPriceStrategy ? {
-            ...this.overrides,
-            maxFeePerGas: this.wallet.provider!.getFeeData().then(
-                (feeData) => this.gasPriceStrategy!(feeData.maxFeePerGas!)
-            )
-        } : this.overrides
+    async getOverrides(): Promise<EthersOverrides> {
+        if (this.gasPriceStrategy) {
+            const { gasPrice, maxFeePerGas, maxPriorityFeePerGas } = await this.gasPriceStrategy(this.wallet.provider!)
+
+            // EIP-1559 or post-London gas price
+            if (maxFeePerGas && maxPriorityFeePerGas) {
+                return {
+                    ...this.overrides,
+                    maxFeePerGas,
+                    maxPriorityFeePerGas,
+                }
+            }
+
+            // "old style" gas price
+            if (gasPrice) {
+                return {
+                    ...this.overrides,
+                    gasPrice,
+                }
+            }
+        }
+        return this.overrides
     }
 }
