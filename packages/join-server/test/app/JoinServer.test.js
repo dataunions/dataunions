@@ -56,13 +56,22 @@ describe('JoinServer', async () => {
 			.expect('Content-Type', 'application/json; charset=utf-8')
 	})
 
+	it('responds to /ping', async () => {
+		const expectedStatus = 200
+		await request(srv.expressApp)
+			.post(`/ping`)
+			.send()
+			.expect((res) => (res.status != expectedStatus ? console.error(res.body) : true)) // print debug info if something went wrong
+			.expect(expectedStatus)
+	})
+
 	it('adds customRoutes upon constructions', () => {
 		const customRoutes = sinon.stub()
 		srv = newUnitTestServer({
 			customRoutes,
 		})
 
-		assert(customRoutes.calledOnceWithExactly(srv.expressApp))
+		assert(customRoutes.calledOnceWithExactly(srv.authenticatedRoutes))
 	})
 
 	describe('constructor', () => {

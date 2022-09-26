@@ -133,15 +133,24 @@ class JoinServer {
 		this.expressApp.use(express.json({
 			limit: '1kb',
 		}))
+		this.expressApp.use(rest.error(this.logger))
+
+		this.publicRoutes = new express.Router()
+		this.authenticatedRoutes = new express.Router()
+
 		// Unauthenticated endpoint for uptime monitoring
-		this.expressApp.post('/ping', (req, res) => {
+		this.publicRoutes.post('/ping', (req, res) => {
 			res.status(200)
 			res.send()
 		})
-		this.expressApp.use((req, res, next) => this.signedRequestValidator(req).then(next).catch((err) => next(err)))
-		this.expressApp.post('/join', (req, res, next) => new rest.JoinHandler(this.logger, this.joinRequestService, this.customJoinRequestValidator).handle(req, res, next))
-		this.customRoutes(this.expressApp)
-		this.expressApp.use(rest.error(this.logger))
+
+		// Authenticated routes use the signedRequestValidator
+		this.authenticatedRoutes.use((req, res, next) => this.signedRequestValidator(req).then(next).catch((err) => next(err)))
+		this.authenticatedRoutes.post('/join', (req, res, next) => new rest.JoinHandler(this.logger, this.joinRequestService, this.customJoinRequestValidator).handle(req, res, next))
+		this.customRoutes(this.authenticatedRoutes)
+		
+		this.expressApp.use('/', this.publicRoutes)
+		this.expressApp.use(this.authenticatedRoutes)
 	}
 
 	listen() {
