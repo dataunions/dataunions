@@ -11,7 +11,7 @@ module.exports = (client, db) => {
 					error: `Data Union ${req.validatedRequest.dataUnion} on chain ${req.validatedRequest.chain} does not exist!`
 				})
 			} else {
-				const owner = await dataUnion.getOwner()
+				const owner = await dataUnion.getAdminAddress()
 				if (owner.toLowerCase() === req.body.address.toLowerCase()) {
 					next()
 				} else {

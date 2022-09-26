@@ -123,10 +123,6 @@ export class DataUnion {
         return this.client.chainName
     }
 
-    async getOwner(): Promise<EthereumAddress> {
-        return this.contract.owner()
-    }
-
     /**
      * Get data union admin fee fraction (between 0.0 and 1.0) that admin gets from each revenue event
      * Version 2.2: admin fee is collected in DataUnionSidechain

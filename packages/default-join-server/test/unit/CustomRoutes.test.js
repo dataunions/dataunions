@@ -19,7 +19,7 @@ describe('CustomRoutes', () => {
 		})
 
 		dataUnion = {
-			getOwner: sinon.stub().resolves('0xabcdef')
+			getAdminAddress: sinon.stub().resolves('0xabcdef')
 		}
 
 		client = {
@@ -61,7 +61,7 @@ describe('CustomRoutes', () => {
 				})
 			})
 
-			expect(dataUnion.getOwner.calledOnce).to.be.true
+			expect(dataUnion.getAdminAddress.calledOnce).to.be.true
 			expect(db.listSecrets.called).to.be.false
 		})
 
@@ -77,7 +77,7 @@ describe('CustomRoutes', () => {
 			})
 
 			expect(client.getDataUnion.calledOnceWith('not-found'))
-			expect(dataUnion.getOwner.calledOnce).to.be.false
+			expect(dataUnion.getAdminAddress.calledOnce).to.be.false
 			expect(db.listSecrets.called).to.be.false
 		})
 
@@ -114,7 +114,7 @@ describe('CustomRoutes', () => {
 				})
 			})
 
-			expect(dataUnion.getOwner.calledOnce).to.be.true
+			expect(dataUnion.getAdminAddress.calledOnce).to.be.true
 			expect(db.createAppSecret.called).to.be.false
 		})
 
@@ -130,7 +130,7 @@ describe('CustomRoutes', () => {
 			})
 
 			expect(client.getDataUnion.calledOnceWith('not-found'))
-			expect(dataUnion.getOwner.calledOnce).to.be.false
+			expect(dataUnion.getAdminAddress.calledOnce).to.be.false
 			expect(db.createAppSecret.called).to.be.false
 		})
 
@@ -169,7 +169,7 @@ describe('CustomRoutes', () => {
 				})
 			})
 
-			expect(dataUnion.getOwner.calledOnce).to.be.true
+			expect(dataUnion.getAdminAddress.calledOnce).to.be.true
 			expect(db.getAppSecret.called).to.be.false
 			expect(db.deleteAppSecret.called).to.be.false
 		})
@@ -187,7 +187,7 @@ describe('CustomRoutes', () => {
 			})
 
 			expect(client.getDataUnion.calledOnceWith('not-found'))
-			expect(dataUnion.getOwner.calledOnce).to.be.false
+			expect(dataUnion.getAdminAddress.calledOnce).to.be.false
 			expect(db.deleteAppSecret.called).to.be.false
 		})
 
