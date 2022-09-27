@@ -214,10 +214,10 @@ The use cases corresponding to the different combinations of the boolean flags:
 `deployDataUnion` can take an options object as the argument. It's an object that can contain the following parameters. All shown values are the defaults for each property:
 ```js
 const deploymentOptions = {
-    owner: "0x123...", // If omitted, defaults to the deployer. Will be the admin of the newly created data union
+    adminAddress: "0x123...", // If omitted, defaults to the deployer. Will be the admin of the newly created data union
     dataUnionName: "demoName", // NOT stored anywhere, only used for address derivation
     adminFee: 0.3, // Must be between 0...1
-    joinPartAgents: ["0x123..."], // If omitted, set by default to include the owner as well as the trusted DU DAO join-server infrastructure address 
+    joinPartAgents: ["0x123..."], // If omitted, set by default to include the admin as well as the trusted DU DAO join-server infrastructure address 
     metadata: { // optional
         "information": "related to your data union",
         "canBe": ["", "anything"]
@@ -232,7 +232,7 @@ const dataUnion = await DU.deployDataUnion({
 Streamr Core is added as a `joinPartAgent` by default so that joining with secret works using the member function `join`. If you don't plan to use `join` for "self-service joining", you can leave out Streamr Core agent by calling `deployDataUnion` e.g. with your own address as the sole joinPartAgent:
 ```js
 const dataUnion = await DU.deployDataUnion({
-    joinPartAgents: [ownerAddress],
+    joinPartAgents: [adminAddress],
     adminFee,
 })
 ```
