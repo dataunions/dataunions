@@ -245,3 +245,7 @@ In order to retrieve the client's address an async call must me made to `datauni
 const address = await dataunions.getAddress()
 ```
 
+If you want to generate a new random wallet, you can use
+```js
+const { address, privateKey } = DataUnionClient.generateEthereumAccount()
+```
