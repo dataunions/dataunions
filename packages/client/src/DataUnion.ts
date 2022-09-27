@@ -141,6 +141,11 @@ export class DataUnion {
         return this.contract.getActiveMemberCount()
     }
 
+    async refreshRevenue(): Promise<ContractReceipt> {
+        const tx = await this.contract.refreshRevenue()
+        return waitOrRetryTx(tx)
+    }
+
     /**
      * If metadata is not valid JSON, simply return the raw string.
      * This shouldn't happen if `setMetadata` was used to write the metadata;
