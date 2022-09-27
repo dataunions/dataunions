@@ -1,5 +1,6 @@
 const process = require('process')
 const express = require('express')
+const cors = require('cors')
 const http = require('http')
 const pino = require('pino')
 const { DataUnionClient } = require('@dataunions/client')
@@ -133,6 +134,8 @@ class JoinServer {
 		this.expressApp.use(express.json({
 			limit: '1kb',
 		}))
+
+		this.expressApp.use(cors())
 		// Unauthenticated endpoint for uptime monitoring
 		this.expressApp.post('/ping', (req, res) => {
 			res.status(200)

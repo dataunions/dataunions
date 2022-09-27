@@ -6,7 +6,7 @@ const { ethers } = require('ethers')
  */
 async function validate(signedObject, toleranceMillis = 5 * 60 * 1000) {
     
-	if (!signedObject.signature) {
+	if (!signedObject || !signedObject.signature) {
 		throw new InvalidSignatureError(`The field 'signature' is missing!`)
 	}
 	if (!signedObject.address) {
