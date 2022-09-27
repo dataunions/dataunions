@@ -96,7 +96,7 @@ export type AuthConfig = XOR<ProviderAuthConfig, PrivateKeyAuthConfig>
 export const DATAUNION_CLIENT_DEFAULTS: DataUnionClientConfig = {
     auth: { privateKey: '' }, // TODO: this isn't a great default... must check in constructor that auth info really was given
 
-    joinServerUrl: 'https://join.dataunions.org', // TODO
+    joinServerUrl: 'https://join.dataunions.org',
     // theGraphUrl: 'https://api.thegraph.com/subgraphs/name/streamr-dev/streams', // TODO
 
     // Ethereum and Data Union related overrides to what @streamr/config provides
