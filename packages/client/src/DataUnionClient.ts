@@ -147,7 +147,7 @@ export class DataUnionClient {
      * Can be used for Polygon and Gnosis too
      * @returns a randomly generated secure Ethereum wallet
      */
-    generateEthereumAccount(): { address: string, privateKey: string } {
+    static generateEthereumAccount(): { address: string, privateKey: string } {
         const wallet = Wallet.createRandom()
         return {
             address: wallet.address,
