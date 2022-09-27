@@ -8,7 +8,7 @@ The Data Union framework is a data crowdsourcing and crowdselling solution. Work
 
 Start by obtaining a DataUnionClient object:
 1) Add your private key to the client. (The address that deploys the contract will become the admin of the data union.)
-2) Choose a desired EVM chain and add it to the chain parameter. We currently support Gnosis and Polygon.
+2) Choose a desired EVM chain and add it to the chain parameter. We currently support `gnosis` and `polygon`.
 i) When integrating this into your application a wallet provider should be added instead of an environment variable with a private key.
 
 ```js
