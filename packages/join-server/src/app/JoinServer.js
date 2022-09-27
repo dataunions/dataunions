@@ -64,7 +64,7 @@ class JoinServer {
 			for (const chainName in chains) {
 				for (const contractName in chains[chainName].contracts) {
 					if (contractName === "DataUnionFactory") {
-						this.clients.set(chainName, this.newDataUnionClient(chains[chainName], privateKey))
+						clients.set(chainName, this.newDataUnionClient(chains[chainName], privateKey))
 					}
 				}
 			}
