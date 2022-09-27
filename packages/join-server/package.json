@@ -1,6 +1,6 @@
 {
   "name": "@dataunions/join-server",
-  "version": "3.0.0-alpha.8",
+  "version": "3.0.0",
   "description": "Data Union join server base implementation",
   "author": "Data Union DAO <contact@dataunions.org>",
   "license": "AGPL-3.0-or-later",
