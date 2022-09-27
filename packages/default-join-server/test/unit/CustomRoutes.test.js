@@ -31,8 +31,10 @@ describe('CustomRoutes', () => {
 		}
 
 		db = {}
+		const clients = new Map()
+		clients.set('test-chain', client)
 
-		createCustomRoutes(client, db)(expressApp)
+		createCustomRoutes(db)(expressApp, clients)
 	})
 
 	afterEach(() => {

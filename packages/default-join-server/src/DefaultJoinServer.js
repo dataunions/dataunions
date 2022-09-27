@@ -1,6 +1,5 @@
 const { Sequelize } = require('sequelize')
 const { JoinServer } = require('@dataunions/join-server')
-const DataUnionClient = require('@dataunions/client')
 require('dotenv').config()
 
 const SecretsDB = require('./db/SecretDB')
@@ -48,19 +47,11 @@ module.exports = class DefaultJoinServer {
 			process.exit(1)
 		}
 
-		const client = new DataUnionClient({
-			auth: {
-				privateKey: process.env.PRIVATE_KEY,
-			},
-			...this.dataUnionClientOptions
-		})
-
 		const srv = new JoinServer({
 			privateKey: process.env.PRIVATE_KEY,
 			customJoinRequestValidator: createCustomJoinRequestValidator(secretsDB),
-			customRoutes: createCustomRoutes(client, secretsDB),
+			customRoutes: createCustomRoutes(secretsDB),
 			onMemberJoin: createOnMemberJoin(streamrDB, process.env.PRIVATE_KEY),
-			dataUnionClient: client,
 		})
 		srv.listen()
 	}

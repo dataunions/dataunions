@@ -1,8 +1,17 @@
-module.exports = (client, db) => {
-	return (expressApp) => {
+module.exports = (db) => {
+	return (expressApp, clients) => {
 
 		// Admin authenticator middleware for the secrets management routes
 		expressApp.use('/secrets/', async (req, res, next) => {
+			const client = clients.get(req.validatedRequest.chain)
+			if (!client) {
+				res.status(400)
+				res.set('content-type', 'application/json')
+				res.send({
+					error: `Unsupported chain: ${req.validatedRequest.chain}!`
+				})
+			}
+
 			const dataUnion = await client.getDataUnion(req.validatedRequest.dataUnion)
 			if (!dataUnion) {
 				res.status(404)
