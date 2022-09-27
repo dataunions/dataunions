@@ -637,21 +637,25 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
     }
 
     function addJoinListener(IJoinListener newListener) external onlyOwner {
+        require(!modulesLocked, "error_modulesLocked");
         joinListeners.push(address(newListener));
         emit JoinListenerAdded(newListener);
     }
 
     function addPartListener(IPartListener newListener) external onlyOwner {
+        require(!modulesLocked, "error_modulesLocked");
         partListeners.push(address(newListener));
         emit PartListenerAdded(newListener);
     }
 
     function removeJoinListener(IJoinListener listener) external onlyOwner {
+        require(!modulesLocked, "error_modulesLocked");
         require(removeFromAddressArray(joinListeners, address(listener)), "error_joinListenerNotFound");
         emit JoinListenerRemoved(listener);
     }
 
     function removePartListener(IPartListener listener) external onlyOwner {
+        require(!modulesLocked, "error_modulesLocked");
         require(removeFromAddressArray(partListeners, address(listener)), "error_partListenerNotFound");
         emit PartListenerRemoved(listener);
     }

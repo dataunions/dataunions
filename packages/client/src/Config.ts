@@ -3,6 +3,7 @@ import type { Overrides } from '@ethersproject/contracts'
 import type { ExternalProvider } from '@ethersproject/providers'
 import type { ConnectionInfo } from '@ethersproject/web'
 import type { EthereumAddress } from './EthereumAddress'
+import type { GasPriceStrategy } from './gasPriceStrategies'
 
 /**
  * @category Important
@@ -23,7 +24,7 @@ export type DataUnionClientConfig = {
     // TODO: refactor out this, once it's okay to break compatibility
     dataUnion: Partial<DataUnionConfig>
 
-    gasPriceStrategy?: (estimatedGasPrice: BigNumber) => BigNumber
+    gasPriceStrategy?: GasPriceStrategy
 
     // makes it possible to initialize DU client to work in a specific Ethereum network defined in @streamr/config
     // see https://github.com/streamr-dev/network-contracts/blob/master/packages/config/src/networks.json
@@ -66,8 +67,6 @@ export type NetworkConfigOverrides = {
     rpcs?: ConnectionInfo[]
 }
 
-export type GasPriceStrategy = (estimatedGasPrice: BigNumber) => (BigNumber | Promise<BigNumber>)
-
 // type TimeoutConfig = {
 //     timeout: number
 //     retryInterval: number
@@ -101,7 +100,7 @@ export const DATAUNION_CLIENT_DEFAULTS: DataUnionClientConfig = {
     // theGraphUrl: 'https://api.thegraph.com/subgraphs/name/streamr-dev/streams', // TODO
 
     // Ethereum and Data Union related overrides to what @streamr/config provides
-    chain: 'gnosis',
+    chain: 'polygon',
 
     dataUnion: {
         minimumWithdrawTokenWei: '1000000',
@@ -125,6 +124,3 @@ export const DATAUNION_CLIENT_DEFAULTS: DataUnionClientConfig = {
     //     }
     // }
 }
-
-/** Sensible default for working in gnosis chain: add a bit more gas, TODO: how did we end up with this? */
-export const defaultChainGasPriceStrategy: GasPriceStrategy = (estimatedGasPrice: BigNumber) => estimatedGasPrice.add('10000000000')

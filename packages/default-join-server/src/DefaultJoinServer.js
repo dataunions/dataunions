@@ -62,7 +62,7 @@ module.exports = class DefaultJoinServer {
 			onMemberJoin: createOnMemberJoin(streamrDB, process.env.PRIVATE_KEY),
 			dataUnionClient: client,
 		})
-		srv.start()
+		srv.listen()
 	}
 
 }

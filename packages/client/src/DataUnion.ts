@@ -151,6 +151,11 @@ export class DataUnion {
         return this.contract.getActiveMemberCount()
     }
 
+    async refreshRevenue(): Promise<ContractReceipt> {
+        const tx = await this.contract.refreshRevenue()
+        return waitOrRetryTx(tx)
+    }
+
     /**
     * If metadata is not valid JSON, simply return the raw string.
     * This shouldn't happen if `setMetadata` was used to write the metadata because it validates the JSON;
@@ -333,7 +338,7 @@ export class DataUnion {
         const memberAddress = await this.client.getAddress()
         await this.checkMinimumWithdraw(memberAddress)
 
-        const ethersOverrides = this.client.getOverrides()
+        const ethersOverrides = await this.client.getOverrides()
         const tx = await this.contract.withdrawAll(memberAddress, false, ethersOverrides)
         return tx.wait()
     }
@@ -348,7 +353,7 @@ export class DataUnion {
         await this.checkMinimumWithdraw(memberAddress)
 
         const address = getAddress(recipientAddress)
-        const ethersOverrides = this.client.getOverrides()
+        const ethersOverrides = await this.client.getOverrides()
         const tx = await this.contract.withdrawAllTo(address, false, ethersOverrides)
         return tx.wait()
     }
@@ -416,7 +421,7 @@ export class DataUnion {
         amountTokenWei: BigNumber | number | string
     ): Promise<ContractReceipt> {
         const address = getAddress(memberAddress) // throws if bad address
-        const ethersOverrides = this.client.getOverrides()
+        const ethersOverrides = await this.client.getOverrides()
         const tx = await this.contract.transferWithinContract(address, amountTokenWei, ethersOverrides)
         return waitOrRetryTx(tx)
     }
@@ -448,7 +453,7 @@ export class DataUnion {
      */
     async addMembers(memberAddressList: EthereumAddress[]): Promise<ContractReceipt> {
         const members = memberAddressList.map(getAddress) // throws if there are bad addresses
-        const ethersOverrides = this.client.getOverrides()
+        const ethersOverrides = await this.client.getOverrides()
         const tx = await this.contract.addMembers(members, ethersOverrides)
         // TODO ETH-93: wrap promise for better error reporting in case tx fails (parse reason, throw proper error)
         return waitOrRetryTx(tx)
@@ -459,7 +464,7 @@ export class DataUnion {
      */
     async removeMembers(memberAddressList: EthereumAddress[]): Promise<ContractReceipt> {
         const members = memberAddressList.map(getAddress) // throws if there are bad addresses
-        const ethersOverrides = this.client.getOverrides()
+        const ethersOverrides = await this.client.getOverrides()
         const tx = await this.contract.partMembers(members, ethersOverrides)
         // TODO ETH-93: wrap promise for better error reporting in case tx fails (parse reason, throw proper error)
         return waitOrRetryTx(tx)
@@ -473,7 +478,7 @@ export class DataUnion {
         memberAddress: EthereumAddress,
     ): Promise<ContractReceipt> {
         const address = getAddress(memberAddress) // throws if bad address
-        const ethersOverrides = this.client.getOverrides()
+        const ethersOverrides = await this.client.getOverrides()
         const tx = await this.contract.withdrawAll(address, false, ethersOverrides)
         return waitOrRetryTx(tx)
     }
@@ -491,7 +496,7 @@ export class DataUnion {
     ): Promise<ContractReceipt> {
         const from = getAddress(memberAddress) // throws if bad address
         const to = getAddress(recipientAddress)
-        const ethersOverrides = this.client.getOverrides()
+        const ethersOverrides = await this.client.getOverrides()
         const tx = await this.contract.withdrawAllToSigned(from, to, false, signature, ethersOverrides)
         return waitOrRetryTx(tx)
     }
@@ -511,7 +516,7 @@ export class DataUnion {
         const from = getAddress(memberAddress) // throws if bad address
         const to = getAddress(recipientAddress)
         const amount = BigNumber.from(amountTokenWei)
-        const ethersOverrides = this.client.getOverrides()
+        const ethersOverrides = await this.client.getOverrides()
         const tx = await this.contract.withdrawToSigned(from, to, amount, false, signature, ethersOverrides)
         return waitOrRetryTx(tx)
     }
@@ -522,7 +527,7 @@ export class DataUnion {
     ): Promise<ContractReceipt> {
         let tx: ContractTransaction
         try {
-            tx = await func(...args.concat(this.client.getOverrides()))
+            tx = await func(...args.concat(await this.client.getOverrides()))
             return waitOrRetryTx(tx)
         } catch(error) {
             if (error.message.includes('error_onlyOwner')) {
@@ -575,7 +580,7 @@ export class DataUnion {
         const address = getAddress(memberAddress) // throws if bad address
         const amount = BigNumber.from(amountTokenWei)
         const myAddress = await this.client.getAddress()
-        const ethersOverrides = this.client.getOverrides()
+        const ethersOverrides = await this.client.getOverrides()
 
         // TODO: implement as ERC677 transfer with data=memberAddress, after this feature is deployed
         // const tx = await this.client.token.transferAndCall(this.contract.address, amount, memberAddress, ethersOverrides)
