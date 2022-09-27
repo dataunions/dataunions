@@ -46,7 +46,7 @@ const dataUnion = await DU.getDataUnion('0x12345...')
 
 Executing the admin functions generate transactions and as such require having enough of the native token to pay the gas on the chain you deployed on. To get some native token, you can reach out on the [Data Union Discord](https://discord.gg/AY7kDBEtkr). We can send you some to get started. Transactions usually cost a fraction of a cent in Polygon, and Gnosis has historically been especially cheap.
 
-Adding members using admin functions is not at feature parity with the member function `join`. The newly added member will not automatically be granted publish permissions to the streams inside the Data Union. This will need to be done manually using the StreamrClient, see `StreamrClient.grantPermissions()`. Similarly, after removing a member using the admin function `removeMembers`, the publish permissions will need to be removed in a secondary step using `StreamrClient.revokePermissions()`. This is because the member function `join` relies on DU DAO hosted infrastructure, while the admin functions are completely self-sufficient (in fact, the DU DAO hosted server uses these very admin functions :). 
+Adding members using admin functions is not at feature parity with the member function `join`. The newly added member will not automatically be granted publish permissions to the streams inside the Data Union. This will need to be done manually using the StreamrClient, see `StreamrClient.grantPermissions()`. Similarly, after removing a member using the admin function `removeMembers`, the publish permissions will need to be removed in a secondary step using `StreamrClient.revokePermissions()`. This is because the member function `join` relies on DU DAO hosted infrastructure, while the admin functions are completely self-sufficient (in fact, the DU DAO hosted server uses these very admin functions :).
 
 Adding members (joinPart agent only read more [here](https://docs.dataunions.org/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
@@ -217,7 +217,7 @@ const deploymentOptions = {
     adminAddress: "0x123...", // If omitted, defaults to the deployer. Will be the admin of the newly created data union
     dataUnionName: "demoName", // NOT stored anywhere, only used for address derivation
     adminFee: 0.3, // Must be between 0...1
-    joinPartAgents: ["0x123..."], // If omitted, set by default to include the admin as well as the trusted DU DAO join-server infrastructure address 
+    joinPartAgents: ["0x123..."], // If omitted, set by default to include the admin as well as the trusted DU DAO join-server infrastructure address
     metadata: { // optional
         "information": "related to your data union",
         "canBe": ["", "anything"]
