@@ -3,12 +3,21 @@
 # Prod deployment
 First set the deployment token, it can be found on the top right of the subgraphs page, i.e. https://thegraph.com/hosted-service/subgraph/dataunions/data-unions-gnosis
 You need to be owner in the DataunionDAO organisation in github.
+
+The json files in abis describe the contracts that are deployed in Polygon, not those found in packages/contracts. When a new deployment is made, the corresponding json should be copied here.
 ```
-npx graph auth --product hosted-service https://api.thegraph.com/deploy/ <token>
+npx graph auth --product hosted-service
 ```
-Next run deploy-priduction command for each subgraph, using the corresponding file and name:
+Then when it asks for Deploy key, paste the accesstoken from the subgraphs page.
+
+Then rename the file you want to deploy (i.e. subgraph.gnosis.production.yaml) to subgraph.yaml,
+Then then run the deploy command with the corresponding name:
 ```
-npm run deploy-production --config=subgraph.gnosis.production.yaml --subgraph=dataunions/data-unions-gnosis
+npm run deploy-production-gnosis
+```
+or
+```
+npm run deploy-production-polygon
 ```
 
 # Development

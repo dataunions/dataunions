@@ -1,13 +1,22 @@
 {
     "name": "@dataunions/client",
-    "version": "3.0.0-beta.8",
-    "description": "JavaScript client library for DataUnions",
+    "version": "3.0.0-beta.14",
+    "description": "JavaScript/TypeScript client library for DataUnions",
+    "author": "Data Union DAO <contact@dataunions.org>",
+    "license": "Apache-2.0",
     "private": false,
+    "publishConfig": {
+        "access": "public"
+    },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/dataunions/data-union.git",
+        "url": "git+https://github.com/dataunions/data-unions.git",
         "directory": "packages/client"
     },
+    "bugs": {
+        "url": "https://github.com/dataunions/data-unions/issues"
+    },
+    "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/client#readme",
     "types": "./dist/types/src/index.d.ts",
     "main": "./dist/src/index.js",
     "browser": "./dist/web/index.js",
@@ -40,34 +49,31 @@
     "engines": {
         "node": ">= 16"
     },
-    "author": "Streamr",
-    "license": "Apache-2.0",
     "devDependencies": {
-        "@dataunions/join-server": "3.0.0-alpha.3",
         "@ethersproject/wordlists": "5.7.0",
         "@streamr/data-v2": "1.0.1",
         "@types/debug": "4.1.7",
-        "@types/jest": "28.1.7",
-        "@types/node": "18.7.13",
+        "@types/jest": "29.0.0",
+        "@types/node": "18.7.14",
         "@types/node-fetch": "2.5.12",
         "@types/uuid": "8.3.4",
-        "@typescript-eslint/eslint-plugin": "5.35.1",
-        "@typescript-eslint/parser": "5.35.1",
+        "@typescript-eslint/eslint-plugin": "5.36.1",
+        "@typescript-eslint/parser": "5.36.1",
         "benchmark": "2.1.4",
         "buffer": "6.0.3",
         "concurrently": "7.3.0",
         "crypto-browserify": "3.12.0",
-        "esbuild": "0.15.5",
-        "eslint": "8.22.0",
+        "esbuild": "0.15.6",
+        "eslint": "8.23.0",
         "eslint-config-airbnb": "19.0.4",
         "eslint-config-streamr-ts": "4.1.0",
-        "eslint-plugin-import": "2.25.3",
+        "eslint-plugin-import": "2.26.0",
         "eslint-plugin-promise": "6.0.1",
         "ganache": "7.4.1",
         "git-revision-webpack-plugin": "5.0.0",
-        "jest": "29.0.0",
-        "jest-circus": "29.0.0",
-        "jest-leak-detector": "29.0.0",
+        "jest": "29.0.1",
+        "jest-circus": "29.0.1",
+        "jest-leak-detector": "29.0.1",
         "process": "0.11.10",
         "streamr-test-utils": "2.0.0",
         "ts-jest": "28.0.8",
@@ -77,7 +83,7 @@
         "util": "0.12.4"
     },
     "dependencies": {
-        "@dataunions/contracts": "3.0.0-beta.1",
+        "@dataunions/contracts": "3.0.0-beta.2",
         "@ethersproject/abi": "5.7.0",
         "@ethersproject/abstract-signer": "5.7.0",
         "@ethersproject/address": "5.7.0",
@@ -88,18 +94,11 @@
         "@ethersproject/units": "5.7.0",
         "@ethersproject/wallet": "5.7.0",
         "@ethersproject/web": "5.7.0",
-        "@streamr/config": "2.3.0",
+        "@streamr/config": "2.4.0",
         "debug": "4.3.4",
         "node-fetch": "2.6.7",
         "readable-stream": "4.1.0",
         "reflect-metadata": "0.1.13",
         "uuid": "8.3.2"
-    },
-    "bugs": {
-        "url": "https://github.com/dataunions/data-union/issues"
-    },
-    "homepage": "https://github.com/dataunions/data-union#readme",
-    "publishConfig": {
-        "access": "public"
     }
 }

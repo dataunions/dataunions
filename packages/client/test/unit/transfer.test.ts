@@ -9,7 +9,8 @@ import type { DATAv2 } from '@streamr/data-v2'
 import type { BigNumberish } from '@ethersproject/bignumber'
 import type { DataUnion } from '../../src/DataUnion'
 
-const { log } = console
+// const { log } = console
+const log = (..._: unknown[]) => {}
 
 describe('DataUnion earnings transfer methods', () => {
 
@@ -64,6 +65,21 @@ describe('DataUnion earnings transfer methods', () => {
         await (await token.transferAndCall(dataUnionAddress, amountWei, '0x')).wait()
         // log("DU stats: %o", await dataUnion.getStats())
     }
+
+    it('can refresh DataUnion earnings after ERC20 token transfer', async () => {
+        const balanceBefore = await token.balanceOf(dataUnion.getAddress())
+        const statsBefore = await dataUnion.getMemberStats(member.address)
+        await (await token.mint(dataUnion.getAddress(), parseEther('1'))).wait()
+        const balanceAfterMint = await token.balanceOf(dataUnion.getAddress())
+        const statsAfterMint = await dataUnion.getMemberStats(member.address)
+        await dataUnion.refreshRevenue()
+        const balanceAfter = await token.balanceOf(dataUnion.getAddress())
+        const statsAfter = await dataUnion.getMemberStats(member.address)
+        expect(formatEther(statsAfterMint.withdrawableEarnings.sub(statsBefore.withdrawableEarnings))).toEqual('0.0')
+        expect(formatEther(statsAfter.withdrawableEarnings.sub(statsBefore.withdrawableEarnings))).toEqual('0.45')
+        expect(formatEther(balanceAfterMint.sub(balanceBefore))).toEqual('1.0')
+        expect(formatEther(balanceAfter.sub(balanceBefore))).toEqual('1.0')
+    })
 
     it('transfer earnings to another member within data union', async () => {
         await fundDataUnion(dataUnion.getAddress(), parseEther('2'))

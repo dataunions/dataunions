@@ -4,18 +4,23 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
+
+// upgradeable proxy imports
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 import "../xdai-mainnet-bridge/IAMB.sol";
 import "./DataUnionTemplate.sol";
 import "../Ownable.sol";
 
-contract DataUnionFactory is Ownable {
+contract DataUnionFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
     event DUCreated(address indexed du, address indexed owner, address template);
 
     event NewDUInitialEthUpdated(uint amount);
     event NewDUOwnerInitialEthUpdated(uint amount);
     event DefaultNewMemberInitialEthUpdated(uint amount);
-    event ProtocolBeneficiaryUpdated(address newBeneficiaryAddress);
     event ProtocolFeeOracleUpdated(address newFeeOracleAddress);
 
     event DUInitialEthSent(uint amountWei);
@@ -28,18 +33,20 @@ contract DataUnionFactory is Ownable {
     uint public newDUInitialEth;
     uint public newDUOwnerInitialEth;
     uint public defaultNewMemberEth;
-    address public protocolBeneficiary;
     address public protocolFeeOracle;
 
-    constructor(
+    /** Two phase hand-over to minimize the chance that the product ownership is lost to a non-existent address. */
+    address public pendingOwner;
+
+    function initialize(
         address _dataUnionTemplate,
         address _defaultToken,
-        address _protocolBeneficiary,
         address _protocolFeeOracle
-    ) Ownable(msg.sender) {
+    ) public initializer {
+        __Ownable_init();
+        __UUPSUpgradeable_init();
         setTemplate(_dataUnionTemplate);
         defaultToken = _defaultToken;
-        protocolBeneficiary = _protocolBeneficiary;
         protocolFeeOracle = _protocolFeeOracle;
     }
 
@@ -63,11 +70,6 @@ contract DataUnionFactory is Ownable {
     function setNewMemberInitialEth(uint initialEthWei) public onlyOwner {
         defaultNewMemberEth = initialEthWei;
         emit DefaultNewMemberInitialEthUpdated(initialEthWei);
-    }
-
-    function setProtocolBeneficiary(address newBeneficiaryAddress) public onlyOwner {
-        protocolBeneficiary = newBeneficiaryAddress;
-        emit ProtocolBeneficiaryUpdated(newBeneficiaryAddress);
     }
 
     function setProtocolFeeOracle(address newFeeOracleAddress) public onlyOwner {
@@ -107,7 +109,6 @@ contract DataUnionFactory is Ownable {
             agents,
             defaultNewMemberEth,
             initialAdminFeeFraction,
-            protocolBeneficiary,
             protocolFeeOracle,
             metadataJsonString
         );
@@ -130,4 +131,30 @@ contract DataUnionFactory is Ownable {
         }
         return du;
     }
+
+    /**
+     * @dev Override openzeppelin implementation
+     * @dev Allows the current owner to set the pendingOwner address.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address newOwner) public override onlyOwner {
+        require(newOwner != address(0), "error_zeroAddress");
+        pendingOwner = newOwner;
+    }
+
+    /**
+     * @dev Allows the pendingOwner address to finalize the transfer.
+     */
+    function claimOwnership() public {
+        require(msg.sender == pendingOwner, "error_onlyPendingOwner");
+        _transferOwnership(pendingOwner);
+        pendingOwner = address(0);
+    }
+
+    /**
+     * @dev Disable openzeppelin renounce ownership functionality
+     */
+    function renounceOwnership() public override onlyOwner {}
+
+    function _authorizeUpgrade(address) internal override onlyOwner {}
 }

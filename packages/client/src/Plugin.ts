@@ -33,10 +33,10 @@ export function Plugin<
             return target // do nothing if already has property
         }
 
-        // @ts-expect-error ??
+        // @ts-expect-error probably incomplete typing; TODO: remove this whole plugin file
         // eslint-disable-next-line no-param-reassign
         target[key] = (...args: any) => {
-            // @ts-expect-error ??
+            // @ts-expect-error same as above
             return srcInstance[key].call(srcInstance, ...args)
         }
         return target

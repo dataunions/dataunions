@@ -94,8 +94,8 @@ export default class DataUnionAPI {
 
     async deployDataUnionUsingToken(token: EthereumAddress, options: DataUnionDeployOptions): Promise<DataUnion> {
         const {
-            owner = await this.wallet.getAddress(),
-            joinPartAgents = [owner, this.joinPartAgentAddress],
+            adminAddress = await this.wallet.getAddress(),
+            joinPartAgents = [adminAddress, this.joinPartAgentAddress],
             dataUnionName = `DataUnion-${Date.now()}`, // TODO: use uuid
             adminFee = 0,
             confirmations = 1,
@@ -106,13 +106,13 @@ export default class DataUnionAPI {
         log(`Going to deploy DataUnion with name: ${dataUnionName}`)
 
         const tokenAddress = getAddress(token)
-        const ownerAddress = getAddress(owner)
+        const ownerAddress = getAddress(adminAddress)
         const agentAddressList = joinPartAgents.map(getAddress)
 
         if (adminFee < 0 || adminFee > 1) { throw new Error('DataUnionDeployOptions.adminFee must be a number between 0...1, got: ' + adminFee) }
         const adminFeeBN = BigNumber.from((adminFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish, but that's not much value
 
-        const ethersOverrides = this.client.getOverrides()
+        const ethersOverrides = await this.client.getOverrides()
         if (gasPrice) { ethersOverrides.gasPrice = gasPrice }
 
         // function deployNewDataUnionUsingToken(
@@ -151,8 +151,8 @@ export default class DataUnionAPI {
      */
     async deployDataUnion(options: DataUnionDeployOptions = {}): Promise<DataUnion> {
         const {
-            owner = await this.wallet.getAddress(),
-            joinPartAgents = [owner, this.joinPartAgentAddress],
+            adminAddress = await this.wallet.getAddress(),
+            joinPartAgents = [adminAddress, this.joinPartAgentAddress],
             dataUnionName = `DataUnion-${Date.now()}`, // TODO: use uuid
             adminFee = 0,
             confirmations = 1,
@@ -162,13 +162,13 @@ export default class DataUnionAPI {
 
         log(`Going to deploy DataUnion with name: ${dataUnionName}`)
 
-        const ownerAddress = getAddress(owner)
+        const ownerAddress = getAddress(adminAddress)
         const agentAddressList = joinPartAgents.map(getAddress)
 
         if (adminFee < 0 || adminFee > 1) { throw new Error('DataUnionDeployOptions.adminFee must be a number between 0...1, got: ' + adminFee) }
         const adminFeeBN = BigNumber.from((adminFee * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish, but that's not much value
 
-        const ethersOverrides = this.client.getOverrides()
+        const ethersOverrides = await this.client.getOverrides()
         if (gasPrice) { ethersOverrides.gasPrice = gasPrice }
 
         // function deployNewDataUnion(

@@ -8,7 +8,7 @@ function toNumber(value: any): number | undefined {
  * Streamr client constructor options that work in the test environment
  */
 export const ConfigTest = {
-    theGraphUrl: `http://${process.env.STREAMR_DOCKER_DEV_HOST || '10.200.10.1'}:8000/subgraphs/name/streamr-dev/network-contracts`,
+    // theGraphUrl: `http://${process.env.STREAMR_DOCKER_DEV_HOST || '10.200.10.1'}:8000/subgraphs/name/streamr-dev/network-contracts`,
     restUrl: process.env.REST_URL || `http://${process.env.STREAMR_DOCKER_DEV_HOST || 'localhost'}/api/v2`,
     tokenAddress: process.env.TOKEN_ADDRESS || networks.dev1.contracts.DATA,
     dataUnion: {

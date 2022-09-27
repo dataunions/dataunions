@@ -37,15 +37,15 @@ describe('DataUnion deploy', () => {
         })
 
         it('specified', async () => {
-            const owner = "0x0000000000000000000000000000000000000123"
+            const adminAddress = "0x0000000000000000000000000000000000000123"
             const client = new DataUnionClient(clientOptions)
-            const dataUnion = await client.deployDataUnion({ owner })
-            expect(await dataUnion.getAdminAddress()).toBe(owner)
+            const dataUnion = await client.deployDataUnion({ adminAddress })
+            expect(await dataUnion.getAdminAddress()).toBe(adminAddress)
         })
 
         it('invalid', async () => {
             const client = new DataUnionClient(clientOptions)
-            await expect(client.deployDataUnion({ owner: 'foobar' })).rejects.toThrow(/invalid address/)
+            await expect(client.deployDataUnion({ adminAddress: 'foobar' })).rejects.toThrow(/invalid address/)
         })
     })
 

@@ -6,7 +6,7 @@ An instance of this join server is run by the Data Union DAO to make it easier f
 
 ## Running
 
-- Create a `.env` file containing your private key and DB config (see `.env.template` in the repo)
+- Create a `.env` file containing database configs and the private key of a permitted `joinPartAgent` for your Data Union (see `.env.template` in the repo)
 - Install: `npm install -g @dataunions/default-join-server`
 - Start: `default-join-server`
 
@@ -39,7 +39,7 @@ For more information about the signature authentication, refer to the readme in 
 
 ## Secret management
 
-The server adds three HTTP endpoints, callable by the DU owner only, to manage the app secrets. All requests are wrapped in the signature wrapper, but for clarity only the (non-stringified) `request` are illustrated here.
+The server adds three HTTP endpoints, callable by the DU admin only, to manage the app secrets. All requests are wrapped in the signature wrapper, but for clarity only the (non-stringified) `request` are illustrated here.
 
 ### `POST /secrets/create`
 

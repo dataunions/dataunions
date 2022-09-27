@@ -1,10 +1,9 @@
 {
     "name": "@dataunions/monorepo",
-    "description": "Smart contracts, client and theGraph subgraph for dataunions.",
-    "private": true,
+    "description": "Smart contracts, client and The Graph subgraph for dataunions.",
     "version": "3.0.0-beta.1",
-    "author": "Streamr Network AG",
-    "license": "AGPL-3.0",
+    "author": "Data Union DAO <contact@dataunions.org>",
+    "private": true,
     "workspaces": [
         "packages/contracts",
         "packages/join-server",
@@ -13,9 +12,16 @@
         "packages/thegraph-subgraph"
     ],
     "scripts": {
-        "clean": "npm run clean -ws --if-present",
-        "build": "npm run build -ws --if-present",
-        "lint": "npm run lint --workspaces --if-present",
+        "build": "npm run --workspaces --if-present build",
+        "lint": "npm run eslint --workspaces --if-present",
+        "check": "npm run --workspaces --if-present check",
+        "clean-dist": "npx --workspaces -c 'npm run --if-present clean || rm -rf dist *.tsbuildinfo || true'",
+        "clean": "npm run clean-dist && npx --workspaces --include-workspace-root -c 'rm -rf node_modules || true'",
+        "bootstrap": "npm ci --no-audit && npm run build",
+        "bootstrap-pkg": "npm ci --no-audit --include-workspace-root --workspace=$npm_config_package && npm run build --workspace=$npm_config_package",
+        "prune-pkg": "npm prune --no-audit --include-workspace-root --production --workspace",
+        "versions": "manypkg check && zx ./show-versions.mjs",
+        "fix-package-jsons": "manypkg fix",
         "format-check": "npm run format-check -w=@dataunions/contracts",
         "test": "npm run test --workspaces --if-present",
         "integration-test": "npm run integration-test --workspaces --if-present",
@@ -23,5 +29,11 @@
         "graph2_copyInfo": "./scripts/copyAbis.sh",
         "graph3_build": "npm run doAll -w=@dataunions/thegraph-subgraph",
         "graph": "npm run graph1_build && npm run graph2_copyInfo && npm run graph3_build"
+    },
+    "dependencies": {
+        "@manypkg/cli": "0.19.1",
+        "cli-table": "0.3.11",
+        "lerna": "5.5.1",
+        "zx": "7.0.8"
     }
 }

@@ -67,7 +67,8 @@ describe("DataUnionTemplate", () => {
     before(async () => {
         testToken = await deployContract(dao, TestTokenJson, ["name", "symbol"]) as TestToken
         await testToken.mint(dao.address, parseEther("100000"))
-        feeOracle = await deployContract(dao, FeeOracleJson, [parseEther("0.01")]) as DefaultFeeOracle
+        feeOracle = await deployContract(dao, FeeOracleJson) as DefaultFeeOracle
+        await feeOracle.initialize(parseEther("0.01"), dao.address)
 
         log("List of relevant addresses:")
         log("  testToken: %s", testToken.address)
@@ -89,7 +90,6 @@ describe("DataUnionTemplate", () => {
         //     address[] memory initialJoinPartAgents,
         //     uint256 defaultNewMemberEth,
         //     uint256 initialAdminFeeFraction,
-        //     address protocolBeneficiaryAddress,
         //     address protocolFeeOracleAddress,
         //     string calldata metadataJsonString
         // )
@@ -99,7 +99,6 @@ describe("DataUnionTemplate", () => {
             a,
             "1",
             parseEther("0.09"), // total fees are 1% + 9% = 10%
-            dao.address,
             feeOracle.address,
             "{}"
         )
@@ -396,7 +395,6 @@ describe("DataUnionTemplate", () => {
             a,
             "1",
             parseEther("0.1"),
-            dao.address,
             feeOracle.address,
             "{}"
         )).to.be.revertedWith("error_alreadyInitialized")
@@ -471,7 +469,15 @@ describe("DataUnionTemplate", () => {
     it("cannot swap modules after locking", async () => {
         const dummyAddress = "0x1234567890123456789012345678901234567890"
         await expect(dataUnionSidechain.setWithdrawModule(dummyAddress)).to.emit(dataUnionSidechain, "WithdrawModuleChanged")
+        await expect(dataUnionSidechain.addJoinListener(dummyAddress)).to.emit(dataUnionSidechain, "JoinListenerAdded")
+        await expect(dataUnionSidechain.addPartListener(dummyAddress)).to.emit(dataUnionSidechain, "PartListenerAdded")
+        await expect(dataUnionSidechain.removeJoinListener(dummyAddress)).to.emit(dataUnionSidechain, "JoinListenerRemoved")
+        await expect(dataUnionSidechain.removePartListener(dummyAddress)).to.emit(dataUnionSidechain, "PartListenerRemoved")
         await dataUnionSidechain.lockModules()
         await expect(dataUnionSidechain.setWithdrawModule(dummyAddress)).to.be.revertedWith("error_modulesLocked")
+        await expect(dataUnionSidechain.addJoinListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
+        await expect(dataUnionSidechain.addPartListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
+        await expect(dataUnionSidechain.removeJoinListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
+        await expect(dataUnionSidechain.removePartListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
     })
 })

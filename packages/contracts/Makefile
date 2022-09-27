@@ -19,7 +19,7 @@ define parse_package_json
 $(shell python3 -c "import sys, json; print(json.load(sys.stdin)$(1))" < package.json)
 endef
 
-OPENZEPPELIN_VERSION := $(call parse_package_json,['dependencies']['@openzeppelin/contracts'])
+OPENZEPPELIN_VERSION := $(call parse_package_json,['devDependencies']['@openzeppelin/contracts'])
 OPENZEPPELIN_REPO_DIR := $(BUILD_DIR)/openzeppelin-contracts-$(OPENZEPPELIN_VERSION)
 $(OPENZEPPELIN_REPO_DIR):
 	git clone \

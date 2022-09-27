@@ -58,7 +58,6 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
     // Constant properties (only set in initialize)
     IERC677 public token;
     IFeeOracle public protocolFeeOracle;
-    address public protocolBeneficiary;
 
     // Modules
     IWithdrawModule public withdrawModule;
@@ -96,12 +95,10 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
         address[] memory initialJoinPartAgents,
         uint256 defaultNewMemberEth,
         uint256 initialAdminFeeFraction,
-        address protocolBeneficiaryAddress,
         address protocolFeeOracleAddress,
         string calldata initialMetadataJsonString
     ) public {
         require(!isInitialized(), "error_alreadyInitialized");
-        protocolBeneficiary = protocolBeneficiaryAddress;
         protocolFeeOracle = IFeeOracle(protocolFeeOracleAddress);
         owner = msg.sender; // set real owner at the end. During initialize, addJoinPartAgents can be called by owner only
         token = IERC677(tokenAddress);
@@ -122,6 +119,7 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
      */
     function getStats() public view returns (uint256[9] memory) {
         uint256 cleanedInactiveMemberCount = inactiveMemberCount;
+        address protocolBeneficiary = protocolFeeOracle.beneficiary();
         if (memberData[owner].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
         if (memberData[protocolBeneficiary].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
         return [
@@ -179,6 +177,7 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
         // fractions are expressed as multiples of 10^18 just like tokens, so must divide away the extra 10^18 factor
         //   overflow in multiplication is not an issue: 256bits ~= 10^77
         uint protocolFeeFraction = protocolFeeOracle.protocolFeeFor(address(this));
+        address protocolBeneficiary = protocolFeeOracle.beneficiary();
 
         // sanity check: adjust oversize admin fee (prevent over 100% fees)
         if (adminFeeFraction + protocolFeeFraction > 1 ether) {
@@ -638,21 +637,25 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
     }
 
     function addJoinListener(IJoinListener newListener) external onlyOwner {
+        require(!modulesLocked, "error_modulesLocked");
         joinListeners.push(address(newListener));
         emit JoinListenerAdded(newListener);
     }
 
     function addPartListener(IPartListener newListener) external onlyOwner {
+        require(!modulesLocked, "error_modulesLocked");
         partListeners.push(address(newListener));
         emit PartListenerAdded(newListener);
     }
 
     function removeJoinListener(IJoinListener listener) external onlyOwner {
+        require(!modulesLocked, "error_modulesLocked");
         require(removeFromAddressArray(joinListeners, address(listener)), "error_joinListenerNotFound");
         emit JoinListenerRemoved(listener);
     }
 
     function removePartListener(IPartListener listener) external onlyOwner {
+        require(!modulesLocked, "error_modulesLocked");
         require(removeFromAddressArray(partListeners, address(listener)), "error_partListenerNotFound");
         emit PartListenerRemoved(listener);
     }

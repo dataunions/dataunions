@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const DefaultJoinServer = require('../DefaultJoinServer')
 require('dotenv').config()
 

@@ -34,9 +34,13 @@ async function deployDataUnionTemplate(deployer: Wallet): Promise<DataUnionTempl
     return contract.deployed()
 }
 
-async function deployFeeOracle(deployer: Wallet): Promise<IFeeOracle> {
+async function deployFeeOracle(deployer: Wallet, protocolBeneficiaryAddress: string): Promise<IFeeOracle> {
     const factory = new ContractFactory(feeOracleJson.abi, feeOracleJson.bytecode, deployer)
-    const contract = await factory.deploy(parseEther("0.01")) as unknown as IFeeOracle
+    const contract = await factory.deploy() as unknown as IFeeOracle
+    await contract.initialize(
+        parseEther("0.01"),
+        protocolBeneficiaryAddress,
+    )
     return contract.deployed()
 }
 
@@ -44,16 +48,15 @@ async function deployDataUnionFactory(
     deployer: Wallet,
     templateAddress: string,
     tokenAddress: string,
-    protocolBeneficiaryAddress: string,
     protocolFeeOracleAddress: string,
 ): Promise<DataUnionFactory> {
     const factory = new ContractFactory(factoryJson.abi, factoryJson.bytecode, deployer)
-    const contract = await factory.deploy(
+    const contract = await factory.deploy() as unknown as DataUnionFactory
+    await contract.initialize(
         templateAddress,
         tokenAddress,
-        protocolBeneficiaryAddress,
         protocolFeeOracleAddress,
-    ) as unknown as DataUnionFactory
+    )
     return contract.deployed()
 }
 
@@ -70,12 +73,11 @@ export async function deployContracts(deployer: Wallet) {
     const token = await deployToken(deployer)
     await (await token.grantRole(await token.MINTER_ROLE(), deployer.address)).wait()
     const dataUnionTemplate = await deployDataUnionTemplate(deployer)
-    const feeOracle = await deployFeeOracle(deployer)
+    const feeOracle = await deployFeeOracle(deployer, deployer.address) // make deployer (the DAO) also protocol beneficiary
     const dataUnionFactory = await deployDataUnionFactory(
         deployer,
         dataUnionTemplate.address,
         token.address,
-        deployer.address, // make deployer (the DAO) also protocol beneficiary
         feeOracle.address
     )
 

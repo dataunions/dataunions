@@ -1,10 +1,24 @@
 {
     "name": "@dataunions/contracts",
+    "version": "3.0.0-beta.2",
     "description": "Smart contracts for Data Union with sidechain accounting",
-    "version": "3.0.0-beta.1",
+    "author": "Data Union DAO <contact@dataunions.org>",
+    "license": "UNLICENSED",
+    "private": false,
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/dataunions/data-unions.git",
+        "directory": "packages/contracts"
+    },
+    "bugs": {
+        "url": "https://github.com/dataunions/data-unions/issues"
+    },
+    "homepage": "https://github.com/dataunions/data-unions/tree/main/packages/contracts#readme",
     "scripts": {
         "build": "hardhat compile",
-        "prepare": "npm run build",
         "clean": "rm -rf artifacts cache coverage typechain deployments",
         "coverage": "hardhat coverage --testfiles 'test/contracts/*'",
         "lint": "eslint test/**/*.ts scripts/*.ts && solhint contracts/*/*.sol",
@@ -16,25 +30,27 @@
     "files": [
         "contracts/**/*",
         "typechain/**/*",
-        "artifacts/contracts/*",
+        "artifacts/contracts/**/*",
         "index.*"
     ],
-    "author": "Streamr Network AG",
-    "license": "AGPL-3.0",
     "devDependencies": {
         "@nomiclabs/hardhat-ethers": "2.1.1",
         "@nomiclabs/hardhat-waffle": "2.0.3",
-        "@streamr/config": "2.3.0",
+        "@openzeppelin/contracts": "4.7.3",
+        "@openzeppelin/contracts-upgradeable": "4.7.3",
+        "@openzeppelin/hardhat-upgrades": "^1.20.0",
+        "@streamr/config": "2.4.0",
         "@typechain/ethers-v5": "6.0.5",
         "@types/chai": "4.3.3",
         "@types/debug": "4.1.7",
         "@types/mocha": "9.1.1",
-        "@types/node": "18.7.13",
+        "@types/node": "18.7.14",
         "chai": "4.3.6",
         "chai-bignumber": "3.0.0",
         "debug": "4.3.4",
-        "eslint": "8.22.0",
+        "eslint": "8.23.0",
         "ethereum-waffle": "3.4.4",
+        "ethers": "5.7.0",
         "hardhat": "2.10.2",
         "hardhat-typechain": "0.3.5",
         "prettier": "2.7.1",
@@ -45,13 +61,5 @@
         "ts-node": "10.9.1",
         "typechain": "4.0.3",
         "typescript": "4.7.4"
-    },
-    "dependencies": {
-        "@openzeppelin/contracts": "4.2.0",
-        "ethers": "5.7.0"
-    },
-    "private": false,
-    "publishConfig": {
-        "access": "public"
     }
 }
