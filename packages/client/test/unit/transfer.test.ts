@@ -9,7 +9,8 @@ import type { DATAv2 } from '@streamr/data-v2'
 import type { BigNumberish } from '@ethersproject/bignumber'
 import type { DataUnion } from '../../src/DataUnion'
 
-const { log } = console
+// const { log } = console
+const log = (..._: unknown[]) => {}
 
 describe('DataUnion earnings transfer methods', () => {
 

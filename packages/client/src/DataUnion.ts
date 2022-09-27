@@ -16,7 +16,7 @@ import type { DataUnionClient } from './DataUnionClient'
 import type { Rest } from './Rest'
 
 export interface DataUnionDeployOptions {
-    owner?: EthereumAddress,
+    adminAddress?: EthereumAddress,
     joinPartAgents?: EthereumAddress[],
     dataUnionName?: string,
     adminFee?: number,
@@ -121,10 +121,6 @@ export class DataUnion {
 
     getChainName(): string {
         return this.client.chainName
-    }
-
-    async getOwner(): Promise<EthereumAddress> {
-        return this.contract.owner()
     }
 
     /**

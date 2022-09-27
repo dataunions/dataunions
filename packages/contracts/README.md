@@ -14,6 +14,6 @@ import type { DataUnionTemplate, DataUnionFactory } from '@dataunions/contracts/
 import { ContractFactory, Contract } from 'ethers'
 const factoryFactory = new ContractFactory(factoryJson.abi, factoryJson.bytecode, creatorWallet)
 const factory = factoryFactory.deploy(templateAddress, tokenAddress, feeOracleAddress) as DataUnionFactory
-const newDu = factory.deployNewDataUnion(owner, adminFee, agents, metadata) as DataUnionTemplate
+const newDu = factory.deployNewDataUnion(adminAddress, adminFee, agents, metadata) as DataUnionTemplate
 const existingDu = new Contract(templateJson.abi, duAddress, creatorWallet) as DataUnionTemplate
 ```
