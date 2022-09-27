@@ -115,18 +115,20 @@ export class DataUnion {
         this.contract = contract
     }
 
+    /** @returns the contract address of the data union */
     getAddress(): EthereumAddress {
         return this.contract.address
     }
 
+    /** @returns the name of the chain the data union contract is deployed on */
     getChainName(): string {
         return this.client.chainName
     }
 
     /**
-     * Get data union admin fee fraction (between 0.0 and 1.0) that admin gets from each revenue event
      * Version 2.2: admin fee is collected in DataUnionSidechain
      * Version 2.0: admin fee was collected in DataUnionMainnet
+     * @returns the data union admin fee fraction (between 0.0 and 1.0) that admin gets from each revenue event
      */
     async getAdminFee(): Promise<number> {
         const adminFeeBN = await this.contract.adminFeeFraction()
@@ -137,6 +139,10 @@ export class DataUnion {
         return this.contract.owner()
     }
 
+    /**
+    * Inactive members are members that got removed by a joinPartAgent or left the data union
+    * @returns all members of the data union
+    */
     async getActiveMemberCount(): Promise<number> {
         return this.contract.getActiveMemberCount()
     }
@@ -147,11 +153,11 @@ export class DataUnion {
     }
 
     /**
-     * If metadata is not valid JSON, simply return the raw string.
-     * This shouldn't happen if `setMetadata` was used to write the metadata;
-     *   however direct access to the smart contract is of course possible, and the contract won't validate the JSON.
-     * @returns object that was stored using `setMetadata`
-     */
+    * If metadata is not valid JSON, simply return the raw string.
+    * This shouldn't happen if `setMetadata` was used to write the metadata because it validates the JSON;
+    *   however direct access to the smart contract is of course possible, and the contract won't validate the JSON.
+    * @returns the JavaScript object that was stored using `setMetadata`
+    */
     async getMetadata(): Promise<object | string> {
         const metadataJsonString = await this.contract.metadataJsonString()
         try {
@@ -161,6 +167,11 @@ export class DataUnion {
         }
     }
 
+    /**
+    * The default stipend is 0 and can be set by setNewMemberStipend()
+    * The stipend exists to enable members not to pay a transaction fee when withdrawing earnings
+    * @returns the amount of ETH/native tokens every member gets when they first join the DU
+    */
     async getNewMemberStipend(): Promise<BigNumber> {
         return this.contract.newMemberEth()
     }
@@ -184,11 +195,12 @@ export class DataUnion {
 
     // TODO: drop old DU support already probably...
     /**
-     * Get stats for the DataUnion (version 2).
-     * Most of the interface has remained stable, but getStats has been implemented in functions that return
-     *   a different number of stats, hence the need for the more complex and very manually decoded query.
-     */
+    * Open {@link https://docs.dataunions.org/main-concepts/data-union/data-union-observation our docs} to get more information about the stats
+    * @returns valuable information about the data union 
+    */
     async getStats(): Promise<DataUnionStats> {
+        // Most of the interface has remained stable, but getStats has been implemented in functions that return
+        // a different number of stats, hence the need for the more complex and very manually decoded query.
         const provider = this.client.wallet.provider!
         const getStatsResponse = await provider.call({
             to: this.getAddress(),
@@ -236,8 +248,9 @@ export class DataUnion {
     }
 
     /**
-     * Get stats of a single data union member
-     */
+    * Open {@link https://docs.dataunions.org/main-concepts/data-union/data-union-observation our docs} to get more information about the stats
+    * @returns stats of a single data union member
+    */
     async getMemberStats(memberAddress: EthereumAddress): Promise<MemberStats> {
         const address = getAddress(memberAddress)
         // TODO: use duSidechain.getMemberStats(address) once it's implemented, to ensure atomic read
@@ -260,7 +273,7 @@ export class DataUnion {
     }
 
     /**
-     * Get the amount of tokens the member would get from a successful withdraw
+     * @returns the amount of tokens the member would get from a successful withdraw
      */
     async getWithdrawableEarnings(memberAddress: EthereumAddress): Promise<BigNumber> {
         return this.contract.getWithdrawableEarnings(getAddress(memberAddress)).catch((error) => {
@@ -277,14 +290,15 @@ export class DataUnion {
 
     /**
      * Send HTTP(s) request to the join server, asking to join the data union
+     * Typically you would send a sharedSecret with the request. Read more in {@link https://docs.dataunions.org/main-concepts/joinpart-server joinPart server}
      */
     async join(params?: object): Promise<JoinResponse> {
         return this.post<JoinResponse>(["join"], params)
     }
 
     /**
-     * Voluntarily leave the DataUnion
-     * @returns side-chain transaction receipt
+     * member can voluntarily leave the data union or joinPartAgent can remove a single member
+     * @returns transaction receipt
      */
     async part(): Promise<ContractReceipt> {
         const memberAddress = await this.client.getAddress()
@@ -299,6 +313,7 @@ export class DataUnion {
         return (state === ACTIVE)
     }
 
+    /** @internal */
     async checkMinimumWithdraw(memberAddress: EthereumAddress): Promise<void> {
         const withdrawable = await this.contract.getWithdrawableEarnings(memberAddress)
         if (withdrawable.eq(0)) {
@@ -313,7 +328,7 @@ export class DataUnion {
 
     /**
      * Withdraw all your earnings
-     * @returns the sidechain withdraw transaction receipt
+     * @returns the transaction receipt
      */
     async withdrawAll(): Promise<ContractReceipt> {
         const memberAddress = await this.client.getAddress()
@@ -326,7 +341,8 @@ export class DataUnion {
 
     /**
      * Withdraw earnings and "donate" them to the given address
-     * @returns the sidechain withdraw transaction receipt
+     * @param recipientAddress - the address authorized to receive the tokens
+     * @returns the transaction receipt
      */
     async withdrawAllTo(recipientAddress: EthereumAddress): Promise<ContractReceipt> {
         const memberAddress = await this.client.getAddress()
@@ -411,23 +427,25 @@ export class DataUnion {
     ///////////////////////////////
 
     /**
-     * Add a new data union secret
-     * For data unions that use the default-join-server, members can join without specific approval using this secret
+     * Admin: Add a new data union secret to enable members to join without specific approval using this secret.
+     * For data unions that use the default-join-server
      */
     async createSecret(name: string = 'Untitled Data Union Secret'): Promise<SecretsResponse> {
         return this.post<SecretsResponse>(['secrets', 'create'], { name })
     }
 
+    /** Admin: */
     async deleteSecret(secretId: string): Promise<SecretsResponse> {
         return this.post<SecretsResponse>(['secrets', 'delete'], { secretId })
     }
 
+    /** Admin: */
     async listSecrets(): Promise<SecretsResponse[]> {
         return this.post<SecretsResponse[]>(['secrets', 'list'])
     }
 
     /**
-     * Add given Ethereum addresses as data union members
+     * JoinPartAgents: Add given Ethereum addresses as data union members
      */
     async addMembers(memberAddressList: EthereumAddress[]): Promise<ContractReceipt> {
         const members = memberAddressList.map(getAddress) // throws if there are bad addresses
@@ -438,7 +456,7 @@ export class DataUnion {
     }
 
     /**
-     * Remove given members from data union
+     * JoinPartAgents: Remove given members from data union
      */
     async removeMembers(memberAddressList: EthereumAddress[]): Promise<ContractReceipt> {
         const members = memberAddressList.map(getAddress) // throws if there are bad addresses
@@ -529,7 +547,7 @@ export class DataUnion {
     }
 
     /**
-     * Stores a Javascript object in JSON format in the data union contract, can be retrieved with `getMetadata`
+     * Admin: Stores a Javascript object in JSON format in the data union contract, can be retrieved with `getMetadata`
      * @param metadata object to be stored in the data union contract
      */
     async setMetadata(metadata: object): Promise<ContractReceipt> {
@@ -537,9 +555,10 @@ export class DataUnion {
     }
 
     /**
-     * Admin can automate sending ETH to new members so that they can afford to do a withdraw without first having to acquire ETH
-     * @param stipendWei in native tokens (ETH) that is sent to every new DU member
-     */
+    * Admin: Automate sending ETH/native token to new members so that they can afford to do a withdraw without first having to acquire ETH/native token
+    * If the DU is deployed on a sidechain, it is the native token (e.g. MATIC on Polygon) instead of ETH
+    * @param stipendWei in ETH/native token that is sent to every new DU member
+    */
     async setNewMemberStipend(stipendWei: BigNumberish): Promise<ContractReceipt> {
         return this.sendAdminTx(this.contract.setNewMemberEth, stipendWei)
     }
