@@ -19,7 +19,7 @@ describe('CustomRoutes', () => {
 		})
 
 		dataUnion = {
-			getOwner: sinon.stub().resolves('0xabcdef')
+			getAdminAddress: sinon.stub().resolves('0xabcdef')
 		}
 
 		client = {
@@ -50,18 +50,18 @@ describe('CustomRoutes', () => {
 
 	describe('POST /secrets/list', () => {
 
-		it('requires the caller to be owner', async () => {
+		it('requires the caller to be the admin', async () => {
 			db.listSecrets = sinon.stub().rejects(new Error('db.listSecrets should not be called!'))
 
 			await runTest('/secrets/list', 403, {
-				address: 'not-owner',
+				address: 'not-admin',
 				request: JSON.stringify({
 					dataUnion: '0x12345',
 					chain: 'test-chain',
 				})
 			})
 
-			expect(dataUnion.getOwner.calledOnce).to.be.true
+			expect(dataUnion.getAdminAddress.calledOnce).to.be.true
 			expect(db.listSecrets.called).to.be.false
 		})
 
@@ -77,7 +77,7 @@ describe('CustomRoutes', () => {
 			})
 
 			expect(client.getDataUnion.calledOnceWith('not-found'))
-			expect(dataUnion.getOwner.calledOnce).to.be.false
+			expect(dataUnion.getAdminAddress.calledOnce).to.be.false
 			expect(db.listSecrets.called).to.be.false
 		})
 
@@ -102,11 +102,11 @@ describe('CustomRoutes', () => {
 
 	describe('POST /secrets/create', () => {
 
-		it('requires the caller to be owner', async () => {
+		it('requires the caller to be the admin', async () => {
 			db.createAppSecret = sinon.stub().rejects(new Error('db.createAppSecret should not be called!'))
 
 			await runTest('/secrets/create', 403, {
-				address: 'not-owner',
+				address: 'not-admin',
 				request: JSON.stringify({
 					dataUnion: '0x12345',
 					chain: 'test-chain',
@@ -114,7 +114,7 @@ describe('CustomRoutes', () => {
 				})
 			})
 
-			expect(dataUnion.getOwner.calledOnce).to.be.true
+			expect(dataUnion.getAdminAddress.calledOnce).to.be.true
 			expect(db.createAppSecret.called).to.be.false
 		})
 
@@ -130,7 +130,7 @@ describe('CustomRoutes', () => {
 			})
 
 			expect(client.getDataUnion.calledOnceWith('not-found'))
-			expect(dataUnion.getOwner.calledOnce).to.be.false
+			expect(dataUnion.getAdminAddress.calledOnce).to.be.false
 			expect(db.createAppSecret.called).to.be.false
 		})
 
@@ -156,12 +156,12 @@ describe('CustomRoutes', () => {
 
 	describe('POST /secrets/delete', () => {
 
-		it('requires the caller to be owner', async () => {
+		it('requires the caller to be the admin', async () => {
 			db.getAppSecret = sinon.stub().rejects(new Error('db.getAppSecret should not be called!'))
 			db.deleteAppSecret = sinon.stub().rejects(new Error('db.deleteAppSecret should not be called!'))
 
 			await runTest('/secrets/delete', 403, {
-				address: 'not-owner',
+				address: 'not-admin',
 				request: JSON.stringify({
 					dataUnion: '0x12345',
 					chain: 'test-chain',
@@ -169,7 +169,7 @@ describe('CustomRoutes', () => {
 				})
 			})
 
-			expect(dataUnion.getOwner.calledOnce).to.be.true
+			expect(dataUnion.getAdminAddress.calledOnce).to.be.true
 			expect(db.getAppSecret.called).to.be.false
 			expect(db.deleteAppSecret.called).to.be.false
 		})
@@ -187,7 +187,7 @@ describe('CustomRoutes', () => {
 			})
 
 			expect(client.getDataUnion.calledOnceWith('not-found'))
-			expect(dataUnion.getOwner.calledOnce).to.be.false
+			expect(dataUnion.getAdminAddress.calledOnce).to.be.false
 			expect(db.deleteAppSecret.called).to.be.false
 		})
 
