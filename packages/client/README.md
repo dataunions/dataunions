@@ -7,21 +7,29 @@ The Data Union framework is a data crowdsourcing and crowdselling solution. Work
 #### Basic use
 
 Start by obtaining a DataUnionClient object:
-1) Add your private key to the client. (The address that deploys the contract will become the admin of the data union.)
-2) Choose a desired EVM chain and add it to the chain parameter. We currently support `gnosis` and `polygon`.
-i) When integrating this into your application a wallet provider should be added instead of an environment variable with a private key.
+1) Give the DU client an access to signing with your private key.
+2) Choose a desired EVM chain and add it to the chain parameter. We currently support `gnosis`, and `polygon` (default).
 
+This first option for browsers is to hand in the Metamask object. This means DU client will not ever see the private key, and can only send transactions and sign messages with the user's explicit consent (pops up a Metamask window). This would connect to the polygon chain using Metamask:
 ```js
 import { DataUnionClient } from '@dataunions/client'
+const { ethereum } = window
 const DU = new DataUnionClient({
-  auth: {
-    privateKey: PRIVATE_KEY,
-  },
-  chain: 'polygon',
+  auth: { ethereum }
 });
 ```
 
-To deploy a new DataUnion with default [deployment options](#deployment-options):
+The second option is to give the private key directly in cleartext. This is meant for the server side node.js scripts, but also can be used in the browser; especially in the case where you don't need to sign things at all but only use the "getters" or read-only functions, in which case you can give a bogus/0x000... private key (since it won't ever be used). On server, it's recommended to store the private key encrypted on disk and only decrypt it just before handing it to the DataUnionClient, so that it will be in cleartext only in memory, never on disk.
+```js
+import { DataUnionClient } from '@dataunions/client'
+const { privateKey } = Wallet.fromEncryptedJsonSync(process.env.WALLET_FILE)
+const DU = new DataUnionClient({
+  auth: { privateKey },
+  chain: 'gnosis',
+});
+```
+
+The address that deploys the contract will become the admin of the data union. To deploy a new DataUnion with default [deployment options](#deployment-options):
 ```js
 const dataUnion = await DU.deployDataUnion()
 ```
