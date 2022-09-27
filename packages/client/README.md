@@ -7,6 +7,9 @@ The Data Union framework is a data crowdsourcing and crowdselling solution. Work
 #### Basic use
 
 Start by obtaining a DataUnionClient object:
+1) Add your private key to the client. (The address that deploys the contract will become the admin of the data union.)
+2) Choose a desired EVM chain and add it to the chain parameter. We currently support Gnosis and Polygon.
+i) When integrating this into your application a wallet provider should be added instead of an environment variable with a private key.
 
 ```js
 import { DataUnionClient } from '@dataunions/client'
@@ -31,11 +34,11 @@ const dataUnion = await DU.getDataUnion('0x12345...')
 
 #### Admin Functions
 
-Admin functions require xDai tokens on the xDai network. To get xDai you can either use a [faucet](https://www.xdaichain.com/for-users/get-xdai-tokens/xdai-faucet) or you can reach out on the [Streamr Discord #dev channel](https://discord.gg/gZAm8P7hK8).
+Admin functions require the native token of the chain you deployed on. To get those token you can reach out on the [Data Union Discord](https://discord.gg/AY7kDBEtkr). We can send you some to get started. Transactions usually cost a fraction of a cent.
 
 Adding members using admin functions is not at feature parity with the member function `join`. The newly added member will not be granted publish permissions to the streams inside the Data Union. This will need to be done manually using the StreamrClient, see `StreamrClient.grantPermissions()`. Similarly, after removing a member using the admin function `removeMembers`, the publish permissions will need to be removed in a secondary step using `StreamrClient.revokePermissions()`.
 
-Adding members:
+Adding members (joinPart agent only read more [here](https://docs.dataunions.org/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
 const receipt = await dataUnion.addMembers([
     '0x11111...',
@@ -43,13 +46,17 @@ const receipt = await dataUnion.addMembers([
     '0x33333...',
 ])
 ```
-Removing members:
+Removing members (joinPart agent only (usually the admin is also a joinPart agent) read more [here](https://docs.dataunions.org/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
 const receipt = await dataUnion.removeMembers([
     '0x11111...',
     '0x22222...',
     '0x33333...',
 ])
+```
+Enable your users to part with the data union themselves
+```js
+const receipt = await dataUnion.part()
 ```
 
 Checking if an address belongs to the Data Union:
@@ -71,6 +78,7 @@ const receipt = await dataUnion.withdrawAllToSigned(
     recipientAddress,
     signature
 )
+
 ```
 Send only some of the withdrawable earnings to the address signed off by the member
 ```js
@@ -88,6 +96,15 @@ Setting a new admin fee:
 ```js
 // Any number between 0 and 1, inclusive
 const receipt = await dataUnion.setAdminFee(0.4)
+```
+Setting new metadata:
+Store information about your data union in a JSON file on-chain inside the contract. For example you can store a DAO manifesto, a name or anything else you can think of.
+```js
+const receipt = await dataUnion.setMetadata(
+    {"name": "awesome DU", "maintainer": ["josh#4223", "marc#2324"]}
+);
+
+const metadata = await dataUnion.getMetadata();
 ```
 
 If the Data Union is set up to use the [default join server](https://github.com/dataunions/data-unions/tree/main/packages/default-join-server) then members can join the Data Union by giving a correct secret.
@@ -164,7 +181,7 @@ const receipt = await dataUnion.withdrawAll(
     }
 )
 ```
-
+(V2 Data Unions only)
 These withdraw transactions are sent to the sidechain, so gas price shouldn't be manually set (fees will hopefully stay very low),
 but a little bit of [sidechain native token](https://www.xdaichain.com/for-users/get-xdai-tokens) is nonetheless required.
 
@@ -185,17 +202,19 @@ The use cases corresponding to the different combinations of the boolean flags:
 
 `deployDataUnion` can take an options object as the argument. It's an object that can contain the following parameters. All shown values are the defaults for each property:
 ```js
-const ownerAddress = await dataunions.getAddress()
+const deploymentOptions = {
+    owner: YOUR_PUBLIC_KEY, // (default = deployer) Will be admin of the newly created data union
+    joinPartAgents: /* By default set to owner and DUDAO address */, 
+    dataUnionName: "demoName", // NOT stored anywhere, only used for address derivation
+    adminFee: 0.3, // Must be between 0...1
+    metadata: {
+        "information": "related to your data union",
+        "canBe": ["", "anything"]
+    }
+}
 
-const dataUnion = await dataunions.deployDataUnion({
-    owner: ownerAddress, // Owner / admin of the newly created Data Union
-    joinPartsAgent: [ownerAddress], // Able to add and remove members to/from the Data Union
-    dataUnionName: /* Generated if not provided */, // NOT stored anywhere, only used for address derivation
-    adminFee: 0, // Must be between 0...1
-    sidechainPollingIntervalMs: 1000, //How often requests are sent to find out if the deployment has completed
-    sidechainRetryTimeoutMs: 60000, // When to give up when waiting for the deployment to complete
-    confirmations: 1, // Blocks to wait after Data Union mainnet contract deployment to consider it final
-    gasPrice: /*Network Estimate*/ // Ethereum Mainnet gas price to use when deploying the Data Union mainnet contract
+const dataUnion = await DU.deployDataUnion({
+    deploymentOptions
 })
 ```
 
