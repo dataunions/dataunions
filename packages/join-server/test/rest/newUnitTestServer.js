@@ -9,6 +9,7 @@ function newUnitTestServer(conf) {
 		joinRequestService: new app.JoinRequestService(unitTestLogger, clients, onMemberJoin),
 		port: process.env.PORT,
 		logger: unitTestLogger,
+		clients: new Map(),
 		...conf,
 	})
 }

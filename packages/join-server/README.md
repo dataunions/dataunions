@@ -120,7 +120,7 @@ const srv = new JoinServer({
 
 ### Adding custom endpoints
 
-Custom endpoints (routes) can be created on the server by passing in a `customRoutes` function, which receives the `express` app instance as an argument.
+Custom endpoints (routes) can be created on the server by passing in a `customRoutes` function, which receives the `express` app instance as an argument as well as a `Map` of DataUnionClient instances (one per supported chain).
 
 All requests pass through the signature validation middleware, which makes the parsed and validated content of the `request` payload available as `req.validatedRequest`.
 
@@ -129,7 +129,7 @@ Here's a simple example of a custom endpoint `POST /hello` that reads payloads w
 ```
 const srv = new JoinServer({
     ...
-    customRoutes = (expressApp) => {
+    customRoutes = (expressApp, clientsMap) => {
         expressApp.post('/hello', function(req, res, next) {
             res.status(200)
             res.set('content-type', 'application/json')
