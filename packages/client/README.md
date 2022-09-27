@@ -4,7 +4,7 @@
 
 The Data Union framework is a data crowdsourcing and crowdselling solution. Working in tandem with the Streamr Network and Ethereum, the framework powers applications that enable people to earn by sharing valuable data. You can [read more about it here](https://docs.dataunions.org/getting-started/intro-to-data-unions)
 
-#### Basic use
+#### Getting started
 
 Start by obtaining a DataUnionClient object:
 1) Give the DU client an access to signing with your private key.
@@ -28,6 +28,8 @@ const DU = new DataUnionClient({
   chain: 'gnosis',
 });
 ```
+
+The DataUnionClient object can be used to either deploy a new Data Union contract, or manipulate/query an existing one.
 
 The address that deploys the contract will become the admin of the data union. To deploy a new DataUnion with default [deployment options](#deployment-options):
 ```js
