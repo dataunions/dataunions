@@ -154,8 +154,8 @@ export class DataUnion {
     /**
     * If metadata is not valid JSON, simply return the raw string.
     * This shouldn't happen if `setMetadata` was used to write the metadata because it validates the JSON;
-    * however direct access to the smart contract is of course possible, and the contract won't validate the JSON.
-    * @returns JSON that was stored using `setMetadata`
+    *   however direct access to the smart contract is of course possible, and the contract won't validate the JSON.
+    * @returns the JavaScript object that was stored using `setMetadata`
     */
     async getMetadata(): Promise<object | string> {
         const metadataJsonString = await this.contract.metadataJsonString()
