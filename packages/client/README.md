@@ -42,9 +42,9 @@ const dataUnion = await DU.getDataUnion('0x12345...')
 
 #### Admin Functions
 
-Admin functions require the native token of the chain you deployed on. To get those token you can reach out on the [Data Union Discord](https://discord.gg/AY7kDBEtkr). We can send you some to get started. Transactions usually cost a fraction of a cent.
+Executing the admin functions generate transactions and as such require having enough of the native token to pay the gas on the chain you deployed on. To get some native token, you can reach out on the [Data Union Discord](https://discord.gg/AY7kDBEtkr). We can send you some to get started. Transactions usually cost a fraction of a cent in Polygon, and Gnosis has historically been especially cheap.
 
-Adding members using admin functions is not at feature parity with the member function `join`. The newly added member will not be granted publish permissions to the streams inside the Data Union. This will need to be done manually using the StreamrClient, see `StreamrClient.grantPermissions()`. Similarly, after removing a member using the admin function `removeMembers`, the publish permissions will need to be removed in a secondary step using `StreamrClient.revokePermissions()`.
+Adding members using admin functions is not at feature parity with the member function `join`. The newly added member will not automatically be granted publish permissions to the streams inside the Data Union. This will need to be done manually using the StreamrClient, see `StreamrClient.grantPermissions()`. Similarly, after removing a member using the admin function `removeMembers`, the publish permissions will need to be removed in a secondary step using `StreamrClient.revokePermissions()`. This is because the member function `join` relies on DU DAO hosted infrastructure, while the admin functions are completely self-sufficient (in fact, the DU DAO hosted server uses these very admin functions :). 
 
 Adding members (joinPart agent only read more [here](https://docs.dataunions.org/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
@@ -76,6 +76,7 @@ Send all withdrawable earnings to the member's address:
 ```js
 const receipt = await dataUnion.withdrawAllToMember('0x12345...')
 ```
+
 Send all withdrawable earnings to the address signed off by the member:
 ```js
 const recipientAddress = '0x22222...'
@@ -86,8 +87,8 @@ const receipt = await dataUnion.withdrawAllToSigned(
     recipientAddress,
     signature
 )
-
 ```
+
 Send only some of the withdrawable earnings to the address signed off by the member
 ```js
 const oneEth = "1000000000000000000" // amounts in wei
@@ -105,8 +106,8 @@ Setting a new admin fee:
 // Any number between 0 and 1, inclusive
 const receipt = await dataUnion.setAdminFee(0.4)
 ```
-Setting new metadata:
-Store information about your data union in a JSON file on-chain inside the contract. For example you can store a DAO manifesto, a name or anything else you can think of.
+
+Setting new metadata: Store information about your data union in a JSON file on-chain inside the contract. For example you can store a DAO manifesto, a name or anything else you can think of.
 ```js
 const receipt = await dataUnion.setMetadata(
     {"name": "awesome DU", "maintainer": ["josh#4223", "marc#2324"]}
@@ -211,11 +212,11 @@ The use cases corresponding to the different combinations of the boolean flags:
 `deployDataUnion` can take an options object as the argument. It's an object that can contain the following parameters. All shown values are the defaults for each property:
 ```js
 const deploymentOptions = {
-    owner: YOUR_PUBLIC_KEY, // (default = deployer) Will be admin of the newly created data union
-    joinPartAgents: /* By default set to owner and DUDAO address */, 
+    owner: "0x123...", // If omitted, defaults to the deployer. Will be the admin of the newly created data union
     dataUnionName: "demoName", // NOT stored anywhere, only used for address derivation
     adminFee: 0.3, // Must be between 0...1
-    metadata: {
+    joinPartAgents: ["0x123..."], // If omitted, set by default to include the owner as well as the trusted DU DAO join-server infrastructure address 
+    metadata: { // optional
         "information": "related to your data union",
         "canBe": ["", "anything"]
     }
