@@ -39,7 +39,7 @@ For more information about the signature authentication, refer to the readme in 
 
 ## Secret management
 
-The server adds three HTTP endpoints, callable by the DU owner only, to manage the app secrets. All requests are wrapped in the signature wrapper, but for clarity only the (non-stringified) `request` are illustrated here.
+The server adds three HTTP endpoints, callable by the DU admin only, to manage the app secrets. All requests are wrapped in the signature wrapper, but for clarity only the (non-stringified) `request` are illustrated here.
 
 ### `POST /secrets/create`
 

@@ -16,7 +16,7 @@ import type { DataUnionClient } from './DataUnionClient'
 import type { Rest } from './Rest'
 
 export interface DataUnionDeployOptions {
-    owner?: EthereumAddress,
+    adminAddress?: EthereumAddress,
     joinPartAgents?: EthereumAddress[],
     dataUnionName?: string,
     adminFee?: number,

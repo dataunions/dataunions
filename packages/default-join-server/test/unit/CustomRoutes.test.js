@@ -50,11 +50,11 @@ describe('CustomRoutes', () => {
 
 	describe('POST /secrets/list', () => {
 
-		it('requires the caller to be owner', async () => {
+		it('requires the caller to be the admin', async () => {
 			db.listSecrets = sinon.stub().rejects(new Error('db.listSecrets should not be called!'))
 
 			await runTest('/secrets/list', 403, {
-				address: 'not-owner',
+				address: 'not-admin',
 				request: JSON.stringify({
 					dataUnion: '0x12345',
 					chain: 'test-chain',
@@ -102,11 +102,11 @@ describe('CustomRoutes', () => {
 
 	describe('POST /secrets/create', () => {
 
-		it('requires the caller to be owner', async () => {
+		it('requires the caller to be the admin', async () => {
 			db.createAppSecret = sinon.stub().rejects(new Error('db.createAppSecret should not be called!'))
 
 			await runTest('/secrets/create', 403, {
-				address: 'not-owner',
+				address: 'not-admin',
 				request: JSON.stringify({
 					dataUnion: '0x12345',
 					chain: 'test-chain',
@@ -156,12 +156,12 @@ describe('CustomRoutes', () => {
 
 	describe('POST /secrets/delete', () => {
 
-		it('requires the caller to be owner', async () => {
+		it('requires the caller to be the admin', async () => {
 			db.getAppSecret = sinon.stub().rejects(new Error('db.getAppSecret should not be called!'))
 			db.deleteAppSecret = sinon.stub().rejects(new Error('db.deleteAppSecret should not be called!'))
 
 			await runTest('/secrets/delete', 403, {
-				address: 'not-owner',
+				address: 'not-admin',
 				request: JSON.stringify({
 					dataUnion: '0x12345',
 					chain: 'test-chain',
