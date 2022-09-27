@@ -12,7 +12,7 @@ describe('Custom Routes', async () => {
 			signedRequestValidator: async (req) => {
 				req.validatedRequest = {}
 			},
-			customRoutes: (app) => {
+			customRoutes: (app /*, clients */) => {
 				app.get('/hello', function(_req, res, _next) {
 					res.status(200)
 					res.set('content-type', 'application/json')
@@ -40,7 +40,7 @@ describe('Custom Routes', async () => {
 	happyTestCases.forEach((tc) => {
 		it(tc.name, async () => {
 			const expectedStatus = 200
-			const res = await request(srv.expressApp)
+			const res = await request(srv.expressApp, srv.clients)
 				.get('/hello')
 				.expect((res) => (res.status != expectedStatus ? console.error(res.body) : true)) // print debug info if something went wrong
 				.expect(expectedStatus)
@@ -58,7 +58,7 @@ describe('Custom Routes', async () => {
 	testCases.forEach((tc) => {
 		it(tc.name, async () => {
 			const expectedStatus = 500
-			const res = await request(srv.expressApp)
+			const res = await request(srv.expressApp, srv.clients)
 				.post('/error')
 				.expect((res) => (res.status != expectedStatus ? console.error(res.body) : true)) // print debug info if something went wrong
 				.expect(expectedStatus)

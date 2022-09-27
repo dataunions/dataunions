@@ -48,6 +48,7 @@ class JoinServer {
 		}),
 		signedRequestValidator = rest.SignedRequestValidator.validator,
 		joinRequestService = undefined,
+		clients = undefined,
 	} = {}) {
 		if (privateKey === undefined) {
 			throw new Error(`Private key is required`)
@@ -56,17 +57,22 @@ class JoinServer {
 		this.logger = logger
 		this.signedRequestValidator = signedRequestValidator
 		this.customJoinRequestValidator = customJoinRequestValidator
-		if (!joinRequestService) {
-			const clients = new Map()
+
+		if (!clients) {
+			clients = new Map()
 			const chains = config.Chains.load()
 			for (const chainName in chains) {
 				for (const contractName in chains[chainName].contracts) {
 					if (contractName === "DataUnionFactory") {
-						clients.set(chainName, this.newDataUnionClient(chains[chainName], privateKey))
+						this.clients.set(chainName, this.newDataUnionClient(chains[chainName], privateKey))
 					}
 				}
 			}
-			joinRequestService = new JoinRequestService(logger, clients, onMemberJoin)
+		}
+		this.clients = clients
+
+		if (!joinRequestService) {
+			joinRequestService = new JoinRequestService(logger, this.clients, onMemberJoin)
 		}
 		this.joinRequestService = joinRequestService
 		this.customRoutes = customRoutes
@@ -143,7 +149,7 @@ class JoinServer {
 		})
 		this.expressApp.use((req, res, next) => this.signedRequestValidator(req).then(next).catch((err) => next(err)))
 		this.expressApp.post('/join', (req, res, next) => new rest.JoinHandler(this.logger, this.joinRequestService, this.customJoinRequestValidator).handle(req, res, next))
-		this.customRoutes(this.expressApp)
+		this.customRoutes(this.expressApp, this.clients)
 		this.expressApp.use(rest.error(this.logger))
 	}
 
