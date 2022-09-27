@@ -1,6 +1,6 @@
 {
   "name": "@dataunions/default-join-server",
-  "version": "3.0.0-alpha.8",
+  "version": "3.0.0-alpha.9",
   "description": "A join server that extends the base join server by adding app secret validation and Streamr-awareness",
   "author": "Data Union DAO <contact@dataunions.org>",
   "license": "AGPL-3.0-or-later",
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@dataunions/client": "3.0.0-beta.13",
-    "@dataunions/join-server": "3.0.0-alpha.7",
+    "@dataunions/join-server": "3.0.0-alpha.8",
     "dotenv": "16.0.2",
     "mysql2": "2.3.3",
     "sequelize": "6.21.4",
