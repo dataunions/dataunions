@@ -30,7 +30,7 @@ updates:
       - build
   - package-ecosystem: npm
     directory: /
-    open-pull-requests-limit: 25
+    open-pull-requests-limit: 5
     schedule:
       interval: daily
       time: "15:00"
