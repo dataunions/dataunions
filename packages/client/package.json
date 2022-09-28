@@ -51,7 +51,7 @@
     },
     "devDependencies": {
         "@ethersproject/wordlists": "5.7.0",
-        "@streamr/data-v2": "1.0.1",
+        "@streamr/data-v2": "1.0.2",
         "@types/debug": "4.1.7",
         "@types/jest": "29.0.0",
         "@types/node": "18.7.14",
