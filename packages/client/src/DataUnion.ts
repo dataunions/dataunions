@@ -435,8 +435,8 @@ export class DataUnion {
     }
 
     /** Admin: */
-    async deleteSecret(secretId: string): Promise<SecretsResponse> {
-        return this.post<SecretsResponse>(['secrets', 'delete'], { secretId })
+    async deleteSecret(secret: string): Promise<SecretsResponse> {
+        return this.post<SecretsResponse>(['secrets', 'delete'], { secret })
     }
 
     /** Admin: */
