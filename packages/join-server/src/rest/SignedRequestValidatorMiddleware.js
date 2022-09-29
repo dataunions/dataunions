@@ -1,4 +1,5 @@
 const { ethers } = require('ethers')
+const InvalidRequestError = require('./InvalidRequestError')
 
 /**
  * Validates that the signedObject is valid. Resolves with the parsed request,
@@ -7,19 +8,19 @@ const { ethers } = require('ethers')
 async function validate(signedObject, toleranceMillis = 5 * 60 * 1000) {
     
 	if (!signedObject || !signedObject.signature) {
-		throw new InvalidSignatureError(`The field 'signature' is missing!`)
+		throw new InvalidRequestError(`The field 'signature' is missing!`)
 	}
 	if (!signedObject.address) {
-		throw new InvalidSignatureError(`The field 'address' is missing!`)
+		throw new InvalidRequestError(`The field 'address' is missing!`)
 	}
 	if (!signedObject.timestamp) {
-		throw new InvalidTimestampError(`The field 'timestamp' is missing!`)
+		throw new InvalidRequestError(`The field 'timestamp' is missing!`)
 	}
 
 	// Check signature
 	const recoveredAddress = ethers.utils.verifyMessage(signedObject.request + signedObject.timestamp, signedObject.signature)
 	if (recoveredAddress.toLowerCase() !== signedObject.address.toLowerCase()) {
-		throw new InvalidSignatureError(`Invalid signature! recoveredAddress: ${recoveredAddress}, address: ${signedObject.address}!`)
+		throw new InvalidRequestError(`Invalid signature! recoveredAddress: ${recoveredAddress}, address: ${signedObject.address}!`)
 	}
 
 	// Check timestamp
@@ -27,22 +28,15 @@ async function validate(signedObject, toleranceMillis = 5 * 60 * 1000) {
 	const diff = currentTime.getTime() - new Date(signedObject.timestamp).getTime()
 	if (Math.abs(diff) > toleranceMillis) {
 		const msg = `Timestamp rejected! Request: ${signedObject.timestamp}, current: ${currentTime.toISOString()}, diff (ms): ${diff}, tolerance: ${toleranceMillis}`
-		throw new InvalidTimestampError(msg)
+		throw new InvalidRequestError(msg)
 	}
 
 	return JSON.parse(signedObject.request)
 }
 
-class InvalidSignatureError extends Error {}
-class InvalidTimestampError extends Error {}
-
 module.exports = (toleranceMillis = 5 * 60 * 1000) => {
-	return {
-		validator: async (req) => {
-			const signedObject = req.body
-			req.validatedRequest = await validate(signedObject, toleranceMillis)
-		},
-		InvalidSignatureError,
-		InvalidTimestampError,
+	return async (req) => {
+		const signedObject = req.body
+		req.validatedRequest = await validate(signedObject, toleranceMillis)
 	}
 }

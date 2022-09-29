@@ -26,7 +26,7 @@ describe('Signed request validator middleware', () => {
 			}
 		}
 
-		await rest.SignedRequestValidator.validator(request)
+		await rest.SignedRequestValidator(request)
 		expect(request.validatedRequest).to.deep.equal(JSON.parse(request.body.request))
 	})
 
@@ -40,7 +40,7 @@ describe('Signed request validator middleware', () => {
 			}
 		}
 
-		await expect(rest.SignedRequestValidator.validator(request)).to.be.rejectedWith(rest.SignedRequestValidator.InvalidSignatureError)
+		await expect(rest.SignedRequestValidator(request)).to.be.rejectedWith(rest.InvalidRequestError)
 	})
 
 	it('rejects requests with tampered data', async () => {
@@ -53,7 +53,7 @@ describe('Signed request validator middleware', () => {
 			}
 		}
 
-		await expect(rest.SignedRequestValidator.validator(request)).to.be.rejectedWith(rest.SignedRequestValidator.InvalidSignatureError)
+		await expect(rest.SignedRequestValidator(request)).to.be.rejectedWith(rest.InvalidRequestError)
 	})
 
 	it('rejects requests in the future', async () => {
@@ -66,7 +66,7 @@ describe('Signed request validator middleware', () => {
 			}
 		}
 
-		await expect(rest.SignedRequestValidator.validator(request)).to.be.rejectedWith(rest.SignedRequestValidator.InvalidTimestampError)
+		await expect(rest.SignedRequestValidator(request)).to.be.rejectedWith(rest.InvalidRequestError)
 	})
 
 	it('rejects requests in the past', async () => {
@@ -79,7 +79,7 @@ describe('Signed request validator middleware', () => {
 			}
 		}
 
-		await expect(rest.SignedRequestValidator.validator(request)).to.be.rejectedWith(rest.SignedRequestValidator.InvalidTimestampError)
+		await expect(rest.SignedRequestValidator(request)).to.be.rejectedWith(rest.InvalidRequestError)
 	})
 
 })

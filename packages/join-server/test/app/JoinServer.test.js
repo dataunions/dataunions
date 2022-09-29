@@ -4,9 +4,11 @@ const request = require('supertest')
 const { assert } = require('chai')
 const sinon = require('sinon')
 const app = require('../../src/app')
+const InvalidRequestError = require('../../src/rest/InvalidRequestError')
 
 describe('JoinServer', async () => {
 	let srv
+	let validateFn
 	let signedRequestValidator
 
 	beforeEach(() => {
@@ -24,8 +26,10 @@ describe('JoinServer', async () => {
 			}
 		})
 
+		validateFn = (req) => req.validatedRequest = JSON.parse(req.body.request)
+
 		signedRequestValidator = sinon.spy(async (req) => {
-			req.validatedRequest = JSON.parse(req.body.request)
+			validateFn(req)
 		})
 
 		srv = newUnitTestServer({
@@ -54,6 +58,18 @@ describe('JoinServer', async () => {
 					chain: 'polygon',
 				}),
 			})
+			.expect((res) => (res.status != expectedStatus ? console.error(res.body) : true)) // print debug info if something went wrong
+			.expect(expectedStatus)
+			.expect('Content-Type', 'application/json; charset=utf-8')
+	})
+
+	it('renders an error if the validator middleware rejects', async () => {
+		const expectedStatus = 400
+		validateFn = () => { throw new InvalidRequestError('test error') }
+		await request(srv.expressApp)
+			.post(`/join`)
+			.set('Content-Type', 'application/json')
+			.send({})
 			.expect((res) => (res.status != expectedStatus ? console.error(res.body) : true)) // print debug info if something went wrong
 			.expect(expectedStatus)
 			.expect('Content-Type', 'application/json; charset=utf-8')
@@ -105,4 +121,5 @@ describe('JoinServer', async () => {
 			})
 		})
 	})
+
 })

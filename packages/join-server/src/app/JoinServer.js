@@ -46,7 +46,7 @@ class JoinServer {
 			name: 'main',
 			level: logLevel,
 		}),
-		signedRequestValidator = rest.SignedRequestValidator.validator,
+		signedRequestValidator = rest.SignedRequestValidator,
 		joinRequestService = undefined,
 		clients = undefined,
 	} = {}) {
@@ -140,7 +140,6 @@ class JoinServer {
 		this.expressApp.use(express.json({
 			limit: '1kb',
 		}))
-		this.expressApp.use(rest.error(this.logger))
 		this.expressApp.use(cors())
 
 		this.publicRoutes = new express.Router()
@@ -159,6 +158,8 @@ class JoinServer {
 		
 		this.expressApp.use(this.publicRoutes)
 		this.expressApp.use(this.authenticatedRoutes)
+
+		this.expressApp.use(rest.error(this.logger))
 	}
 
 	listen() {
