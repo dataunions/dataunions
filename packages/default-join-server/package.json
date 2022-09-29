@@ -1,6 +1,6 @@
 {
   "name": "@dataunions/default-join-server",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "A join server that extends the base join server by adding app secret validation and Streamr-awareness",
   "author": "Data Union DAO <contact@dataunions.org>",
   "license": "AGPL-3.0-or-later",
