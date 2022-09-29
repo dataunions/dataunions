@@ -179,9 +179,7 @@ Different endpoints expect different types of content in `request`. Users that e
 
 ## HTTP Endpoints
 
-This base package only exposes one endpoint, which is used for submitting join requests.
-
-### `/join`
+### `POST /join`
 
 Expects the `request` in the wrapper object to be of form:
 
@@ -216,6 +214,10 @@ The response sent by the server has the form:
 	"chain": "polygon"
 }
 ```
+
+### `GET /ping`
+
+Responds with status code `200`.
 
 ## Developing
 

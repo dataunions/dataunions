@@ -7,6 +7,7 @@ const app = require('../../src/app')
 
 describe('JoinServer', async () => {
 	let srv
+	let signedRequestValidator
 
 	beforeEach(() => {
 		// JoinRequestService with mocked create()
@@ -23,12 +24,14 @@ describe('JoinServer', async () => {
 			}
 		})
 
+		signedRequestValidator = sinon.spy(async (req) => {
+			req.validatedRequest = JSON.parse(req.body.request)
+		})
+
 		srv = newUnitTestServer({
 			logger: unitTestLogger,
 			joinRequestService,
-			signedRequestValidator: sinon.spy(async (req) => {
-				req.validatedRequest = JSON.parse(req.body.request)
-			}),
+			signedRequestValidator,
 			customJoinRequestValidator: sinon.stub().resolves(true),
 		})
 	})
@@ -54,6 +57,17 @@ describe('JoinServer', async () => {
 			.expect((res) => (res.status != expectedStatus ? console.error(res.body) : true)) // print debug info if something went wrong
 			.expect(expectedStatus)
 			.expect('Content-Type', 'application/json; charset=utf-8')
+	})
+
+	it('responds to /ping', async () => {
+		const expectedStatus = 200
+		await request(srv.expressApp)
+			.get(`/ping`)
+			.send()
+			.expect((res) => (res.status != expectedStatus ? console.error(res.body) : true)) // print debug info if something went wrong
+			.expect(expectedStatus)
+
+		assert(signedRequestValidator.notCalled)
 	})
 
 	it('adds customRoutes upon constructions', () => {
