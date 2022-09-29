@@ -147,7 +147,7 @@ class JoinServer {
 		this.authenticatedRoutes = new express.Router()
 
 		// Unauthenticated endpoint for uptime monitoring
-		this.publicRoutes.post('/ping', (req, res) => {
+		this.publicRoutes.get('/ping', (req, res) => {
 			res.status(200)
 			res.send()
 		})
@@ -157,7 +157,7 @@ class JoinServer {
 		this.authenticatedRoutes.post('/join', (req, res, next) => new rest.JoinHandler(this.logger, this.joinRequestService, this.customJoinRequestValidator).handle(req, res, next))
 		this.customRoutes(this.expressApp, this.clients)
 		
-		this.expressApp.use('/', this.publicRoutes)
+		this.expressApp.use(this.publicRoutes)
 		this.expressApp.use(this.authenticatedRoutes)
 	}
 
