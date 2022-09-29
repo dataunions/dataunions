@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@dataunions/client": "3.0.0",
-    "@dataunions/join-server": "3.0.1",
+    "@dataunions/join-server": "3.0.2",
     "dotenv": "16.0.2",
     "mysql2": "2.3.3",
     "sequelize": "6.23.2",
