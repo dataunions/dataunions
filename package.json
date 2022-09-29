@@ -33,7 +33,7 @@
     "dependencies": {
         "@manypkg/cli": "0.19.1",
         "cli-table": "0.3.11",
-        "lerna": "5.5.1",
+        "lerna": "5.5.4",
         "zx": "7.0.8"
     }
 }
