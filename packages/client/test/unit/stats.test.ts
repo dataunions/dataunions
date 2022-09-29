@@ -94,8 +94,8 @@ describe('DataUnion stats getters', () => {
         expect(dataUnion.getMemberStats('invalid-address')).rejects.toThrow(/invalid address/)
     })
 
-    it('gives DU owner correctly', async () => {
-        const owner = await dataUnion.getOwner()
-        expect(owner).toEqual(admin.address)
+    it('gives DU admin address correctly', async () => {
+        const adminAddress = await dataUnion.getAdminAddress()
+        expect(adminAddress).toEqual(admin.address)
     })
 })

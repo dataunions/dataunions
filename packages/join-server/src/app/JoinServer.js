@@ -1,5 +1,6 @@
 const process = require('process')
 const express = require('express')
+const cors = require('cors')
 const http = require('http')
 const pino = require('pino')
 const { DataUnionClient } = require('@dataunions/client')
@@ -47,6 +48,7 @@ class JoinServer {
 		}),
 		signedRequestValidator = rest.SignedRequestValidator.validator,
 		joinRequestService = undefined,
+		clients = undefined,
 	} = {}) {
 		if (privateKey === undefined) {
 			throw new Error(`Private key is required`)
@@ -55,8 +57,9 @@ class JoinServer {
 		this.logger = logger
 		this.signedRequestValidator = signedRequestValidator
 		this.customJoinRequestValidator = customJoinRequestValidator
-		if (!joinRequestService) {
-			const clients = new Map()
+
+		if (!clients) {
+			clients = new Map()
 			const chains = config.Chains.load()
 			for (const chainName in chains) {
 				for (const contractName in chains[chainName].contracts) {
@@ -65,7 +68,11 @@ class JoinServer {
 					}
 				}
 			}
-			joinRequestService = new JoinRequestService(logger, clients, onMemberJoin)
+		}
+		this.clients = clients
+
+		if (!joinRequestService) {
+			joinRequestService = new JoinRequestService(logger, this.clients, onMemberJoin)
 		}
 		this.joinRequestService = joinRequestService
 		this.customRoutes = customRoutes
@@ -134,6 +141,7 @@ class JoinServer {
 			limit: '1kb',
 		}))
 		this.expressApp.use(rest.error(this.logger))
+		this.expressApp.use(cors())
 
 		this.publicRoutes = new express.Router()
 		this.authenticatedRoutes = new express.Router()
@@ -147,7 +155,7 @@ class JoinServer {
 		// Authenticated routes use the signedRequestValidator
 		this.authenticatedRoutes.use((req, res, next) => this.signedRequestValidator(req).then(next).catch((err) => next(err)))
 		this.authenticatedRoutes.post('/join', (req, res, next) => new rest.JoinHandler(this.logger, this.joinRequestService, this.customJoinRequestValidator).handle(req, res, next))
-		this.customRoutes(this.authenticatedRoutes)
+		this.customRoutes(this.expressApp, this.clients)
 		
 		this.expressApp.use('/', this.publicRoutes)
 		this.expressApp.use(this.authenticatedRoutes)

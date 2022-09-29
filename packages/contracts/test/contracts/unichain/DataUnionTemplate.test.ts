@@ -469,7 +469,15 @@ describe("DataUnionTemplate", () => {
     it("cannot swap modules after locking", async () => {
         const dummyAddress = "0x1234567890123456789012345678901234567890"
         await expect(dataUnionSidechain.setWithdrawModule(dummyAddress)).to.emit(dataUnionSidechain, "WithdrawModuleChanged")
+        await expect(dataUnionSidechain.addJoinListener(dummyAddress)).to.emit(dataUnionSidechain, "JoinListenerAdded")
+        await expect(dataUnionSidechain.addPartListener(dummyAddress)).to.emit(dataUnionSidechain, "PartListenerAdded")
+        await expect(dataUnionSidechain.removeJoinListener(dummyAddress)).to.emit(dataUnionSidechain, "JoinListenerRemoved")
+        await expect(dataUnionSidechain.removePartListener(dummyAddress)).to.emit(dataUnionSidechain, "PartListenerRemoved")
         await dataUnionSidechain.lockModules()
         await expect(dataUnionSidechain.setWithdrawModule(dummyAddress)).to.be.revertedWith("error_modulesLocked")
+        await expect(dataUnionSidechain.addJoinListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
+        await expect(dataUnionSidechain.addPartListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
+        await expect(dataUnionSidechain.removeJoinListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
+        await expect(dataUnionSidechain.removePartListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
     })
 })

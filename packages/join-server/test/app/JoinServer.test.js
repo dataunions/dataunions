@@ -71,7 +71,7 @@ describe('JoinServer', async () => {
 			customRoutes,
 		})
 
-		assert(customRoutes.calledOnceWithExactly(srv.authenticatedRoutes))
+		assert(customRoutes.calledOnceWithExactly(srv.expressApp, srv.clients))
 	})
 
 	describe('constructor', () => {

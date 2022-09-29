@@ -2,22 +2,36 @@
   DataUnion Client
 </h1>
 
-> ⚠️  The code examples in this section are not up to date.
+The Data Union framework is a data crowdsourcing and crowdselling solution. Working in tandem with the Streamr Network and Ethereum, the framework powers applications that enable people to earn by sharing valuable data. You can [read more about it here](https://docs.dataunions.org/getting-started/intro-to-data-unions)
 
-The Data Union framework is a data crowdsourcing and crowdselling solution. Working in tandem with the Streamr Network and Ethereum, the framework powers applications that enable people to earn by sharing valuable data. You can [read more about it here](https://dataunions.network/docs/data-unions/intro-to-data-unions)
-
-#### Basic use
+#### Getting started
 
 Start by obtaining a DataUnionClient object:
+1) Give the DU client an access to signing with your private key.
+2) Choose a desired EVM chain and add it to the chain parameter. We currently support `gnosis`, and `polygon` (default).
 
+This first option for browsers is to hand in the Metamask object. This means DU client will not ever see the private key, and can only send transactions and sign messages with the user's explicit consent (pops up a Metamask window). This would connect to the polygon chain using Metamask:
 ```js
 import { DataUnionClient } from '@dataunions/client'
-const DU = new DataUnionClient(clientOptions)
+const { ethereum } = window
+const DU = new DataUnionClient({
+  auth: { ethereum }
+});
 ```
 
-_TODO: document `clientOptions`_
+The second option is to give the private key directly in cleartext. This is meant for the server side node.js scripts, but also can be used in the browser; especially in the case where you don't need to sign things at all but only use the "getters" or read-only functions, in which case you can give a bogus/0x000... private key (since it won't ever be used). On server, it's recommended to store the private key encrypted on disk and only decrypt it just before handing it to the DataUnionClient, so that it will be in cleartext only in memory, never on disk.
+```js
+import { DataUnionClient } from '@dataunions/client'
+const { privateKey } = Wallet.fromEncryptedJsonSync(process.env.WALLET_FILE)
+const DU = new DataUnionClient({
+  auth: { privateKey },
+  chain: 'gnosis',
+});
+```
 
-To deploy a new DataUnion with default [deployment options](#deployment-options):
+The DataUnionClient object can be used to either deploy a new Data Union contract, or manipulate/query an existing one.
+
+The address that deploys the contract will become the admin of the data union. To deploy a new DataUnion with default [deployment options](#deployment-options):
 ```js
 const dataUnion = await DU.deployDataUnion()
 ```
@@ -30,11 +44,11 @@ const dataUnion = await DU.getDataUnion('0x12345...')
 
 #### Admin Functions
 
-Admin functions require xDai tokens on the xDai network. To get xDai you can either use a [faucet](https://www.xdaichain.com/for-users/get-xdai-tokens/xdai-faucet) or you can reach out on the [Streamr Discord #dev channel](https://discord.gg/gZAm8P7hK8).
+Executing the admin functions generate transactions and as such require having enough of the native token to pay the gas on the chain you deployed on. To get some native token, you can reach out on the [Data Union Discord](https://discord.gg/AY7kDBEtkr). We can send you some to get started. Transactions usually cost a fraction of a cent in Polygon, and Gnosis has historically been especially cheap.
 
-Adding members using admin functions is not at feature parity with the member function `join`. The newly added member will not be granted publish permissions to the streams inside the Data Union. This will need to be done manually using the StreamrClient, see `StreamrClient.grantPermissions()`. Similarly, after removing a member using the admin function `removeMembers`, the publish permissions will need to be removed in a secondary step using `StreamrClient.revokePermissions()`.
+Adding members using admin functions is not at feature parity with the member function `join`. The newly added member will not automatically be granted publish permissions to the streams inside the Data Union. This will need to be done manually using the StreamrClient, see `StreamrClient.grantPermissions()`. Similarly, after removing a member using the admin function `removeMembers`, the publish permissions will need to be removed in a secondary step using `StreamrClient.revokePermissions()`. This is because the member function `join` relies on DU DAO hosted infrastructure, while the admin functions are completely self-sufficient (in fact, the DU DAO hosted server uses these very admin functions :).
 
-Adding members:
+Adding members (joinPart agent only read more [here](https://docs.dataunions.org/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
 const receipt = await dataUnion.addMembers([
     '0x11111...',
@@ -42,13 +56,17 @@ const receipt = await dataUnion.addMembers([
     '0x33333...',
 ])
 ```
-Removing members:
+Removing members (joinPart agent only (usually the admin is also a joinPart agent) read more [here](https://docs.dataunions.org/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
 const receipt = await dataUnion.removeMembers([
     '0x11111...',
     '0x22222...',
     '0x33333...',
 ])
+```
+Enable your users to part with the data union themselves
+```js
+const receipt = await dataUnion.part()
 ```
 
 Checking if an address belongs to the Data Union:
@@ -60,6 +78,7 @@ Send all withdrawable earnings to the member's address:
 ```js
 const receipt = await dataUnion.withdrawAllToMember('0x12345...')
 ```
+
 Send all withdrawable earnings to the address signed off by the member:
 ```js
 const recipientAddress = '0x22222...'
@@ -71,6 +90,7 @@ const receipt = await dataUnion.withdrawAllToSigned(
     signature
 )
 ```
+
 Send only some of the withdrawable earnings to the address signed off by the member
 ```js
 const oneEth = "1000000000000000000" // amounts in wei
@@ -87,6 +107,15 @@ Setting a new admin fee:
 ```js
 // Any number between 0 and 1, inclusive
 const receipt = await dataUnion.setAdminFee(0.4)
+```
+
+Setting new metadata: Store information about your data union in a JSON file on-chain inside the contract. For example you can store a DAO manifesto, a name or anything else you can think of.
+```js
+const receipt = await dataUnion.setMetadata(
+    {"name": "awesome DU", "maintainer": ["josh#4223", "marc#2324"]}
+);
+
+const metadata = await dataUnion.getMetadata();
 ```
 
 If the Data Union is set up to use the [default join server](https://github.com/dataunions/data-unions/tree/main/packages/default-join-server) then members can join the Data Union by giving a correct secret.
@@ -163,7 +192,7 @@ const receipt = await dataUnion.withdrawAll(
     }
 )
 ```
-
+(V2 Data Unions only)
 These withdraw transactions are sent to the sidechain, so gas price shouldn't be manually set (fees will hopefully stay very low),
 but a little bit of [sidechain native token](https://www.xdaichain.com/for-users/get-xdai-tokens) is nonetheless required.
 
@@ -184,24 +213,26 @@ The use cases corresponding to the different combinations of the boolean flags:
 
 `deployDataUnion` can take an options object as the argument. It's an object that can contain the following parameters. All shown values are the defaults for each property:
 ```js
-const ownerAddress = await dataunions.getAddress()
+const deploymentOptions = {
+    adminAddress: "0x123...", // If omitted, defaults to the deployer. Will be the admin of the newly created data union
+    dataUnionName: "demoName", // NOT stored anywhere, only used for address derivation
+    adminFee: 0.3, // Must be between 0...1
+    joinPartAgents: ["0x123..."], // If omitted, set by default to include the admin as well as the trusted DU DAO join-server infrastructure address
+    metadata: { // optional
+        "information": "related to your data union",
+        "canBe": ["", "anything"]
+    }
+}
 
-const dataUnion = await dataunions.deployDataUnion({
-    owner: ownerAddress, // Owner / admin of the newly created Data Union
-    joinPartsAgent: [ownerAddress], // Able to add and remove members to/from the Data Union
-    dataUnionName: /* Generated if not provided */, // NOT stored anywhere, only used for address derivation
-    adminFee: 0, // Must be between 0...1
-    sidechainPollingIntervalMs: 1000, //How often requests are sent to find out if the deployment has completed
-    sidechainRetryTimeoutMs: 60000, // When to give up when waiting for the deployment to complete
-    confirmations: 1, // Blocks to wait after Data Union mainnet contract deployment to consider it final
-    gasPrice: /*Network Estimate*/ // Ethereum Mainnet gas price to use when deploying the Data Union mainnet contract
+const dataUnion = await DU.deployDataUnion({
+    deploymentOptions
 })
 ```
 
 Streamr Core is added as a `joinPartAgent` by default so that joining with secret works using the member function `join`. If you don't plan to use `join` for "self-service joining", you can leave out Streamr Core agent by calling `deployDataUnion` e.g. with your own address as the sole joinPartAgent:
 ```js
 const dataUnion = await DU.deployDataUnion({
-    joinPartAgents: [ownerAddress],
+    joinPartAgents: [adminAddress],
     adminFee,
 })
 ```
@@ -214,3 +245,7 @@ In order to retrieve the client's address an async call must me made to `datauni
 const address = await dataunions.getAddress()
 ```
 
+If you want to generate a new random wallet, you can use
+```js
+const { address, privateKey } = DataUnionClient.generateEthereumAccount()
+```

@@ -1,8 +1,17 @@
-module.exports = (client, db) => {
-	return (expressApp) => {
+module.exports = (db) => {
+	return (expressApp, clients) => {
 
-		// Owner authenticator middleware for the secrets management routes
+		// Admin authenticator middleware for the secrets management routes
 		expressApp.use('/secrets/', async (req, res, next) => {
+			const client = clients.get(req.validatedRequest.chain)
+			if (!client) {
+				res.status(400)
+				res.set('content-type', 'application/json')
+				res.send({
+					error: `Unsupported chain: ${req.validatedRequest.chain}!`
+				})
+			}
+
 			const dataUnion = await client.getDataUnion(req.validatedRequest.dataUnion)
 			if (!dataUnion) {
 				res.status(404)
@@ -11,14 +20,14 @@ module.exports = (client, db) => {
 					error: `Data Union ${req.validatedRequest.dataUnion} on chain ${req.validatedRequest.chain} does not exist!`
 				})
 			} else {
-				const owner = await dataUnion.getOwner()
-				if (owner.toLowerCase() === req.body.address.toLowerCase()) {
+				const admin = await dataUnion.getAdminAddress()
+				if (admin.toLowerCase() === req.body.address.toLowerCase()) {
 					next()
 				} else {
 					res.status(403)
 					res.set('content-type', 'application/json')
 					res.send({
-						error: `This endpoint can only be called by the Data Union owner (${owner})`
+						error: `This endpoint can only be called by the Data Union admin (${admin})`
 					})
 				}
 			}
