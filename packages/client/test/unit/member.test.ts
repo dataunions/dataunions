@@ -55,20 +55,28 @@ describe('DataUnion member', () => {
     })
 
     it('can part from the data union', async () => {
+        const memberCountBefore = await dataUnion.getActiveMemberCount()
         const isMemberBefore = await dataUnion.isMember()
         await dataUnion.part()
         const isMemberAfter = await dataUnion.isMember()
+        const memberCountAfter = await dataUnion.getActiveMemberCount()
 
         expect(isMemberBefore).toBe(true)
         expect(isMemberAfter).toBe(false)
+        expect(memberCountAfter).toEqual(memberCountBefore - 1)
     })
 
     it('can be added by admin', async () => {
         const userAddress = Wallet.createRandom().address
-
+        const memberCountBefore = await dataUnion.getActiveMemberCount()
+        const isMemberBefore = await dataUnion.isMember(userAddress)
         await adminDataUnion.addMembers([userAddress])
-        const isMember = await dataUnion.isMember(userAddress)
-        expect(isMember).toBe(true)
+        const isMemberAfter = await dataUnion.isMember(userAddress)
+        const memberCountAfter = await dataUnion.getActiveMemberCount()
+
+        expect(isMemberBefore).toBe(false)
+        expect(isMemberAfter).toBe(true)
+        expect(memberCountAfter).toEqual(memberCountBefore + 1)
     })
 
     it('can be removed by admin', async () => {
