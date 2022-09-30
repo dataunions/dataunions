@@ -11,6 +11,7 @@ export function handleDUCreated(event: SidechainDUCreated): void {
     dataunion.sidechainAddress = event.params.sidenet
     dataunion.mainchainAddress = event.params.mainnet
     dataunion.memberCount = 0
+    dataunion.creationDate = event.block.timestamp
     dataunion.save()
 
     // Instantiate template

@@ -3,7 +3,9 @@ type DataUnion @entity {
   sidechainAddress: Bytes!
   mainchainAddress: Bytes!
   members: [Member!]! @derivedFrom(field: "dataunion")
-  memberCount: Int!  
+  memberCount: Int!
+  revenueWei: BigInt!
+  creationDate: BigInt!
 }
 
 enum MemberStatus {
@@ -18,6 +20,7 @@ type Member @entity {
   addressString: String! # We need this to be String to enable partial match search
   dataunion: DataUnion!
   status: MemberStatus!
+  joinDate: BigInt!
 }
 
 enum BucketType {
@@ -33,4 +36,13 @@ type DataUnionStatsBucket @entity {
   endDate: BigInt!
   memberCountAtStart: Int!
   memberCountChange: Int!
+  revenueAtStartWei: BigInt!
+  revenueChangeWei: BigInt!
+}
+
+type RevenueEvent @entity {
+  id: ID!
+  dataUnionAddress: Bytes!
+  date: BigInt!
+  amountWei: BigInt!
 }

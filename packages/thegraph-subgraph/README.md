@@ -32,7 +32,6 @@ docker-compose up
 ```
 
 npm ci
-npm run codegen
 npm run build
 npm run create-local
 npm run deploy-local
@@ -41,7 +40,7 @@ npm run deploy-local
 
 then you can paste graphQL queries at http://127.0.0.1:8000/subgraphs/name/<githubname>/<subgraphname>/graphql
 or send queries to http://localhost:8000/subgraphs/name/<githubname>/<subgraphname>
-for example with a gui like https://github.com/graphql/graphql-playground 
+for example with a gui like https://github.com/graphql/graphql-playground
 or from a webapplication
 
 example queries:

@@ -43,6 +43,7 @@ templates:
       entities:
         - Member
         - DataUnionStatsBucket
+        - RevenueEvent
       abis:
         - name: DataUnionTemplate
           file: ./abis/DataUnionTemplate.json
