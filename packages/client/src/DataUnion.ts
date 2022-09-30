@@ -148,7 +148,8 @@ export class DataUnion {
     }
 
     async refreshRevenue(): Promise<ContractReceipt> {
-        const tx = await this.contract.refreshRevenue()
+        const ethersOverrides = await this.client.getOverrides()
+        const tx = await this.contract.refreshRevenue(ethersOverrides)
         return waitOrRetryTx(tx)
     }
 
