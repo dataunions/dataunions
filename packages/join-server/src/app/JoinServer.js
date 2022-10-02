@@ -154,7 +154,7 @@ class JoinServer {
 		// Authenticated routes use the signedRequestValidator
 		this.authenticatedRoutes.use((req, res, next) => this.signedRequestValidator(req).then(next).catch((err) => next(err)))
 		this.authenticatedRoutes.post('/join', (req, res, next) => new rest.JoinHandler(this.logger, this.joinRequestService, this.customJoinRequestValidator).handle(req, res, next))
-		this.customRoutes(this.expressApp, this.clients)
+		this.customRoutes(this.authenticatedRoutes, this.clients)
 		
 		this.expressApp.use(this.publicRoutes)
 		this.expressApp.use(this.authenticatedRoutes)
