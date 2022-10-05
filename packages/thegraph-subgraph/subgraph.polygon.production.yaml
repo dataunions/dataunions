@@ -52,4 +52,6 @@ templates:
           handler: handleMemberJoined
         - event: MemberParted(indexed address,indexed uint8)
           handler: handleMemberParted
+        - event: RevenueReceived(uint256)
+          handler: handleRevenueReceived
   # New DU polygon/matic <<

@@ -5,7 +5,7 @@ repository: ""
 schema:
   file: ./schema.graphql
 dataSources:
-  # New DU gnosis/xdai >>
+  # New DU streamr-docker-dev >>
   - kind: ethereum/contract
     name: DataUnionFactory
     network: xDai
@@ -26,10 +26,10 @@ dataSources:
       eventHandlers:
         - event: SidechainDUCreated(indexed address,indexed address,indexed address,address)
           handler: handleDUCreated
-  # New DU gnosis/xdai <<
+  # New DU streamr-docker-dev <<
 
 templates:
-  # New DU gnosis/xdai >>
+  # New DU streamr-docker-dev >>
   - name: DataUnion
     kind: ethereum/contract
     network: xDai
@@ -52,4 +52,6 @@ templates:
           handler: handleMemberJoined
         - event: MemberParted(indexed address,indexed uint8)
           handler: handleMemberParted
-  # New DU gnosis/xdai <<
+        - event: RevenueReceived(uint256)
+          handler: handleRevenueReceived
+  # New DU streamr-docker-dev <<
