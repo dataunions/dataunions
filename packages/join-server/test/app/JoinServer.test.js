@@ -8,12 +8,14 @@ const InvalidRequestError = require('../../src/rest/InvalidRequestError')
 
 describe('JoinServer', async () => {
 	let srv
-	let validateFn
+	let joinRequestService
 	let signedRequestValidator
+	let customJoinRequestValidator
+	let customRoutes
 
 	beforeEach(() => {
 		// JoinRequestService with mocked create()
-		const joinRequestService = new app.JoinRequestService(
+		joinRequestService = new app.JoinRequestService(
 			unitTestLogger,
 			new Map(), // clients
 			function(_member, _dataUnion, _chain) {}, // onMemberJoin
@@ -26,19 +28,26 @@ describe('JoinServer', async () => {
 			}
 		})
 
-		validateFn = (req) => req.validatedRequest = JSON.parse(req.body.request)
-
 		signedRequestValidator = sinon.spy(async (req) => {
-			validateFn(req)
+			req.validatedRequest = JSON.parse(req.body.request)
 		})
 
+		customJoinRequestValidator = sinon.stub().resolves(true),
+
+		customRoutes = () => {}
+
+		createServer()
+	})
+
+	function createServer() {
 		srv = newUnitTestServer({
 			logger: unitTestLogger,
 			joinRequestService,
 			signedRequestValidator,
-			customJoinRequestValidator: sinon.stub().resolves(true),
+			customJoinRequestValidator,
+			customRoutes,
 		})
-	})
+	}
 
 	afterEach(() => {
 		srv.close()
@@ -46,7 +55,9 @@ describe('JoinServer', async () => {
 	})
 
 	it('fails the join request if the custom validator rejects', async () => {
-		srv.customJoinRequestValidator = sinon.stub().rejects()
+		customJoinRequestValidator = sinon.stub().rejects()
+		createServer()
+
 		const expectedStatus = 400
 		await request(srv.expressApp)
 			.post(`/join`)
@@ -65,7 +76,9 @@ describe('JoinServer', async () => {
 
 	it('renders an error if the validator middleware rejects', async () => {
 		const expectedStatus = 400
-		validateFn = () => { throw new InvalidRequestError('test error') }
+		signedRequestValidator = () => { throw new InvalidRequestError('test error') }
+		createServer()
+
 		await request(srv.expressApp)
 			.post(`/join`)
 			.set('Content-Type', 'application/json')
@@ -87,12 +100,31 @@ describe('JoinServer', async () => {
 	})
 
 	it('adds customRoutes upon constructions', () => {
-		const customRoutes = sinon.stub()
-		srv = newUnitTestServer({
-			customRoutes,
-		})
+		customRoutes = sinon.stub()
+		createServer()
 
-		assert(customRoutes.calledOnceWithExactly(srv.expressApp, srv.clients))
+		assert(customRoutes.calledOnceWithExactly(srv.authenticatedRoutes, srv.clients))
+	})
+
+	it('authenticates requests to custom routes', async () => {
+		customRoutes = sinon.spy((app) => {
+			app.get('/hello', function(_req, res, _next) {
+				res.status(200)
+				res.set('content-type', 'application/json')
+				res.send({message:'hello'})
+			})
+		})
+		signedRequestValidator = sinon.stub().resolves()
+		createServer()
+
+		const expectedStatus = 200
+		await request(srv.expressApp)
+			.get(`/hello`)
+			.expect((res) => (res.status != expectedStatus ? console.error(res.body) : true)) // print debug info if something went wrong
+			.expect(expectedStatus)
+
+		assert(signedRequestValidator.calledOnce)
+		assert(customRoutes.calledOnceWithExactly(srv.authenticatedRoutes, srv.clients))
 	})
 
 	describe('constructor', () => {

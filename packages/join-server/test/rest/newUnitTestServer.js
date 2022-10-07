@@ -1,5 +1,5 @@
 const app = require('../../src/app')
-const unitTestLogger = require('./unitTestLogger')
+const { unitTestLogger } = require('./unitTestLogger')
 
 function newUnitTestServer(conf) {
 	const clients = new Map()
