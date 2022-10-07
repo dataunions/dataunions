@@ -3,14 +3,14 @@ import { waffle } from "hardhat"
 import { Contract, utils, BigNumber } from "ethers"
 const { parseEther } = utils
 
-import DataUnionFactorySidechainJson from "../../artifacts/contracts/DataUnionFactorySidechain.sol/DataUnionFactorySidechain.json"
-import DataUnionSidechainJson from "../../artifacts/contracts/DataUnionSidechain.sol/DataUnionSidechain.json"
+import DataUnionFactorySidechainJson from "../../../artifacts/contracts/du2/DataUnionFactorySidechain.sol/DataUnionFactorySidechain.json"
+import DataUnionSidechainJson from "../../../artifacts/contracts/du2/DataUnionSidechain.sol/DataUnionSidechain.json"
 
-import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
-import MockTokenMediatorJson from "../../artifacts/contracts/test/MockTokenMediator.sol/MockTokenMediator.json"
-import MockAMBJson from "../../artifacts/contracts/test/MockAMB.sol/MockAMB.json"
+import TestTokenJson from "../../../artifacts/contracts/test/TestToken.sol/TestToken.json"
+import MockTokenMediatorJson from "../../../artifacts/contracts/du2/test/MockTokenMediator.sol/MockTokenMediator.json"
+import MockAMBJson from "../../../artifacts/contracts/du2/test/MockAMB.sol/MockAMB.json"
 
-import { DataUnionFactorySidechain, TestToken, MockAMB, MockTokenMediator } from "../../typechain"
+import { DataUnionFactorySidechain, TestToken, MockAMB, MockTokenMediator } from "../../../typechain"
 
 import Debug from "debug"
 const log = Debug("Streamr:du:test:BinanceAdapter")

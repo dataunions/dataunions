@@ -4,17 +4,15 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IERC677.sol";
-// TODO: switch to "@openzeppelin/contracts/access/Ownable.sol";
 import "./Ownable.sol";
-import "./xdai-mainnet-bridge/IERC20Receiver.sol";
 import "./IERC677Receiver.sol";
 import "./IWithdrawModule.sol";
 import "./IJoinListener.sol";
 import "./IPartListener.sol";
 import "./LeaveConditionCode.sol";
+import "./IFeeOracle.sol";
 
-contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
-
+contract DataUnionTemplate is Ownable, IERC677Receiver {
     // Used to describe both members and join part agents
     enum ActiveStatus {NONE, ACTIVE, INACTIVE}
 
@@ -45,9 +43,9 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     event TransferToAddressInContract(address indexed from, address indexed to, uint amount);
 
     // Variable properties change events
-    event UpdateNewMemberEth(uint value);
-    event FeesSet(uint256 adminFee, uint256 dataUnionFee);
-    event DataUnionBeneficiaryChanged(address indexed current, address indexed old);
+    event NewMemberEthChanged(uint newMemberStipendWei, uint oldMemberStipendWei);
+    event AdminFeeChanged(uint newAdminFee, uint oldAdminFee);
+    event MetadataChanged(string newMetadata); // string could be long, so don't log the old one
 
     struct MemberInfo {
         ActiveStatus status;
@@ -58,14 +56,10 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
     // Constant properties (only set in initialize)
     IERC677 public token;
-    address public tokenMediator;
-    address public dataUnionMainnet;
+    IFeeOracle public protocolFeeOracle;
 
     // Modules
     IWithdrawModule public withdrawModule;
-    // TODO: once we can cast  address[] storage listeners = joinListeners;  then use these interface types
-    // IJoinListener[] public joinListeners;
-    // IPartListener[] public partListeners;
     address[] public joinListeners;
     address[] public partListeners;
     bool public modulesLocked;
@@ -73,14 +67,13 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     // Variable properties
     uint256 public newMemberEth;
     uint256 public adminFeeFraction;
-    uint256 public dataUnionFeeFraction;
-    address public dataUnionBeneficiary;
+    string public metadataJsonString;
 
     // Useful stats
     uint256 public totalRevenue;
     uint256 public totalEarnings;
     uint256 public totalAdminFees;
-    uint256 public totalDataUnionFees;
+    uint256 public totalProtocolFees;
     uint256 public totalWithdrawn;
     uint256 public activeMemberCount;
     uint256 public inactiveMemberCount;
@@ -98,23 +91,20 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     function initialize(
         address initialOwner,
         address tokenAddress,
-        address tokenMediatorAddress,
         address[] memory initialJoinPartAgents,
-        address mainnetDataUnionAddress,
         uint256 defaultNewMemberEth,
         uint256 initialAdminFeeFraction,
-        uint256 initialDataUnionFeeFraction,
-        address initialDataUnionBeneficiary
+        address protocolFeeOracleAddress,
+        string calldata initialMetadataJsonString
     ) public {
         require(!isInitialized(), "error_alreadyInitialized");
+        protocolFeeOracle = IFeeOracle(protocolFeeOracleAddress);
         owner = msg.sender; // set real owner at the end. During initialize, addJoinPartAgents can be called by owner only
         token = IERC677(tokenAddress);
         addJoinPartAgents(initialJoinPartAgents);
-        tokenMediator = tokenMediatorAddress;
-        dataUnionMainnet = mainnetDataUnionAddress;
-        setFees(initialAdminFeeFraction, initialDataUnionFeeFraction);
-        setDataUnionBeneficiary(initialDataUnionBeneficiary);
+        setAdminFee(initialAdminFeeFraction);
         setNewMemberEth(defaultNewMemberEth);
+        setMetadata(initialMetadataJsonString);
         owner = initialOwner;
     }
 
@@ -128,13 +118,14 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
      */
     function getStats() public view returns (uint256[9] memory) {
         uint256 cleanedInactiveMemberCount = inactiveMemberCount;
+        address protocolBeneficiary = protocolFeeOracle.beneficiary();
         if (memberData[owner].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
-        if (memberData[dataUnionBeneficiary].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
+        if (memberData[protocolBeneficiary].status == ActiveStatus.INACTIVE) { cleanedInactiveMemberCount -= 1; }
         return [
             totalRevenue,
             totalEarnings,
             totalAdminFees,
-            totalDataUnionFees,
+            totalProtocolFees,
             totalWithdrawn,
             activeMemberCount,
             cleanedInactiveMemberCount,
@@ -144,26 +135,27 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     }
 
     /**
-     * Admin and DU fees as a fraction of revenue,
+     * Admin fee as a fraction of revenue,
      *   using fixed-point decimal in the same way as ether: 50% === 0.5 ether === "500000000000000000"
      * @param newAdminFee fee that goes to the DU owner
-     * @param newDataUnionFee fee that goes to the DU beneficiary
      */
-    function setFees(uint256 newAdminFee, uint256 newDataUnionFee) public onlyOwner {
-        require((newAdminFee + newDataUnionFee) <= 1 ether, "error_fees");
+    function setAdminFee(uint256 newAdminFee) public onlyOwner {
+        uint protocolFeeFraction = protocolFeeOracle.protocolFeeFor(address(this));
+        require(newAdminFee + protocolFeeFraction <= 1 ether, "error_adminFee");
+        uint oldAdminFee = adminFeeFraction;
         adminFeeFraction = newAdminFee;
-        dataUnionFeeFraction = newDataUnionFee;
-        emit FeesSet(adminFeeFraction, dataUnionFeeFraction);
+        emit AdminFeeChanged(newAdminFee, oldAdminFee);
     }
 
-    function setDataUnionBeneficiary(address newDataUnionBeneficiary) public onlyOwner {
-        emit DataUnionBeneficiaryChanged(newDataUnionBeneficiary, dataUnionBeneficiary);
-        dataUnionBeneficiary = newDataUnionBeneficiary;
+    function setNewMemberEth(uint newMemberStipendWei) public onlyOwner {
+        uint oldMemberStipendWei = newMemberEth;
+        newMemberEth = newMemberStipendWei;
+        emit NewMemberEthChanged(newMemberStipendWei, oldMemberStipendWei);
     }
 
-    function setNewMemberEth(uint val) public onlyOwner {
-        newMemberEth = val;
-        emit UpdateNewMemberEth(val);
+    function setMetadata(string calldata newMetadata) public onlyOwner {
+        metadataJsonString = newMetadata;
+        emit MetadataChanged(newMetadata);
     }
 
     //------------------------------------------------------------
@@ -182,18 +174,26 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         emit RevenueReceived(newTokens);
 
         // fractions are expressed as multiples of 10^18 just like tokens, so must divide away the extra 10^18 factor
-        // overflow in multiplication is not an issue: 256bits ~= 10^77
-        uint256 adminFee = (newTokens * adminFeeFraction) / (1 ether);
-        uint256 duFee = (newTokens * dataUnionFeeFraction) / (1 ether);
-        uint256 newEarnings = newTokens - adminFee - duFee;
+        //   overflow in multiplication is not an issue: 256bits ~= 10^77
+        uint protocolFeeFraction = protocolFeeOracle.protocolFeeFor(address(this));
+        address protocolBeneficiary = protocolFeeOracle.beneficiary();
 
-        _increaseBalance(owner, adminFee);
-        _increaseBalance(dataUnionBeneficiary, duFee);
-        totalAdminFees += adminFee;
-        totalDataUnionFees += duFee;
-        emit FeesCharged(adminFee, duFee);
+        // sanity check: adjust oversize admin fee (prevent over 100% fees)
+        if (adminFeeFraction + protocolFeeFraction > 1 ether) {
+            adminFeeFraction = 1 ether - protocolFeeFraction;
+        }
 
-        uint256 earningsPerMember = newEarnings / activeMemberCount;
+        uint adminFeeWei = (newTokens * adminFeeFraction) / (1 ether);
+        uint protocolFeeWei = (newTokens * protocolFeeFraction) / (1 ether);
+        uint newEarnings = newTokens - adminFeeWei - protocolFeeWei;
+
+        _increaseBalance(owner, adminFeeWei);
+        _increaseBalance(protocolBeneficiary, protocolFeeWei);
+        totalAdminFees += adminFeeWei;
+        totalProtocolFees += protocolFeeWei;
+        emit FeesCharged(adminFeeWei, protocolFeeWei);
+
+        uint earningsPerMember = newEarnings / activeMemberCount;
         lifetimeMemberEarnings = lifetimeMemberEarnings + earningsPerMember;
         totalEarnings = totalEarnings + newEarnings;
         emit NewEarnings(earningsPerMember, activeMemberCount);
@@ -206,17 +206,33 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
      * ERC677 callback function, see https://github.com/ethereum/EIPs/issues/677
      * Receives the tokens arriving through bridge
      * Only the token contract is authorized to call this function
+     * @param data if given an address, then these tokens are allocated to that member's address; otherwise they are added as DU revenue
      */
-    function onTokenTransfer(address, uint256, bytes calldata) override external {
-        // guarding refreshRevenue is pointless, but this prevents DU from receiving unexpected ERC677 tokens
+    function onTokenTransfer(address, uint256 amount, bytes calldata data) override external {
         require(msg.sender == address(token), "error_onlyTokenContract");
-        refreshRevenue();
-    }
 
-    /**
-     * Tokenbridge callback function
-     */
-    function onTokenBridged(address, uint256, bytes memory) override public {
+        if (data.length == 20) {
+            // shift 20 bytes (= 160 bits) to end of uint256 to make it an address => shift by 256 - 160 = 96
+            // (this is what abi.encodePacked would produce)
+            address recipient;
+            assembly { // solhint-disable-line no-inline-assembly
+                recipient := shr(96, calldataload(data.offset))
+            }
+            _increaseBalance(recipient, amount);
+            totalRevenue += amount;
+            emit TransferToAddressInContract(msg.sender, recipient, amount);
+        } else if (data.length == 32) {
+            // assume the address was encoded by converting address -> uint -> bytes32 -> bytes (already in the least significant bytes)
+            // (this is what abi.encode would produce)
+            address recipient;
+            assembly { // solhint-disable-line no-inline-assembly
+                recipient := calldataload(data.offset)
+            }
+            _increaseBalance(recipient, amount);
+            totalRevenue += amount;
+            emit TransferToAddressInContract(msg.sender, recipient, amount);
+        }
+
         refreshRevenue();
     }
 
@@ -414,6 +430,9 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
     // WITHDRAW FUNCTIONS
     //------------------------------------------------------------
 
+    /**
+     * @param sendToMainnet Deprecated
+     */
     function withdrawMembers(address[] calldata members, bool sendToMainnet)
         external
         returns (uint256)
@@ -425,6 +444,9 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         return withdrawn;
     }
 
+    /**
+     * @param sendToMainnet Deprecated
+     */
     function withdrawAll(address member, bool sendToMainnet)
         public
         returns (uint256)
@@ -433,6 +455,9 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         return withdraw(member, getWithdrawableEarnings(member), sendToMainnet);
     }
 
+    /**
+     * @param sendToMainnet Deprecated
+     */
     function withdraw(address member, uint amount, bool sendToMainnet)
         public
         returns (uint256)
@@ -441,6 +466,9 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         return _withdraw(member, member, amount, sendToMainnet);
     }
 
+    /**
+     * @param sendToMainnet Deprecated
+     */
     function withdrawAllTo(address to, bool sendToMainnet)
         external
         returns (uint256)
@@ -449,6 +477,9 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
         return withdrawTo(to, getWithdrawableEarnings(msg.sender), sendToMainnet);
     }
 
+    /**
+     * @param sendToMainnet Deprecated
+     */
     function withdrawTo(address to, uint amount, bool sendToMainnet)
         public
         returns (uint256)
@@ -509,7 +540,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
      * A new signature needs to be obtained for each subsequent future withdraw.
      * @param fromSigner whose earnings are being withdrawn
      * @param to the address the tokens will be sent to (instead of `msg.sender`)
-     * @param sendToMainnet if the tokens should be sent to mainnet or only withdrawn into sidechain address
+     * @param sendToMainnet Deprecated
      * @param signature from the member, see `signatureIsValid` how signature generated for unlimited amount
      */
     function withdrawAllToSigned(
@@ -533,7 +564,7 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
      * @param fromSigner whose earnings are being withdrawn
      * @param to the address the tokens will be sent to (instead of `msg.sender`)
      * @param amount of tokens to withdraw
-     * @param sendToMainnet if the tokens should be sent to mainnet or only withdrawn into sidechain address
+     * @param sendToMainnet Deprecated
      * @param signature from the member, see `signatureIsValid` how signature generated for unlimited amount
      */
     function withdrawToSigned(
@@ -578,21 +609,17 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
     /**
      * Default DU 2.1 withdraw functionality, can be overridden with a withdrawModule.
+     * @param sendToMainnet Deprecated
      */
     function _defaultWithdraw(address from, address to, uint amount, bool sendToMainnet)
         internal
     {
-        if (sendToMainnet) {
-            // tokenMediator sends tokens over the bridge it's assigned to
-            require(tokenMediator != address(0), "error_sendToMainnetNotAvailable");
-            require(token.transferAndCall(tokenMediator, amount, abi.encodePacked(to)), "error_transfer");
-        } else {
-            // transferAndCall also enables transfers over another token bridge
-            //   in this case to=another bridge's tokenMediator, and from=recipient on the other chain
-            // this follows the tokenMediator API: data will contain the recipient address, which is the same as sender but on the other chain
-            // in case transferAndCall recipient is not a tokenMediator, the data can be ignored (it contains the DU member's address)
-            require(token.transferAndCall(to, amount, abi.encodePacked(from)), "error_transfer");
-        }
+        require(!sendToMainnet, "error_sendToMainnetDeprecated");
+        // transferAndCall also enables transfers over another token bridge
+        //   in this case to=another bridge's tokenMediator, and from=recipient on the other chain
+        // this follows the tokenMediator API: data will contain the recipient address, which is the same as sender but on the other chain
+        // in case transferAndCall recipient is not a tokenMediator, the data can be ignored (it contains the DU member's address)
+        require(token.transferAndCall(to, amount, abi.encodePacked(from)), "error_transfer");
     }
 
     //------------------------------------------------------------
@@ -604,29 +631,30 @@ contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
      */
     function setWithdrawModule(IWithdrawModule newWithdrawModule) external onlyOwner {
         require(!modulesLocked, "error_modulesLocked");
-        // TODO: check EIP-165?
         withdrawModule = newWithdrawModule;
         emit WithdrawModuleChanged(newWithdrawModule);
     }
 
     function addJoinListener(IJoinListener newListener) external onlyOwner {
-        // TODO: check EIP-165?
+        require(!modulesLocked, "error_modulesLocked");
         joinListeners.push(address(newListener));
         emit JoinListenerAdded(newListener);
     }
 
     function addPartListener(IPartListener newListener) external onlyOwner {
-        // TODO: check EIP-165?
+        require(!modulesLocked, "error_modulesLocked");
         partListeners.push(address(newListener));
         emit PartListenerAdded(newListener);
     }
 
     function removeJoinListener(IJoinListener listener) external onlyOwner {
+        require(!modulesLocked, "error_modulesLocked");
         require(removeFromAddressArray(joinListeners, address(listener)), "error_joinListenerNotFound");
         emit JoinListenerRemoved(listener);
     }
 
     function removePartListener(IPartListener listener) external onlyOwner {
+        require(!modulesLocked, "error_modulesLocked");
         require(removeFromAddressArray(partListeners, address(listener)), "error_partListenerNotFound");
         emit PartListenerRemoved(listener);
     }

@@ -3,13 +3,13 @@ import { waffle, upgrades } from "hardhat"
 import { Contract, ContractFactory, utils, BigNumber } from "ethers"
 const { parseEther } = utils
 
-import DataUnionFactoryJson from "../../../artifacts/contracts/unichain/DataUnionFactory.sol/DataUnionFactory.json"
-import DataUnionTemplateJson from "../../../artifacts/contracts/unichain/DataUnionTemplate.sol/DataUnionTemplate.json"
-import FeeOracleJson from "../../../artifacts/contracts/DefaultFeeOracle.sol/DefaultFeeOracle.json"
+import DataUnionFactoryJson from "../../artifacts/contracts/DataUnionFactory.sol/DataUnionFactory.json"
+import DataUnionTemplateJson from "../../artifacts/contracts/DataUnionTemplate.sol/DataUnionTemplate.json"
+import FeeOracleJson from "../../artifacts/contracts/DefaultFeeOracle.sol/DefaultFeeOracle.json"
 
-import TestTokenJson from "../../../artifacts/contracts/test/TestToken.sol/TestToken.json"
+import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
 
-import { DataUnionFactory, DefaultFeeOracle, TestToken } from "../../../typechain"
+import { DataUnionFactory, DefaultFeeOracle, TestToken } from "../../typechain"
 
 import Debug from "debug"
 const log = Debug("Streamr:du:test:BinanceAdapter")
@@ -86,12 +86,12 @@ describe("DataUnionFactory", (): void => {
 
         const tx = await factory.deployNewDataUnion(...args)
         const tr = await tx.wait()
-        const [createdEvent] = tr?.events?.filter((evt: any) => evt?.event === "DUCreated") ?? []
+        const [createdEvent] = tr?.events?.filter((evt) => evt?.event === "DUCreated") ?? []
         if (!createdEvent || !createdEvent.args || !createdEvent.args.length) {
             throw new Error("Missing DUCreated event")
         }
-        const [newDuAddress] = createdEvent?.args
-        expect(tr?.events?.filter((evt: any) => evt?.event === "SidechainDUCreated") ?? []).to.have.length(1)
+        const [newDuAddress] = createdEvent.args
+        expect(tr?.events?.filter((evt) => evt?.event === "SidechainDUCreated") ?? []).to.have.length(1)
 
         log("%s code: %s", newDuAddress, await provider.getCode(newDuAddress))
         expect(await provider.getCode(newDuAddress)).not.equal("0x")

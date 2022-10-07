@@ -6,8 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./CloneLib.sol";
 import "./xdai-mainnet-bridge/IAMB.sol";
 import "./xdai-mainnet-bridge/ITokenMediator.sol";
-// TODO: switch to "@openzeppelin/contracts/access/Ownable.sol";
-import "./Ownable.sol";
+import "../Ownable.sol";
 
 contract DataUnionFactorySidechain is Ownable {
     event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
