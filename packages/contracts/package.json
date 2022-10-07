@@ -1,6 +1,6 @@
 {
     "name": "@dataunions/contracts",
-    "version": "3.0.0-beta.2",
+    "version": "3.0.0-beta.3",
     "description": "Smart contracts for Data Union with sidechain accounting",
     "author": "Data Union DAO <contact@dataunions.org>",
     "license": "UNLICENSED",
@@ -24,7 +24,8 @@
         "lint": "eslint test/**/*.ts scripts/*.ts && solhint contracts/*/*.sol",
         "format": "prettier --no-color --config .prettierrc --write contracts/**/*.sol",
         "format-check": "prettier --no-color --config .prettierrc --check contracts/**/*.sol",
-        "unit-test": "hardhat test test/contracts/**/* test/contracts/*.ts",
+        "unit-test": "hardhat test test/contracts/*.test.ts",
+        "unit-test-old": "hardhat test test/contracts/du2/*.test.ts",
         "test": "npm run unit-test"
     },
     "files": [

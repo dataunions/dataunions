@@ -4,9 +4,8 @@ import { Contract } from '@ethersproject/contracts'
 import type { Signer } from '@ethersproject/abstract-signer'
 import type { Provider } from '@ethersproject/providers'
 
-import * as DataUnionTemplateJson from '@dataunions/contracts/artifacts/contracts/unichain/DataUnionTemplate.sol/DataUnionTemplate.json'
-import * as DataUnionFactoryJson from '@dataunions/contracts/artifacts/contracts/unichain/DataUnionFactory.sol/DataUnionFactory.json'
 import * as IERC677Json from '@dataunions/contracts/artifacts/contracts/IERC677.sol/IERC677.json'
+import { DataUnionFactory as DataUnionFactoryJson, DataUnionTemplate as DataUnionTemplateJson } from '@dataunions/contracts'
 import type { DataUnionFactory, DataUnionTemplate, IERC677 } from '@dataunions/contracts/typechain'
 
 import { DataUnion } from './DataUnion'

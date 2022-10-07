@@ -3,17 +3,16 @@ import { waffle } from "hardhat"
 import { utils } from "ethers"
 
 import Debug from "debug"
-const log = Debug("Streamr:du:test:DataUnionSidechain")
-// const log = console.log  // for debugging?
+const log = Debug("Streamr:du:test:BanModule")
+// const log = console.log  // for debugging
 
 import BanModuleJson from "../../artifacts/contracts/BanModule.sol/BanModule.json"
-import DataUnionSidechainJson from "../../artifacts/contracts/DataUnionSidechain.sol/DataUnionSidechain.json"
+import DataUnionJson from "../../artifacts/contracts/DataUnionTemplate.sol/DataUnionTemplate.json"
+import DefaultFeeOracleJson from "../../artifacts/contracts/DefaultFeeOracle.sol/DefaultFeeOracle.json"
 
 import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
-import MockTokenMediatorJson from "../../artifacts/contracts/test/MockTokenMediator.sol/MockTokenMediator.json"
-import MockAMBJson from "../../artifacts/contracts/test/MockAMB.sol/MockAMB.json"
 
-import type { BanModule, DataUnionSidechain, MockTokenMediator, TestToken, MockAMB } from "../../typechain"
+import type { BanModule, DefaultFeeOracle, DataUnionTemplate as DataUnion, TestToken } from "../../typechain"
 
 type EthereumAddress = string
 
@@ -22,13 +21,11 @@ const { deployContract, provider } = waffle
 const { parseEther } = utils
 
 describe("BanModule", () => {
-    const [creator, member0, joinPartAgent, ...others] = provider.getWallets()
+    const [creator, member0, joinPartAgent, dao, ...others] = provider.getWallets()
 
     let testToken: TestToken
-    let dataUnionAdmin: DataUnionSidechain
-    let dataUnionAgent: DataUnionSidechain
-    let mockAMB: MockAMB
-    let mockTokenMediator: MockTokenMediator
+    let dataUnionAdmin: DataUnion
+    let dataUnionAgent: DataUnion
 
     let banModuleAdmin: BanModule
     let banModuleAgent: BanModule
@@ -42,35 +39,31 @@ describe("BanModule", () => {
         testToken = await deployContract(creator, TestTokenJson, ["name", "symbol"]) as TestToken
         await testToken.mint(creator.address, parseEther("10000"))
 
-        mockAMB = await deployContract(creator, MockAMBJson, []) as MockAMB
-        mockTokenMediator = await deployContract(creator, MockTokenMediatorJson, [testToken.address, mockAMB.address]) as MockTokenMediator
+        const feeOracle = await deployContract(dao, DefaultFeeOracleJson, []) as DefaultFeeOracle
+        await feeOracle.initialize(parseEther("0.01"), dao.address)
 
-        dataUnionAdmin = await deployContract(creator, DataUnionSidechainJson, []) as DataUnionSidechain
+        dataUnionAdmin = await deployContract(creator, DataUnionJson, []) as DataUnion
         dataUnionAgent = dataUnionAdmin.connect(joinPartAgent)
 
         // function initialize(
         //     address initialOwner,
         //     address tokenAddress,
-        //     address tokenMediatorAddress,
         //     address[] memory initialJoinPartAgents,
-        //     address mainnetDataUnionAddress,
         //     uint256 defaultNewMemberEth,
         //     uint256 initialAdminFeeFraction,
-        //     uint256 initialDataUnionFeeFraction,
-        //     address initialDataUnionBeneficiary
+        //     address protocolFeeOracleAddress,
+        //     string calldata initialMetadataJsonString
         // )
         await dataUnionAdmin.initialize(
             creator.address,
             testToken.address,
-            mockTokenMediator.address,
             [],
-            creator.address,  // dummy
             "1",
-            parseEther("0.1"),
-            parseEther("0.1"),
-            creator.address
+            parseEther("0.09"),
+            feeOracle.address,
+            "{}",
         )
-        log("DataUnionSidechain %s initialized", dataUnionAdmin.address)
+        log("DataUnion %s initialized", dataUnionAdmin.address)
 
         banModuleAdmin = await deployContract(creator, BanModuleJson, [dataUnionAdmin.address]) as BanModule
         banModuleAgent = banModuleAdmin.connect(joinPartAgent)

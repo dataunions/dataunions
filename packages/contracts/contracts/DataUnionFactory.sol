@@ -10,9 +10,8 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import "../xdai-mainnet-bridge/IAMB.sol";
 import "./DataUnionTemplate.sol";
-import "../Ownable.sol";
+import "./Ownable.sol";
 
 contract DataUnionFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);

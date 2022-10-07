@@ -45,10 +45,10 @@ if (!SKIP) {
     }
 }
 
-import DataUnionSidechainJson from "../artifacts/contracts/DataUnionSidechain.sol/DataUnionSidechain.json"
-import BanModuleJson from "../artifacts/contracts/BanModule.sol/BanModule.json"
-import LimitWithdrawModuleJson from "../artifacts/contracts/LimitWithdrawModule.sol/LimitWithdrawModule.json"
-import { DataUnionSidechain } from "../typechain"
+import DataUnionSidechainJson from "../../artifacts/contracts/DataUnionSidechain.sol/DataUnionSidechain.json"
+import BanModuleJson from "../../artifacts/contracts/BanModule.sol/BanModule.json"
+import LimitWithdrawModuleJson from "../../artifacts/contracts/LimitWithdrawModule.sol/LimitWithdrawModule.json"
+import { DataUnionSidechain } from "../../typechain"
 
 import Debug from "debug"
 const log = Debug("Streamr:du:script:deploy")

@@ -5,16 +5,17 @@
 # Data Union monorepo
 
 `/packages`:
-* `contracts`: Smart contracts for Data Unions 2.0 and 3.0 (`unichain`)
+* `contracts`: Smart contracts for Data Unions 2.0 and 3.0
 * `client`: Data Union client
 * `thegraph-subgraph`: [TheGraph](https://thegraph.com/) subgraph for Data Union smart contracts
-* `config`: Addresses and URLs for connecting to the deployed smart contracts
+* `join-server`: Base implementation of a HTTP server for requiring Data Union members to fulfil certain requirements in order to join a Data Union
+* `default-join-server`: Simple HTTP server that adds members who know a secret password, and gives them publish rights to the DU's streams. Hosted by the DU DAO at
 
 ## Development
 
-Monorepo is managed using [npm workspaces](https://docs.npmjs.com/cli/v7/using-npm/workspaces).
+Monorepo is managed using [npm workspaces](https://docs.npmjs.com/cli/v7/using-npm/workspaces). Integration tests are run in [Streamr docker dev environment](https://github.com/streamr-dev/streamr-docker-dev/) and its configs are found in the [@streamr/config NPM package](https://npmjs.com/package/@streamr/config).
 
-**Important:** Do not use `npm ci` or `npm install` directly in the sub-package directories.
+**Important:** Do not use `npm ci` or `npm install` directly in the sub-package directories, only in the root directory.
 
 ### Load project Node and npm
 ```
@@ -84,7 +85,7 @@ npm run clean
 
 ### Add a dependency into a sub-package
 
-Manually add the entry to the `package.json` of the sub-package and 
+Manually add the entry to the `package.json` of the sub-package and
 run `npm run bootstrap-pkg $PACKAGE_NAME`.
 
 Alternatively:
