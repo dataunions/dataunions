@@ -1,7 +1,7 @@
 {
   "_format": "hh-sol-artifact-1",
   "contractName": "DataUnionFactory",
-  "sourceName": "contracts/unichain/DataUnionFactory.sol",
+  "sourceName": "contracts/DataUnionFactory.sol",
   "abi": [
     {
       "anonymous": false,

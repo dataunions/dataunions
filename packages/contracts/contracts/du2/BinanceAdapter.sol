@@ -3,8 +3,8 @@
 pragma solidity 0.8.6;
 
 import "./uniswap-v2-periphery/IUniswapV2Router02.sol";
-import "./IERC677.sol";
-import "./IERC677Receiver.sol";
+import "../IERC677.sol";
+import "../IERC677Receiver.sol";
 
 contract BinanceAdapter is IERC677Receiver {
 

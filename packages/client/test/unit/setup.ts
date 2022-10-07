@@ -5,7 +5,7 @@ import { Wallet } from '@ethersproject/wallet'
 
 import { deployToken } from '@streamr/data-v2'
 
-import { dataUnionTemplate as templateJson, dataUnionFactory as factoryJson, defaultFeeOracle as feeOracleJson } from '@dataunions/contracts'
+import { DataUnionTemplate as templateJson, DataUnionFactory as factoryJson, DefaultFeeOracle as feeOracleJson } from '@dataunions/contracts'
 import type { DataUnionTemplate, DataUnionFactory, IFeeOracle } from '@dataunions/contracts/typechain'
 
 // import debug from 'debug'

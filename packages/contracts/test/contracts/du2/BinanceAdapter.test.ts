@@ -2,12 +2,12 @@ import { expect, use } from "chai"
 import { waffle } from "hardhat"
 import { BigNumber, Wallet, Contract, utils } from "ethers"
 
-import DataUnionSidechainJson from "../../artifacts/contracts/DataUnionSidechain.sol/DataUnionSidechain.json"
-import BinanceAdapterJson from "../../artifacts/contracts/BinanceAdapter.sol/BinanceAdapter.json"
+import DataUnionSidechainJson from "../../../artifacts/contracts/du2/DataUnionSidechain.sol/DataUnionSidechain.json"
+import BinanceAdapterJson from "../../../artifacts/contracts/du2/BinanceAdapter.sol/BinanceAdapter.json"
 
-import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
-import MockTokenMediatorJson from "../../artifacts/contracts/test/MockTokenMediator.sol/MockTokenMediator.json"
-import MockAMBJson from "../../artifacts/contracts/test/MockAMB.sol/MockAMB.json"
+import TestTokenJson from "../../../artifacts/contracts/test/TestToken.sol/TestToken.json"
+import MockTokenMediatorJson from "../../../artifacts/contracts/du2/test/MockTokenMediator.sol/MockTokenMediator.json"
+import MockAMBJson from "../../../artifacts/contracts/du2/test/MockAMB.sol/MockAMB.json"
 
 // Uniswap v2, originally from @uniswap/v2-periphery/build
 import UniswapV2FactoryJson from "./UniswapV2Factory.json"
@@ -16,7 +16,7 @@ import UniswapV2Router02Json from "./UniswapV2Router02.json"
 import WETH9Json from "./WETH9.json"
 
 import Debug from "debug"
-import { DataUnionSidechain, TestToken, BinanceAdapter, MockTokenMediator } from "../../typechain"
+import { DataUnionSidechain, TestToken, BinanceAdapter, MockTokenMediator } from "../../../typechain"
 const log = Debug("Streamr:du:test:BinanceAdapter")
 
 use(waffle.solidity)

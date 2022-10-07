@@ -6,9 +6,9 @@ Data Union builders are encouraged to not use this package directly, but rather 
 
 ## @dataunions/contracts
 
-The contracts for the multi-chain Data Unions (DU3) are found in `contracts/unichain`. They are also what this NPM package exports:
+The contracts for the multi-chain Data Unions (DU3) are found in `contracts`. They are also what this NPM package exports:
 ```typescript
-import { dataUnionTemplate as templateJson, dataUnionFactory as factoryJson } from '@dataunions/contracts'
+import { DataUnionTemplate as templateJson, DataUnionFactory as factoryJson } from '@dataunions/contracts'
 import type { DataUnionTemplate, DataUnionFactory } from '@dataunions/contracts/typechain'
 
 import { ContractFactory, Contract } from 'ethers'
@@ -17,3 +17,5 @@ const factory = factoryFactory.deploy(templateAddress, tokenAddress, feeOracleAd
 const newDu = factory.deployNewDataUnion(adminAddress, adminFee, agents, metadata) as DataUnionTemplate
 const existingDu = new Contract(templateJson.abi, duAddress, creatorWallet) as DataUnionTemplate
 ```
+
+Old DU2 contracts are in `contracts/du2`.

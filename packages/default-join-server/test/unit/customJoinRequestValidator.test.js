@@ -3,6 +3,7 @@ const { expect } = chai
 chai.use(require('chai-as-promised'))
 
 const sinon = require('sinon')
+const { InvalidRequestError } = require('@dataunions/join-server')
 const createCustomJoinRequestValidator = require('../../src/CustomJoinRequestValidator')
 
 describe('customJoinRequestValidator', async () => {
@@ -44,7 +45,7 @@ describe('customJoinRequestValidator', async () => {
 		await expect(customJoinRequestValidator('0x12345', {
 			dataUnion: '0xABCDEF',
 			chain: 'test-chain',
-		})).to.be.rejectedWith(Error)
+		})).to.be.rejectedWith(InvalidRequestError)
 		expect(db.getAppSecret.calledOnce).to.be.false
 	})
 
@@ -53,7 +54,7 @@ describe('customJoinRequestValidator', async () => {
 			dataUnion: '0xABCDEF',
 			chain: 'test-chain',
 			secret: 'nonexistent',
-		})).to.be.rejectedWith(Error)
+		})).to.be.rejectedWith(InvalidRequestError)
 		expect(db.getAppSecret.calledOnce).to.be.true
 	})
 
@@ -62,7 +63,7 @@ describe('customJoinRequestValidator', async () => {
 			dataUnion: '0x12345',
 			chain: 'test-chain',
 			secret: 'test-secret',
-		})).to.be.rejectedWith(Error)
+		})).to.be.rejectedWith(InvalidRequestError)
 		expect(db.getAppSecret.calledOnce).to.be.true
 	})
 
@@ -71,7 +72,7 @@ describe('customJoinRequestValidator', async () => {
 			dataUnion: '0xABCDEF',
 			chain: 'wrong-chain',
 			secret: 'test-secret',
-		})).to.be.rejectedWith(Error)
+		})).to.be.rejectedWith(InvalidRequestError)
 		expect(db.getAppSecret.calledOnce).to.be.true
 	})
 

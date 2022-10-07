@@ -188,7 +188,7 @@
             "slot": "201",
             "type": "t_address",
             "contract": "DataUnionFactory",
-            "src": "contracts/unichain/DataUnionFactory.sol:29"
+            "src": "contracts/DataUnionFactory.sol:29"
           },
           {
             "label": "defaultToken",
@@ -196,7 +196,7 @@
             "slot": "202",
             "type": "t_address",
             "contract": "DataUnionFactory",
-            "src": "contracts/unichain/DataUnionFactory.sol:30"
+            "src": "contracts/DataUnionFactory.sol:30"
           },
           {
             "label": "newDUInitialEth",
@@ -204,7 +204,7 @@
             "slot": "203",
             "type": "t_uint256",
             "contract": "DataUnionFactory",
-            "src": "contracts/unichain/DataUnionFactory.sol:33"
+            "src": "contracts/DataUnionFactory.sol:33"
           },
           {
             "label": "newDUOwnerInitialEth",
@@ -212,7 +212,7 @@
             "slot": "204",
             "type": "t_uint256",
             "contract": "DataUnionFactory",
-            "src": "contracts/unichain/DataUnionFactory.sol:34"
+            "src": "contracts/DataUnionFactory.sol:34"
           },
           {
             "label": "defaultNewMemberEth",
@@ -220,7 +220,7 @@
             "slot": "205",
             "type": "t_uint256",
             "contract": "DataUnionFactory",
-            "src": "contracts/unichain/DataUnionFactory.sol:35"
+            "src": "contracts/DataUnionFactory.sol:35"
           },
           {
             "label": "protocolFeeOracle",
@@ -228,7 +228,7 @@
             "slot": "206",
             "type": "t_address",
             "contract": "DataUnionFactory",
-            "src": "contracts/unichain/DataUnionFactory.sol:36"
+            "src": "contracts/DataUnionFactory.sol:36"
           },
           {
             "label": "pendingOwner",
@@ -236,7 +236,7 @@
             "slot": "207",
             "type": "t_address",
             "contract": "DataUnionFactory",
-            "src": "contracts/unichain/DataUnionFactory.sol:39"
+            "src": "contracts/DataUnionFactory.sol:39"
           }
         ],
         "types": {

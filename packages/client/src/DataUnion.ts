@@ -144,11 +144,12 @@ export class DataUnion {
     * @returns all members of the data union
     */
     async getActiveMemberCount(): Promise<number> {
-        return this.contract.getActiveMemberCount()
+        return this.contract.activeMemberCount().then((x) => x.toNumber())
     }
 
     async refreshRevenue(): Promise<ContractReceipt> {
-        const tx = await this.contract.refreshRevenue()
+        const ethersOverrides = await this.client.getOverrides()
+        const tx = await this.contract.refreshRevenue(ethersOverrides)
         return waitOrRetryTx(tx)
     }
 
@@ -196,7 +197,7 @@ export class DataUnion {
     // TODO: drop old DU support already probably...
     /**
     * Open {@link https://docs.dataunions.org/main-concepts/data-union/data-union-observation our docs} to get more information about the stats
-    * @returns valuable information about the data union 
+    * @returns valuable information about the data union
     */
     async getStats(): Promise<DataUnionStats> {
         // Most of the interface has remained stable, but getStats has been implemented in functions that return
@@ -290,14 +291,15 @@ export class DataUnion {
 
     /**
      * Send HTTP(s) request to the join server, asking to join the data union
-     * Typically you would send a sharedSecret with the request. Read more in {@link https://docs.dataunions.org/main-concepts/joinpart-server joinPart server}
+     * Typically you would send a sharedSecret with the request.
+     * Read more in {@link https://docs.dataunions.org/main-concepts/joinpart-server joinPart server}
      */
     async join(params?: object): Promise<JoinResponse> {
         return this.post<JoinResponse>(["join"], params)
     }
 
     /**
-     * member can voluntarily leave the data union or joinPartAgent can remove a single member
+     * A member can voluntarily leave the data union by calling `part()`.
      * @returns transaction receipt
      */
     async part(): Promise<ContractReceipt> {
@@ -435,8 +437,8 @@ export class DataUnion {
     }
 
     /** Admin: */
-    async deleteSecret(secretId: string): Promise<SecretsResponse> {
-        return this.post<SecretsResponse>(['secrets', 'delete'], { secretId })
+    async deleteSecret(secret: string): Promise<SecretsResponse> {
+        return this.post<SecretsResponse>(['secrets', 'delete'], { secret })
     }
 
     /** Admin: */

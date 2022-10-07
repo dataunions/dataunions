@@ -1,7 +1,7 @@
 {
   "_format": "hh-sol-artifact-1",
   "contractName": "DataUnionTemplate",
-  "sourceName": "contracts/unichain/DataUnionTemplate.sol",
+  "sourceName": "contracts/DataUnionTemplate.sol",
   "abi": [
     {
       "inputs": [],

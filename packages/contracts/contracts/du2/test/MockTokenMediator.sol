@@ -3,7 +3,7 @@
 pragma solidity 0.8.6;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../xdai-mainnet-bridge/ISingleTokenMediator.sol";
-import "../IERC677Receiver.sol";
+import "../../IERC677Receiver.sol";
 
 contract MockTokenMediator is ISingleTokenMediator, IERC677Receiver {
 
