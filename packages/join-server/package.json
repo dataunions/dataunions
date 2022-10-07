@@ -31,7 +31,7 @@
     "lint-fix": "make lint-fix"
   },
   "dependencies": {
-    "@dataunions/client": "3.0.4",
+    "@dataunions/client": "3.0.5",
     "@streamr/config": "2.4.0",
     "commander": "9.4.0",
     "cors": "2.8.5",
