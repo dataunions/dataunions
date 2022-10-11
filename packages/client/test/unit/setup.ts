@@ -37,11 +37,13 @@ async function deployDataUnionTemplate(deployer: Wallet): Promise<DataUnionTempl
 async function deployFeeOracle(deployer: Wallet, protocolBeneficiaryAddress: string): Promise<IFeeOracle> {
     const factory = new ContractFactory(feeOracleJson.abi, feeOracleJson.bytecode, deployer)
     const contract = await factory.deploy() as unknown as IFeeOracle
-    await contract.initialize(
+    await contract.deployed()
+    const tx = await contract.initialize(
         parseEther("0.01"),
         protocolBeneficiaryAddress,
     )
-    return contract.deployed()
+    await tx.wait()
+    return contract
 }
 
 async function deployDataUnionFactory(
@@ -52,12 +54,14 @@ async function deployDataUnionFactory(
 ): Promise<DataUnionFactory> {
     const factory = new ContractFactory(factoryJson.abi, factoryJson.bytecode, deployer)
     const contract = await factory.deploy() as unknown as DataUnionFactory
-    await contract.initialize(
+    await contract.deployTransaction.wait()
+    const tx = await contract.initialize(
         templateAddress,
         tokenAddress,
         protocolFeeOracleAddress,
     )
-    return contract.deployed()
+    await tx.wait()
+    return contract
 }
 
 export function getWallets(): Wallet[] {
@@ -66,7 +70,7 @@ export function getWallets(): Wallet[] {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function deployContracts(deployer: Wallet) {
-    await provider.getNetwork().catch(() => {
+    await deployer.provider.getNetwork().catch(() => {
         throw new Error('No network found. Please start ganache with `npx ganache -p 3456 -m testrpc &` before running the unit tests')
     })
 
