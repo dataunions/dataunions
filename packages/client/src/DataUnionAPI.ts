@@ -91,7 +91,7 @@ export default class DataUnionAPI {
         return new DataUnion(contract, this.client.restPlugin, this.client)
     }
 
-    async deployDataUnionUsingToken(token: EthereumAddress, options: DataUnionDeployOptions): Promise<DataUnion> {
+    async deployDataUnionUsingToken(token: EthereumAddress, options: DataUnionDeployOptions = {}): Promise<DataUnion> {
         const {
             adminAddress = await this.wallet.getAddress(),
             joinPartAgents = [adminAddress, this.joinPartAgentAddress],
