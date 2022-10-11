@@ -8,13 +8,14 @@ import { arrayify, hexZeroPad } from '@ethersproject/bytes'
 
 import type { DataUnionTemplate as DataUnionContract } from '@dataunions/contracts/typechain'
 
-import { Debug } from './log'
 import { sleep } from './sleep'
 import { sign } from './signing'
 import type { EthereumAddress } from './EthereumAddress'
 import type { DataUnionClient } from './DataUnionClient'
 import type { Rest } from './Rest'
 
+import { debug } from 'debug'
+const log = debug('DataUnion')
 export interface DataUnionDeployOptions {
     adminAddress?: EthereumAddress,
     joinPartAgents?: EthereumAddress[],
@@ -67,8 +68,6 @@ export interface SecretsResponse {
     chain: string
     name: string
 }
-
-const log = Debug('DataUnion')
 
 type WaitForTXOptions = {
     retries: number
@@ -244,7 +243,7 @@ export class DataUnion {
                 lifetimeMemberEarnings,
             }
         } catch (e) {
-            throw new Error(`getStats failed to decode response: ${e.message}`)
+            throw new Error(`getStats failed to decode response: ${(e as Error).message}`)
         }
     }
 
@@ -528,7 +527,7 @@ export class DataUnion {
             tx = await func(...args.concat(await this.client.getOverrides()))
             return waitOrRetryTx(tx)
         } catch(error) {
-            if (error.message.includes('error_onlyOwner')) {
+            if ((error as Error).message.includes('error_onlyOwner')) {
                 const myAddress = await this.contract.signer.getAddress()
                 throw new Error(`Call to data union ${this.contract.address} failed: ${myAddress} is not the DataUnion admin!`)
             }

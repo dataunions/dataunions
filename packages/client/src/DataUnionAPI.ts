@@ -9,12 +9,12 @@ import { DataUnionFactory as DataUnionFactoryJson, DataUnionTemplate as DataUnio
 import type { DataUnionFactory, DataUnionTemplate, IERC677 } from '@dataunions/contracts/typechain'
 
 import { DataUnion } from './DataUnion'
-import { Debug } from './log'
 import type { DataUnionDeployOptions } from './DataUnion'
 import type { EthereumAddress } from './EthereumAddress'
 import type { DataUnionClient } from './DataUnionClient'
 
-const log = Debug('DataUnionAPI')
+import { debug } from 'debug'
+const log = debug('DataUnionAPI')
 
 export default class DataUnionAPI {
 
