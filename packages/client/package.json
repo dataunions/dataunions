@@ -1,6 +1,6 @@
 {
     "name": "@dataunions/client",
-    "version": "3.0.6",
+    "version": "3.0.7",
     "description": "JavaScript/TypeScript client library for DataUnions",
     "author": "Data Union DAO <contact@dataunions.org>",
     "license": "Apache-2.0",
@@ -94,7 +94,7 @@
         "@ethersproject/units": "5.7.0",
         "@ethersproject/wallet": "5.7.0",
         "@ethersproject/web": "5.7.0",
-        "@streamr/config": "2.5.0",
+        "@streamr/config": "2.5.1",
         "debug": "4.3.4",
         "node-fetch": "2.6.7",
         "readable-stream": "4.1.0",

@@ -22,5 +22,6 @@ export { DataUnionConfig, DATAUNION_CLIENT_DEFAULTS } from './Config'
 export * from './EthereumAddress'
 
 export * from './DataUnionClient'
+export * from './DataUnion'
 
 export default DataUnionClient
