@@ -14,7 +14,6 @@ import "./DataUnionTemplate.sol";
 import "./Ownable.sol";
 
 contract DataUnionFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable {
-    event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
     event DUCreated(address indexed du, address indexed owner, address template);
 
     event NewDUInitialEthUpdated(uint amount);
@@ -112,7 +111,6 @@ contract DataUnionFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable 
             metadataJsonString
         );
 
-        emit SidechainDUCreated(du, du, owner, dataUnionTemplate);
         emit DUCreated(du, owner, dataUnionTemplate);
 
         // continue whether or not send succeeds
