@@ -35,7 +35,7 @@ describe('DU subgraph', () => {
     const wallet = new Wallet('0x957a8212980a9a39bf7c03dcbeea3c722d66f2b359c669feceb0e3ba8209a297', provider) // testrpc 4
     let dataUnion: DataUnion
     let token: DATAv2
-    it('detects DU deployments (SidechainDUCreated)', async function () {
+    it('detects DU deployments (DUCreated)', async function () {
         // this.timeout(100000)
 
         log('Deploying token from %s...', tokenAdminWallet.address)

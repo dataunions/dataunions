@@ -91,7 +91,7 @@ describe("DataUnionFactory", (): void => {
             throw new Error("Missing DUCreated event")
         }
         const [newDuAddress] = createdEvent.args
-        expect(tr?.events?.filter((evt) => evt?.event === "SidechainDUCreated") ?? []).to.have.length(1)
+        expect(tr?.events?.filter((evt) => evt?.event === "DUCreated") ?? []).to.have.length(1)
 
         log("%s code: %s", newDuAddress, await provider.getCode(newDuAddress))
         expect(await provider.getCode(newDuAddress)).not.equal("0x")
