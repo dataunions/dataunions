@@ -16,7 +16,7 @@ describe('Address', () => {
 	it('throws if given value is not a string', () => {
 		try {
 			new domain.Address({})
-			assert.fail('expected create etherem address to fail with error')
+			assert.fail('expected create ethereum address to fail with error')
 		} catch (e) {
 			if (!(e instanceof domain.InvalidEthereumAddressError)) {
 				assert.fail('error is not an instance of domain.InvalidEthereumAddressError')
@@ -27,7 +27,7 @@ describe('Address', () => {
 	it('throws on invalid address', () => {
 		try {
 			new domain.Address('0x123')
-			assert.fail('expected create etherem address to fail with error')
+			assert.fail('expected create ethereum address to fail with error')
 		} catch (e) {
 			if (!(e instanceof domain.InvalidEthereumAddressError)) {
 				assert.fail('error is not an instance of domain.InvalidEthereumAddressError')
