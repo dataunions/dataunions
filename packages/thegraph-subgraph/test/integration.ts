@@ -1,5 +1,6 @@
 import { expect } from 'chai'
 
+// TODO: use the npm import once DataUnion is exported in the package
 // import { DataUnion, DataUnionClient } from '@dataunions/client'
 import { DataUnion, DataUnionClient } from '../../client/src'
 import { Wallet, providers, utils } from 'ethers'
