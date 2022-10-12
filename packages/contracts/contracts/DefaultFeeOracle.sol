@@ -13,6 +13,7 @@ contract DefaultFeeOracle is Initializable, OwnableUpgradeable, UUPSUpgradeable,
     uint public fee;
     address public override beneficiary;
 
+    // TODO: fee is a percentage, not absolute wei, rename it to feePercentageWei or similar
     event FeeChanged(uint newFeeWei);
     event BeneficiaryChanged(address newProtocolFeeBeneficiaryAddress);
 
