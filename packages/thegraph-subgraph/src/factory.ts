@@ -1,19 +1,19 @@
-import { log } from '@graphprotocol/graph-ts'
+import { log, BigInt } from '@graphprotocol/graph-ts'
 
-import { SidechainDUCreated } from '../generated/DataUnionFactory/DataUnionFactory'
-import { DataUnion } from '../generated/schema'
-import { DataUnion as DataUnion2 } from '../generated/templates'
+import { DUCreated } from '../generated/DataUnionFactory/DataUnionFactory'
+import { DataUnion as DataUnionDatabaseObject } from '../generated/schema'
+import { DataUnion } from '../generated/templates'
 
-export function handleDUCreated(event: SidechainDUCreated): void {
-    log.warning('handleDUCreated: sidechainaddress={} blockNumber={}', [event.params.sidenet.toHexString(), event.block.number.toString()])
+export function handleDUCreated(event: DUCreated): void {
+    let duAddress = event.params.du
+    log.warning('handleDUCreated: address={} blockNumber={}', [duAddress.toHexString(), event.block.number.toString()])
 
-    let dataunion = new DataUnion(event.params.sidenet.toHexString())
-    dataunion.sidechainAddress = event.params.sidenet
-    dataunion.mainchainAddress = event.params.mainnet
-    dataunion.memberCount = 0
-    dataunion.creationDate = event.block.timestamp
-    dataunion.save()
+    let dataUnion = new DataUnionDatabaseObject(duAddress.toHexString())
+    dataUnion.memberCount = 0
+    dataUnion.revenueWei = BigInt.zero()
+    dataUnion.creationDate = event.block.timestamp
+    dataUnion.save()
 
-    // Instantiate template
-    DataUnion2.create(event.params.sidenet)
+    // Instantiate a template: start listening to the new DU contract, trigger src/dataunion.ts on events
+    DataUnion.create(duAddress)
 }

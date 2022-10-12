@@ -24,7 +24,7 @@ dataSources:
         - name: DataUnionFactory
           file: ./abis/DataUnionFactory.json
       eventHandlers:
-        - event: SidechainDUCreated(indexed address,indexed address,indexed address,address)
+        - event: DUCreated(indexed address,indexed address,address)
           handler: handleDUCreated
   # New DU gnosis/xdai <<
 

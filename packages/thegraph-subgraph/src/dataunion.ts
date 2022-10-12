@@ -10,9 +10,8 @@ export function handleMemberJoined(event: MemberJoined): void {
 
     let memberId = getMemberId(memberAddress, duAddress)
     let member = new Member(memberId)
-    member.address = memberAddress
-    member.addressString = memberAddress.toHexString()
-    member.dataunion = duAddress.toHexString()
+    member.address = memberAddress.toHexString()
+    member.dataUnion = duAddress.toHexString()
     member.joinDate = event.block.timestamp
     member.status = 'ACTIVE'
     member.save()
@@ -41,8 +40,13 @@ export function handleRevenueReceived(event: RevenueReceived): void {
     updateDataUnion(duAddress, event.block.timestamp, 0, amount)
 
     // additionally save the individual events for later querying
-    let revenueEvent = new RevenueEvent(event.transaction.hash.toHexString())
-    revenueEvent.dataUnionAddress = duAddress
+    let revenueEvent = new RevenueEvent(
+        duAddress.toHexString() + '-' +
+        event.block.number.toString() + '-' +
+        event.transaction.index.toHexString() + '-' +
+        event.transactionLogIndex.toString()
+    )
+    revenueEvent.dataUnion = duAddress.toHexString()
     revenueEvent.amountWei = amount
     revenueEvent.date = event.block.timestamp
     revenueEvent.save()
@@ -53,25 +57,25 @@ function getMemberId(memberAddress: Address, duAddress: Address): string {
 }
 
 function getDataUnion(duAddress: Address): DataUnion | null {
-    let dataunion = DataUnion.load(duAddress.toHexString())
-    if (dataunion != null) {
-        return dataunion
+    let dataUnion = DataUnion.load(duAddress.toHexString())
+    if (dataUnion != null) {
+        return dataUnion
     } else {
-        log.error('addDUMemberCount: Could not change member count because DU was not found, address={}', [duAddress.toHexString()])
+        log.error('getDataUnion: DU was not found, address={}', [duAddress.toHexString()])
     }
     return null
 }
 
 function updateDataUnion(duAddress: Address, timestamp: BigInt, memberCountChange: i32, revenueChangeWei: BigInt): void {
-    log.warning('addMemberToBuckets: duAddress={} timestamp={}', [duAddress.toString(), timestamp.toString()])
+    log.warning('updateDataUnion: duAddress={} timestamp={}', [duAddress.toHexString(), timestamp.toString()])
 
-    let dataunion = getDataUnion(duAddress)
-    if (dataunion != null) {
-        dataunion.memberCount += memberCountChange
-        dataunion.revenueWei += revenueChangeWei
-        dataunion.save()
+    let dataUnion = getDataUnion(duAddress)
+    if (dataUnion != null) {
+        dataUnion.memberCount += memberCountChange
+        dataUnion.revenueWei += revenueChangeWei
+        dataUnion.save()
     } else {
-        log.error('addDUMemberCount: Could not change member count because DU was not found, address={}', [duAddress.toHexString()])
+        log.error('updateDataUnion: DU was not found, address={}', [duAddress.toHexString()])
     }
 
     let hourBucket = getBucket('HOUR', timestamp, duAddress)
@@ -96,16 +100,16 @@ function getBucket(length: string, timestamp: BigInt, duAddress: Address): DataU
         // Get DataUnion to fetch member count at the start of the bucket timespan
         let memberCount = 0
         let revenueWei = BigInt.zero()
-        let dataunion = getDataUnion(duAddress)
-        if (dataunion != null) {
-            memberCount = dataunion.memberCount
-            revenueWei = dataunion.revenueWei
+        let dataUnion = getDataUnion(duAddress)
+        if (dataUnion != null) {
+            memberCount = dataUnion.memberCount
+            revenueWei = dataUnion.revenueWei
         }
 
         // Create new bucket
         let newBucket = new DataUnionStatsBucket(bucketId)
         newBucket.type = length
-        newBucket.dataUnionAddress = duAddress
+        newBucket.dataUnion = duAddress.toHexString()
         newBucket.startDate = nearestBucket
         newBucket.endDate = nearestBucket.plus(getBucketLength(length))
         newBucket.memberCountAtStart = memberCount

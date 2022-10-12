@@ -10,7 +10,7 @@ dataSources:
     name: DataUnionFactory
     network: xDai
     source:
-      address: '0xd1FA6C06E1D838Bb989640A2C4b8a499FD0ab187'
+      address: '0x50aAa135AeBAC61E8394F80fF2Df091fcb66b072'
       abi: DataUnionFactory
       startBlock: 0
     mapping:
@@ -24,7 +24,7 @@ dataSources:
         - name: DataUnionFactory
           file: ./abis/DataUnionFactory.json
       eventHandlers:
-        - event: SidechainDUCreated(indexed address,indexed address,indexed address,address)
+        - event: DUCreated(indexed address,indexed address,address)
           handler: handleDUCreated
   # New DU streamr-docker-dev <<
 
