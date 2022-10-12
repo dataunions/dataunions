@@ -3,20 +3,23 @@ import { log, Address, BigInt } from '@graphprotocol/graph-ts'
 import { DataUnion, DataUnionStatsBucket, Member, RevenueEvent } from '../generated/schema'
 import { MemberJoined, MemberParted, RevenueReceived } from '../generated/templates/DataUnion/DataUnionTemplate'
 
+///////////////////////////////////////////////////////////////
+// HANDLERS: see subgraph.*.yaml for the events that are handled
+///////////////////////////////////////////////////////////////
+
 export function handleMemberJoined(event: MemberJoined): void {
     let duAddress = event.address
     let memberAddress = event.params.member
     log.warning('handleMemberJoined: member={} duAddress={}', [memberAddress.toHexString(), duAddress.toHexString()])
 
-    let memberId = getMemberId(memberAddress, duAddress)
-    let member = new Member(memberId)
+    let member = getMember(memberAddress, duAddress)
     member.address = memberAddress.toHexString()
     member.dataUnion = duAddress.toHexString()
     member.joinDate = event.block.timestamp
     member.status = 'ACTIVE'
     member.save()
 
-    updateDataUnion(duAddress, event.block.timestamp, 1, BigInt.zero())
+    updateDataUnion(duAddress, event.block.timestamp, 1)
 }
 
 export function handleMemberParted(event: MemberParted): void {
@@ -24,12 +27,11 @@ export function handleMemberParted(event: MemberParted): void {
     let memberAddress = event.params.member
     log.warning('handleMemberParted: member={} duAddress={}', [memberAddress.toHexString(), duAddress.toHexString()])
 
-    let memberId = getMemberId(memberAddress, duAddress)
-    let member = Member.load(memberId)
-    member!.status = 'INACTIVE'
-    member!.save()
+    let member = getMember(memberAddress, duAddress)
+    member.status = 'INACTIVE'
+    member.save()
 
-    updateDataUnion(duAddress, event.block.timestamp, -1, BigInt.zero())
+    updateDataUnion(duAddress, event.block.timestamp, -1)
 }
 
 export function handleRevenueReceived(event: RevenueReceived): void {
@@ -52,21 +54,7 @@ export function handleRevenueReceived(event: RevenueReceived): void {
     revenueEvent.save()
 }
 
-function getMemberId(memberAddress: Address, duAddress: Address): string {
-    return memberAddress.toHexString() + '-' + duAddress.toHexString()
-}
-
-function getDataUnion(duAddress: Address): DataUnion | null {
-    let dataUnion = DataUnion.load(duAddress.toHexString())
-    if (dataUnion != null) {
-        return dataUnion
-    } else {
-        log.error('getDataUnion: DU was not found, address={}', [duAddress.toHexString()])
-    }
-    return null
-}
-
-function updateDataUnion(duAddress: Address, timestamp: BigInt, memberCountChange: i32, revenueChangeWei: BigInt): void {
+function updateDataUnion(duAddress: Address, timestamp: BigInt, memberCountChange: i32, revenueChangeWei: BigInt = BigInt.zero()): void {
     log.warning('updateDataUnion: duAddress={} timestamp={}', [duAddress.toHexString(), timestamp.toString()])
 
     let dataUnion = getDataUnion(duAddress)
@@ -74,8 +62,6 @@ function updateDataUnion(duAddress: Address, timestamp: BigInt, memberCountChang
         dataUnion.memberCount += memberCountChange
         dataUnion.revenueWei += revenueChangeWei
         dataUnion.save()
-    } else {
-        log.error('updateDataUnion: DU was not found, address={}', [duAddress.toHexString()])
     }
 
     let hourBucket = getBucket('HOUR', timestamp, duAddress)
@@ -89,15 +75,43 @@ function updateDataUnion(duAddress: Address, timestamp: BigInt, memberCountChang
     dayBucket!.save()
 }
 
+///////////////////////////////////////////////////////////////
+// GETTERS: load an existing object or create a new one
+///////////////////////////////////////////////////////////////
+
+function getDataUnion(duAddress: Address): DataUnion | null {
+    let dataUnion = DataUnion.load(duAddress.toHexString())
+    if (dataUnion == null) {
+        log.error('getDataUnion: DU was not found, address={}', [duAddress.toHexString()])
+    }
+    return dataUnion
+}
+
+function getMember(memberAddress: Address, duAddress: Address): Member {
+    let memberId = memberAddress.toHexString() + '-' + duAddress.toHexString()
+    let member = Member.load(memberId)
+    if (member == null) {
+        member = new Member(memberId)
+    }
+    return member
+}
+
 function getBucket(length: string, timestamp: BigInt, duAddress: Address): DataUnionStatsBucket | null {
-    let nearestBucket = getNearestBucket(length, timestamp)
-    let bucketId = length + '-' + nearestBucket.toString()
+    let bucketSeconds: BigInt
+    if (length === 'HOUR') {
+        bucketSeconds = BigInt.fromI32(60 * 60)
+    } else if (length === 'DAY') {
+        bucketSeconds = BigInt.fromI32(24 * 60 * 60)
+    } else {
+        log.error('getBucketLength: unknown length={}', [length])
+        return null
+    }
 
-    log.warning('getBucket: nearestBucket={}', [nearestBucket.toString()])
-
-    let existingBucket = DataUnionStatsBucket.load(bucketId)
-    if (existingBucket == null) {
-        // Get DataUnion to fetch member count at the start of the bucket timespan
+    let bucketStartDate = timestamp.minus(timestamp.mod(bucketSeconds))
+    let bucketId = duAddress.toHexString() + '-' + length + '-' + bucketStartDate.toString()
+    let bucket = DataUnionStatsBucket.load(bucketId)
+    if (bucket == null) {
+        // Get DataUnion to fetch member count at bucketStartDate
         let memberCount = 0
         let revenueWei = BigInt.zero()
         let dataUnion = getDataUnion(duAddress)
@@ -107,37 +121,15 @@ function getBucket(length: string, timestamp: BigInt, duAddress: Address): DataU
         }
 
         // Create new bucket
-        let newBucket = new DataUnionStatsBucket(bucketId)
-        newBucket.type = length
-        newBucket.dataUnion = duAddress.toHexString()
-        newBucket.startDate = nearestBucket
-        newBucket.endDate = nearestBucket.plus(getBucketLength(length))
-        newBucket.memberCountAtStart = memberCount
-        newBucket.revenueAtStartWei = revenueWei
-        newBucket.memberCountChange = 0
-        newBucket.revenueChangeWei = BigInt.zero()
-        newBucket.save()
-        return newBucket
+        bucket = new DataUnionStatsBucket(bucketId)
+        bucket.type = length
+        bucket.dataUnion = duAddress.toHexString()
+        bucket.startDate = bucketStartDate
+        bucket.endDate = bucketStartDate.plus(bucketSeconds)
+        bucket.memberCountAtStart = memberCount
+        bucket.revenueAtStartWei = revenueWei
+        bucket.memberCountChange = 0
+        bucket.revenueChangeWei = BigInt.zero()
     }
-
-    return existingBucket
-}
-
-function getNearestBucket(length: string, timestamp: BigInt): BigInt {
-    let seconds = getBucketLength(length)
-    let prev = timestamp.minus(timestamp.mod(seconds))
-    return prev
-}
-
-function getBucketLength(length: string): BigInt {
-    if (length === 'HOUR') {
-        return BigInt.fromI32(60 * 60)
-    }
-    else if (length === 'DAY') {
-        return BigInt.fromI32(24 * 60 * 60)
-    }
-    else {
-        log.error('getBucketLength: unknown length={}', [length])
-    }
-    return BigInt.fromI32(0)
+    return bucket
 }
