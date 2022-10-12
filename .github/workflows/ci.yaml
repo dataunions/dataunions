@@ -16,7 +16,7 @@ on:
 
 jobs:
   lint-scripts:
-    name: Lint Bash scripts
+    name: Lint YAML build files and Bash scripts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.2
