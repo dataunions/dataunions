@@ -142,6 +142,8 @@ jobs:
         uses: streamr-dev/streamr-docker-dev-action@v1.0.0
         with:
           services-to-start: 'graph-deploy-dataunion-subgraph'
+      - name: Deploy the DU subgraph
+        run: npm run -w packages/thegraph-subgraph deploy-local
       - name: Integration Test (with dev-docker environment)
         env:
           TEST_TIMEOUT: '600000'
