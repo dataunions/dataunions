@@ -59,46 +59,87 @@ describe('DU subgraph', () => {
 
     it('detects member joins and parts (MemberJoined, MemberParted)', async function () {
         // this.timeout(100000)
+        const dataUnionId = dataUnion.getAddress().toLowerCase()
         async function getMemberCount(): Promise<number> {
-            const res = await query(`{ dataUnion(id: "${dataUnion.getAddress().toLowerCase()}") { memberCount } }`)
+            const res = await query(`{ dataUnion(id: "${dataUnionId}") { memberCount } }`)
             return res.dataUnion.memberCount
         }
 
-        const memberCountBefore = await getMemberCount()
+        async function getMemberBuckets(): Promise<Array<any>> {
+            const res = await query(`{
+                dataUnionStatsBuckets(where: {dataUnion: "${dataUnionId}"}) {
+                    memberCountAtStart
+                    memberCountChange
+                    type
+                  }
+            }`)
+            return res.dataUnionStatsBuckets
+        }
+
+        const memberCountAtStart = await getMemberCount()
+        expect(await getMemberBuckets()).to.deep.equal([])
+
         await dataUnion.addMembers(['0x1234567890123456789012345678901234567890', '0x1234567890123456789012345678901234567891'])
-        await until(async () => await getMemberCount() == memberCountBefore + 2, 10000, 2000)
+        await until(async () => await getMemberCount() == memberCountAtStart + 2, 10000, 2000)
+        expect(await getMemberBuckets()).to.deep.equal([
+            { type: 'DAY', memberCountAtStart, memberCountChange: 2 },
+            { type: 'HOUR', memberCountAtStart, memberCountChange: 2 },
+        ])
 
         await dataUnion.removeMembers(['0x1234567890123456789012345678901234567890'])
-        await until(async () => await getMemberCount() == memberCountBefore + 1, 10000, 2000)
+        await until(async () => await getMemberCount() == memberCountAtStart + 1, 10000, 2000)
+        expect(await getMemberBuckets()).to.deep.equal([
+            { type: 'DAY', memberCountAtStart, memberCountChange: 1 },
+            { type: 'HOUR', memberCountAtStart, memberCountChange: 1 },
+        ])
 
         await dataUnion.removeMembers(['0x1234567890123456789012345678901234567891'])
-        await until(async () => await getMemberCount() == memberCountBefore, 10000, 2000)
+        await until(async () => await getMemberCount() == memberCountAtStart, 10000, 2000)
+        expect(await getMemberBuckets()).to.deep.equal([
+            { type: 'DAY', memberCountAtStart, memberCountChange: 0 },
+            { type: 'HOUR', memberCountAtStart, memberCountChange: 0 },
+        ])
     })
 
     it('detects RevenueReceived events', async function () {
         // this.timeout(100000)
-        await dataUnion.addMembers(['0x1234567890123456789012345678901234567890', '0x1234567890123456789012345678901234567891'])
+        // revenue won't show up unless there are members in the DU
+        await dataUnion.addMembers(['0x1234567890123456789012345678901234567892', '0x1234567890123456789012345678901234567893'])
 
+        const dataUnionId = dataUnion.getAddress().toLowerCase()
         async function getRevenueEvents(): Promise<number> {
-            const res = await query(`{ revenueEvents(where: {dataUnion: "${dataUnion.getAddress().toLowerCase()}"}) { amountWei } }`)
+            const res = await query(`{ revenueEvents(where: {dataUnion: "${dataUnionId}"}) { amountWei } }`)
             return res.revenueEvents
         }
 
         async function getRevenue(): Promise<string> {
-            const res = await query(`{ dataUnion(id: "${dataUnion.getAddress().toLowerCase()}") { revenueWei } }`)
+            const res = await query(`{ dataUnion(id: "${dataUnionId}") { revenueWei } }`)
             return formatEther(res.dataUnion.revenueWei)
+        }
+
+        async function getRevenueBuckets(): Promise<Array<any>> {
+            const res = await query(`{
+                dataUnionStatsBuckets(where: {dataUnion: "${dataUnionId}", type: "DAY"}) {
+                    revenueAtStartWei
+                    revenueChangeWei
+                }
+            }`)
+            return res.dataUnionStatsBuckets
         }
 
         const revenueEventsBefore = await getRevenueEvents()
         const revenueBefore = await getRevenue()
+        const revenueBucketsBefore = await getRevenueBuckets()
         await (await token.mint(dataUnion.getAddress(), parseEther('100'))).wait()
         await dataUnion.refreshRevenue()
         const revenueEventsAfter1 = await getRevenueEvents()
         const revenueAfter1 = await getRevenue()
+        const revenueBucketsAfter1 = await getRevenueBuckets()
         await (await token.mint(dataUnion.getAddress(), parseEther('200'))).wait()
         await dataUnion.refreshRevenue()
         const revenueEventsAfter2 = await getRevenueEvents()
         const revenueAfter2 = await getRevenue()
+        const revenueBucketsAfter2 = await getRevenueBuckets()
 
         expect(revenueEventsBefore).to.deep.equal([])
         expect(revenueEventsAfter1).to.deep.equal([{ amountWei: '100000000000000000000' }])
@@ -106,5 +147,18 @@ describe('DU subgraph', () => {
         expect(revenueBefore).to.equal('0.0')
         expect(revenueAfter1).to.equal('100.0')
         expect(revenueAfter2).to.equal('300.0')
+        // revenueBucketsBefore exists because of the member joins in the previous test, in independent tests it would be []
+        expect(revenueBucketsBefore).to.deep.equal([{
+            revenueAtStartWei: '0',
+            revenueChangeWei: '0',
+        }])
+        expect(revenueBucketsAfter1).to.deep.equal([{
+            revenueAtStartWei: '0',
+            revenueChangeWei: '100000000000000000000',
+        }])
+        expect(revenueBucketsAfter2).to.deep.equal([{
+            revenueAtStartWei: '0',
+            revenueChangeWei: '300000000000000000000',
+        }])
     })
 })
