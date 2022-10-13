@@ -9,14 +9,9 @@ The json files in abis describe the contracts that are deployed in Polygon, not 
 npx graph auth
 ```
 Select `hosted-service`.
-Then when it asks for Deploy key, paste the accesstoken from the subgraphs page.
+When it asks for Deploy key, paste the accesstoken from the subgraphs page.
 
-Then copy the file you want to deploy into subgraph.yaml:
-```
-cp subgraph.gnosis.production.yaml subgraph.yaml
-```
-
-Then then run the deploy command with the corresponding name:
+Then run the deploy command with the corresponding name:
 ```
 npm run deploy-production-gnosis
 ```

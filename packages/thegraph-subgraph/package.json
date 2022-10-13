@@ -20,8 +20,8 @@
         "deploy-docker-dev": "graph deploy streamr-dev/dataunion --version-label v0.0.1 --ipfs http://streamr-dev-ipfs:5001 --node http://streamr-dev-thegraph-node:8020 subgraph.development.yaml",
         "create-local": "graph create streamr-dev/dataunion --node http://localhost:8020 subgraph.development.yaml",
         "deploy-local": "graph deploy streamr-dev/dataunion --version-label v0.0.1 --ipfs http://localhost:5001 --node http://localhost:8020 subgraph.development.yaml",
-        "deploy-production-gnosis": "npm run build-production && graph deploy dataunions/data-unions-gnosis",
-        "deploy-production-polygon": "npm run build-production && graph deploy dataunions/data-unions-polygon",
+        "deploy-production-gnosis": "cp subgraph.gnosis.production.yaml subgraph.yaml && npm run build-production && graph deploy dataunions/data-unions-gnosis",
+        "deploy-production-polygon": "cp subgraph.polygon.production.yaml subgraph.yaml && npm run build-production && graph deploy dataunions/data-unions-polygon",
         "doAll": "npm run build && npm run create-local && npm run deploy-local",
         "doAll-inside-docker-dev": "npm run build && npm run create-docker-dev && npm run deploy-docker-dev"
     },
