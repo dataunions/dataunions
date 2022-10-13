@@ -5,6 +5,7 @@ import { SidechainDUCreated } from '../generated/DataUnionFactorySidechain/DataU
 import { DataUnion as DataUnionDatabaseObject } from '../generated/schema'
 import { DataUnion } from '../generated/templates'
 
+// DU2 DataUnionFactorySidechain
 // event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
 export function handleDU2Created(event: SidechainDUCreated): void {
     let duAddress = event.params.mainnet
@@ -12,6 +13,8 @@ export function handleDU2Created(event: SidechainDUCreated): void {
     createDataUnion(duAddress, event.block.timestamp)
 }
 
+// DU3 DataUnionFactory
+// event DUCreated(address indexed du, address indexed owner, address template);
 export function handleDUCreated(event: DUCreated): void {
     let duAddress = event.params.du
     log.warning('handleDUCreated: address={} blockNumber={}', [duAddress.toHexString(), event.block.number.toString()])
