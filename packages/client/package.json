@@ -99,6 +99,6 @@
         "node-fetch": "2.6.7",
         "readable-stream": "4.1.0",
         "reflect-metadata": "0.1.13",
-        "uuid": "8.3.2"
+        "uuid": "9.0.0"
     }
 }
