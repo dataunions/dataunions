@@ -6,11 +6,16 @@ You need to be owner in the DataunionDAO organisation in github.
 
 The json files in abis describe the contracts that are deployed in Polygon, not those found in packages/contracts. When a new deployment is made, the corresponding json should be copied here.
 ```
-npx graph auth --product hosted-service
+npx graph auth
 ```
+Select `hosted-service`.
 Then when it asks for Deploy key, paste the accesstoken from the subgraphs page.
 
-Then rename the file you want to deploy (i.e. subgraph.gnosis.production.yaml) to subgraph.yaml,
+Then copy the file you want to deploy into subgraph.yaml:
+```
+cp subgraph.gnosis.production.yaml subgraph.yaml
+```
+
 Then then run the deploy command with the corresponding name:
 ```
 npm run deploy-production-gnosis
@@ -19,6 +24,7 @@ or
 ```
 npm run deploy-production-polygon
 ```
+Select `hosted-service` if it asks.
 
 # Development
 
@@ -29,3 +35,8 @@ Wait until `docker logs -f streamr-dev-graph-deploy-dataunion-subgraph` shows th
 You're now ready to deploy your changes: `npm run deploy-local`
 
 If the deploy completes without errors, refresh the browser page. You should be able to see your updated objects in the list.
+
+Then you can paste graphQL queries at http://127.0.0.1:8000/subgraphs/name/<githubname>/<subgraphname>/graphql
+or send queries to http://localhost:8000/subgraphs/name/<githubname>/<subgraphname>
+for example with a gui like https://github.com/graphql/graphql-playground
+or from a webapplication
