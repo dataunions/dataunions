@@ -10,7 +10,7 @@
     },
     "scripts": {
         "clean": "rm -rf build generated",
-        "build": "graph codegen subgraph.development.yaml && graph build subgraph.development.yaml",
+        "build": "graph codegen subgraph.gnosis.production.yaml && graph codegen subgraph.development.yaml && graph build subgraph.development.yaml",
         "build-production": "graph codegen subgraph.yaml && graph build subgraph.yaml",
         "lint": "eslint ./src/*.ts",
         "integration-test": "npx mocha --require ts-node/register --timeout 100000 test/integration.ts",
