@@ -4,8 +4,9 @@
 import pkg from '../package.json'
 import type { Response } from 'node-fetch'
 import fetch from 'node-fetch'
-import type { Debugger} from './log'
-import { Debug, inspect } from './log'
+
+import { debug } from 'debug'
+const log = debug('dataunions:authFetch')
 
 /**
  * Generates counter-based ids.
@@ -91,7 +92,7 @@ export class AuthFetchError extends Error {
     constructor(message: string, response?: Response, body?: unknown, errorCode?: ErrorCode) {
         const typePrefix = errorCode ? errorCode + ': ' : ''
         // add leading space if there is a body set
-        const bodyMessage = body ? ` ${inspect(body)}` : ''
+        const bodyMessage = body ? ` ${JSON.stringify(body)}` : ''
         super(typePrefix + message + bodyMessage)
         this.response = response
         this.body = body
@@ -109,13 +110,8 @@ export async function authRequest(
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     opts?: any,
     // requireNewToken = false,
-    debug?: Debugger,
     fetchFn: typeof fetch = fetch
 ): Promise<Response> {
-    if (!debug) {
-        const id = counterId('authResponse')
-        debug = Debug('utils').extend(id) // eslint-disable-line no-param-reassign
-    }
 
     const timeStart = Date.now()
 
@@ -131,11 +127,11 @@ export async function authRequest(
         options.headers['Content-Type'] = 'application/json'
     }
 
-    debug('%s >> %o', url, opts)
+    log('%s >> %o', url, opts)
 
     const response: Response = await fetchFn(url, opts)
     const timeEnd = Date.now()
-    debug('%s << %d %s %s %s', url, response.status, response.statusText, Debug.humanize(timeEnd - timeStart))
+    log('%s << %d %s %s %s ms', url, response.status, response.statusText, timeEnd - timeStart)
 
     if (response.ok) {
         return response
@@ -143,14 +139,14 @@ export async function authRequest(
 
     // no more sessions since DU3
     // if ([400, 401].includes(response.status) && !requireNewToken) {
-    //     debug('%d %s – revalidating session')
+    //     log('%d %s – revalidating session')
     //     return authRequest<T>(url, options, true)
     // }
 
-    debug('%s – failed', url)
+    log('%s – failed', url)
     const errorBody = await response.json()
     throw new Error(errorBody.error?.message
-        ?? `Request ${debug.namespace} to ${url} returned with error code ${response.status}: ${JSON.stringify(errorBody)}`)
+        ?? `Request ${url} returned with error code ${response.status}: ${JSON.stringify(errorBody)}`)
 }
 
 /** @internal */
@@ -158,20 +154,16 @@ export async function authFetch<ResponseType extends object>(
     url: string,
     opts?: unknown,
     // requireNewToken = false,
-    debug?: Debugger,
     fetchFn?: typeof fetch
 ): Promise<ResponseType> {
-    const id = counterId('authFetch')
-    debug = debug || Debug('utils').extend(id) // eslint-disable-line no-param-reassign
-
-    const response = await authRequest(url, opts, debug, fetchFn)
+    const response = await authRequest(url, opts, fetchFn)
     // can only be ok response
     const body = await response.text()
     try {
         return JSON.parse(body || '{}')
     } catch (e) {
-        debug('%s – failed to parse body: %s', url, e.stack)
-        throw new AuthFetchError(e.message, response, body)
+        log('%s – failed to parse body: %s', url, (e as Error).stack)
+        throw new AuthFetchError((e as Error).message, response, body)
     }
 }
 

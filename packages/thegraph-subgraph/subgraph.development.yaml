@@ -5,12 +5,12 @@ repository: ""
 schema:
   file: ./schema.graphql
 dataSources:
-  # New DU gnosis/xdai >>
+  # New DU streamr-docker-dev >>
   - kind: ethereum/contract
     name: DataUnionFactory
     network: xDai
     source:
-      address: '0xd1FA6C06E1D838Bb989640A2C4b8a499FD0ab187'
+      address: '0x50aAa135AeBAC61E8394F80fF2Df091fcb66b072'
       abi: DataUnionFactory
       startBlock: 0
     mapping:
@@ -24,12 +24,12 @@ dataSources:
         - name: DataUnionFactory
           file: ./abis/DataUnionFactory.json
       eventHandlers:
-        - event: SidechainDUCreated(indexed address,indexed address,indexed address,address)
+        - event: DUCreated(indexed address,indexed address,address)
           handler: handleDUCreated
-  # New DU gnosis/xdai <<
+  # New DU streamr-docker-dev <<
 
 templates:
-  # New DU gnosis/xdai >>
+  # New DU streamr-docker-dev >>
   - name: DataUnion
     kind: ethereum/contract
     network: xDai
@@ -43,6 +43,7 @@ templates:
       entities:
         - Member
         - DataUnionStatsBucket
+        - RevenueEvent
       abis:
         - name: DataUnionTemplate
           file: ./abis/DataUnionTemplate.json
@@ -51,4 +52,6 @@ templates:
           handler: handleMemberJoined
         - event: MemberParted(indexed address,indexed uint8)
           handler: handleMemberParted
-  # New DU gnosis/xdai <<
+        - event: RevenueReceived(uint256)
+          handler: handleRevenueReceived
+  # New DU streamr-docker-dev <<

@@ -1,18 +1,33 @@
-import { log } from '@graphprotocol/graph-ts'
+import { log, BigInt, Address } from '@graphprotocol/graph-ts'
 
-import { SidechainDUCreated } from '../generated/DataUnionFactory/DataUnionFactory'
-import { DataUnion } from '../generated/schema'
-import { DataUnion as DataUnion2 } from '../generated/templates'
+import { DUCreated } from '../generated/DataUnionFactory/DataUnionFactory'
+import { SidechainDUCreated } from '../generated/DataUnionFactorySidechain/DataUnionFactorySidechain'
+import { DataUnion as DataUnionDatabaseObject } from '../generated/schema'
+import { DataUnion } from '../generated/templates'
 
-export function handleDUCreated(event: SidechainDUCreated): void {
-    log.warning('handleDUCreated: sidechainaddress={} blockNumber={}', [event.params.sidenet.toHexString(), event.block.number.toString()])
+// DU2 DataUnionFactorySidechain
+// event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
+export function handleDU2Created(event: SidechainDUCreated): void {
+    let duAddress = event.params.mainnet
+    log.warning('[old] handleDU2Created: address={} blockNumber={}', [duAddress.toHexString(), event.block.number.toString()])
+    createDataUnion(duAddress, event.block.timestamp)
+}
 
-    let dataunion = new DataUnion(event.params.sidenet.toHexString())
-    dataunion.sidechainAddress = event.params.sidenet
-    dataunion.mainchainAddress = event.params.mainnet
-    dataunion.memberCount = 0
-    dataunion.save()
+// DU3 DataUnionFactory
+// event DUCreated(address indexed du, address indexed owner, address template);
+export function handleDUCreated(event: DUCreated): void {
+    let duAddress = event.params.du
+    log.warning('handleDUCreated: address={} blockNumber={}', [duAddress.toHexString(), event.block.number.toString()])
+    createDataUnion(duAddress, event.block.timestamp)
+}
 
-    // Instantiate template
-    DataUnion2.create(event.params.sidenet)
+export function createDataUnion(duAddress: Address, creationDate: BigInt): void {
+    let dataUnion = new DataUnionDatabaseObject(duAddress.toHexString())
+    dataUnion.memberCount = 0
+    dataUnion.revenueWei = BigInt.zero()
+    dataUnion.creationDate = creationDate
+    dataUnion.save()
+
+    // Instantiate a template: start listening to the new DU contract, trigger src/dataunion.ts on events
+    DataUnion.create(duAddress)
 }

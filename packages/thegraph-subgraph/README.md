@@ -21,61 +21,11 @@ npm run deploy-production-polygon
 ```
 
 # Development
-first run a local eth blockchain (ganache, ganache-cli, harhat, ...) and deploy the contracts into that blockchain. You should also be abple to interact with the contract, for example with the REMIX IDE
 
-then set up the graph infrastructure locally in docker (thegraph, ipfs, postgres):
-```
-git clone https://github.com/graphprotocol/graph-node/
-cd graph-node/docker
-ONLY FOR LINUX: ./setup.sh
-docker-compose up
-```
+Run `streamr-docker-dev start graph-deploy-dataunion-subgraph` to start the graph-node locally and deploy the `main` version of DU subgraph.
 
-npm ci
-npm run codegen
-npm run build
-npm run create-local
-npm run deploy-local
+Wait until `docker logs -f streamr-dev-graph-deploy-dataunion-subgraph` shows the deployment is complete. You should now be able to see and query the subgraph: http://localhost:8000/subgraphs/name/streamr-dev/dataunion/graphql (though initially it's empty so there's not much to query...). Top-left corner has "Explorer >" button that opens the list of object available in the subgraph.
 
-(attention: create and deploy without '-local' will publish to the official The Graph API. And you can't ever delete a subgraph; )
+You're now ready to deploy your changes: `npm run deploy-local`
 
-then you can paste graphQL queries at http://127.0.0.1:8000/subgraphs/name/<githubname>/<subgraphname>/graphql
-or send queries to http://localhost:8000/subgraphs/name/<githubname>/<subgraphname>
-for example with a gui like https://github.com/graphql/graphql-playground 
-or from a webapplication
-
-example queries:
-```
-{
-   streams {
-    id,
-    metadata,
-    permissions {
-      id,
-  		user,
-  		edit,
-      canDelete,
-      publish,
-      subscribed,
-      share,
-    }
-  }
-}
-```
-
-```
-
-{
-  permissions {
-      id,
-  		user,
-  		isadmin,
-  		publishRights
-  		viewRights
-  		expirationTime
-    stream {
-      id
-    }
-  }
-}
-```
+If the deploy completes without errors, refresh the browser page. You should be able to see your updated objects in the list.

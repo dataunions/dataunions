@@ -15,8 +15,8 @@ on:
       - main
 
 jobs:
-  lint:
-    name: Lint
+  lint-scripts:
+    name: Lint YAML build files and Bash scripts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.2
@@ -27,10 +27,10 @@ jobs:
           no_warnings: false
           config_file: .yamllint
       - run: shellcheck --color=never --check-sourced --shell=bash release*.bash
-  build:
+  lint-and-unit-test:
     needs:
-      - lint
-    name: Build
+      - lint-scripts
+    name: Lint and unit test packages
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3.0.2
@@ -40,20 +40,19 @@ jobs:
           nvm install $(cat .nvmrc)
           echo "$HOME/.nvm/versions/node/$(cat .nvmrc)/bin" >> $GITHUB_PATH
           echo "$(pwd)/node_modules/.bin" >> $GITHUB_PATH
-      - name: Get npm cache directory
-        id: npm-cache-dir
-        run: |
-          echo "::set-output name=dir::$(npm config get cache)"
-      - uses: actions/cache@v3
-        id: npm-cache # use this to check for `cache-hit` ==> if: steps.npm-cache.outputs.cache-hit != 'true'
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v3
         with:
-          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          path: |
+            node_modules
+            packages/*/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Install dependencies
-        run: |
-          npm ci
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --no-audit
       - name: Run lint
         run: |
           npm run lint
@@ -61,10 +60,10 @@ jobs:
         run: |
           npm run build
           npm run test
-  integration-test:
+  default-join-server-integration-test:
     needs:
-      - lint
-    name: Integration Test
+      - lint-and-unit-test
+    name: Default Join Server internal "integration test"
     runs-on: ubuntu-20.04
     env:
       SECRET_DB_SCHEMA: join-server-test
@@ -95,21 +94,58 @@ jobs:
           nvm install $(cat .nvmrc)
           echo "$HOME/.nvm/versions/node/$(cat .nvmrc)/bin" >> $GITHUB_PATH
           echo "$(pwd)/node_modules/.bin" >> $GITHUB_PATH
-      - name: Get npm cache directory
-        id: npm-cache-dir
-        run: |
-          echo "::set-output name=dir::$(npm config get cache)"
-      - uses: actions/cache@v3
-        id: npm-cache # use this to check for `cache-hit` ==> if: steps.npm-cache.outputs.cache-hit != 'true'
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v3
         with:
-          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          path: |
+            node_modules
+            packages/*/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Install dependencies
-        run: |
-          npm ci
-      - name: Integration tests
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --no-audit
+      - name: Integration test (with mysql)
         run: |
           mysql --user=${{env.SECRET_DB_USER}} --password=${{env.SECRET_DB_PASSWORD}} --host=127.0.0.1 --port=${{env.SECRET_DB_PORT}} < packages/default-join-server/create_tables.sql
-          npm run integration-test
+          npm run -w packages/default-join-server integration-test
+  thegraph-subgraph-integration-test:
+    needs:
+      - lint-and-unit-test
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3.0.2
+      - name: Install Node
+        run: |
+          source $HOME/.nvm/nvm.sh
+          nvm install $(cat .nvmrc)
+          echo "$HOME/.nvm/versions/node/$(cat .nvmrc)/bin" >> $GITHUB_PATH
+          echo "$(pwd)/node_modules/.bin" >> $GITHUB_PATH
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --no-audit
+      - name: Build packages
+        run: npm run build
+      - name: Start Streamr Docker Stack
+        uses: streamr-dev/streamr-docker-dev-action@v1.0.0
+        with:
+          services-to-start: 'graph-deploy-dataunion-subgraph'
+      - name: Deploy the DU subgraph
+        run: npm run -w packages/thegraph-subgraph deploy-local
+      - name: Integration Test (with dev-docker environment)
+        env:
+          TEST_TIMEOUT: '600000'
+          DEBUG: "*,-mocha:*"
+        run: npm run -w packages/thegraph-subgraph integration-test

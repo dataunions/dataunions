@@ -246,3 +246,8 @@ If you want to generate a new random wallet, you can use
 ```js
 const { address, privateKey } = DataUnionClient.generateEthereumAccount()
 ```
+
+## Changelog
+
+3.0.6: bumped @streamr/config to 2.5.0 to fix the dev1 chain DataUnionFactory address
+3.0.7: bumped @streamr/config to 2.5.1

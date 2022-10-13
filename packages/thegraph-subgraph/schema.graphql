@@ -1,9 +1,15 @@
+# note on dates:
+#  Int = "A signed 32‐bit integer" according to https://graphql.org/learn/schema/
+#  signed 32 bits can represent numbers up to 2e9
+#  dates are in epoch seconds, so Int is good until https://en.wikipedia.org/wiki/Year_2038_problem
+# In graph-ts objects (such as Block) all numbers are BigInt, including dates, so that should be a good choice for schema types, too
+
 type DataUnion @entity {
-  id: ID!
-  sidechainAddress: Bytes!
-  mainchainAddress: Bytes!
-  members: [Member!]! @derivedFrom(field: "dataunion")
-  memberCount: Int!  
+  id: ID! # this will be the DU contract address as all-lowercase string
+  members: [Member!]! @derivedFrom(field: "dataUnion")
+  memberCount: Int!
+  revenueWei: BigInt!
+  creationDate: BigInt!
 }
 
 enum MemberStatus {
@@ -13,11 +19,11 @@ enum MemberStatus {
 }
 
 type Member @entity {
-  id: ID!
-  address: Bytes!
-  addressString: String! # We need this to be String to enable partial match search
-  dataunion: DataUnion!
+  id: ID! # this will be the string "0xduaddress-0xmemberaddress"
+  address: String! # We need this to be String to enable partial match search
+  dataUnion: DataUnion!
   status: MemberStatus!
+  joinDate: BigInt!
 }
 
 enum BucketType {
@@ -28,9 +34,18 @@ enum BucketType {
 type DataUnionStatsBucket @entity {
   id: ID!
   type: BucketType!
-  dataUnionAddress: Bytes!
+  dataUnion: DataUnion!
   startDate: BigInt!
   endDate: BigInt!
   memberCountAtStart: Int!
   memberCountChange: Int!
+  revenueAtStartWei: BigInt!
+  revenueChangeWei: BigInt!
+}
+
+type RevenueEvent @entity {
+  id: ID! # this will be 0xduaddress-blocknumber-txindex-logindex
+  dataUnion: DataUnion!
+  date: BigInt!
+  amountWei: BigInt!
 }

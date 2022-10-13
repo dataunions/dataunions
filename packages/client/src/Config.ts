@@ -43,7 +43,7 @@ export type DataUnionClientConfig = {
     // _timeouts: TimeoutsConfig
 }
 
-// under config.dataunion
+// under config.dataUnion
 export type DataUnionConfig = {
     /**
      * Threshold value set in AMB configs, smallest token amount to pass over the bridge if
