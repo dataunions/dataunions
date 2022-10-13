@@ -5,7 +5,7 @@ repository: ""
 schema:
   file: ./schema.graphql
 dataSources:
-  # Old DU gnosis/xdai >>
+  # Old DU gnosis/xdai (Swash) >>
   - kind: ethereum/contract
     name: DataUnionFactorySidechain
     network: xdai
@@ -25,7 +25,7 @@ dataSources:
           file: ./abis/DataUnionFactorySidechain.json
       eventHandlers:
         - event: SidechainDUCreated(indexed address,indexed address,indexed address,address)
-          handler: handleDUCreated
+          handler: handleDU2Created
   # Old DU gnosis/xdai <<
 
   # New DU gnosis/xdai >>
@@ -52,7 +52,7 @@ dataSources:
   # New DU gnosis/xdai <<
 
 templates:
-  # Old DU gnosis/xdai >>
+  # Old DU gnosis/xdai (Swash) >>
   - name: DataUnionSidechain
     kind: ethereum/contract
     network: xdai
@@ -66,6 +66,7 @@ templates:
       entities:
         - Member
         - DataUnionStatsBucket
+        - RevenueEvent
       abis:
         - name: DataUnionSidechain
           file: ./abis/DataUnionSidechain.json
@@ -74,6 +75,8 @@ templates:
           handler: handleMemberJoined
         - event: MemberParted(indexed address)
           handler: handleMemberParted
+        - event: RevenueReceived(uint256)
+          handler: handleRevenueReceived
   # Old DU gnosis/xdai <<
 
   # New DU gnosis/xdai >>
