@@ -57,13 +57,7 @@ export function handleRevenueReceived(event: RevenueReceived): void {
 function updateDataUnion(duAddress: Address, timestamp: BigInt, memberCountChange: i32, revenueChangeWei: BigInt = BigInt.zero()): void {
     log.warning('updateDataUnion: duAddress={} timestamp={}', [duAddress.toHexString(), timestamp.toString()])
 
-    let dataUnion = getDataUnion(duAddress)
-    if (dataUnion != null) {
-        dataUnion.memberCount += memberCountChange
-        dataUnion.revenueWei += revenueChangeWei
-        dataUnion.save()
-    }
-
+    // buckets must be done first so that *AtStart values are correct for newly created buckets
     let hourBucket = getBucket('HOUR', timestamp, duAddress)
     hourBucket!.memberCountChange += memberCountChange
     hourBucket!.revenueChangeWei += revenueChangeWei
@@ -73,6 +67,13 @@ function updateDataUnion(duAddress: Address, timestamp: BigInt, memberCountChang
     dayBucket!.memberCountChange += memberCountChange
     dayBucket!.revenueChangeWei += revenueChangeWei
     dayBucket!.save()
+
+    let dataUnion = getDataUnion(duAddress)
+    if (dataUnion != null) {
+        dataUnion.memberCount += memberCountChange
+        dataUnion.revenueWei += revenueChangeWei
+        dataUnion.save()
+    }
 }
 
 ///////////////////////////////////////////////////////////////
