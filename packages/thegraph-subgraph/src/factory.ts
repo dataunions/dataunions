@@ -8,7 +8,7 @@ import { DataUnion } from '../generated/templates'
 // DU2 DataUnionFactorySidechain
 // event SidechainDUCreated(address indexed mainnet, address indexed sidenet, address indexed owner, address template);
 export function handleDU2Created(event: SidechainDUCreated): void {
-    let duAddress = event.params.mainnet
+    let duAddress = event.params.sidenet
     log.warning('[old] handleDU2Created: address={} blockNumber={}', [duAddress.toHexString(), event.block.number.toString()])
     createDataUnion(duAddress, event.block.timestamp)
 }

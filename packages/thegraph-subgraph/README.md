@@ -15,7 +15,7 @@ Then run the deploy command with the corresponding name:
 ```
 npm run deploy-production-gnosis
 ```
-or
+and/or
 ```
 npm run deploy-production-polygon
 ```
