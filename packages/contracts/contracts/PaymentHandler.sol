@@ -15,7 +15,9 @@ contract PaymentHandler {
         token = IERC677(token_);
     }
 
+    //ToDo needs to be ownable, ideally same owner as the data union one. This function should not be public, major security risk
     function distribute(address payable[] memory members, uint[] memory shareFractions) public isSorted(shareFractions) hasEqualLength(members, shareFractions) sharesAddUpTo1(shareFractions) {
+        require(msg.sender == dataUnion.owner(), "error_onlyOwner");
         uint pSent = 0;
         uint tokenBalance = token.balanceOf(address(this));
         for(uint i=0; i < shareFractions.length; i++) {
