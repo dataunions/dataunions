@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.0.2
-      - uses: ibiqlik/action-yamllint@v3.1.0
+      - uses: ibiqlik/action-yamllint@v3.1.1
         with:
           file_or_dir: .
           strict: true
