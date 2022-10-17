@@ -19,7 +19,7 @@ jobs:
     name: Lint YAML build files and Bash scripts
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v3.1.0
       - uses: ibiqlik/action-yamllint@v3.1.0
         with:
           file_or_dir: .
@@ -33,7 +33,7 @@ jobs:
     name: Lint and unit test packages
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v3.1.0
       - name: Install Node
         run: |
           source $HOME/.nvm/nvm.sh
@@ -87,7 +87,7 @@ jobs:
           --health-timeout=5s
           --health-retries=3
     steps:
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v3.1.0
       - name: Install Node
         run: |
           source $HOME/.nvm/nvm.sh
@@ -116,7 +116,7 @@ jobs:
       - lint-and-unit-test
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v3.1.0
       - name: Install Node
         run: |
           source $HOME/.nvm/nvm.sh
