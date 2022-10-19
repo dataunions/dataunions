@@ -15,8 +15,14 @@ contract PaymentHandler {
         token = IERC677(token_);
     }
 
-    function distribute(address payable[] memory members, uint[] memory shareFractions) public isSorted(shareFractions) hasEqualLength(members, shareFractions) sharesAddUpTo1(shareFractions) {
+    /**
+     * @dev After token have been transfered to THIS contract this function should be called to distribute the earnings.
+     * @param members list of all active members that have to be in the same order as their associated shareFraction.
+     * @param shareFractions list of the share distribution associated to the active members. Share fractions have to add up to 1 ether and must be sorted according to increasing numbers.
+     */
+    function distribute(address payable[] memory members, uint[] memory shareFractions) public validShares(shareFractions) validMembers(members) {
         require(msg.sender == dataUnion.owner(), "error_onlyOwner");
+        require(members.length == shareFractions.length, "Array length must be equal");
         uint pSent = 0;
         uint tokenBalance = token.balanceOf(address(this));
         for(uint i=0; i < shareFractions.length; i++) {
@@ -25,44 +31,47 @@ contract PaymentHandler {
             token.transfer(address(dataUnion), tokenWei);
             dataUnion.refreshRevenue();
             pSent += p;
-            removeMembers(i, members, shareFractions);
+            i = removeMembers(i, members, shareFractions) - 1;
         }
         dataUnion.addMembers(members);
     }
 
-    function removeMembers(uint position, address payable[] memory members, uint[] memory shareFractions) private {
-        for(uint x=position; x < members.length; x++) {
+    function removeMembers(uint position, address payable[] memory members, uint[] memory shareFractions) private returns (uint) {
+        uint x=position;
+        for(x; x < members.length; x++) {
             if(shareFractions[position] != shareFractions[x]) {
                 break;
             } else {
                 dataUnion.partMember(members[x]);
-             }
+            }
         }
+        return x;
     }
 
-    modifier isSorted(uint[] memory shareFractions) {
+    modifier validShares(uint[] memory shareFractions) {
         bool sorted = true;
-        for(uint i=1; i < shareFractions.length; i++) {
-            if(shareFractions[i] < shareFractions[i-1]) {
+        uint x = 0;
+        for(uint i=0; i < shareFractions.length; i++) {
+            if(i>0 && shareFractions[i] < shareFractions[i-1] && sorted) {
                 sorted = false;
+            }
+            x += shareFractions[i];
+        }
+        require(sorted, "Array not sorted");
+        require(x == 1 ether, "Shares must add up to 1");
+        _;
+    }
+
+    modifier validMembers(address payable[] memory members) {
+        require(members.length == dataUnion.activeMemberCount(), "Active members don't match array");
+        bool allActiveMembers = true;
+        for(uint i=0; i < members.length; i++) {
+            allActiveMembers = dataUnion.isMember(members[i]);
+            if(!allActiveMembers) {
                 break;
             }
         }
-        require(sorted, "Array not sorted");
-        _;
-    }
-
-    modifier hasEqualLength(address payable[] memory members, uint[] memory shareFractions) {
-        require(members.length == shareFractions.length, "Array length must be equal");
-        _;
-    }
-
-    modifier sharesAddUpTo1(uint[] memory shareFractions) {
-        uint x = 0;
-        for(uint i = 0; i < shareFractions.length; i++) {
-            x += shareFractions[i];
-        }
-        require(x == 1 ether, "Shares must add up to 1");
+        require(allActiveMembers, "Active members don't match array");
         _;
     }
 }

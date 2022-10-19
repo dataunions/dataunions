@@ -3,7 +3,7 @@ import { waffle } from "hardhat"
 import { BigNumber, Wallet, Contract, utils, BigNumberish } from "ethers"
 
 import Debug from "debug"
-const log = Debug("Streamr:du:test:DataUnionTemplate")
+const log = Debug("Streamr:du:test:PaymentHandler")
 //const log = console.log  // for debugging?
 
 import DataUnionTemplateJson from "../../artifacts/contracts/DataUnionTemplate.sol/DataUnionTemplate.json"
@@ -103,9 +103,8 @@ describe("DataUnionTemplate", () => {
         log(`DataUnionTemplate initialized at ${dataUnionSidechain.address}`)
     })
 
-    it.skip("Only accepts sorted shares and equal length arrays", async () => {
+    it("Only accepts sorted shares and equal length arrays", async () => {
         let shares = [parseEther("0.5"), parseEther("0.1"), parseEther("0.4")]
-        console.log(m)
         await expect(paymentHandler.distribute(m, shares)).to.be.revertedWith(
             "Array not sorted"
         )
@@ -121,17 +120,34 @@ describe("DataUnionTemplate", () => {
         await paymentHandler.distribute(m, shares)
     })
 
-    it("distributes earnings correctly", async () => {
-        const randomOutsider = others[1]
-        const newMember = others[0]
+    it("Only accepts active members", async () => {
+        await dataUnionSidechainAgent.addMembers(a)
+        await dataUnionSidechainAgent.addMember(o[0])
+        // send and distribute a batch of revenue to members
+        await expect(
+            testToken.transfer(paymentHandler.address, "1000")
+        ).to.emit(testToken, "Transfer(address,address,uint256)")
 
+        const shares = [
+            parseEther("0.05"),
+            parseEther("0.05"),
+            parseEther("0.2"),
+            parseEther("0.2"),
+            parseEther("0.25"),
+            parseEther("0.25"),
+        ]
+        await expect(
+            paymentHandler.distribute(m.concat(a).concat(o[1]), shares)
+        ).to.be.revertedWith("Active members don't match array")
+    })
+
+    it("distributes earnings correctly", async () => {
         // send and distribute a batch of revenue to members
         await expect(
             testToken.transfer(paymentHandler.address, "1000")
         ).to.emit(testToken, "Transfer(address,address,uint256)")
 
         const shares = [parseEther("0.1"), parseEther("0.4"), parseEther("0.5")]
-        console.log("in test it is", testToken.address)
         await paymentHandler.distribute(m, shares)
 
         expect(await dataUnionSidechain.totalEarnings()).to.equal(900)
@@ -144,5 +160,66 @@ describe("DataUnionTemplate", () => {
         expect(
             await (await dataUnionSidechain.getEarnings(m[2])).toString()
         ).to.equal("450")
+    })
+    it("distributes buckets correctly 1", async () => {
+        // send and distribute a batch of revenue to members
+        await expect(
+            testToken.transfer(paymentHandler.address, "1000")
+        ).to.emit(testToken, "Transfer(address,address,uint256)")
+
+        const shares = [parseEther("0.1"), parseEther("0.1"), parseEther("0.8")]
+        await paymentHandler.distribute(m, shares)
+
+        expect(await dataUnionSidechain.totalEarnings()).to.equal(900)
+        expect(
+            await (await dataUnionSidechain.getEarnings(m[0])).toString()
+        ).to.equal("90")
+        expect(
+            await (await dataUnionSidechain.getEarnings(m[1])).toString()
+        ).to.equal("90")
+        expect(
+            await (await dataUnionSidechain.getEarnings(m[2])).toString()
+        ).to.equal("720")
+    })
+    it("distributes buckets correctly 2", async () => {
+        // send and distribute a batch of revenue to members
+        await expect(
+            testToken.transfer(paymentHandler.address, "1000")
+        ).to.emit(testToken, "Transfer(address,address,uint256)")
+
+        await dataUnionSidechainAgent.addMembers(a)
+        await dataUnionSidechainAgent.addMember(o[0])
+
+        const shares = [
+            parseEther("0.05"),
+            parseEther("0.05"),
+            parseEther("0.2"),
+            parseEther("0.2"),
+            parseEther("0.25"),
+            parseEther("0.25"),
+        ]
+        await paymentHandler.distribute(m.concat(a).concat(o[0]), shares)
+
+        expect(await dataUnionSidechain.totalEarnings()).to.equal(900)
+        expect(
+            await (await dataUnionSidechain.getEarnings(m[0])).toString()
+        ).to.equal("45")
+        expect(
+            await (await dataUnionSidechain.getEarnings(m[1])).toString()
+        ).to.equal("45")
+        expect(
+            await (await dataUnionSidechain.getEarnings(m[2])).toString()
+        ).to.equal("180")
+        expect(
+            await (await dataUnionSidechain.getEarnings(a[0])).toString()
+        ).to.equal("180")
+        expect(
+            await (await dataUnionSidechain.getEarnings(a[1])).toString()
+        ).to.equal("225")
+        expect(
+            await (await dataUnionSidechain.getEarnings(o[0])).toString()
+        ).to.equal("225")
+
+        await dataUnionSidechainAgent.partMembers(a)
     })
 })
