@@ -107,7 +107,7 @@ describe('DU subgraph', () => {
         await dataUnion.addMembers(['0x1234567890123456789012345678901234567892', '0x1234567890123456789012345678901234567893'])
 
         const dataUnionId = dataUnion.getAddress().toLowerCase()
-        async function getRevenueEvents(): Promise<number> {
+        async function getRevenueEvents(): Promise<any[]> {
             const res = await query(`{ revenueEvents(where: {dataUnion: "${dataUnionId}"}) { amountWei } }`)
             return res.revenueEvents
         }
@@ -132,12 +132,14 @@ describe('DU subgraph', () => {
         const revenueBucketsBefore = await getRevenueBuckets()
         await (await token.mint(dataUnion.getAddress(), parseEther('100'))).wait()
         await dataUnion.refreshRevenue()
-        const revenueEventsAfter1 = await getRevenueEvents()
+        let revenueEventsAfter1
+        await until(async () => (revenueEventsAfter1 = await getRevenueEvents()).length > revenueEventsBefore.length, 10000, 2000)
         const revenueAfter1 = await getRevenue()
         const revenueBucketsAfter1 = await getRevenueBuckets()
         await (await token.mint(dataUnion.getAddress(), parseEther('200'))).wait()
         await dataUnion.refreshRevenue()
-        const revenueEventsAfter2 = await getRevenueEvents()
+        let revenueEventsAfter2
+        await until(async () => (revenueEventsAfter2 = await getRevenueEvents()).length > revenueEventsAfter1.length, 10000, 2000)
         const revenueAfter2 = await getRevenue()
         const revenueBucketsAfter2 = await getRevenueBuckets()
 
