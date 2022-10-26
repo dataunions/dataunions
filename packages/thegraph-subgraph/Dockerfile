@@ -1,6 +1,6 @@
 FROM node:16-alpine
 
-RUN apk add libsecret-dev
+RUN apk add libsecret-dev git
 RUN mkdir /firstrun && chown node:node /firstrun
 RUN mkdir -p /home/node/app && chown -R node:node /home/node/app
 
