@@ -34,6 +34,7 @@ describe('DU subgraph', () => {
     const provider = new providers.JsonRpcProvider(config.rpcEndpoints[0].url)
     const tokenAdminWallet = new Wallet('0xfe1d528b7e204a5bdfb7668a1ed3adfee45b4b96960a175c9ef0ad16dd58d728', provider) // testrpc 5
     const wallet = new Wallet('0x957a8212980a9a39bf7c03dcbeea3c722d66f2b359c669feceb0e3ba8209a297', provider) // testrpc 4
+    const wallet2 = new Wallet('0xd7609ae3a29375768fac8bc0f8c2f6ac81c5f2ffca2b981e6cf15460f01efe14', provider) // testrpc 6
     let dataUnion: DataUnion
     let token: DATAv2
     it('detects DU deployments (DUCreated)', async function () {
@@ -162,5 +163,23 @@ describe('DU subgraph', () => {
             revenueAtStartWei: '0',
             revenueChangeWei: '300000000000000000000',
         }])
+    })
+
+    it('detects OwnershipTransferred events', async function () {
+        // this.timeout(100000)
+        const dataUnionId = dataUnion.getAddress().toLowerCase()
+        async function getOwner(): Promise<string> {
+            const res = await query(`{ dataUnion(id: "${dataUnionId}") { owner } }`)
+            return res.dataUnion.owner
+        }
+
+        const ownerBefore = await getOwner()
+        await (await dataUnion.contract.transferOwnership(wallet2.address)).wait()
+        await (await dataUnion.contract.connect(wallet2).claimOwnership()).wait()
+        await until(async () => await getOwner() !== wallet.address, 10000, 2000)
+        const ownerAfter = await getOwner()
+
+        expect(ownerBefore).to.equal(wallet.address.toLowerCase())
+        expect(ownerAfter).to.equal(wallet2.address.toLowerCase())
     })
 })
