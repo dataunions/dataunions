@@ -1,11 +1,19 @@
 import { log, Address, BigInt } from '@graphprotocol/graph-ts'
 
 import { DataUnion, DataUnionStatsBucket, Member, RevenueEvent } from '../generated/schema'
-import { MemberJoined, MemberParted, RevenueReceived } from '../generated/templates/DataUnion/DataUnionTemplate'
+import { MemberJoined, MemberParted, OwnershipTransferred, RevenueReceived } from '../generated/templates/DataUnion/DataUnionTemplate'
 
 ///////////////////////////////////////////////////////////////
 // HANDLERS: see subgraph.*.yaml for the events that are handled
 ///////////////////////////////////////////////////////////////
+
+export function handleOwnershipTransferred(event: OwnershipTransferred): void {
+    let dataUnion = getDataUnion(event.address)
+    if (dataUnion != null) {
+        dataUnion.owner = event.params.newOwner.toHexString()
+        dataUnion.save()
+    }
+}
 
 export function handleMemberJoined(event: MemberJoined): void {
     let duAddress = event.address
