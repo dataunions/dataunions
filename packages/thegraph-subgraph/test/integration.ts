@@ -174,8 +174,8 @@ describe('DU subgraph', () => {
         }
 
         const ownerBefore = await getOwner()
-        const tx = await dataUnion.contract.transferOwnership(wallet2.address)
-        await tx.wait()
+        await (await dataUnion.contract.transferOwnership(wallet2.address)).wait()
+        await (await dataUnion.contract.connect(wallet2).claimOwnership()).wait()
         await until(async () => await getOwner() !== wallet.address, 10000, 2000)
         const ownerAfter = await getOwner()
 
