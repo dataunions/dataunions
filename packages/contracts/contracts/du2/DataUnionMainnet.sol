@@ -3,13 +3,15 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
- // TODO: switch to "@openzeppelin/contracts/access/Ownable.sol";
-import "../Ownable.sol";
-import "../PurchaseListener.sol";
+
 import "./CloneLib.sol";
 import "./xdai-mainnet-bridge/IAMB.sol";
 import "./xdai-mainnet-bridge/ITokenMediator.sol";
+
 import "../IERC677Receiver.sol";
+ // TODO: switch to "@openzeppelin/contracts/access/Ownable.sol";
+import "../Ownable.sol";
+import "../PurchaseListener.sol";
 
 contract DataUnionMainnet is Ownable, PurchaseListener, IERC677Receiver {
 

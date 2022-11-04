@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.6;
 
-import "./IERC677.sol";
-import "./LeaveConditionCode.sol";
+import "../IERC677.sol";
+import "../LeaveConditionCode.sol";
 
 interface IDataUnion {
     function owner() external returns (address);

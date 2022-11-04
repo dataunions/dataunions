@@ -3,14 +3,14 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./IERC677.sol";
 import "./Ownable.sol";
-import "./IERC677Receiver.sol";
-import "./IWithdrawModule.sol";
-import "./IJoinListener.sol";
-import "./IPartListener.sol";
 import "./LeaveConditionCode.sol";
 import "./IFeeOracle.sol";
+import "./IERC677.sol";
+import "./IERC677Receiver.sol";
+import "./modules/IWithdrawModule.sol";
+import "./modules/IJoinListener.sol";
+import "./modules/IPartListener.sol";
 
 contract DataUnionTemplate is Ownable, IERC677Receiver {
     // Used to describe both members and join part agents
@@ -79,9 +79,11 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
     uint256 public inactiveMemberCount;
     uint256 public lifetimeMemberEarnings;
     uint256 public joinPartAgentCount;
+    uint256 public totalWeight;
 
     mapping(address => MemberInfo) public memberData;
     mapping(address => ActiveStatus) public joinPartAgents;
+    mapping(address => uint) public memberWeight;
 
     // owner will be set by initialize()
     constructor() Ownable(address(0)) {}

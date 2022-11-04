@@ -3,15 +3,15 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../IERC677.sol";
+import "./xdai-mainnet-bridge/IERC20Receiver.sol";
 // TODO: switch to "@openzeppelin/contracts/access/Ownable.sol";
 import "../Ownable.sol";
-import "./xdai-mainnet-bridge/IERC20Receiver.sol";
-import "../IERC677Receiver.sol";
-import "../IWithdrawModule.sol";
-import "../IJoinListener.sol";
-import "../IPartListener.sol";
 import "../LeaveConditionCode.sol";
+import "../IERC677.sol";
+import "../IERC677Receiver.sol";
+import "../modules/IWithdrawModule.sol";
+import "../modules/IJoinListener.sol";
+import "../modules/IPartListener.sol";
 
 contract DataUnionSidechain is Ownable, IERC20Receiver, IERC677Receiver {
 
