@@ -1,11 +1,25 @@
 import { log, Address, BigInt } from '@graphprotocol/graph-ts'
 
 import { DataUnion, DataUnionStatsBucket, Member, RevenueEvent } from '../generated/schema'
-import { MemberJoined, MemberParted, OwnershipTransferred, RevenueReceived } from '../generated/templates/DataUnion/DataUnionTemplate'
+import {
+    MemberJoined,
+    MemberParted,
+    MetadataChanged,
+    OwnershipTransferred,
+    RevenueReceived
+} from '../generated/templates/DataUnion/DataUnionTemplate'
 
 ///////////////////////////////////////////////////////////////
 // HANDLERS: see subgraph.*.yaml for the events that are handled
 ///////////////////////////////////////////////////////////////
+
+export function handleMetadataChanged(event: MetadataChanged): void {
+    let dataUnion = getDataUnion(event.address)
+    if (dataUnion != null) {
+        dataUnion.metadata = event.params.newMetadata
+        dataUnion.save()
+    }
+}
 
 export function handleOwnershipTransferred(event: OwnershipTransferred): void {
     let dataUnion = getDataUnion(event.address)
@@ -27,7 +41,7 @@ export function handleMemberJoined(event: MemberJoined): void {
     member.status = 'ACTIVE'
     member.save()
 
-    updateDataUnion(duAddress, event.block.timestamp, 1)
+    updateDataUnionStats(duAddress, event.block.timestamp, 1)
 }
 
 export function handleMemberParted(event: MemberParted): void {
@@ -39,7 +53,7 @@ export function handleMemberParted(event: MemberParted): void {
     member.status = 'INACTIVE'
     member.save()
 
-    updateDataUnion(duAddress, event.block.timestamp, -1)
+    updateDataUnionStats(duAddress, event.block.timestamp, -1)
 }
 
 export function handleRevenueReceived(event: RevenueReceived): void {
@@ -47,7 +61,7 @@ export function handleRevenueReceived(event: RevenueReceived): void {
     let amount = event.params.amount
     log.warning('handleRevenueReceived: duAddress={} amount={}', [duAddress.toHexString(), amount.toString()])
 
-    updateDataUnion(duAddress, event.block.timestamp, 0, amount)
+    updateDataUnionStats(duAddress, event.block.timestamp, 0, amount)
 
     // additionally save the individual events for later querying
     let revenueEvent = new RevenueEvent(
@@ -62,7 +76,7 @@ export function handleRevenueReceived(event: RevenueReceived): void {
     revenueEvent.save()
 }
 
-function updateDataUnion(duAddress: Address, timestamp: BigInt, memberCountChange: i32, revenueChangeWei: BigInt = BigInt.zero()): void {
+function updateDataUnionStats(duAddress: Address, timestamp: BigInt, memberCountChange: i32, revenueChangeWei: BigInt = BigInt.zero()): void {
     log.warning('updateDataUnion: duAddress={} timestamp={}', [duAddress.toHexString(), timestamp.toString()])
 
     // buckets must be done first so that *AtStart values are correct for newly created buckets

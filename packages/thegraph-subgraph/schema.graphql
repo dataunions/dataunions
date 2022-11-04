@@ -11,6 +11,7 @@ type DataUnion @entity {
   revenueWei: BigInt!
   creationDate: BigInt!
   owner: String! # We need this to be String to enable partial match search
+  metadata: String! # TODO: add this later
 }
 
 enum MemberStatus {

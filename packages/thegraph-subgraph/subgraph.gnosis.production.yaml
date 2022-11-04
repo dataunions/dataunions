@@ -108,4 +108,6 @@ templates:
           handler: handleRevenueReceived
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
+        - event: MetadataChanged(string)
+          handler: handleMetadataChanged
   # New DU gnosis/xdai <<

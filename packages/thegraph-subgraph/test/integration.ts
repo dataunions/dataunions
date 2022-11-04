@@ -182,4 +182,21 @@ describe('DU subgraph', () => {
         expect(ownerBefore).to.equal(wallet.address.toLowerCase())
         expect(ownerAfter).to.equal(wallet2.address.toLowerCase())
     })
+
+    it('detects MetadataChanged events', async function () {
+        // this.timeout(100000)
+        const dataUnionId = dataUnion.getAddress().toLowerCase()
+        async function getMetadata(): Promise<string> {
+            const res = await query(`{ dataUnion(id: "${dataUnionId}") { metadata } }`)
+            return res.dataUnion.metadata
+        }
+
+        const metadataBefore = await getMetadata()
+        await dataUnion.setMetadata({ name: 'test' })
+        await until(async () => await getMetadata() !== '', 10000, 2000)
+        const metadataAfter = await getMetadata()
+
+        expect(metadataBefore).to.equal('')
+        expect(metadataAfter).to.equal('{"name":"test"}')
+    })
 })

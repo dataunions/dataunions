@@ -111,6 +111,7 @@ contract DataUnionFactory is Initializable, OwnableUpgradeable, UUPSUpgradeable 
             metadataJsonString
         );
 
+        // TODO: move this emit to first thing in this function. We want this event first, THEN events fired by initialize, so that thegraph indexes correctly
         emit DUCreated(du, owner, dataUnionTemplate);
 
         // continue whether or not send succeeds
