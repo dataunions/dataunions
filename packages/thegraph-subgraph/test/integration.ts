@@ -179,7 +179,7 @@ describe('DU subgraph', () => {
         await until(async () => await getOwner() !== wallet.address, 10000, 2000)
         const ownerAfter = await getOwner()
 
-        expect(ownerBefore).to.equal(wallet.address)
-        expect(ownerAfter).to.equal(wallet2.address)
+        expect(ownerBefore).to.equal(wallet.address.toLowerCase())
+        expect(ownerAfter).to.equal(wallet2.address.toLowerCase())
     })
 })
