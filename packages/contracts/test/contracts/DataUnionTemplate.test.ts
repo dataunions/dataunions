@@ -324,8 +324,20 @@ describe("DataUnionTemplate", () => {
         expect(await dataUnionSidechain.getWithdrawableEarnings(m[0])).to.equal(1000)
     })
 
+    it("refreshes revenue when IPurchaseListener activates", async () => {
+        const totalRevenueBefore = await dataUnionSidechain.totalRevenue()
+        await testToken.transfer(dataUnionSidechain.address, "3000")
+        const totalRevenueBefore2 = await dataUnionSidechain.totalRevenue()
+        // function onPurchase(bytes32, address, uint256, uint256, uint256) returns (bool)
+        await dataUnionSidechain.onPurchase("0x1234567812345678123456781234567812345678123456781234567812345678", o[0], "1670000000", "1000", "100")
+        const totalRevenueAfter = await dataUnionSidechain.totalRevenue()
+
+        expect(totalRevenueBefore).to.equal(totalRevenueBefore2)
+        expect(totalRevenueAfter).to.equal(totalRevenueBefore2.add("3000"))
+    })
+
     it("transferWithinContract", async () => {
-        assert(await testToken.transfer(dataUnionSidechain.address, "3000"))
+        await testToken.transfer(dataUnionSidechain.address, "3000")
         await dataUnionSidechain.refreshRevenue()
         await expect(dataUnionSidechain.connect(others[0]).transferWithinContract(m[1], "100")).to.be.revertedWith("error_notMember")
         // change after sidechain fees / ETH-141: admin receives fees and so becomes an INACTIVE member by _increaseBalance
