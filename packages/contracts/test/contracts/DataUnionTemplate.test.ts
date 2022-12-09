@@ -479,4 +479,40 @@ describe("DataUnionTemplate", () => {
         await expect(dataUnion.removeJoinListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
         await expect(dataUnion.removePartListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
     })
+
+    it("lets only joinPartAgent set weights", async () => {
+        await expect(dataUnion.setMemberWeight(m[0], parseEther("1"))).to.be.revertedWith("error_onlyJoinPartAgent")
+        await expect(dataUnion.setMemberWeights(m, ["1", "2", "3"])).to.be.revertedWith("error_onlyJoinPartAgent")
+        await expect(dataUnionFromMember0.setMemberWeight(m[0], parseEther("1"))).to.be.revertedWith("error_onlyJoinPartAgent")
+        await expect(dataUnionFromMember0.setMemberWeights(m, ["1", "2", "3"])).to.be.revertedWith("error_onlyJoinPartAgent")
+        await expect(dataUnionFromAgent.setMemberWeight(m[0], parseEther("1"))).to.emit(dataUnion, "MemberWeightChanged")
+        await expect(dataUnionFromAgent.setMemberWeights(m, ["1", "2", "3"])).to.emit(dataUnion, "MemberWeightChanged")
+    })
+
+    it("calculates revenue correctly after weights are changed", async () => {
+        expect(await dataUnion.totalWeight()).to.equal(parseEther("3"))
+        await testToken.transferAndCall(dataUnion.address, parseEther("10"), "0x")
+        expect(await dataUnion.totalEarnings()).to.equal(parseEther("9")) // 10 - 1 (=10% fees)
+        expect(await dataUnion.getEarnings(m[0])).to.equal(parseEther("3"))
+        expect(await dataUnion.getEarnings(m[1])).to.equal(parseEther("3"))
+        expect(await dataUnion.getEarnings(m[2])).to.equal(parseEther("3"))
+
+        // ...even when the weights are scaled in a funny way (not using parseEther)
+        await expect(dataUnionFromAgent.setMemberWeights(m, ["1", "2", "3"])).to.emit(dataUnion, "MemberWeightChanged")
+        expect(await dataUnion.totalWeight()).to.equal("6")
+        await testToken.transferAndCall(dataUnion.address, parseEther("20"), "0x")
+        expect(await dataUnion.totalEarnings()).to.equal(parseEther("27")) // 9 + 20 - 2 (=10% fees)
+        expect(await dataUnion.getEarnings(m[0])).to.equal(parseEther("6"))  // 3 + 3 (=1/6 of 18)
+        expect(await dataUnion.getEarnings(m[1])).to.equal(parseEther("9"))  // 3 + 6 (=2/6 of 18)
+        expect(await dataUnion.getEarnings(m[2])).to.equal(parseEther("12")) // 3 + 9 (=3/6 of 18)
+
+        // scale more "normally" using parseEther
+        await expect(dataUnionFromAgent.setMemberWeights(m, [parseEther("3"), parseEther("2"), parseEther("1")])).to.emit(dataUnion, "MemberWeightChanged")
+        expect(await dataUnion.totalWeight()).to.equal(parseEther("6"))
+        await testToken.transferAndCall(dataUnion.address, parseEther("20"), "0x")
+        expect(await dataUnion.totalEarnings()).to.equal(parseEther("45")) // 27 + 20 - 2 (=10% fees)
+        expect(await dataUnion.getEarnings(m[0])).to.equal(parseEther("15")) // 6 + 12 (=3/6 of 18)
+        expect(await dataUnion.getEarnings(m[1])).to.equal(parseEther("15")) // 9 + 9  (=2/6 of 18)
+        expect(await dataUnion.getEarnings(m[2])).to.equal(parseEther("15")) // 12 + 6 (=1/6 of 18)
+    })
 })
