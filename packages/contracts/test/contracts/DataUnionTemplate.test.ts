@@ -60,9 +60,9 @@ describe("DataUnionTemplate", () => {
 
     let testToken: TestToken
     let feeOracle: DefaultFeeOracle
-    let dataUnionSidechain: DataUnionTemplate
-    let dataUnionSidechainAgent: DataUnionTemplate
-    let dataUnionSidechainMember0: DataUnionTemplate
+    let dataUnion: DataUnionTemplate
+    let dataUnionFromAgent: DataUnionTemplate
+    let dataUnionFromMember0: DataUnionTemplate
 
     before(async () => {
         testToken = await deployContract(dao, TestTokenJson, ["name", "symbol"]) as TestToken
@@ -80,9 +80,9 @@ describe("DataUnionTemplate", () => {
     })
 
     beforeEach(async () => {
-        dataUnionSidechain = await deployContract(admin, DataUnionTemplateJson, []) as DataUnionTemplate
-        dataUnionSidechainAgent = dataUnionSidechain.connect(agents[1])
-        dataUnionSidechainMember0 = dataUnionSidechain.connect(members[0])
+        dataUnion = await deployContract(admin, DataUnionTemplateJson, []) as DataUnionTemplate
+        dataUnionFromAgent = dataUnion.connect(agents[1])
+        dataUnionFromMember0 = dataUnion.connect(members[0])
 
         // function initialize(
         //     address initialOwner,
@@ -93,7 +93,7 @@ describe("DataUnionTemplate", () => {
         //     address protocolFeeOracleAddress,
         //     string calldata metadataJsonString
         // )
-        await dataUnionSidechain.initialize(
+        await dataUnion.initialize(
             admin.address,
             testToken.address,
             a,
@@ -102,9 +102,9 @@ describe("DataUnionTemplate", () => {
             feeOracle.address,
             "{}"
         )
-        await dataUnionSidechainAgent.addMembers(m)
+        await dataUnionFromAgent.addMembers(m)
 
-        log(`DataUnionTemplate initialized at ${dataUnionSidechain.address}`)
+        log(`DataUnionTemplate initialized at ${dataUnion.address}`)
     })
 
     it("distributes earnings correctly", async () => {
@@ -112,117 +112,116 @@ describe("DataUnionTemplate", () => {
         const newMember = others[0]
 
         // send and distribute a batch of revenue to members
-        await expect(testToken.transfer(dataUnionSidechain.address, "3000")).to.emit(testToken, "Transfer(address,address,uint256)")
-        await expect(dataUnionSidechain.connect(randomOutsider).refreshRevenue()).to.emit(dataUnionSidechain, "RevenueReceived")
+        await expect(testToken.transfer(dataUnion.address, "3000")).to.emit(testToken, "Transfer(address,address,uint256)")
+        await expect(dataUnion.connect(randomOutsider).refreshRevenue()).to.emit(dataUnion, "RevenueReceived")
 
         // repeating it should do nothing (also not throw)
-        await dataUnionSidechain.connect(randomOutsider).refreshRevenue()
+        await dataUnion.connect(randomOutsider).refreshRevenue()
 
-        expect(await dataUnionSidechain.totalEarnings()).to.equal(2700)
-        expect(await dataUnionSidechain.totalAdminFees()).to.equal(270)
-        expect(await dataUnionSidechain.getEarnings(admin.address)).to.equal(270)
-        expect(await dataUnionSidechain.totalProtocolFees()).to.equal(30)
-        expect(await dataUnionSidechain.getEarnings(dao.address)).to.equal(30)
-        expect(await dataUnionSidechain.getEarnings(m[1])).to.equal(900)
-        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(900)
-        expect(await dataUnionSidechain.getEarnings(m[1])).to.equal(900)
-        expect(await dataUnionSidechain.getEarnings(m[2])).to.equal(900)
+        expect(await dataUnion.totalEarnings()).to.equal(2700)
+        expect(await dataUnion.totalAdminFees()).to.equal(270)
+        expect(await dataUnion.getEarnings(admin.address)).to.equal(270)
+        expect(await dataUnion.totalProtocolFees()).to.equal(30)
+        expect(await dataUnion.getEarnings(dao.address)).to.equal(30)
+        expect(await dataUnion.getEarnings(m[0])).to.equal(900)
+        expect(await dataUnion.getEarnings(m[1])).to.equal(900)
+        expect(await dataUnion.getEarnings(m[2])).to.equal(900)
 
         // drop a member, send more tokens, check accounting
-        await expect(dataUnionSidechainAgent.partMember(m[0])).to.emit(dataUnionSidechain, "MemberParted")
-        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(900)
-        await testToken.transfer(dataUnionSidechain.address, "2000")
-        await dataUnionSidechain.connect(randomOutsider).refreshRevenue()
-        expect(await dataUnionSidechain.totalEarnings()).to.equal(4500)
-        expect(await dataUnionSidechain.totalAdminFees()).to.equal(450)
-        expect(await dataUnionSidechain.getEarnings(admin.address)).to.equal(450)
-        expect(await dataUnionSidechain.totalProtocolFees()).to.equal(50)
-        expect(await dataUnionSidechain.getEarnings(dao.address)).to.equal(50)
-        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(900)
-        expect(await dataUnionSidechain.getEarnings(m[1])).to.equal(1800)
-        expect(await dataUnionSidechain.getEarnings(m[2])).to.equal(1800)
-        await expect(dataUnionSidechainAgent.addMember(m[0])).to.emit(dataUnionSidechain, "MemberJoined")
+        await expect(dataUnionFromAgent.partMember(m[0])).to.emit(dataUnion, "MemberParted")
+        expect(await dataUnion.getEarnings(m[0])).to.equal(900)
+        await testToken.transfer(dataUnion.address, "2000")
+        await dataUnion.connect(randomOutsider).refreshRevenue()
+        expect(await dataUnion.totalEarnings()).to.equal(4500)
+        expect(await dataUnion.totalAdminFees()).to.equal(450)
+        expect(await dataUnion.getEarnings(admin.address)).to.equal(450)
+        expect(await dataUnion.totalProtocolFees()).to.equal(50)
+        expect(await dataUnion.getEarnings(dao.address)).to.equal(50)
+        expect(await dataUnion.getEarnings(m[0])).to.equal(900)
+        expect(await dataUnion.getEarnings(m[1])).to.equal(1800)
+        expect(await dataUnion.getEarnings(m[2])).to.equal(1800)
+        await expect(dataUnionFromAgent.addMember(m[0])).to.emit(dataUnion, "MemberJoined")
 
         // add a member, send tokens, check accounting
-        await expect(dataUnionSidechainAgent.addMember(newMember.address)).to.emit(dataUnionSidechain, "MemberJoined")
-        await testToken.transfer(dataUnionSidechain.address, "4000")
-        await dataUnionSidechain.connect(randomOutsider).refreshRevenue()
-        expect(await dataUnionSidechain.totalEarnings()).to.equal(8100)
-        expect(await dataUnionSidechain.totalAdminFees()).to.equal(810)
-        expect(await dataUnionSidechain.getEarnings(admin.address)).to.equal(810)
-        expect(await dataUnionSidechain.totalProtocolFees()).to.equal(90)
-        expect(await dataUnionSidechain.getEarnings(dao.address)).to.equal(90)
-        expect(await dataUnionSidechain.getEarnings(newMember.address)).to.equal(900)
-        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(1800)
-        expect(await dataUnionSidechain.getEarnings(m[1])).to.equal(2700)
-        expect(await dataUnionSidechain.getEarnings(m[2])).to.equal(2700)
-        await expect(dataUnionSidechainAgent.partMember(newMember.address)).to.emit(dataUnionSidechain, "MemberParted")
+        await expect(dataUnionFromAgent.addMember(newMember.address)).to.emit(dataUnion, "MemberJoined")
+        await testToken.transfer(dataUnion.address, "4000")
+        await dataUnion.connect(randomOutsider).refreshRevenue()
+        expect(await dataUnion.totalEarnings()).to.equal(8100)
+        expect(await dataUnion.totalAdminFees()).to.equal(810)
+        expect(await dataUnion.getEarnings(admin.address)).to.equal(810)
+        expect(await dataUnion.totalProtocolFees()).to.equal(90)
+        expect(await dataUnion.getEarnings(dao.address)).to.equal(90)
+        expect(await dataUnion.getEarnings(newMember.address)).to.equal(900)
+        expect(await dataUnion.getEarnings(m[0])).to.equal(1800)
+        expect(await dataUnion.getEarnings(m[1])).to.equal(2700)
+        expect(await dataUnion.getEarnings(m[2])).to.equal(2700)
+        await expect(dataUnionFromAgent.partMember(newMember.address)).to.emit(dataUnion, "MemberParted")
     })
 
     it("addMembers partMembers", async () => {
-        const memberCountBeforeBN = await dataUnionSidechain.activeMemberCount()
+        const memberCountBeforeBN = await dataUnion.activeMemberCount()
         expect(memberCountBeforeBN).to.equal(members.length)
 
         // add all "others" to data union
-        await expect(dataUnionSidechain.addMembers(o)).to.be.revertedWith("error_onlyJoinPartAgent")
-        await expect(dataUnionSidechainAgent.addMembers(o)).to.emit(dataUnionSidechain, "MemberJoined")
-        await expect(dataUnionSidechainAgent.addMembers(o)).to.be.revertedWith("error_alreadyMember")
-        const memberCountAfterJoinBN = await dataUnionSidechain.activeMemberCount()
+        await expect(dataUnion.addMembers(o)).to.be.revertedWith("error_onlyJoinPartAgent")
+        await expect(dataUnionFromAgent.addMembers(o)).to.emit(dataUnion, "MemberJoined")
+        await expect(dataUnionFromAgent.addMembers(o)).to.be.revertedWith("error_alreadyMember")
+        const memberCountAfterJoinBN = await dataUnion.activeMemberCount()
         expect(+memberCountBeforeBN + others.length).to.equal(memberCountAfterJoinBN)
-        expect(await dataUnionSidechain.inactiveMemberCount()).to.equal(0)
+        expect(await dataUnion.inactiveMemberCount()).to.equal(0)
 
         // part all "others" from data union
-        await expect(dataUnionSidechain.partMembers(o)).to.be.revertedWith("error_notPermitted")
-        await expect(dataUnionSidechain.connect(others[0]).partMember(o[0])).to.emit(dataUnionSidechain, "MemberParted")
-        await expect(dataUnionSidechainAgent.partMembers(o)).to.be.revertedWith("error_notActiveMember") // even one non-existing makes the whole tx fail
-        await expect(dataUnionSidechainAgent.partMembers(o.slice(1))).to.emit(dataUnionSidechain, "MemberParted")
-        const memberCountAfterPartBN = await dataUnionSidechain.activeMemberCount()
+        await expect(dataUnion.partMembers(o)).to.be.revertedWith("error_notPermitted")
+        await expect(dataUnion.connect(others[0]).partMember(o[0])).to.emit(dataUnion, "MemberParted")
+        await expect(dataUnionFromAgent.partMembers(o)).to.be.revertedWith("error_notActiveMember") // even one non-existing makes the whole tx fail
+        await expect(dataUnionFromAgent.partMembers(o.slice(1))).to.emit(dataUnion, "MemberParted")
+        const memberCountAfterPartBN = await dataUnion.activeMemberCount()
         expect(memberCountBeforeBN).to.equal(memberCountAfterPartBN)
-        expect(await dataUnionSidechain.inactiveMemberCount()).to.equal(others.length)
+        expect(await dataUnion.inactiveMemberCount()).to.equal(others.length)
 
         //re-add and check that inactiveMemberCount decreased
-        await expect(dataUnionSidechainAgent.addMembers(o)).to.emit(dataUnionSidechain, "MemberJoined")
-        expect(await dataUnionSidechain.inactiveMemberCount()).to.equal(0)
+        await expect(dataUnionFromAgent.addMembers(o)).to.emit(dataUnion, "MemberJoined")
+        expect(await dataUnion.inactiveMemberCount()).to.equal(0)
 
     })
 
     it("addJoinPartAgent removeJoinPartAgent", async () => {
         const newAgent = others[0]
         const newMember = others[1]
-        const agentCountBeforeBN = await dataUnionSidechain.joinPartAgentCount()
+        const agentCountBeforeBN = await dataUnion.joinPartAgentCount()
         expect(agentCountBeforeBN).to.equal(agents.length)
 
         // add new agent
-        await expect(dataUnionSidechain.connect(newAgent).addMember(newMember.address)).to.be.revertedWith("error_onlyJoinPartAgent")
-        await expect(dataUnionSidechain.addJoinPartAgent(newAgent.address)).to.emit(dataUnionSidechain, "JoinPartAgentAdded")
-        await expect(dataUnionSidechain.addJoinPartAgent(newAgent.address)).to.be.revertedWith("error_alreadyActiveAgent")
-        const agentCountAfterAddBN = await dataUnionSidechain.joinPartAgentCount()
+        await expect(dataUnion.connect(newAgent).addMember(newMember.address)).to.be.revertedWith("error_onlyJoinPartAgent")
+        await expect(dataUnion.addJoinPartAgent(newAgent.address)).to.emit(dataUnion, "JoinPartAgentAdded")
+        await expect(dataUnion.addJoinPartAgent(newAgent.address)).to.be.revertedWith("error_alreadyActiveAgent")
+        const agentCountAfterAddBN = await dataUnion.joinPartAgentCount()
         expect(agentCountAfterAddBN).to.equal(agents.length + 1)
-        await expect(dataUnionSidechainAgent.addMember(newMember.address)).to.emit(dataUnionSidechain, "MemberJoined")
-        await expect(dataUnionSidechainAgent.partMember(newMember.address)).to.emit(dataUnionSidechain, "MemberParted")
+        await expect(dataUnionFromAgent.addMember(newMember.address)).to.emit(dataUnion, "MemberJoined")
+        await expect(dataUnionFromAgent.partMember(newMember.address)).to.emit(dataUnion, "MemberParted")
 
         // remove the new agent
-        await expect(dataUnionSidechain.removeJoinPartAgent(newAgent.address)).to.emit(dataUnionSidechain, "JoinPartAgentRemoved")
-        await expect(dataUnionSidechain.removeJoinPartAgent(newAgent.address)).to.be.revertedWith("error_notActiveAgent")
-        const agentCountAfterRemoveBN = await dataUnionSidechain.joinPartAgentCount()
+        await expect(dataUnion.removeJoinPartAgent(newAgent.address)).to.emit(dataUnion, "JoinPartAgentRemoved")
+        await expect(dataUnion.removeJoinPartAgent(newAgent.address)).to.be.revertedWith("error_notActiveAgent")
+        const agentCountAfterRemoveBN = await dataUnion.joinPartAgentCount()
         expect(agentCountAfterRemoveBN).to.equal(agents.length)
-        await expect(dataUnionSidechain.connect(newAgent).addMember(newMember.address)).to.be.revertedWith("error_onlyJoinPartAgent")
+        await expect(dataUnion.connect(newAgent).addMember(newMember.address)).to.be.revertedWith("error_onlyJoinPartAgent")
     })
 
     it("getEarnings", async () => {
-        await expect(dataUnionSidechain.getEarnings(o[0])).to.be.revertedWith("error_notMember")
-        await expect(dataUnionSidechain.getEarnings(a[0])).to.be.revertedWith("error_notMember")
-        await expect(dataUnionSidechain.getEarnings(admin.address)).to.be.revertedWith("error_notMember")
-        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(0)
+        await expect(dataUnion.getEarnings(o[0])).to.be.revertedWith("error_notMember")
+        await expect(dataUnion.getEarnings(a[0])).to.be.revertedWith("error_notMember")
+        await expect(dataUnion.getEarnings(admin.address)).to.be.revertedWith("error_notMember")
+        expect(await dataUnion.getEarnings(m[0])).to.equal(0)
 
-        await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.refreshRevenue()
+        await testToken.transfer(dataUnion.address, "3000")
+        await dataUnion.refreshRevenue()
 
-        expect(await dataUnionSidechain.getEarnings(m[0])).to.equal(900)
-        expect(await dataUnionSidechain.getEarnings(m[1])).to.equal(900)
-        expect(await dataUnionSidechain.getEarnings(m[2])).to.equal(900)
-        expect(await dataUnionSidechain.getEarnings(admin.address)).to.equal(270)
-        expect(await dataUnionSidechain.getEarnings(dao.address)).to.equal(30)
+        expect(await dataUnion.getEarnings(m[0])).to.equal(900)
+        expect(await dataUnion.getEarnings(m[1])).to.equal(900)
+        expect(await dataUnion.getEarnings(m[2])).to.equal(900)
+        expect(await dataUnion.getEarnings(admin.address)).to.equal(270)
+        expect(await dataUnion.getEarnings(dao.address)).to.equal(30)
     })
 
     async function getBalances(addresses: EthereumAddress[]) {
@@ -237,29 +236,29 @@ describe("DataUnionTemplate", () => {
 
     it("withdrawMembers: batch withdraw many members", async () => {
         const balances = await getBalances(m)
-        await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.refreshRevenue()
-        await expect(dataUnionSidechain.withdrawMembers(m, false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
+        await testToken.transfer(dataUnion.address, "3000")
+        await dataUnion.refreshRevenue()
+        await expect(dataUnion.withdrawMembers(m, false)).to.emit(dataUnion, "EarningsWithdrawn")
         expect(await getBalanceIncrements(m, balances)).to.deep.equal([ 900, 900, 900 ])
     })
 
     it("withdrawAll", async () => {
         const balances = await getBalances(m)
-        await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.refreshRevenue()
-        await expect(dataUnionSidechain.connect(others[0]).withdrawAll(m[0], false)).to.be.revertedWith("error_notPermitted")
-        await expect(dataUnionSidechainMember0.withdrawAll(m[0], false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
-        await expect(dataUnionSidechain.withdrawAll(m[1], false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
-        await dataUnionSidechain.withdrawAll(m[1], false)    // this should do nothing, also not revert
+        await testToken.transfer(dataUnion.address, "3000")
+        await dataUnion.refreshRevenue()
+        await expect(dataUnion.connect(others[0]).withdrawAll(m[0], false)).to.be.revertedWith("error_notPermitted")
+        await expect(dataUnionFromMember0.withdrawAll(m[0], false)).to.emit(dataUnion, "EarningsWithdrawn")
+        await expect(dataUnion.withdrawAll(m[1], false)).to.emit(dataUnion, "EarningsWithdrawn")
+        await dataUnion.withdrawAll(m[1], false)    // this should do nothing, also not revert
         expect(await getBalanceIncrements(m, balances)).to.deep.equal([ 900, 900, 0 ])
     })
 
     it("withdrawAllTo", async () => {
-        await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.refreshRevenue()
+        await testToken.transfer(dataUnion.address, "3000")
+        await dataUnion.refreshRevenue()
 
         const before = await testToken.balanceOf(o[0])
-        await expect(dataUnionSidechainMember0.withdrawAllTo(o[0], false)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
+        await expect(dataUnionFromMember0.withdrawAllTo(o[0], false)).to.emit(dataUnion, "EarningsWithdrawn")
         const after = await testToken.balanceOf(o[0])
 
         const diff = after.sub(before)
@@ -268,86 +267,86 @@ describe("DataUnionTemplate", () => {
 
     it("withdrawToSigned", async () => {
         const recipient = others[2]
-        const dataUnionSidechainRecipient = await dataUnionSidechain.connect(recipient)
+        const dataUnionSidechainRecipient = await dataUnion.connect(recipient)
         const r = recipient.address
-        await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.refreshRevenue()
+        await testToken.transfer(dataUnion.address, "3000")
+        await dataUnion.refreshRevenue()
 
         // function signatureIsValid(address signer, address recipient, uint amount, bytes memory signature)
-        const signature = await getWithdrawSignature(members[1], recipient, "100", dataUnionSidechain)
-        assert(await dataUnionSidechain.signatureIsValid(m[1], r, "100", signature), "Contract says: bad signature")
+        const signature = await getWithdrawSignature(members[1], recipient, "100", dataUnion)
+        assert(await dataUnion.signatureIsValid(m[1], r, "100", signature), "Contract says: bad signature")
 
         await expect(dataUnionSidechainRecipient.withdrawToSigned(m[1], o[1], "100", false, signature)).to.be.revertedWith("error_badSignature")
         await expect(dataUnionSidechainRecipient.withdrawToSigned(m[1], r, "1000", false, signature)).to.be.revertedWith("error_badSignature")
         await expect(dataUnionSidechainRecipient.withdrawToSigned(m[0], r, "100", false, signature)).to.be.revertedWith("error_badSignature")
-        await expect(dataUnionSidechainRecipient.withdrawToSigned(m[1], r, "100", false, signature)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
+        await expect(dataUnionSidechainRecipient.withdrawToSigned(m[1], r, "100", false, signature)).to.emit(dataUnion, "EarningsWithdrawn")
 
         expect(await testToken.balanceOf(r)).to.equal(100)
     })
 
     it("withdrawAllToSigned", async () => {
         const recipient = others[3]
-        const dataUnionSidechainRecipient = await dataUnionSidechain.connect(recipient)
+        const dataUnionSidechainRecipient = await dataUnion.connect(recipient)
         const r = recipient.address
-        await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.refreshRevenue()
+        await testToken.transfer(dataUnion.address, "3000")
+        await dataUnion.refreshRevenue()
 
-        const signature = await getWithdrawSignature(members[1], recipient, "0", dataUnionSidechain)
+        const signature = await getWithdrawSignature(members[1], recipient, "0", dataUnion)
         // function signatureIsValid(address signer, address recipient, uint amount, bytes memory signature)
-        assert(await dataUnionSidechain.signatureIsValid(m[1], r, "0", signature), "Contract says: bad signature")
+        assert(await dataUnion.signatureIsValid(m[1], r, "0", signature), "Contract says: bad signature")
 
         await expect(dataUnionSidechainRecipient.withdrawAllToSigned(m[1], o[1], false, signature)).to.be.revertedWith("error_badSignature")
         await expect(dataUnionSidechainRecipient.withdrawAllToSigned(m[0], r, false, signature)).to.be.revertedWith("error_badSignature")
-        await expect(dataUnionSidechainRecipient.withdrawAllToSigned(m[1], r, false, signature)).to.emit(dataUnionSidechain, "EarningsWithdrawn")
+        await expect(dataUnionSidechainRecipient.withdrawAllToSigned(m[1], r, false, signature)).to.emit(dataUnion, "EarningsWithdrawn")
 
         expect(await testToken.balanceOf(r)).to.equal(900)
     })
 
     it("transferToMemberInContract", async () => {
-        await testToken.approve(dataUnionSidechain.address, "2000")
-        await dataUnionSidechain.connect(dao).transferToMemberInContract(o[0], "1000")
-        await dataUnionSidechain.connect(dao).transferToMemberInContract(m[0], "1000")
-        expect(await dataUnionSidechain.getWithdrawableEarnings(o[0])).to.equal(1000)
-        expect(await dataUnionSidechain.getWithdrawableEarnings(m[0])).to.equal(1000)
+        await testToken.approve(dataUnion.address, "2000")
+        await dataUnion.connect(dao).transferToMemberInContract(o[0], "1000")
+        await dataUnion.connect(dao).transferToMemberInContract(m[0], "1000")
+        expect(await dataUnion.getWithdrawableEarnings(o[0])).to.equal(1000)
+        expect(await dataUnion.getWithdrawableEarnings(m[0])).to.equal(1000)
 
         // TestToken blocks transfers with this magic amount
-        await expect(dataUnionSidechain.transferToMemberInContract(m[0], "666")).to.be.revertedWith("error_transfer")
+        await expect(dataUnion.transferToMemberInContract(m[0], "666")).to.be.revertedWith("error_transfer")
 
         // TestToken sabotages transfers with this magic amount
-        await expect(dataUnionSidechain.transferToMemberInContract(m[0], "777")).to.be.revertedWith("error_transfer")
+        await expect(dataUnion.transferToMemberInContract(m[0], "777")).to.be.revertedWith("error_transfer")
     })
 
     it("transferToMemberInContract using ERC677", async () => {
-        await testToken.transferAndCall(dataUnionSidechain.address, "1000", o[0])
-        await testToken.transferAndCall(dataUnionSidechain.address, "1000", m[0])
-        expect(await dataUnionSidechain.getWithdrawableEarnings(o[0])).to.equal(1000)
-        expect(await dataUnionSidechain.getWithdrawableEarnings(m[0])).to.equal(1000)
+        await testToken.transferAndCall(dataUnion.address, "1000", o[0])
+        await testToken.transferAndCall(dataUnion.address, "1000", m[0])
+        expect(await dataUnion.getWithdrawableEarnings(o[0])).to.equal(1000)
+        expect(await dataUnion.getWithdrawableEarnings(m[0])).to.equal(1000)
     })
 
     it("transferWithinContract", async () => {
-        assert(await testToken.transfer(dataUnionSidechain.address, "3000"))
-        await dataUnionSidechain.refreshRevenue()
-        await expect(dataUnionSidechain.connect(others[0]).transferWithinContract(m[1], "100")).to.be.revertedWith("error_notMember")
+        assert(await testToken.transfer(dataUnion.address, "3000"))
+        await dataUnion.refreshRevenue()
+        await expect(dataUnion.connect(others[0]).transferWithinContract(m[1], "100")).to.be.revertedWith("error_notMember")
         // change after sidechain fees / ETH-141: admin receives fees and so becomes an INACTIVE member by _increaseBalance
         // await expect(dataUnionSidechain.transferWithinContract(m[1], "100")).to.be.revertedWith("error_notMember")
-        await expect(dataUnionSidechainMember0.transferWithinContract(m[1], "100")).to.emit(dataUnionSidechain, "TransferWithinContract")
-        await expect(dataUnionSidechainMember0.transferWithinContract(o[1], "100")).to.emit(dataUnionSidechain, "TransferWithinContract")
-        expect(await dataUnionSidechain.getWithdrawableEarnings(m[0])).to.equal(700)  // = 900 - 100 - 100
-        expect(await dataUnionSidechain.getWithdrawableEarnings(m[1])).to.equal(1000) // = 900 + 100
-        expect(await dataUnionSidechain.getWithdrawableEarnings(m[2])).to.equal(900)  // no changes
-        expect(await dataUnionSidechain.getWithdrawableEarnings(o[1])).to.equal(100)
+        await expect(dataUnionFromMember0.transferWithinContract(m[1], "100")).to.emit(dataUnion, "TransferWithinContract")
+        await expect(dataUnionFromMember0.transferWithinContract(o[1], "100")).to.emit(dataUnion, "TransferWithinContract")
+        expect(await dataUnion.getWithdrawableEarnings(m[0])).to.equal(700)  // = 900 - 100 - 100
+        expect(await dataUnion.getWithdrawableEarnings(m[1])).to.equal(1000) // = 900 + 100
+        expect(await dataUnion.getWithdrawableEarnings(m[2])).to.equal(900)  // no changes
+        expect(await dataUnion.getWithdrawableEarnings(o[1])).to.equal(100)
         // those who received some in-contract balance but aren't members should be marked inactive by _increaseBalance
-        expect(await dataUnionSidechain.inactiveMemberCount()).to.equal(3)
-        expect((await dataUnionSidechain.memberData(o[1])).status).to.equal(2)
-        expect((await dataUnionSidechain.memberData(dao.address)).status).to.equal(2)
-        expect((await dataUnionSidechain.memberData(admin.address)).status).to.equal(2)
+        expect(await dataUnion.inactiveMemberCount()).to.equal(3)
+        expect((await dataUnion.memberData(o[1])).status).to.equal(2)
+        expect((await dataUnion.memberData(dao.address)).status).to.equal(2)
+        expect((await dataUnion.memberData(admin.address)).status).to.equal(2)
     })
 
     it("getStats", async () => {
         // test send with transferAndCall. refreshRevenue not needed in this case
-        await testToken.transferAndCall(dataUnionSidechain.address, "3000", "0x")
+        await testToken.transferAndCall(dataUnion.address, "3000", "0x")
 
-        await dataUnionSidechainMember0.withdraw(m[0], "500", false)
+        await dataUnionFromMember0.withdraw(m[0], "500", false)
         const [
             totalRevenue,
             totalEarnings,
@@ -358,7 +357,7 @@ describe("DataUnionTemplate", () => {
             inactiveMemberCount,
             lifetimeMemberEarnings,
             joinPartAgentCount
-        ] = await dataUnionSidechain.getStats()
+        ] = await dataUnion.getStats()
         expect(totalRevenue).to.equal(3000)
         expect(totalEarnings).to.equal(2700)
         expect(totalAdminFees).to.equal(270)
@@ -372,24 +371,24 @@ describe("DataUnionTemplate", () => {
 
     // withdraw to mainnet is deprecated
     it("fails calls to withdraw to mainnet", async () => {
-        await testToken.transfer(dataUnionSidechain.address, "3000")
+        await testToken.transfer(dataUnion.address, "3000")
 
         // TestToken blocks transfers with this magic amount
-        await expect(dataUnionSidechainMember0.withdraw(m[0], "100", true)).to.be.revertedWith("error_sendToMainnetDeprecated")
+        await expect(dataUnionFromMember0.withdraw(m[0], "100", true)).to.be.revertedWith("error_sendToMainnetDeprecated")
     })
 
     it("fails to withdraw more than earnings", async () => {
-        await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.refreshRevenue()
-        await expect(dataUnionSidechainMember0.withdraw(m[0], "4000", false)).to.be.revertedWith("error_insufficientBalance")
+        await testToken.transfer(dataUnion.address, "3000")
+        await dataUnion.refreshRevenue()
+        await expect(dataUnionFromMember0.withdraw(m[0], "4000", false)).to.be.revertedWith("error_insufficientBalance")
 
         // TestToken blocks transfers with this magic amount
-        await expect(dataUnionSidechainMember0.withdraw(m[0], "666", false)).to.be.revertedWith("error_transfer")
+        await expect(dataUnionFromMember0.withdraw(m[0], "666", false)).to.be.revertedWith("error_transfer")
     })
 
     it("fails to initialize twice", async () => {
         const a = agents.map(agent => agent.address)
-        await expect(dataUnionSidechain.initialize(
+        await expect(dataUnion.initialize(
             admin.address,
             testToken.address,
             a,
@@ -403,81 +402,81 @@ describe("DataUnionTemplate", () => {
     it("fails for badly formed signatures", async () => {
         const recipient = others[2]
         const r = o[2]
-        await testToken.transfer(dataUnionSidechain.address, "3000")
-        await dataUnionSidechain.refreshRevenue()
+        await testToken.transfer(dataUnion.address, "3000")
+        await dataUnion.refreshRevenue()
 
-        const signature = await getWithdrawSignature(members[1], recipient, "100", dataUnionSidechain)
+        const signature = await getWithdrawSignature(members[1], recipient, "100", dataUnion)
         const truncatedSig = signature.slice(0, -10)
         const badVersionSig = signature.slice(0, -2) + "30"
 
-        await expect(dataUnionSidechain.withdrawToSigned(m[1], r, "100", false, truncatedSig)).to.be.revertedWith("error_badSignatureLength")
-        await expect(dataUnionSidechain.withdrawToSigned(m[1], r, "100", false, badVersionSig)).to.be.revertedWith("error_badSignatureVersion")
-        await expect(dataUnionSidechain.withdrawToSigned(m[1], r, "200", false, signature)).to.be.revertedWith("error_badSignature")
+        await expect(dataUnion.withdrawToSigned(m[1], r, "100", false, truncatedSig)).to.be.revertedWith("error_badSignatureLength")
+        await expect(dataUnion.withdrawToSigned(m[1], r, "100", false, badVersionSig)).to.be.revertedWith("error_badSignatureVersion")
+        await expect(dataUnion.withdrawToSigned(m[1], r, "200", false, signature)).to.be.revertedWith("error_badSignature")
 
-        await expect(dataUnionSidechain.signatureIsValid(m[1], r, "100", truncatedSig)).to.be.revertedWith("error_badSignatureLength")
-        await expect(dataUnionSidechain.signatureIsValid(m[1], r, "100", badVersionSig)).to.be.revertedWith("error_badSignatureVersion")
-        assert(!await dataUnionSidechain.signatureIsValid(m[1], r, "200", signature), "Bad signature was accepted as valid :(")
+        await expect(dataUnion.signatureIsValid(m[1], r, "100", truncatedSig)).to.be.revertedWith("error_badSignatureLength")
+        await expect(dataUnion.signatureIsValid(m[1], r, "100", badVersionSig)).to.be.revertedWith("error_badSignatureVersion")
+        assert(!await dataUnion.signatureIsValid(m[1], r, "200", signature), "Bad signature was accepted as valid :(")
     })
 
     it("can transfer ownership", async () => {
-        await expect(dataUnionSidechain.connect(others[0]).transferOwnership(o[0])).to.be.revertedWith("error_onlyOwner")
-        await expect(dataUnionSidechain.connect(others[0]).claimOwnership()).to.be.revertedWith("error_onlyPendingOwner")
+        await expect(dataUnion.connect(others[0]).transferOwnership(o[0])).to.be.revertedWith("error_onlyOwner")
+        await expect(dataUnion.connect(others[0]).claimOwnership()).to.be.revertedWith("error_onlyPendingOwner")
 
-        await dataUnionSidechain.transferOwnership(o[0])
-        await expect(dataUnionSidechain.connect(others[0]).claimOwnership()).to.emit(dataUnionSidechain, "OwnershipTransferred")
-        expect(await dataUnionSidechain.owner()).to.equal(o[0])
+        await dataUnion.transferOwnership(o[0])
+        await expect(dataUnion.connect(others[0]).claimOwnership()).to.emit(dataUnion, "OwnershipTransferred")
+        expect(await dataUnion.owner()).to.equal(o[0])
 
-        await expect(dataUnionSidechain.transferOwnership(o[0])).to.be.revertedWith("error_onlyOwner")
-        await dataUnionSidechain.connect(others[0]).transferOwnership(admin.address)
-        await expect(dataUnionSidechain.claimOwnership()).to.emit(dataUnionSidechain, "OwnershipTransferred")
-        expect(await dataUnionSidechain.owner()).to.equal(admin.address)
+        await expect(dataUnion.transferOwnership(o[0])).to.be.revertedWith("error_onlyOwner")
+        await dataUnion.connect(others[0]).transferOwnership(admin.address)
+        await expect(dataUnion.claimOwnership()).to.emit(dataUnion, "OwnershipTransferred")
+        expect(await dataUnion.owner()).to.equal(admin.address)
     })
 
     it("rejects unexpected ERC677 tokens", async () => {
         const randomToken = await deployContract(admin, TestTokenJson, ["random", "RND"]) as TestToken
         await randomToken.mint(admin.address, parseEther("10000"))
-        await expect(randomToken.transferAndCall(dataUnionSidechain.address, "1000", "0x")).to.be.revertedWith("error_onlyTokenContract")
+        await expect(randomToken.transferAndCall(dataUnion.address, "1000", "0x")).to.be.revertedWith("error_onlyTokenContract")
     })
 
     it("rejects admin fee that would cause total fees sum above 1.0", async () => {
-        await expect(dataUnionSidechain.setAdminFee(parseEther("0.995"))).to.be.revertedWith("error_adminFee")
+        await expect(dataUnion.setAdminFee(parseEther("0.995"))).to.be.revertedWith("error_adminFee")
     })
 
     it("adjusts an admin fee that would cause total fees sum above 1.0", async () => {
-        await expect(dataUnionSidechain.setAdminFee(parseEther("0.9"))).to.emit(dataUnionSidechain, "AdminFeeChanged")
-        expect(await dataUnionSidechain.adminFeeFraction()).to.equal(parseEther("0.9"))
+        await expect(dataUnion.setAdminFee(parseEther("0.9"))).to.emit(dataUnion, "AdminFeeChanged")
+        expect(await dataUnion.adminFeeFraction()).to.equal(parseEther("0.9"))
         await feeOracle.setFee(parseEther("0.2"))
-        assert(await testToken.transfer(dataUnionSidechain.address, "3000"))
-        await dataUnionSidechain.refreshRevenue()
-        expect(await dataUnionSidechain.adminFeeFraction()).to.equal(parseEther("0.8"))
+        assert(await testToken.transfer(dataUnion.address, "3000"))
+        await dataUnion.refreshRevenue()
+        expect(await dataUnion.adminFeeFraction()).to.equal(parseEther("0.8"))
     })
 
     it("lets only admin change the metadata", async () => {
-        await expect(dataUnionSidechain.connect(members[0]).setMetadata("foo")).to.be.revertedWith("error_onlyOwner")
-        expect(await dataUnionSidechain.metadataJsonString()).to.equal("{}")
-        await expect(dataUnionSidechain.connect(admin).setMetadata("foo")).to.emit(dataUnionSidechain, "MetadataChanged")
-        expect(await dataUnionSidechain.metadataJsonString()).to.equal("foo")
+        await expect(dataUnion.connect(members[0]).setMetadata("foo")).to.be.revertedWith("error_onlyOwner")
+        expect(await dataUnion.metadataJsonString()).to.equal("{}")
+        await expect(dataUnion.connect(admin).setMetadata("foo")).to.emit(dataUnion, "MetadataChanged")
+        expect(await dataUnion.metadataJsonString()).to.equal("foo")
     })
 
     it("lets only admin change the admin fee", async () => {
-        await expect(dataUnionSidechain.connect(members[0]).setAdminFee(parseEther("0.5"))).to.be.revertedWith("error_onlyOwner")
-        expect(await dataUnionSidechain.adminFeeFraction()).to.equal(parseEther("0.09"))
-        await expect(dataUnionSidechain.connect(admin).setAdminFee(parseEther("0.5"))).to.emit(dataUnionSidechain, "AdminFeeChanged")
-        expect(await dataUnionSidechain.adminFeeFraction()).to.equal(parseEther("0.5"))
+        await expect(dataUnion.connect(members[0]).setAdminFee(parseEther("0.5"))).to.be.revertedWith("error_onlyOwner")
+        expect(await dataUnion.adminFeeFraction()).to.equal(parseEther("0.09"))
+        await expect(dataUnion.connect(admin).setAdminFee(parseEther("0.5"))).to.emit(dataUnion, "AdminFeeChanged")
+        expect(await dataUnion.adminFeeFraction()).to.equal(parseEther("0.5"))
     })
 
     it("cannot swap modules after locking", async () => {
         const dummyAddress = "0x1234567890123456789012345678901234567890"
-        await expect(dataUnionSidechain.setWithdrawModule(dummyAddress)).to.emit(dataUnionSidechain, "WithdrawModuleChanged")
-        await expect(dataUnionSidechain.addJoinListener(dummyAddress)).to.emit(dataUnionSidechain, "JoinListenerAdded")
-        await expect(dataUnionSidechain.addPartListener(dummyAddress)).to.emit(dataUnionSidechain, "PartListenerAdded")
-        await expect(dataUnionSidechain.removeJoinListener(dummyAddress)).to.emit(dataUnionSidechain, "JoinListenerRemoved")
-        await expect(dataUnionSidechain.removePartListener(dummyAddress)).to.emit(dataUnionSidechain, "PartListenerRemoved")
-        await dataUnionSidechain.lockModules()
-        await expect(dataUnionSidechain.setWithdrawModule(dummyAddress)).to.be.revertedWith("error_modulesLocked")
-        await expect(dataUnionSidechain.addJoinListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
-        await expect(dataUnionSidechain.addPartListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
-        await expect(dataUnionSidechain.removeJoinListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
-        await expect(dataUnionSidechain.removePartListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
+        await expect(dataUnion.setWithdrawModule(dummyAddress)).to.emit(dataUnion, "WithdrawModuleChanged")
+        await expect(dataUnion.addJoinListener(dummyAddress)).to.emit(dataUnion, "JoinListenerAdded")
+        await expect(dataUnion.addPartListener(dummyAddress)).to.emit(dataUnion, "PartListenerAdded")
+        await expect(dataUnion.removeJoinListener(dummyAddress)).to.emit(dataUnion, "JoinListenerRemoved")
+        await expect(dataUnion.removePartListener(dummyAddress)).to.emit(dataUnion, "PartListenerRemoved")
+        await dataUnion.lockModules()
+        await expect(dataUnion.setWithdrawModule(dummyAddress)).to.be.revertedWith("error_modulesLocked")
+        await expect(dataUnion.addJoinListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
+        await expect(dataUnion.addPartListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
+        await expect(dataUnion.removeJoinListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
+        await expect(dataUnion.removePartListener(dummyAddress)).to.be.revertedWith("error_modulesLocked")
     })
 })
