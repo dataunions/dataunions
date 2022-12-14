@@ -158,7 +158,8 @@ describe("DataUnionTemplate", () => {
         await expect(dataUnionFromAgent.partMember(newMember.address)).to.emit(dataUnion, "MemberParted")
     })
 
-    it("addMembers partMembers", async () => {
+    it("addMembers partMembers", async function () {
+        this.timeout(1000000)
         const memberCountBeforeBN = await dataUnion.activeMemberCount()
         expect(memberCountBeforeBN).to.equal(members.length)
 
@@ -182,7 +183,6 @@ describe("DataUnionTemplate", () => {
         //re-add and check that inactiveMemberCount decreased
         await expect(dataUnionFromAgent.addMembers(o)).to.emit(dataUnion, "MemberJoined")
         expect(await dataUnion.inactiveMemberCount()).to.equal(0)
-
     })
 
     it("addJoinPartAgent removeJoinPartAgent", async () => {
@@ -267,7 +267,7 @@ describe("DataUnionTemplate", () => {
 
     it("withdrawToSigned", async () => {
         const recipient = others[2]
-        const dataUnionSidechainRecipient = await dataUnion.connect(recipient)
+        const dataUnionFromRecipient = await dataUnion.connect(recipient)
         const r = recipient.address
         await testToken.transfer(dataUnion.address, "3000")
         await dataUnion.refreshRevenue()
@@ -276,17 +276,17 @@ describe("DataUnionTemplate", () => {
         const signature = await getWithdrawSignature(members[1], recipient, "100", dataUnion)
         assert(await dataUnion.signatureIsValid(m[1], r, "100", signature), "Contract says: bad signature")
 
-        await expect(dataUnionSidechainRecipient.withdrawToSigned(m[1], o[1], "100", false, signature)).to.be.revertedWith("error_badSignature")
-        await expect(dataUnionSidechainRecipient.withdrawToSigned(m[1], r, "1000", false, signature)).to.be.revertedWith("error_badSignature")
-        await expect(dataUnionSidechainRecipient.withdrawToSigned(m[0], r, "100", false, signature)).to.be.revertedWith("error_badSignature")
-        await expect(dataUnionSidechainRecipient.withdrawToSigned(m[1], r, "100", false, signature)).to.emit(dataUnion, "EarningsWithdrawn")
+        await expect(dataUnionFromRecipient.withdrawToSigned(m[1], o[1], "100", false, signature)).to.be.revertedWith("error_badSignature")
+        await expect(dataUnionFromRecipient.withdrawToSigned(m[1], r, "1000", false, signature)).to.be.revertedWith("error_badSignature")
+        await expect(dataUnionFromRecipient.withdrawToSigned(m[0], r, "100", false, signature)).to.be.revertedWith("error_badSignature")
+        await expect(dataUnionFromRecipient.withdrawToSigned(m[1], r, "100", false, signature)).to.emit(dataUnion, "EarningsWithdrawn")
 
         expect(await testToken.balanceOf(r)).to.equal(100)
     })
 
     it("withdrawAllToSigned", async () => {
         const recipient = others[3]
-        const dataUnionSidechainRecipient = await dataUnion.connect(recipient)
+        const dataUnionFromRecipient = await dataUnion.connect(recipient)
         const r = recipient.address
         await testToken.transfer(dataUnion.address, "3000")
         await dataUnion.refreshRevenue()
@@ -295,9 +295,9 @@ describe("DataUnionTemplate", () => {
         // function signatureIsValid(address signer, address recipient, uint amount, bytes memory signature)
         assert(await dataUnion.signatureIsValid(m[1], r, "0", signature), "Contract says: bad signature")
 
-        await expect(dataUnionSidechainRecipient.withdrawAllToSigned(m[1], o[1], false, signature)).to.be.revertedWith("error_badSignature")
-        await expect(dataUnionSidechainRecipient.withdrawAllToSigned(m[0], r, false, signature)).to.be.revertedWith("error_badSignature")
-        await expect(dataUnionSidechainRecipient.withdrawAllToSigned(m[1], r, false, signature)).to.emit(dataUnion, "EarningsWithdrawn")
+        await expect(dataUnionFromRecipient.withdrawAllToSigned(m[1], o[1], false, signature)).to.be.revertedWith("error_badSignature")
+        await expect(dataUnionFromRecipient.withdrawAllToSigned(m[0], r, false, signature)).to.be.revertedWith("error_badSignature")
+        await expect(dataUnionFromRecipient.withdrawAllToSigned(m[1], r, false, signature)).to.emit(dataUnion, "EarningsWithdrawn")
 
         expect(await testToken.balanceOf(r)).to.equal(900)
     })
@@ -449,6 +449,7 @@ describe("DataUnionTemplate", () => {
         assert(await testToken.transfer(dataUnion.address, "3000"))
         await dataUnion.refreshRevenue()
         expect(await dataUnion.adminFeeFraction()).to.equal(parseEther("0.8"))
+        await feeOracle.setFee(parseEther("0.01"))
     })
 
     it("lets only admin change the metadata", async () => {
@@ -485,7 +486,7 @@ describe("DataUnionTemplate", () => {
         await expect(dataUnion.setMemberWeights(m, ["1", "2", "3"])).to.be.revertedWith("error_onlyJoinPartAgent")
         await expect(dataUnionFromMember0.setMemberWeight(m[0], parseEther("1"))).to.be.revertedWith("error_onlyJoinPartAgent")
         await expect(dataUnionFromMember0.setMemberWeights(m, ["1", "2", "3"])).to.be.revertedWith("error_onlyJoinPartAgent")
-        await expect(dataUnionFromAgent.setMemberWeight(m[0], parseEther("1"))).to.emit(dataUnion, "MemberWeightChanged")
+        await expect(dataUnionFromAgent.setMemberWeight(m[0], parseEther("2"))).to.emit(dataUnion, "MemberWeightChanged")
         await expect(dataUnionFromAgent.setMemberWeights(m, ["1", "2", "3"])).to.emit(dataUnion, "MemberWeightChanged")
     })
 
@@ -514,5 +515,45 @@ describe("DataUnionTemplate", () => {
         expect(await dataUnion.getEarnings(m[0])).to.equal(parseEther("15")) // 6 + 12 (=3/6 of 18)
         expect(await dataUnion.getEarnings(m[1])).to.equal(parseEther("15")) // 9 + 9  (=2/6 of 18)
         expect(await dataUnion.getEarnings(m[2])).to.equal(parseEther("15")) // 12 + 6 (=1/6 of 18)
+    })
+
+    it("addMemberWithWeight", async () => {
+        const newMember = others[0].address
+        await expect(dataUnionFromAgent.addMemberWithWeight(m[0], parseEther("1"))).to.be.revertedWith("error_alreadyMember")
+        await expect(dataUnionFromAgent.addMemberWithWeight(newMember, parseEther("0"))).to.be.revertedWith("error_zeroWeight")
+
+        expect(await dataUnion.memberWeight(newMember)).to.equal(0)
+        await expect(dataUnionFromAgent.addMemberWithWeight(newMember, parseEther("3"))).to.emit(dataUnion, "MemberJoined")
+        expect(await dataUnion.memberWeight(newMember)).to.equal(parseEther("3"))
+
+        await expect(dataUnionFromAgent.addMemberWithWeight(newMember, parseEther("1"))).to.be.revertedWith("error_alreadyMember")
+
+        await expect(dataUnionFromAgent.partMember(newMember)).to.emit(dataUnion, "MemberParted")
+        expect(await dataUnion.memberWeight(newMember)).to.equal(0)
+    })
+
+    it("addMembersWithWeights", async () => {
+        await expect(dataUnionFromAgent.addMembersWithWeights(m, ["1", "2", "3"])).to.be.revertedWith("error_alreadyMember")
+        await expect(dataUnionFromAgent.addMembersWithWeights(o, ["0", "1", "2"])).to.be.revertedWith("error_zeroWeight")
+
+        expect(await dataUnion.memberWeight(o[0])).to.equal(0)
+        await expect(dataUnionFromAgent.addMembersWithWeights(o, [parseEther("3"), parseEther("4"), parseEther("5")])).to.emit(dataUnion, "MemberJoined")
+        expect(await dataUnion.memberWeight(o[0])).to.equal(parseEther("3"))
+
+        await expect(dataUnionFromAgent.addMembersWithWeights(o.slice(0, 1), [parseEther("1")])).to.be.revertedWith("error_alreadyMember")
+
+        await expect(dataUnionFromAgent.partMembers(o)).to.emit(dataUnion, "MemberParted")
+        expect(await dataUnion.memberWeight(o[0])).to.equal(0)
+    })
+
+    it("can add and remove members with setMemberWeights", async () => {
+        await expect(dataUnionFromAgent.setMemberWeights([m[0], m[1], o[0]], [parseEther("0"), parseEther("2"), parseEther("2")]))
+            .to.emit(dataUnion, "MemberJoined")
+            .and.to.emit(dataUnion, "MemberWeightChanged")
+            .and.to.emit(dataUnion, "MemberParted")
+        expect(await dataUnion.isMember(m[0])).to.equal(false)
+        expect(await dataUnion.isMember(m[1])).to.equal(true)
+        expect(await dataUnion.isMember(o[0])).to.equal(true)
+        expect(await dataUnion.isMember(o[1])).to.equal(false)
     })
 })

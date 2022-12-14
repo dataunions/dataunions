@@ -318,7 +318,12 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
     }
 
     function addMember(address payable newMember) public onlyJoinPartAgent {
+        addMemberWithWeight(newMember, 1 ether);
+    }
+
+    function addMemberWithWeight(address payable newMember, uint initialWeight) public onlyJoinPartAgent {
         MemberInfo storage info = memberData[newMember];
+        require(initialWeight > 0, "error_zeroWeight");
         require(!isMember(newMember), "error_alreadyMember");
         if (info.status == ActiveStatus.INACTIVE) {
             inactiveMemberCount -= 1;
@@ -328,7 +333,7 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
         info.lmeAtJoin = lifetimeMemberEarnings;
         activeMemberCount += 1;
         emit MemberJoined(newMember);
-        _setMemberWeight(newMember, 1 ether);
+        _setMemberWeight(newMember, initialWeight);
 
         // listeners get a chance to reject the new member by reverting
         for (uint i = 0; i < joinListeners.length; i++) {
@@ -384,12 +389,20 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
         }
     }
 
+    function addMembersWithWeights(address payable[] calldata members, uint[] calldata weights) external onlyJoinPartAgent {
+        require(members.length == weights.length, "error_lengthMismatch");
+        for (uint256 i = 0; i < members.length; i++) {
+            addMemberWithWeight(members[i], weights[i]);
+        }
+    }
+
     /**
      * @param member address to set
      * @param newWeight will be used when allocating future incoming revenues
      */
     function setMemberWeight(address member, uint newWeight) public onlyJoinPartAgent {
         require(isMember(member), "error_notMember");
+        require(newWeight > 0, "error_zeroWeight");
         refreshRevenue();
         _setMemberWeight(member, newWeight);
     }
@@ -409,11 +422,24 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
         emit MemberWeightChanged(member, oldWeight, newWeight);
     }
 
-    // access checked in setMemberWeight
-    function setMemberWeights(address[] calldata members, uint[] calldata newWeights) external {
+    /**
+     * Add/remove members and set their weights in a single transaction
+     * Setting weight to zero removes the member
+     * Setting a non-member's weight to non-zero adds the member
+     */
+    function setMemberWeights(address[] calldata members, uint[] calldata newWeights) external onlyJoinPartAgent {
         require(members.length == newWeights.length, "error_lengthMismatch");
         for (uint i = 0; i < members.length; i++) {
-            setMemberWeight(members[i], newWeights[i]);
+            address member = members[i];
+            uint weight = newWeights[i];
+            bool alreadyMember = isMember(member);
+            if (alreadyMember && weight == 0) {
+                partMember(member);
+            } else if (!alreadyMember && weight > 0) {
+                addMemberWithWeight(payable(member), weight);
+            } else if (alreadyMember && weight > 0) {
+                setMemberWeight(members[i], weight);
+            }
         }
     }
 
