@@ -532,12 +532,15 @@ describe("DataUnionTemplate", () => {
         expect(await dataUnion.memberWeight(newMember)).to.equal(0)
     })
 
-    it("addMembersWithWeights", async () => {
+    it("addMembersWithWeights", async function () {
+        this.timeout(1000000)
         await expect(dataUnionFromAgent.addMembersWithWeights(m, ["1", "2", "3"])).to.be.revertedWith("error_alreadyMember")
-        await expect(dataUnionFromAgent.addMembersWithWeights(o, ["0", "1", "2"])).to.be.revertedWith("error_zeroWeight")
+        await expect(dataUnionFromAgent.addMembersWithWeights(o.slice(0, 3), [parseEther("3"), parseEther("4"), parseEther("5")]))
+            .to.be.revertedWith("error_zeroWeight")
 
         expect(await dataUnion.memberWeight(o[0])).to.equal(0)
-        await expect(dataUnionFromAgent.addMembersWithWeights(o, [parseEther("3"), parseEther("4"), parseEther("5")])).to.emit(dataUnion, "MemberJoined")
+        await expect(dataUnionFromAgent.addMembersWithWeights(o.slice(0, 3), [parseEther("3"), parseEther("4"), parseEther("5")]))
+            .to.emit(dataUnion, "MemberJoined")
         expect(await dataUnion.memberWeight(o[0])).to.equal(parseEther("3"))
 
         await expect(dataUnionFromAgent.addMembersWithWeights(o.slice(0, 1), [parseEther("1")])).to.be.revertedWith("error_alreadyMember")
