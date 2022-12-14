@@ -11,8 +11,9 @@ import "./IERC677Receiver.sol";
 import "./modules/IWithdrawModule.sol";
 import "./modules/IJoinListener.sol";
 import "./modules/IPartListener.sol";
+import "./IPurchaseListener.sol";
 
-contract DataUnionTemplate is Ownable, IERC677Receiver {
+contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
     // Used to describe both members and join part agents
     enum ActiveStatus {NONE, ACTIVE, INACTIVE}
 
@@ -243,6 +244,11 @@ contract DataUnionTemplate is Ownable, IERC677Receiver {
         }
 
         refreshRevenue();
+    }
+
+    function onPurchase(bytes32, address, uint256, uint256, uint256) external override returns (bool) {
+        refreshRevenue();
+        return true;
     }
 
     //------------------------------------------------------------

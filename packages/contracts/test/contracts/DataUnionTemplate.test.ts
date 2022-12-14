@@ -323,6 +323,18 @@ describe("DataUnionTemplate", () => {
         expect(await dataUnion.getWithdrawableEarnings(m[0])).to.equal(1000)
     })
 
+    it("refreshes revenue when IPurchaseListener activates", async () => {
+        const totalRevenueBefore = await dataUnion.totalRevenue()
+        await testToken.transfer(dataUnion.address, "3000")
+        const totalRevenueBefore2 = await dataUnion.totalRevenue()
+        // function onPurchase(bytes32, address, uint256, uint256, uint256) returns (bool)
+        await dataUnion.onPurchase("0x1234567812345678123456781234567812345678123456781234567812345678", o[0], "1670000000", "1000", "100")
+        const totalRevenueAfter = await dataUnion.totalRevenue()
+
+        expect(totalRevenueBefore).to.equal(totalRevenueBefore2)
+        expect(totalRevenueAfter).to.equal(totalRevenueBefore2.add("3000"))
+    })
+
     it("transferWithinContract", async () => {
         assert(await testToken.transfer(dataUnion.address, "3000"))
         await dataUnion.refreshRevenue()
