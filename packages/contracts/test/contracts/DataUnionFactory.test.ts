@@ -12,7 +12,7 @@ import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToke
 import { DataUnionFactory, DefaultFeeOracle, TestToken } from "../../typechain"
 
 import Debug from "debug"
-const log = Debug("Streamr:du:test:BinanceAdapter")
+const log = Debug("Streamr:du:test:DataUnionFactory")
 
 use(waffle.solidity)
 const { deployContract, provider } = waffle

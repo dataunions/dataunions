@@ -3,7 +3,7 @@ import { waffle } from "hardhat"
 import { BigNumber, utils } from "ethers"
 
 import Debug from "debug"
-const log = Debug("Streamr:du:test:DataUnionSidechain")
+const log = Debug("Streamr:du:test:LimitWithdrawModule")
 // const log = console.log  // for debugging?
 
 import LimitWithdrawModuleJson from "../../artifacts/contracts/modules/LimitWithdrawModule.sol/LimitWithdrawModule.json"

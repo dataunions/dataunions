@@ -10,28 +10,28 @@ interface IDataUnion {
     function removeMember(address member, LeaveConditionCode leaveCondition) external;
     function addMember(address newMember) external;
     function isMember(address member) external view returns (bool);
-    function isJoinPartAgent(address agent) external view returns (bool) ;
+    function isJoinPartAgent(address agent) external view returns (bool);
 }
 
 contract DataUnionModule {
-    address public dataUnion;
+    IDataUnion public dataUnion;
 
     modifier onlyOwner() {
-        require(msg.sender == IDataUnion(dataUnion).owner(), "error_onlyOwner");
+        require(msg.sender == dataUnion.owner(), "error_onlyOwner");
         _;
     }
 
     modifier onlyJoinPartAgent() {
-        require(IDataUnion(dataUnion).isJoinPartAgent(msg.sender), "error_onlyJoinPartAgent");
+        require(dataUnion.isJoinPartAgent(msg.sender), "error_onlyJoinPartAgent");
         _;
     }
 
     modifier onlyDataUnion() {
-        require(msg.sender == dataUnion, "error_onlyDataUnionContract");
+        require(msg.sender == address(dataUnion), "error_onlyDataUnionContract");
         _;
     }
 
     constructor(address dataUnionAddress) {
-        dataUnion = dataUnionAddress;
+        dataUnion = IDataUnion(dataUnionAddress);
     }
 }

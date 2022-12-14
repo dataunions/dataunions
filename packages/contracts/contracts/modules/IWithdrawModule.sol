@@ -8,6 +8,7 @@ interface IWithdrawModule {
     /**
      * When a withdraw happens in the DU, tokens are transferred to the withdrawModule, then onWithdraw function is called.
      * The withdrawModule is then free to manage those tokens as it pleases.
+     * @dev IMPORTANT: add onlyDataUnion modifier to this function
      */
     function onWithdraw(address member, address to, IERC677 token, uint amountWei) external;
 

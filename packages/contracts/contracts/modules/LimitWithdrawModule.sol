@@ -46,12 +46,12 @@ contract LimitWithdrawModule is DataUnionModule, IWithdrawModule, IJoinListener,
         uint newWithdrawLimitDuringPeriod,
         uint newMinimumWithdrawTokenWei
     ) external onlyOwner {
-        dataUnion = dataUnionAddress;
+        dataUnion = IDataUnion(dataUnionAddress);
         requiredMemberAgeSeconds = newRequiredMemberAgeSeconds;
         withdrawLimitPeriodSeconds = newWithdrawLimitPeriodSeconds;
         withdrawLimitDuringPeriod = newWithdrawLimitDuringPeriod;
         minimumWithdrawTokenWei = newMinimumWithdrawTokenWei;
-        emit ModuleReset(dataUnion, requiredMemberAgeSeconds, withdrawLimitPeriodSeconds, withdrawLimitDuringPeriod, minimumWithdrawTokenWei);
+        emit ModuleReset(address(dataUnion), requiredMemberAgeSeconds, withdrawLimitPeriodSeconds, withdrawLimitDuringPeriod, minimumWithdrawTokenWei);
     }
 
     /**
