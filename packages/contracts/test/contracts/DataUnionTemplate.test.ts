@@ -9,8 +9,9 @@ const log = Debug("Streamr:du:test:DataUnionTemplate")
 import DataUnionTemplateJson from "../../artifacts/contracts/DataUnionTemplate.sol/DataUnionTemplate.json"
 import TestTokenJson from "../../artifacts/contracts/test/TestToken.sol/TestToken.json"
 import FeeOracleJson from "../../artifacts/contracts/DefaultFeeOracle.sol/DefaultFeeOracle.json"
+import WeightTokenModuleJson from "../../artifacts/contracts/modules/WeightTokenModule.sol/WeightTokenModule.json"
 
-import type { DataUnionTemplate, TestToken, DefaultFeeOracle } from "../../typechain"
+import type { DataUnionTemplate, TestToken, DefaultFeeOracle, WeightTokenModule } from "../../typechain"
 
 type EthereumAddress = string
 
@@ -514,5 +515,20 @@ describe("DataUnionTemplate", () => {
         expect(await dataUnion.getEarnings(m[0])).to.equal(parseEther("15")) // 6 + 12 (=3/6 of 18)
         expect(await dataUnion.getEarnings(m[1])).to.equal(parseEther("15")) // 9 + 9  (=2/6 of 18)
         expect(await dataUnion.getEarnings(m[2])).to.equal(parseEther("15")) // 12 + 6 (=1/6 of 18)
+    })
+
+    it("prevents admin weight changes when a IMemberWeightModule is set", async () => {
+        const module = await deployContract(admin, WeightTokenModuleJson, [dataUnion.address, "test weight token", "W"]) as WeightTokenModule
+        await expect(dataUnionFromAgent.setMemberWeightModule(module.address)).to.be.revertedWith("error_onlyOwner")
+        await expect(dataUnionFromMember0.setMemberWeightModule(module.address)).to.be.revertedWith("error_onlyOwner")
+        await expect(dataUnion.setMemberWeightModule(module.address)).to.emit(dataUnion, "MemberWeightModuleChanged")
+
+        await expect(dataUnionFromAgent.setMemberWeight(m[0], parseEther("1"))).to.be.revertedWith("error_memberWeightsManagedByModule")
+        await expect(dataUnionFromAgent.setMemberWeights(m, ["1", "2", "3"])).to.be.revertedWith("error_memberWeightsManagedByModule")
+
+        // adding and removing members should still work!
+        const newMember = others[0]
+        await expect(dataUnionFromAgent.addMember(newMember.address)).to.emit(dataUnion, "MemberJoined")
+        await expect(dataUnionFromAgent.partMember(newMember.address)).to.emit(dataUnion, "MemberParted")
     })
 })

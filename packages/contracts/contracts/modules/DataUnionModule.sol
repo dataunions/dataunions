@@ -11,6 +11,7 @@ interface IDataUnion {
     function addMember(address newMember) external;
     function isMember(address member) external view returns (bool);
     function isJoinPartAgent(address agent) external view returns (bool);
+    function checkpointMemberEarnings(address member) external;
 }
 
 contract DataUnionModule {
