@@ -1,10 +1,11 @@
-import type { BigNumberish } from '@ethersproject/bignumber'
-import type { ContractReceipt, ContractTransaction } from '@ethersproject/contracts'
-import type { Signer } from '@ethersproject/abstract-signer'
 import { defaultAbiCoder } from '@ethersproject/abi'
 import { getAddress } from '@ethersproject/address'
 import { BigNumber } from '@ethersproject/bignumber'
 import { arrayify, hexZeroPad } from '@ethersproject/bytes'
+import { formatEther, parseEther } from '@ethersproject/units'
+import type { BigNumberish } from '@ethersproject/bignumber'
+import type { ContractReceipt, ContractTransaction } from '@ethersproject/contracts'
+import type { Signer } from '@ethersproject/abstract-signer'
 
 import type { DataUnionTemplate as DataUnionContract } from '@dataunions/contracts/typechain'
 
@@ -16,6 +17,7 @@ import type { Rest } from './Rest'
 
 import { debug } from 'debug'
 const log = debug('DataUnion')
+
 export interface DataUnionDeployOptions {
     adminAddress?: EthereumAddress,
     joinPartAgents?: EthereumAddress[],
@@ -35,6 +37,9 @@ export interface JoinResponse {
 }
 
 export interface DataUnionStats {
+    // new stat added in the member weights feature
+    totalWeight?: number,
+
     // new stats added in 2.2 (admin & data union fees)
     totalRevenue?: BigNumber,
     totalAdminFees?: BigNumber,
@@ -57,9 +62,9 @@ export enum MemberStatus {
 
 export interface MemberStats {
     status: MemberStatus
-    earningsBeforeLastJoin: BigNumber
     totalEarnings: BigNumber
     withdrawableEarnings: BigNumber
+    weight: number
 }
 
 export interface SecretsResponse {
@@ -208,6 +213,9 @@ export class DataUnion {
         })
         log('getStats raw response (length = %d) %s', getStatsResponse.length, getStatsResponse)
 
+        const totalWeightBN = await this.contract.totalWeight()
+        const totalWeight = Number(formatEther(totalWeightBN))
+
         // Attempt to decode longer response first; if that fails, try the shorter one. Decoding too little won't throw, but decoding too much will
         // for uint[9] returning getStats, see e.g. https://blockscout.com/xdai/mainnet/address/0x15287E573007d5FbD65D87ed46c62Cf4C71Dd66d/contracts
         // for uint[6] returning getStats, see e.g. https://blockscout.com/xdai/mainnet/address/0x71586e2eb532612F0ae61b624cb0a9c26e2F4c3B/contracts
@@ -226,6 +234,7 @@ export class DataUnion {
                 inactiveMemberCount,
                 joinPartAgentCount,
                 lifetimeMemberEarnings,
+                totalWeight,
             }
         } catch (e) { }
 
@@ -241,6 +250,7 @@ export class DataUnion {
                 inactiveMemberCount,
                 joinPartAgentCount,
                 lifetimeMemberEarnings,
+                totalWeight,
             }
         } catch (e) {
             throw new Error(`getStats failed to decode response: ${(e as Error).message}`)
@@ -253,22 +263,23 @@ export class DataUnion {
     */
     async getMemberStats(memberAddress: EthereumAddress): Promise<MemberStats> {
         const address = getAddress(memberAddress)
-        // TODO: use duSidechain.getMemberStats(address) once it's implemented, to ensure atomic read
-        //        (so that memberData is from same block as getEarnings, otherwise withdrawable will be foobar)
         const [
-            [statusCode, earningsBeforeLastJoin, , withdrawnEarnings],
-            totalEarnings
+            [statusCode, , , withdrawnEarnings], // ignore lmeAtJoin and earningsBeforeLastJoin, their meanings changed with the weights feature
+            totalEarnings,
+            weightBN,
         ] = await Promise.all([
             this.contract.memberData(address),
             this.contract.getEarnings(address).catch(() => BigNumber.from(0)),
+            this.contract.memberWeight(address).catch(() => BigNumber.from(0)),
         ])
         const withdrawable = totalEarnings.gt(withdrawnEarnings) ? totalEarnings.sub(withdrawnEarnings) : BigNumber.from(0)
         const statusStrings = [MemberStatus.NONE, MemberStatus.ACTIVE, MemberStatus.INACTIVE]
+        const weight = Number(formatEther(weightBN))
         return {
             status: statusStrings[statusCode],
-            earningsBeforeLastJoin,
             totalEarnings,
             withdrawableEarnings: withdrawable,
+            weight,
         }
     }
 
@@ -447,11 +458,44 @@ export class DataUnion {
 
     /**
      * JoinPartAgents: Add given Ethereum addresses as data union members
+     * @param memberAddressList - list of Ethereum addresses to add as members
      */
     async addMembers(memberAddressList: EthereumAddress[]): Promise<ContractReceipt> {
         const members = memberAddressList.map(getAddress) // throws if there are bad addresses
         const ethersOverrides = await this.client.getOverrides()
         const tx = await this.contract.addMembers(members, ethersOverrides)
+        // TODO ETH-93: wrap promise for better error reporting in case tx fails (parse reason, throw proper error)
+        return waitOrRetryTx(tx)
+    }
+
+    /**
+     * JoinPartAgents: Add given Ethereum addresses as data union members with weights (instead of the default 1.0)
+     * @param memberAddressList - list of Ethereum addresses to add as members, may NOT be already in the Data Union
+     * @param weights - list of (non-zero) weights to assign to the new members (will be converted same way as ETH or tokens, multiplied by 10^18)
+     */
+    async addMembersWithWeights(memberAddressList: EthereumAddress[], weights: number[]): Promise<ContractReceipt> {
+        const members = memberAddressList.map(getAddress) // throws if there are bad addresses
+        const ethersOverrides = await this.client.getOverrides()
+        const weightsBN = weights.map((w) => parseEther(w.toString()))
+        const tx = await this.contract.addMembersWithWeights(members, weightsBN, ethersOverrides)
+        // TODO ETH-93: wrap promise for better error reporting in case tx fails (parse reason, throw proper error)
+        return waitOrRetryTx(tx)
+    }
+
+    /**
+     * JoinPartAgents: Set weights for given Ethereum addresses as data union members; zero weight means "remove member"
+     * This function can be used to simultaneously add and remove members in one transaction:
+     *  - add a member by setting their weight to non-zero
+     *  - remove a member by setting their weight to zero
+     *  - change a member's weight by setting it to a non-zero value
+     * @param memberAddressList - list of Ethereum addresses
+     * @param weights - list of weights to assign to the members (will be converted same way as ETH or tokens, multiplied by 10^18)
+     */
+    async setMemberWeights(memberAddressList: EthereumAddress[], weights: number[]): Promise<ContractReceipt> {
+        const members = memberAddressList.map(getAddress) // throws if there are bad addresses
+        const ethersOverrides = await this.client.getOverrides()
+        const weightsBN = weights.map((w) => parseEther(w.toString()))
+        const tx = await this.contract.setMemberWeights(members, weightsBN, ethersOverrides)
         // TODO ETH-93: wrap promise for better error reporting in case tx fails (parse reason, throw proper error)
         return waitOrRetryTx(tx)
     }

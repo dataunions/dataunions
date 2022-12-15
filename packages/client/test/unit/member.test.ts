@@ -85,6 +85,32 @@ describe('DataUnion member', () => {
         expect(isMember).toBe(false)
     })
 
+    it('can be added with weights', async () => {
+        const userAddress = Wallet.createRandom().address
+        const user2Address = Wallet.createRandom().address
+        const memberCountBefore = await dataUnion.getActiveMemberCount()
+        const { totalWeight: totalWeightBefore } = await dataUnion.getStats()
+        const isMemberBefore = await dataUnion.isMember(userAddress)
+
+        await adminDataUnion.addMembersWithWeights([userAddress], [2])
+        const isMemberAfter1 = await dataUnion.isMember(userAddress)
+        const memberCountAfter1 = await dataUnion.getActiveMemberCount()
+        const { totalWeight: totalWeightAfter1 } = await dataUnion.getStats()
+
+        await adminDataUnion.setMemberWeights([userAddress, user2Address], [0, 3])
+        const isMemberAfter2 = await dataUnion.isMember(userAddress)
+        const memberCountAfter2 = await dataUnion.getActiveMemberCount()
+        const { totalWeight: totalWeightAfter2 } = await dataUnion.getStats()
+
+        expect(isMemberBefore).toBe(false)
+        expect(isMemberAfter1).toBe(true)
+        expect(isMemberAfter2).toBe(false)
+        expect(memberCountAfter1).toEqual(memberCountBefore + 1)
+        expect(totalWeightAfter1).toEqual(totalWeightBefore! + 2)
+        expect(memberCountAfter2).toEqual(memberCountBefore + 1)
+        expect(totalWeightAfter2).toEqual(totalWeightBefore! + 3)
+    })
+
     it('functions fail for invalid address', async () => {
         return Promise.all([
             expect(() => dataUnion.addMembers(['invalid-address'])).rejects.toThrow(/invalid address/),

@@ -70,22 +70,18 @@ describe('DataUnion stats getters', () => {
         const memberStats4 = await dataUnion.getMemberStats(outsider.address)
 
         expect(memberStats.status).toEqual('ACTIVE')
-        expect(memberStats.earningsBeforeLastJoin.toString()).toEqual("0")
         expect(memberStats.totalEarnings.toString()).toEqual("0")
         expect(memberStats.withdrawableEarnings.toString()).toEqual("0")
 
         expect(memberStats2.status).toEqual('ACTIVE')
-        expect(memberStats2.earningsBeforeLastJoin.toString()).toEqual("0")
         expect(memberStats2.totalEarnings.toString()).toEqual("0")
         expect(memberStats2.withdrawableEarnings.toString()).toEqual("0")
 
         expect(memberStats3.status).toEqual('INACTIVE')
-        expect(memberStats3.earningsBeforeLastJoin.toString()).toEqual("0")
         expect(memberStats3.totalEarnings.toString()).toEqual("0")
         expect(memberStats3.withdrawableEarnings.toString()).toEqual("0")
 
         expect(memberStats4.status).toEqual('NONE')
-        expect(memberStats4.earningsBeforeLastJoin.toString()).toEqual("0")
         expect(memberStats4.totalEarnings.toString()).toEqual("0")
         expect(memberStats4.withdrawableEarnings.toString()).toEqual("0")
     })
