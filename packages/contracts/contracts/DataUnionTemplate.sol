@@ -28,7 +28,8 @@ contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
     // Revenue handling: earnings = revenue - admin fee - du fee
     event RevenueReceived(uint256 amount);
     event FeesCharged(uint256 adminFee, uint256 dataUnionFee);
-    event NewEarnings(uint256 earningsPerUnitWeight, uint256 totalWeightWei, uint256 activeMemberCount);
+    event NewEarnings(uint256 earningsPerMember, uint256 activeMemberCount);
+    event NewWeightedEarnings(uint256 earningsPerUnitWeight, uint256 totalWeightWei, uint256 activeMemberCount);
 
     // Withdrawals
     event EarningsWithdrawn(address indexed member, uint256 amount);
@@ -206,7 +207,8 @@ contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
         lifetimeMemberEarnings = lifetimeMemberEarnings + earningsPerUnitWeightScaled;
         totalEarnings = totalEarnings + newEarnings;
 
-        emit NewEarnings(earningsPerUnitWeightScaled, totalWeight, activeMemberCount);
+        emit NewEarnings(newTokens / activeMemberCount, activeMemberCount);
+        emit NewWeightedEarnings(earningsPerUnitWeightScaled, totalWeight, activeMemberCount);
 
         assert (token.balanceOf(address(this)) == totalWithdrawable()); // calling this function immediately again should just return 0 and do nothing
         return newEarnings;
