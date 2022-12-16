@@ -336,10 +336,9 @@ contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
         }
         bool sendEth = info.status == ActiveStatus.NONE && newMemberEth > 0 && address(this).balance >= newMemberEth;
         info.status = ActiveStatus.ACTIVE;
-        info.lmeAtJoin = lifetimeMemberEarnings;
         activeMemberCount += 1;
         emit MemberJoined(newMember);
-        _setMemberWeight(newMember, initialWeight);
+        _setMemberWeight(newMember, initialWeight); // also updates lmeAtJoin
 
         // listeners get a chance to reject the new member by reverting
         for (uint i = 0; i < joinListeners.length; i++) {
@@ -360,12 +359,11 @@ contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
         require(msg.sender == member || joinPartAgents[msg.sender] == ActiveStatus.ACTIVE, "error_notPermitted");
         require(isMember(member), "error_notActiveMember");
 
-        memberData[member].earningsBeforeLastJoin = getEarnings(member);
+        _setMemberWeight(member, 0); // also updates earningsBeforeLastJoin
         memberData[member].status = ActiveStatus.INACTIVE;
         activeMemberCount -= 1;
         inactiveMemberCount += 1;
         emit MemberParted(member, leaveConditionCode);
-        _setMemberWeight(member, 0);
 
         // listeners do NOT get a chance to prevent parting by reverting
         for (uint i = 0; i < partListeners.length; i++) {
@@ -424,7 +422,7 @@ contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
 
         uint oldWeight = memberWeight[member];
         memberWeight[member] = newWeight;
-        totalWeight = totalWeight + newWeight - oldWeight;
+        totalWeight = (totalWeight + newWeight) - oldWeight;
         emit MemberWeightChanged(member, oldWeight, newWeight);
     }
 
