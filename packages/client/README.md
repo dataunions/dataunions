@@ -48,7 +48,7 @@ Executing the admin functions generate transactions and as such require having e
 
 Adding members using admin functions is not at feature parity with the member function `join`. The newly added member will not automatically be granted publish permissions to the streams inside the Data Union. This will need to be done manually using the StreamrClient, see `StreamrClient.grantPermissions()`. Similarly, after removing a member using the admin function `removeMembers`, the publish permissions will need to be removed in a secondary step using `StreamrClient.revokePermissions()`. This is because the member function `join` relies on DU DAO hosted infrastructure, while the admin functions are completely self-sufficient (in fact, the DU DAO hosted server uses these very admin functions :).
 
-Adding members (joinPart agent only read more [here](https://docs.dataunions.org/main-concepts/roles-and-responsibilities/joinpart-agents)):
+Adding members (joinPart agent only, [read here more about the roles](https://docs.dataunions.org/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
 const receipt = await dataUnion.addMembers([
     '0x11111...',
@@ -64,7 +64,23 @@ const receipt = await dataUnion.removeMembers([
     '0x33333...',
 ])
 ```
-Enable your users to part with the data union themselves
+New Data Unions have the "member weights" feature, it can be used to give some members different share of revenues. The weights are relative to each other, so if you have e.g. 3 members with weights `1.5, 1.5, 3`, then the first two members will get 25% each, and the third member will get 50% of the future revenues. The weights can be set when adding members:
+```js
+const receipt = await dataUnion.addMembersWithWeights([
+    ['0x11111...', 1.5],
+    ['0x22222...', 1.5],
+    ['0x33333...', 3],
+])
+```
+The weights can be changed later with the `setMemberWeights` function, which additionally allows adding and removing members in the same transaction:
+```js
+const receipt = await dataUnion.setMemberWeights([
+    ['0x11111...', 3], // change the weight
+    ['0x22222...', 0], // remove member
+    ['0x44444...', 3], // add new member
+])
+```
+The users can part with the data union themselves
 ```js
 const receipt = await dataUnion.part()
 ```
@@ -172,42 +188,9 @@ const adminAddress = await dataUnion.getAdminAddress()
 Getting the Data Union's version:
 ```js
 const version = await dataUnion.getVersion()
-// Can be 0, 1 or 2
+// Can be 0, 1, 2, or 3
 // 0 if the contract is not a data union
 ```
-
-#### Withdraw options
-
-The functions `withdrawAll`, `withdrawAllTo`, `withdrawAllToMember`, `withdrawAllToSigned`, `withdrawAmountToSigned` all can take an extra "options" argument. It's an object that can contain the following parameters. The provided values are the default ones, used when not specified or when the options parameter is not provided:
-```js
-const receipt = await dataUnion.withdrawAll(
-    ...,
-    {
-        sendToMainnet: true, // Whether to send the withdrawn DATA tokens to mainnet address (or sidechain address)
-        payForTransport: true, //Whether to pay for the withdraw transaction signature transport to mainnet over the bridge
-        waitUntilTransportIsComplete: true, // Whether to wait until the withdrawn DATA tokens are visible in mainnet
-        pollingIntervalMs: 1000, // How often requests are sent to find out if the withdraw has completed, in ms
-        retryTimeoutMs: 60000, // When to give up when waiting for the withdraw to complete, in ms
-        gasPrice: /*Network Estimate*/ // Ethereum Mainnet transaction gas price to use when transporting tokens over the bridge
-    }
-)
-```
-(V2 Data Unions only)
-These withdraw transactions are sent to the sidechain, so gas price shouldn't be manually set (fees will hopefully stay very low),
-but a little bit of [sidechain native token](https://www.xdaichain.com/for-users/get-xdai-tokens) is nonetheless required.
-
-The return values from the withdraw functions also depend on the options.
-
-If `sendToMainnet: false`, other options don't apply at all, and **sidechain transaction receipt** is returned as soon as the withdraw transaction is done. This should be fairly quick in the sidechain.
-
-The use cases corresponding to the different combinations of the boolean flags:
-
-| `transport` | `wait`  | Returns | Effect |
-| :---------- | :------ | :------ | :----- |
-| `true`      | `true`  | Transaction receipt | *(default)* Self-service bridge to mainnet, client pays for mainnet gas |
-| `true`      | `false` | Transaction receipt | Self-service bridge to mainnet (but **skip** the wait that double-checks the withdraw succeeded and tokens arrived to destination) |
-| `false`     | `true`  | `null`              | Someone else pays for the mainnet gas automatically, e.g. the bridge operator (in this case the transaction receipt can't be returned) |
-| `false`     | `false` | AMB message hash    | Someone else pays for the mainnet gas, but we need to give them the message hash first |
 
 #### Deployment options
 

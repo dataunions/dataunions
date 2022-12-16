@@ -6,7 +6,7 @@ import Debug from "debug"
 const log = Debug("Streamr:du:test:BanModule")
 // const log = console.log  // for debugging
 
-import BanModuleJson from "../../artifacts/contracts/BanModule.sol/BanModule.json"
+import BanModuleJson from "../../artifacts/contracts/modules/BanModule.sol/BanModule.json"
 import DataUnionJson from "../../artifacts/contracts/DataUnionTemplate.sol/DataUnionTemplate.json"
 import DefaultFeeOracleJson from "../../artifacts/contracts/DefaultFeeOracle.sol/DefaultFeeOracle.json"
 

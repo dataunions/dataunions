@@ -3,14 +3,14 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./IERC677.sol";
 import "./Ownable.sol";
-import "./IERC677Receiver.sol";
-import "./IWithdrawModule.sol";
-import "./IJoinListener.sol";
-import "./IPartListener.sol";
 import "./LeaveConditionCode.sol";
 import "./IFeeOracle.sol";
+import "./IERC677.sol";
+import "./IERC677Receiver.sol";
+import "./modules/IWithdrawModule.sol";
+import "./modules/IJoinListener.sol";
+import "./modules/IPartListener.sol";
 import "./IPurchaseListener.sol";
 
 contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
@@ -23,11 +23,13 @@ contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
     event JoinPartAgentAdded(address indexed agent);
     event JoinPartAgentRemoved(address indexed agent);
     event NewMemberEthSent(uint amountWei);
+    event MemberWeightChanged(address indexed member, uint oldWeight, uint newWeight);
 
     // Revenue handling: earnings = revenue - admin fee - du fee
     event RevenueReceived(uint256 amount);
     event FeesCharged(uint256 adminFee, uint256 dataUnionFee);
     event NewEarnings(uint256 earningsPerMember, uint256 activeMemberCount);
+    event NewWeightedEarnings(uint256 earningsPerUnitWeight, uint256 totalWeightWei, uint256 activeMemberCount);
 
     // Withdrawals
     event EarningsWithdrawn(address indexed member, uint256 amount);
@@ -51,7 +53,7 @@ contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
     struct MemberInfo {
         ActiveStatus status;
         uint256 earningsBeforeLastJoin;
-        uint256 lmeAtJoin;
+        uint256 lmeAtJoin; // Lifetime Member Earnings (sum of earnings per _totalWeight_, scaled up by 1e18) at join, used to calculate member's own earnings
         uint256 withdrawnEarnings;
     }
 
@@ -78,11 +80,15 @@ contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
     uint256 public totalWithdrawn;
     uint256 public activeMemberCount;
     uint256 public inactiveMemberCount;
-    uint256 public lifetimeMemberEarnings;
+    uint256 public lifetimeMemberEarnings; // sum of earnings per totalWeight, scaled up by 1e18; NOT PER MEMBER anymore!
     uint256 public joinPartAgentCount;
+    uint256 public totalWeight; // default will be 1e18, or "1 ether"
 
     mapping(address => MemberInfo) public memberData;
     mapping(address => ActiveStatus) public joinPartAgents;
+    mapping(address => uint) public memberWeight;
+
+    function version() public pure returns (uint256) { return 3; } // DU 3
 
     // owner will be set by initialize()
     constructor() Ownable(address(0)) {}
@@ -194,10 +200,13 @@ contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
         totalProtocolFees += protocolFeeWei;
         emit FeesCharged(adminFeeWei, protocolFeeWei);
 
-        uint earningsPerMember = newEarnings / activeMemberCount;
-        lifetimeMemberEarnings = lifetimeMemberEarnings + earningsPerMember;
-        totalEarnings = totalEarnings + newEarnings;
-        emit NewEarnings(earningsPerMember, activeMemberCount);
+        // newEarnings and totalWeight are ether-scale (10^18), so need to scale earnings to "per unit weight" to avoid division going below 1
+        uint earningsPerUnitWeightScaled = newEarnings * 1 ether / totalWeight;
+        lifetimeMemberEarnings += earningsPerUnitWeightScaled; // this variable was repurposed to total "per unit weight" earnings during DU's existence
+        totalEarnings += newEarnings;
+
+        emit NewEarnings(newTokens / activeMemberCount, activeMemberCount);
+        emit NewWeightedEarnings(earningsPerUnitWeightScaled, totalWeight, activeMemberCount);
 
         assert (token.balanceOf(address(this)) == totalWithdrawable()); // calling this function immediately again should just return 0 and do nothing
         return newEarnings;
@@ -249,13 +258,12 @@ contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
     function getEarnings(address member) public view returns (uint256) {
         MemberInfo storage info = memberData[member];
         require(info.status != ActiveStatus.NONE, "error_notMember");
-        return
-            info.earningsBeforeLastJoin +
-            (
-                info.status == ActiveStatus.ACTIVE
-                    ? lifetimeMemberEarnings - info.lmeAtJoin
-                    : 0
-            );
+        if (info.status == ActiveStatus.ACTIVE) {
+            // lifetimeMemberEarnings is scaled up by 1e18, remove that scaling in the end to get token amounts
+            uint newEarnings = (lifetimeMemberEarnings - info.lmeAtJoin) * memberWeight[member] / (1 ether);
+            return info.earningsBeforeLastJoin + newEarnings;
+        }
+        return info.earningsBeforeLastJoin;
     }
 
     function getWithdrawn(address member) public view returns (uint256) {
@@ -316,16 +324,21 @@ contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
     }
 
     function addMember(address payable newMember) public onlyJoinPartAgent {
+        addMemberWithWeight(newMember, 1 ether);
+    }
+
+    function addMemberWithWeight(address payable newMember, uint initialWeight) public onlyJoinPartAgent {
         MemberInfo storage info = memberData[newMember];
+        require(initialWeight > 0, "error_zeroWeight");
         require(!isMember(newMember), "error_alreadyMember");
         if (info.status == ActiveStatus.INACTIVE) {
             inactiveMemberCount -= 1;
         }
         bool sendEth = info.status == ActiveStatus.NONE && newMemberEth > 0 && address(this).balance >= newMemberEth;
         info.status = ActiveStatus.ACTIVE;
-        info.lmeAtJoin = lifetimeMemberEarnings;
         activeMemberCount += 1;
         emit MemberJoined(newMember);
+        _setMemberWeight(newMember, initialWeight); // also updates lmeAtJoin
 
         // listeners get a chance to reject the new member by reverting
         for (uint i = 0; i < joinListeners.length; i++) {
@@ -346,7 +359,7 @@ contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
         require(msg.sender == member || joinPartAgents[msg.sender] == ActiveStatus.ACTIVE, "error_notPermitted");
         require(isMember(member), "error_notActiveMember");
 
-        memberData[member].earningsBeforeLastJoin = getEarnings(member);
+        _setMemberWeight(member, 0); // also updates earningsBeforeLastJoin
         memberData[member].status = ActiveStatus.INACTIVE;
         activeMemberCount -= 1;
         inactiveMemberCount += 1;
@@ -377,6 +390,60 @@ contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
     function partMembers(address[] calldata members) external {
         for (uint256 i = 0; i < members.length; i++) {
             partMember(members[i]);
+        }
+    }
+
+    function addMembersWithWeights(address payable[] calldata members, uint[] calldata weights) external onlyJoinPartAgent {
+        require(members.length == weights.length, "error_lengthMismatch");
+        for (uint256 i = 0; i < members.length; i++) {
+            addMemberWithWeight(members[i], weights[i]);
+        }
+    }
+
+    /**
+     * @param member address to set
+     * @param newWeight will be used when allocating future incoming revenues
+     */
+    function setMemberWeight(address member, uint newWeight) public onlyJoinPartAgent {
+        require(isMember(member), "error_notMember");
+        require(newWeight > 0, "error_zeroWeight");
+        refreshRevenue();
+        _setMemberWeight(member, newWeight);
+    }
+
+    /**
+     * @dev When member weight is set, the lmeAtJoin/earningsBeforeLastJoin reference points must be reset
+     * @dev It will seem as if the member was parted then joined with a new weight
+     **/
+    function _setMemberWeight(address member, uint newWeight) internal {
+        MemberInfo storage info = memberData[member];
+        info.earningsBeforeLastJoin = getEarnings(member);
+        info.lmeAtJoin = lifetimeMemberEarnings;
+
+        uint oldWeight = memberWeight[member];
+        memberWeight[member] = newWeight;
+        totalWeight = (totalWeight + newWeight) - oldWeight;
+        emit MemberWeightChanged(member, oldWeight, newWeight);
+    }
+
+    /**
+     * Add/remove members and set their weights in a single transaction
+     * Setting weight to zero removes the member
+     * Setting a non-member's weight to non-zero adds the member
+     */
+    function setMemberWeights(address[] calldata members, uint[] calldata newWeights) external onlyJoinPartAgent {
+        require(members.length == newWeights.length, "error_lengthMismatch");
+        for (uint i = 0; i < members.length; i++) {
+            address member = members[i];
+            uint weight = newWeights[i];
+            bool alreadyMember = isMember(member);
+            if (alreadyMember && weight == 0) {
+                partMember(member);
+            } else if (!alreadyMember && weight > 0) {
+                addMemberWithWeight(payable(member), weight);
+            } else if (alreadyMember && weight > 0) {
+                setMemberWeight(members[i], weight);
+            }
         }
     }
 

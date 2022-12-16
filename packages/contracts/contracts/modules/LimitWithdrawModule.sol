@@ -3,7 +3,7 @@
 
 pragma solidity 0.8.6;
 
-import "./IERC677.sol";
+import "../IERC677.sol";
 import "./DataUnionModule.sol";
 import "./IWithdrawModule.sol";
 import "./IJoinListener.sol";
