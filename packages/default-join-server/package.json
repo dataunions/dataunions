@@ -32,7 +32,7 @@
     "default-join-server": "src/cmd/index.js"
   },
   "dependencies": {
-    "@dataunions/client": "3.0.6",
+    "@dataunions/client": "3.0.8",
     "@dataunions/join-server": "3.0.3",
     "dotenv": "16.0.2",
     "mysql2": "2.3.3",

@@ -1,6 +1,6 @@
 {
     "name": "@dataunions/contracts",
-    "version": "3.0.5",
+    "version": "3.0.8",
     "description": "Smart contracts for Data Union with sidechain accounting",
     "author": "Data Union DAO <contact@dataunions.org>",
     "license": "UNLICENSED",
