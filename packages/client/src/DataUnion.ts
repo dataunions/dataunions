@@ -37,8 +37,8 @@ export interface JoinResponse {
 }
 
 export interface DataUnionStats {
-    // new stat added in the member weights feature
-    totalWeight?: number,
+    // new stat added in the member weights feature, will be equal to activeMemberCount for older data unions
+    totalWeight: number,
 
     // new stats added in 2.2 (admin & data union fees)
     totalRevenue?: BigNumber,
@@ -64,7 +64,7 @@ export interface MemberStats {
     status: MemberStatus
     totalEarnings: BigNumber
     withdrawableEarnings: BigNumber
-    weight: number
+    weight?: number // will be 1 for older data unions, missing for non-active members
 }
 
 export interface SecretsResponse {
@@ -217,9 +217,6 @@ export class DataUnion {
         })
         log('getStats raw response (length = %d) %s', getStatsResponse.length, getStatsResponse)
 
-        const totalWeightBN = await this.contract.totalWeight()
-        const totalWeight = Number(formatEther(totalWeightBN))
-
         // Attempt to decode longer response first; if that fails, try the shorter one. Decoding too little won't throw, but decoding too much will
         // for uint[9] returning getStats, see e.g. https://blockscout.com/xdai/mainnet/address/0x15287E573007d5FbD65D87ed46c62Cf4C71Dd66d/contracts
         // for uint[6] returning getStats, see e.g. https://blockscout.com/xdai/mainnet/address/0x71586e2eb532612F0ae61b624cb0a9c26e2F4c3B/contracts
@@ -228,6 +225,8 @@ export class DataUnion {
                 totalRevenue, totalEarnings, totalAdminFees, totalDataUnionFees, totalWithdrawn,
                 activeMemberCount, inactiveMemberCount, lifetimeMemberEarnings, joinPartAgentCount
             ]] = defaultAbiCoder.decode(['uint256[9]'], getStatsResponse) as BigNumber[][]
+            // add totalWeight if it's available, otherwise just assume equal weight 1.0/member
+            const totalWeightBN = await this.contract.totalWeight().catch(() => activeMemberCount)
             return {
                 totalRevenue, // == earnings (that go to members) + adminFees + dataUnionFees
                 totalAdminFees,
@@ -238,7 +237,7 @@ export class DataUnion {
                 inactiveMemberCount,
                 joinPartAgentCount,
                 lifetimeMemberEarnings,
-                totalWeight,
+                totalWeight: Number(formatEther(totalWeightBN)),
             }
         } catch (e) { }
 
@@ -247,6 +246,8 @@ export class DataUnion {
                 totalEarnings, totalEarningsWithdrawn, activeMemberCount, inactiveMemberCount,
                 lifetimeMemberEarnings, joinPartAgentCount
             ]] = defaultAbiCoder.decode(['uint256[6]'], getStatsResponse) as BigNumber[][]
+            // add totalWeight if it's available, otherwise just assume equal weight 1.0/member
+            const totalWeightBN = await this.contract.totalWeight().catch(() => activeMemberCount)
             return {
                 totalEarnings,
                 totalWithdrawable: totalEarnings.sub(totalEarningsWithdrawn),
@@ -254,7 +255,7 @@ export class DataUnion {
                 inactiveMemberCount,
                 joinPartAgentCount,
                 lifetimeMemberEarnings,
-                totalWeight,
+                totalWeight: Number(formatEther(totalWeightBN)),
             }
         } catch (e) {
             throw new Error(`getStats failed to decode response: ${(e as Error).message}`)
@@ -274,16 +275,18 @@ export class DataUnion {
         ] = await Promise.all([
             this.contract.memberData(address),
             this.contract.getEarnings(address).catch(() => BigNumber.from(0)),
-            this.contract.memberWeight(address).catch(() => BigNumber.from(0)),
+            this.contract.memberWeight(address).catch(() => BigNumber.from(1)),
         ])
         const withdrawable = totalEarnings.gt(withdrawnEarnings) ? totalEarnings.sub(withdrawnEarnings) : BigNumber.from(0)
         const statusStrings = [MemberStatus.NONE, MemberStatus.ACTIVE, MemberStatus.INACTIVE]
-        const weight = Number(formatEther(weightBN))
+
+        // add weight to the MemberStats if member is active (non-zero weight), set to 1 if the DU contract doesn't have the weights feature
+        const maybeWeight: { weight?: number } = statusCode === 1 ? { weight: Number(formatEther(weightBN)) } : {}
         return {
             status: statusStrings[statusCode],
             totalEarnings,
             withdrawableEarnings: withdrawable,
-            weight,
+            ...maybeWeight,
         }
     }
 
