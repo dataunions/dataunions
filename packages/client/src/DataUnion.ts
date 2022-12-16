@@ -226,7 +226,7 @@ export class DataUnion {
                 activeMemberCount, inactiveMemberCount, lifetimeMemberEarnings, joinPartAgentCount
             ]] = defaultAbiCoder.decode(['uint256[9]'], getStatsResponse) as BigNumber[][]
             // add totalWeight if it's available, otherwise just assume equal weight 1.0/member
-            const totalWeightBN = await this.contract.totalWeight().catch(() => activeMemberCount)
+            const totalWeightBN = await this.contract.totalWeight().catch(() => parseEther(activeMemberCount.toString()))
             return {
                 totalRevenue, // == earnings (that go to members) + adminFees + dataUnionFees
                 totalAdminFees,
@@ -247,7 +247,7 @@ export class DataUnion {
                 lifetimeMemberEarnings, joinPartAgentCount
             ]] = defaultAbiCoder.decode(['uint256[6]'], getStatsResponse) as BigNumber[][]
             // add totalWeight if it's available, otherwise just assume equal weight 1.0/member
-            const totalWeightBN = await this.contract.totalWeight().catch(() => activeMemberCount)
+            const totalWeightBN = await this.contract.totalWeight().catch(() => parseEther(activeMemberCount.toString()))
             return {
                 totalEarnings,
                 totalWithdrawable: totalEarnings.sub(totalEarningsWithdrawn),
