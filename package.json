@@ -31,7 +31,7 @@
         "graph": "npm run graph1_build && npm run graph2_copyInfo && npm run graph3_build"
     },
     "dependencies": {
-        "@manypkg/cli": "0.19.1",
+        "@manypkg/cli": "0.19.2",
         "cli-table": "0.3.11",
         "lerna": "5.5.1",
         "zx": "7.0.8"
