@@ -48,7 +48,7 @@ Executing the admin functions generate transactions and as such require having e
 
 Adding members using admin functions is not at feature parity with the member function `join`. The newly added member will not automatically be granted publish permissions to the streams inside the Data Union. This will need to be done manually using the StreamrClient, see `StreamrClient.grantPermissions()`. Similarly, after removing a member using the admin function `removeMembers`, the publish permissions will need to be removed in a secondary step using `StreamrClient.revokePermissions()`. This is because the member function `join` relies on DU DAO hosted infrastructure, while the admin functions are completely self-sufficient (in fact, the DU DAO hosted server uses these very admin functions :).
 
-Adding members (joinPart agent only read more [here](https://docs.dataunions.org/main-concepts/roles-and-responsibilities/joinpart-agents)):
+Adding members (joinPart agent only, [read here more about the roles](https://docs.dataunions.org/main-concepts/roles-and-responsibilities/joinpart-agents)):
 ```js
 const receipt = await dataUnion.addMembers([
     '0x11111...',
@@ -64,7 +64,23 @@ const receipt = await dataUnion.removeMembers([
     '0x33333...',
 ])
 ```
-Enable your users to part with the data union themselves
+New Data Unions have the "member weights" feature, it can be used to give some members different share of revenues. The weights are relative to each other, so if you have e.g. 3 members with weights `1.5, 1.5, 3`, then the first two members will get 25% each, and the third member will get 50% of the future revenues. The weights can be set when adding members:
+```js
+const receipt = await dataUnion.addMembersWithWeights([
+    ['0x11111...', 1.5],
+    ['0x22222...', 1.5],
+    ['0x33333...', 3],
+])
+```
+The weights can be changed later with the `setMemberWeights` function, which additionally allows adding and removing members in the same transaction:
+```js
+const receipt = await dataUnion.setMemberWeights([
+    ['0x11111...', 3], // change the weight
+    ['0x22222...', 0], // remove member
+    ['0x44444...', 3], // add new member
+])
+```
+The users can part with the data union themselves
 ```js
 const receipt = await dataUnion.part()
 ```
