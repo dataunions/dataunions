@@ -176,39 +176,6 @@ const version = await dataUnion.getVersion()
 // 0 if the contract is not a data union
 ```
 
-#### Withdraw options
-
-The functions `withdrawAll`, `withdrawAllTo`, `withdrawAllToMember`, `withdrawAllToSigned`, `withdrawAmountToSigned` all can take an extra "options" argument. It's an object that can contain the following parameters. The provided values are the default ones, used when not specified or when the options parameter is not provided:
-```js
-const receipt = await dataUnion.withdrawAll(
-    ...,
-    {
-        sendToMainnet: true, // Whether to send the withdrawn DATA tokens to mainnet address (or sidechain address)
-        payForTransport: true, //Whether to pay for the withdraw transaction signature transport to mainnet over the bridge
-        waitUntilTransportIsComplete: true, // Whether to wait until the withdrawn DATA tokens are visible in mainnet
-        pollingIntervalMs: 1000, // How often requests are sent to find out if the withdraw has completed, in ms
-        retryTimeoutMs: 60000, // When to give up when waiting for the withdraw to complete, in ms
-        gasPrice: /*Network Estimate*/ // Ethereum Mainnet transaction gas price to use when transporting tokens over the bridge
-    }
-)
-```
-(V2 Data Unions only)
-These withdraw transactions are sent to the sidechain, so gas price shouldn't be manually set (fees will hopefully stay very low),
-but a little bit of [sidechain native token](https://www.xdaichain.com/for-users/get-xdai-tokens) is nonetheless required.
-
-The return values from the withdraw functions also depend on the options.
-
-If `sendToMainnet: false`, other options don't apply at all, and **sidechain transaction receipt** is returned as soon as the withdraw transaction is done. This should be fairly quick in the sidechain.
-
-The use cases corresponding to the different combinations of the boolean flags:
-
-| `transport` | `wait`  | Returns | Effect |
-| :---------- | :------ | :------ | :----- |
-| `true`      | `true`  | Transaction receipt | *(default)* Self-service bridge to mainnet, client pays for mainnet gas |
-| `true`      | `false` | Transaction receipt | Self-service bridge to mainnet (but **skip** the wait that double-checks the withdraw succeeded and tokens arrived to destination) |
-| `false`     | `true`  | `null`              | Someone else pays for the mainnet gas automatically, e.g. the bridge operator (in this case the transaction receipt can't be returned) |
-| `false`     | `false` | AMB message hash    | Someone else pays for the mainnet gas, but we need to give them the message hash first |
-
 #### Deployment options
 
 `deployDataUnion` can take an options object as the argument. It's an object that can contain the following parameters. All shown values are the defaults for each property:
