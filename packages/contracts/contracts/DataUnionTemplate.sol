@@ -200,14 +200,10 @@ contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
         totalProtocolFees += protocolFeeWei;
         emit FeesCharged(adminFeeWei, protocolFeeWei);
 
-        // uint earningsPerMember = newEarnings / activeMemberCount;
-        // lifetimeMemberEarnings = lifetimeMemberEarnings + earningsPerMember;
-        // totalEarnings = totalEarnings + newEarnings;
-
-        // newEarnings and totalWeight are ether-scale (10^18), so need to scale earnings to "per unit weight" avoid division going below 1
+        // newEarnings and totalWeight are ether-scale (10^18), so need to scale earnings to "per unit weight" to avoid division going below 1
         uint earningsPerUnitWeightScaled = newEarnings * 1 ether / totalWeight;
-        lifetimeMemberEarnings = lifetimeMemberEarnings + earningsPerUnitWeightScaled;
-        totalEarnings = totalEarnings + newEarnings;
+        lifetimeMemberEarnings += earningsPerUnitWeightScaled; // this variable was repurposed to total "per unit weight" earnings during DU's existence
+        totalEarnings += newEarnings;
 
         emit NewEarnings(newTokens / activeMemberCount, activeMemberCount);
         emit NewWeightedEarnings(earningsPerUnitWeightScaled, totalWeight, activeMemberCount);
