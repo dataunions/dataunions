@@ -274,10 +274,10 @@ export class DataUnion {
             weightBN,
         ] = await Promise.all([
             this.contract.memberData(address),
-            this.contract.getEarnings(address).catch(() => BigNumber.from(0)),
-            this.contract.memberWeight(address).catch(() => BigNumber.from(1)),
+            this.contract.getEarnings(address).catch(() => parseEther("0")),
+            this.contract.memberWeight(address).catch(() => parseEther("1")),
         ])
-        const withdrawable = totalEarnings.gt(withdrawnEarnings) ? totalEarnings.sub(withdrawnEarnings) : BigNumber.from(0)
+        const withdrawable = totalEarnings.gt(withdrawnEarnings) ? totalEarnings.sub(withdrawnEarnings) : parseEther("0")
         const statusStrings = [MemberStatus.NONE, MemberStatus.ACTIVE, MemberStatus.INACTIVE]
 
         // add weight to the MemberStats if member is active (non-zero weight), set to 1 if the DU contract doesn't have the weights feature
@@ -387,7 +387,7 @@ export class DataUnion {
      * @returns signature authorizing withdrawing all earnings to given recipientAddress
      */
     async signWithdrawAllTo(recipientAddress: EthereumAddress): Promise<string> {
-        return this.signWithdrawAmountTo(recipientAddress, BigNumber.from(0))
+        return this.signWithdrawAmountTo(recipientAddress, parseEther("0"))
     }
 
     /**
@@ -594,7 +594,7 @@ export class DataUnion {
             throw new Error('newFeeFraction argument must be a number between 0...1, got: ' + newFeeFraction)
         }
 
-        const adminFeeBN = BigNumber.from((newFeeFraction * 1e18).toFixed()) // last 2...3 decimals are going to be gibberish
+        const adminFeeBN = parseEther(newFeeFraction.toString())
         return this.sendAdminTx(this.contract.setAdminFee, adminFeeBN)
     }
 
