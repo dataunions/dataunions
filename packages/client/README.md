@@ -172,7 +172,7 @@ const adminAddress = await dataUnion.getAdminAddress()
 Getting the Data Union's version:
 ```js
 const version = await dataUnion.getVersion()
-// Can be 0, 1 or 2
+// Can be 0, 1, 2, or 3
 // 0 if the contract is not a data union
 ```
 

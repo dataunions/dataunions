@@ -143,6 +143,10 @@ export class DataUnion {
         return this.contract.owner()
     }
 
+    async getVersion(): Promise<number> {
+        return this.contract.version().then((versionBN) => versionBN.toNumber())
+    }
+
     /**
     * Inactive members are members that got removed by a joinPartAgent or left the data union
     * @returns all members of the data union

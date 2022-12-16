@@ -88,6 +88,8 @@ contract DataUnionTemplate is Ownable, IERC677Receiver, IPurchaseListener {
     mapping(address => ActiveStatus) public joinPartAgents;
     mapping(address => uint) public memberWeight;
 
+    function version() public pure returns (uint256) { return 3; } // DU 3
+
     // owner will be set by initialize()
     constructor() Ownable(address(0)) {}
 
