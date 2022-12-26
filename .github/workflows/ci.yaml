@@ -139,7 +139,7 @@ jobs:
       - name: Build packages
         run: npm run build
       - name: Start Streamr Docker Stack
-        uses: streamr-dev/streamr-docker-dev-action@v1.0.0
+        uses: streamr-dev/streamr-docker-dev-action@v1.0.1
         with:
           services-to-start: 'graph-deploy-dataunion-subgraph'
       - name: Deploy the DU subgraph
