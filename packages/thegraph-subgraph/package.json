@@ -34,7 +34,7 @@
         "@typescript-eslint/eslint-plugin": "5.36.1",
         "@typescript-eslint/parser": "5.36.1",
         "debug": "4.3.4",
-        "eslint": "8.23.0",
+        "eslint": "8.32.0",
         "eslint-config-streamr-ts": "4.1.0",
         "eslint-plugin-chai-friendly": "0.7.2",
         "eslint-plugin-import": "2.26.0",
