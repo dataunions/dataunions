@@ -1,16 +1,13 @@
 import { expect } from 'chai'
 
-// TODO: use the npm import once DataUnion is exported in the package
-// import { DataUnion, DataUnionClient } from '@dataunions/client'
-import { DataUnion, DataUnionClient } from '../../client/src'
-import { Wallet, providers, utils } from 'ethers'
 import fetch from 'node-fetch'
+import { Wallet, providers, utils, BigNumber } from 'ethers'
+const { parseEther, formatEther } = utils
 
 import { DATAv2, deployToken } from '@streamr/data-v2'
+import { DataUnion, DataUnionClient } from '@dataunions/client'
 
 import { until } from '../../client/test/until'
-
-const { parseEther, formatEther } = utils
 
 import debug from 'debug'
 const log = debug('dataunions/thegraph-subgraph:test')
@@ -181,5 +178,52 @@ describe('DU subgraph', () => {
 
         expect(ownerBefore).to.equal(wallet.address.toLowerCase())
         expect(ownerAfter).to.equal(wallet2.address.toLowerCase())
+    })
+
+    it('detects MemberWeightChanged events', async function () {
+        // this.timeout(100000)
+        const dataUnionId = dataUnion.getAddress().toLowerCase()
+        async function getTotalWeightString(): Promise<number> {
+            const res = await query(`{ dataUnion(id: "${dataUnionId}") { totalWeight } }`)
+            return res.dataUnion.totalWeight
+        }
+        async function getTotalWeight(): Promise<number> {
+            return +await getTotalWeightString()
+        }
+
+        async function getWeightBuckets(): Promise<Array<any>> {
+            const res = await query(`{
+                dataUnionStatsBuckets(where: {dataUnion: "${dataUnionId}"}) {
+                    totalWeightAtStart
+                    totalWeightChange
+                    type
+                  }
+            }`)
+            return res.dataUnionStatsBuckets
+        }
+
+        const totalWeightAtStart = await getTotalWeightString()
+        const weightAtStart = +totalWeightAtStart
+
+        await dataUnion.addMembers(['0x1234567890123456789012345678901234560001', '0x1234567890123456789012345678901234560002'])
+        await until(async () => await getTotalWeight() == weightAtStart + 2, 10000, 2000)
+        expect(await getWeightBuckets()).to.deep.equal([
+            { type: 'DAY', totalWeightAtStart, totalWeightChange: '2' },
+            { type: 'HOUR', totalWeightAtStart, totalWeightChange: '2' },
+        ])
+
+        await dataUnion.addMembersWithWeights(['0x1234567890123456789012345678901234560003'], [3.5])
+        await until(async () => await getTotalWeight() == weightAtStart + 5.5, 10000, 2000)
+        expect(await getWeightBuckets()).to.deep.equal([
+            { type: 'DAY', totalWeightAtStart, totalWeightChange: '5.5' },
+            { type: 'HOUR', totalWeightAtStart, totalWeightChange: '5.5' },
+        ])
+
+        await dataUnion.setMemberWeights(['0x1234567890123456789012345678901234560001'], [4.5])
+        await until(async () => await getTotalWeight() == weightAtStart + 9, 10000, 2000)
+        expect(await getWeightBuckets()).to.deep.equal([
+            { type: 'DAY', totalWeightAtStart, totalWeightChange: '9' },
+            { type: 'HOUR', totalWeightAtStart, totalWeightChange: '9' },
+        ])
     })
 })

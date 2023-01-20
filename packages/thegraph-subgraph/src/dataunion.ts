@@ -1,7 +1,13 @@
-import { log, Address, BigInt } from '@graphprotocol/graph-ts'
+import { log, Address, BigInt, BigDecimal } from '@graphprotocol/graph-ts'
 
 import { DataUnion, DataUnionStatsBucket, Member, RevenueEvent } from '../generated/schema'
-import { MemberJoined, MemberParted, OwnershipTransferred, RevenueReceived } from '../generated/templates/DataUnion/DataUnionTemplate'
+import {
+    MemberJoined,
+    MemberParted,
+    OwnershipTransferred,
+    RevenueReceived,
+    MemberWeightChanged,
+} from '../generated/templates/DataUnion/DataUnionTemplate'
 
 ///////////////////////////////////////////////////////////////
 // HANDLERS: see subgraph.*.yaml for the events that are handled
@@ -25,6 +31,7 @@ export function handleMemberJoined(event: MemberJoined): void {
     member.dataUnion = duAddress.toHexString()
     member.joinDate = event.block.timestamp
     member.status = 'ACTIVE'
+    member.weight = BigDecimal.fromString('1')
     member.save()
 
     updateDataUnion(duAddress, event.block.timestamp, 1)
@@ -47,7 +54,7 @@ export function handleRevenueReceived(event: RevenueReceived): void {
     let amount = event.params.amount
     log.warning('handleRevenueReceived: duAddress={} amount={}', [duAddress.toHexString(), amount.toString()])
 
-    updateDataUnion(duAddress, event.block.timestamp, 0, amount)
+    updateDataUnion(duAddress, event.block.timestamp, 0, BigDecimal.zero(), amount)
 
     // additionally save the individual events for later querying
     let revenueEvent = new RevenueEvent(
@@ -62,24 +69,51 @@ export function handleRevenueReceived(event: RevenueReceived): void {
     revenueEvent.save()
 }
 
-function updateDataUnion(duAddress: Address, timestamp: BigInt, memberCountChange: i32, revenueChangeWei: BigInt = BigInt.zero()): void {
+export function handleMemberWeightChanged(event: MemberWeightChanged): void {
+    let duAddress = event.address
+    let memberAddress = event.params.member
+    let oldWeightWei = event.params.oldWeight
+    let weightWei = event.params.newWeight
+    let weight = weightWei.toBigDecimal().div(BigDecimal.fromString('1000000000000000000'))
+    let weightChange = weightWei.minus(oldWeightWei).toBigDecimal().div(BigDecimal.fromString('1000000000000000000'))
+    log.warning('handleMemberWeightChanged: member={} duAddress={} weight={} (+ {})', [
+        memberAddress.toHexString(), duAddress.toHexString(), weight.toString(), weightChange.toString()
+    ])
+
+    let member = getMember(memberAddress, duAddress)
+    member.weight = weight
+    member.save()
+
+    updateDataUnion(duAddress, event.block.timestamp, 0, weightChange)
+}
+
+function updateDataUnion(
+    duAddress: Address,
+    timestamp: BigInt,
+    memberCountChange: i32,
+    totalWeightChange: BigDecimal = BigDecimal.zero(),
+    revenueChangeWei: BigInt = BigInt.zero()
+): void {
     log.warning('updateDataUnion: duAddress={} timestamp={}', [duAddress.toHexString(), timestamp.toString()])
 
     // buckets must be done first so that *AtStart values are correct for newly created buckets
     let hourBucket = getBucket('HOUR', timestamp, duAddress)
     hourBucket!.memberCountChange += memberCountChange
     hourBucket!.revenueChangeWei += revenueChangeWei
+    hourBucket!.totalWeightChange += totalWeightChange
     hourBucket!.save()
 
     let dayBucket = getBucket('DAY', timestamp, duAddress)
     dayBucket!.memberCountChange += memberCountChange
     dayBucket!.revenueChangeWei += revenueChangeWei
+    dayBucket!.totalWeightChange += totalWeightChange
     dayBucket!.save()
 
     let dataUnion = getDataUnion(duAddress)
     if (dataUnion != null) {
         dataUnion.memberCount += memberCountChange
         dataUnion.revenueWei += revenueChangeWei
+        dataUnion.totalWeight += totalWeightChange
         dataUnion.save()
     }
 }
@@ -123,10 +157,12 @@ function getBucket(length: string, timestamp: BigInt, duAddress: Address): DataU
         // Get DataUnion to fetch member count at bucketStartDate
         let memberCount = 0
         let revenueWei = BigInt.zero()
+        let totalWeight = BigDecimal.zero()
         let dataUnion = getDataUnion(duAddress)
         if (dataUnion != null) {
             memberCount = dataUnion.memberCount
             revenueWei = dataUnion.revenueWei
+            totalWeight = dataUnion.totalWeight
         }
 
         // Create new bucket
@@ -137,8 +173,10 @@ function getBucket(length: string, timestamp: BigInt, duAddress: Address): DataU
         bucket.endDate = bucketStartDate.plus(bucketSeconds)
         bucket.memberCountAtStart = memberCount
         bucket.revenueAtStartWei = revenueWei
+        bucket.totalWeightAtStart = totalWeight
         bucket.memberCountChange = 0
         bucket.revenueChangeWei = BigInt.zero()
+        bucket.totalWeightChange = BigDecimal.zero()
     }
     return bucket
 }
