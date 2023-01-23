@@ -23,7 +23,7 @@ async function query(query: string) {
         body: JSON.stringify({ query }),
     })
     const resJson = await res.json()
-    log('   %o', resJson)
+    log('   %s', JSON.stringify(resJson))
     return resJson.data
 }
 
@@ -34,7 +34,7 @@ describe('DU subgraph', () => {
     const wallet2 = new Wallet('0xd7609ae3a29375768fac8bc0f8c2f6ac81c5f2ffca2b981e6cf15460f01efe14', provider) // testrpc 6
     let dataUnion: DataUnion
     let token: DATAv2
-    it('detects DU deployments (DUCreated)', async function () {
+    it.only('detects DU deployments (DUCreated)', async function () {
         // this.timeout(100000)
 
         log('Deploying token from %s...', tokenAdminWallet.address)
@@ -180,15 +180,12 @@ describe('DU subgraph', () => {
         expect(ownerAfter).to.equal(wallet2.address.toLowerCase())
     })
 
-    it('detects MemberWeightChanged events', async function () {
+    it.only('detects MemberWeightChanged events', async function () {
         // this.timeout(100000)
         const dataUnionId = dataUnion.getAddress().toLowerCase()
-        async function getTotalWeightString(): Promise<number> {
+        async function getTotalWeight(): Promise<string> {
             const res = await query(`{ dataUnion(id: "${dataUnionId}") { totalWeight } }`)
             return res.dataUnion.totalWeight
-        }
-        async function getTotalWeight(): Promise<number> {
-            return +await getTotalWeightString()
         }
 
         async function getWeightBuckets(): Promise<Array<any>> {
@@ -202,28 +199,31 @@ describe('DU subgraph', () => {
             return res.dataUnionStatsBuckets
         }
 
-        const totalWeightAtStart = await getTotalWeightString()
-        const weightAtStart = +totalWeightAtStart
+        const totalWeightAtStart = await getTotalWeight()
+        let totalWeightChange: string
 
         await dataUnion.addMembers(['0x1234567890123456789012345678901234560001', '0x1234567890123456789012345678901234560002'])
-        await until(async () => await getTotalWeight() == weightAtStart + 2, 10000, 2000)
+        totalWeightChange = (+totalWeightAtStart + 2).toString()
+        await until(async () => await getTotalWeight() == totalWeightChange, 10000, 2000)
         expect(await getWeightBuckets()).to.deep.equal([
-            { type: 'DAY', totalWeightAtStart, totalWeightChange: '2' },
-            { type: 'HOUR', totalWeightAtStart, totalWeightChange: '2' },
+            { type: 'DAY', totalWeightAtStart, totalWeightChange },
+            { type: 'HOUR', totalWeightAtStart, totalWeightChange },
         ])
 
         await dataUnion.addMembersWithWeights(['0x1234567890123456789012345678901234560003'], [3.5])
-        await until(async () => await getTotalWeight() == weightAtStart + 5.5, 10000, 2000)
+        totalWeightChange = (+totalWeightAtStart + 5.5).toString() // eslint-disable-line require-atomic-updates
+        await until(async () => await getTotalWeight() == totalWeightChange, 10000, 2000)
         expect(await getWeightBuckets()).to.deep.equal([
-            { type: 'DAY', totalWeightAtStart, totalWeightChange: '5.5' },
-            { type: 'HOUR', totalWeightAtStart, totalWeightChange: '5.5' },
+            { type: 'DAY', totalWeightAtStart, totalWeightChange },
+            { type: 'HOUR', totalWeightAtStart, totalWeightChange },
         ])
 
         await dataUnion.setMemberWeights(['0x1234567890123456789012345678901234560001'], [4.5])
-        await until(async () => await getTotalWeight() == weightAtStart + 9, 10000, 2000)
+        totalWeightChange = (+totalWeightAtStart + 9).toString() // eslint-disable-line require-atomic-updates
+        await until(async () => await getTotalWeight() == totalWeightChange, 10000, 2000)
         expect(await getWeightBuckets()).to.deep.equal([
-            { type: 'DAY', totalWeightAtStart, totalWeightChange: '9' },
-            { type: 'HOUR', totalWeightAtStart, totalWeightChange: '9' },
+            { type: 'DAY', totalWeightAtStart, totalWeightChange },
+            { type: 'HOUR', totalWeightAtStart, totalWeightChange },
         ])
     })
 })
