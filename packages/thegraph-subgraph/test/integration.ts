@@ -34,7 +34,7 @@ describe('DU subgraph', () => {
     const wallet2 = new Wallet('0xd7609ae3a29375768fac8bc0f8c2f6ac81c5f2ffca2b981e6cf15460f01efe14', provider) // testrpc 6
     let dataUnion: DataUnion
     let token: DATAv2
-    it.only('detects DU deployments (DUCreated)', async function () {
+    it('detects DU deployments (DUCreated)', async function () {
         // this.timeout(100000)
 
         log('Deploying token from %s...', tokenAdminWallet.address)
@@ -180,7 +180,7 @@ describe('DU subgraph', () => {
         expect(ownerAfter).to.equal(wallet2.address.toLowerCase())
     })
 
-    it.only('detects MemberWeightChanged events', async function () {
+    it('detects MemberWeightChanged events', async function () {
         // this.timeout(100000)
         const dataUnionId = dataUnion.getAddress().toLowerCase()
         async function getTotalWeight(): Promise<string> {
