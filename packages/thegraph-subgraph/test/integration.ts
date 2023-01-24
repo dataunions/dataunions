@@ -199,11 +199,12 @@ describe('DU subgraph', () => {
             return res.dataUnionStatsBuckets
         }
 
-        const totalWeightAtStart = await getTotalWeight()
-        let totalWeightChange: string
+        const totalWeightBefore = await getTotalWeight()
+        const totalWeightAtStart = '0' // at start of the bucketing period (i.e. before the test)
+        let totalWeightChange: string  // change since before the test, i.e. including the previous cases
 
         await dataUnion.addMembers(['0x1234567890123456789012345678901234560001', '0x1234567890123456789012345678901234560002'])
-        totalWeightChange = (+totalWeightAtStart + 2).toString()
+        totalWeightChange = (+totalWeightBefore + 2).toString()
         await until(async () => await getTotalWeight() == totalWeightChange, 10000, 2000)
         expect(await getWeightBuckets()).to.deep.equal([
             { type: 'DAY', totalWeightAtStart, totalWeightChange },
@@ -211,7 +212,7 @@ describe('DU subgraph', () => {
         ])
 
         await dataUnion.addMembersWithWeights(['0x1234567890123456789012345678901234560003'], [3.5])
-        totalWeightChange = (+totalWeightAtStart + 5.5).toString() // eslint-disable-line require-atomic-updates
+        totalWeightChange = (+totalWeightBefore + 5.5).toString() // eslint-disable-line require-atomic-updates
         await until(async () => await getTotalWeight() == totalWeightChange, 10000, 2000)
         expect(await getWeightBuckets()).to.deep.equal([
             { type: 'DAY', totalWeightAtStart, totalWeightChange },
@@ -219,7 +220,7 @@ describe('DU subgraph', () => {
         ])
 
         await dataUnion.setMemberWeights(['0x1234567890123456789012345678901234560001'], [4.5])
-        totalWeightChange = (+totalWeightAtStart + 9).toString() // eslint-disable-line require-atomic-updates
+        totalWeightChange = (+totalWeightBefore + 9).toString() // eslint-disable-line require-atomic-updates
         await until(async () => await getTotalWeight() == totalWeightChange, 10000, 2000)
         expect(await getWeightBuckets()).to.deep.equal([
             { type: 'DAY', totalWeightAtStart, totalWeightChange },
