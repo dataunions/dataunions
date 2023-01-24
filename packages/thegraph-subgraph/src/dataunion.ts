@@ -15,10 +15,8 @@ import {
 
 export function handleOwnershipTransferred(event: OwnershipTransferred): void {
     let dataUnion = getDataUnion(event.address)
-    if (dataUnion != null) {
-        dataUnion.owner = event.params.newOwner.toHexString()
-        dataUnion.save()
-    }
+    dataUnion.owner = event.params.newOwner.toHexString()
+    dataUnion.save()
 }
 
 export function handleMemberJoined(event: MemberJoined): void {
@@ -98,34 +96,36 @@ function updateDataUnion(
 
     // buckets must be done first so that *AtStart values are correct for newly created buckets
     let hourBucket = getBucket('HOUR', timestamp, duAddress)
-    hourBucket!.memberCountChange += memberCountChange
-    hourBucket!.revenueChangeWei += revenueChangeWei
-    hourBucket!.totalWeightChange += totalWeightChange
-    hourBucket!.save()
+    hourBucket.memberCountChange += memberCountChange
+    hourBucket.revenueChangeWei += revenueChangeWei
+    hourBucket.totalWeightChange += totalWeightChange
+    hourBucket.save()
 
     let dayBucket = getBucket('DAY', timestamp, duAddress)
-    dayBucket!.memberCountChange += memberCountChange
-    dayBucket!.revenueChangeWei += revenueChangeWei
-    dayBucket!.totalWeightChange += totalWeightChange
-    dayBucket!.save()
+    dayBucket.memberCountChange += memberCountChange
+    dayBucket.revenueChangeWei += revenueChangeWei
+    dayBucket.totalWeightChange += totalWeightChange
+    dayBucket.save()
 
     let dataUnion = getDataUnion(duAddress)
-    if (dataUnion != null) {
-        dataUnion.memberCount += memberCountChange
-        dataUnion.revenueWei += revenueChangeWei
-        dataUnion.totalWeight += totalWeightChange
-        dataUnion.save()
-    }
+    dataUnion.memberCount += memberCountChange
+    dataUnion.revenueWei += revenueChangeWei
+    dataUnion.totalWeight += totalWeightChange
+    dataUnion.save()
 }
 
 ///////////////////////////////////////////////////////////////
 // GETTERS: load an existing object or create a new one
 ///////////////////////////////////////////////////////////////
 
-function getDataUnion(duAddress: Address): DataUnion | null {
+function getDataUnion(duAddress: Address): DataUnion {
     let dataUnion = DataUnion.load(duAddress.toHexString())
     if (dataUnion == null) {
-        log.error('getDataUnion: DU was not found, address={}', [duAddress.toHexString()])
+        // this should never happen because in factory.ts we create a DataUnion object for every new DataUnion template instantiation
+        //   the functions in this file can only be called after the template is instantiated
+        // if you get this error, it means either that the DB is in bad state, or code has been changed to instantiate
+        //   DataUnion templates without creating the corresponding DataUnion DB objects
+        throw new Error('getDataUnion: DataUnion database object was not found, address=' + duAddress.toHexString())
     }
     return dataUnion
 }
@@ -139,7 +139,7 @@ function getMember(memberAddress: Address, duAddress: Address): Member {
     return member
 }
 
-function getBucket(length: string, timestamp: BigInt, duAddress: Address): DataUnionStatsBucket | null {
+function getBucket(length: string, timestamp: BigInt, duAddress: Address): DataUnionStatsBucket {
     let bucketSeconds: BigInt
     if (length === 'HOUR') {
         bucketSeconds = BigInt.fromI32(60 * 60)
@@ -147,33 +147,27 @@ function getBucket(length: string, timestamp: BigInt, duAddress: Address): DataU
         bucketSeconds = BigInt.fromI32(24 * 60 * 60)
     } else {
         log.error('getBucketLength: unknown length={}', [length])
-        return null
+        length = 'HOUR'
+        bucketSeconds = BigInt.fromI32(60 * 60)
     }
 
     let bucketStartDate = timestamp.minus(timestamp.mod(bucketSeconds))
     let bucketId = duAddress.toHexString() + '-' + length + '-' + bucketStartDate.toString()
     let bucket = DataUnionStatsBucket.load(bucketId)
-    if (bucket == null) {
-        // Get DataUnion to fetch member count at bucketStartDate
-        let memberCount = 0
-        let revenueWei = BigInt.zero()
-        let totalWeight = BigDecimal.zero()
-        let dataUnion = getDataUnion(duAddress)
-        if (dataUnion != null) {
-            memberCount = dataUnion.memberCount
-            revenueWei = dataUnion.revenueWei
-            totalWeight = dataUnion.totalWeight
-        }
 
-        // Create new bucket
+    // Create a new bucket, get starting values from DataUnion
+    if (bucket == null) {
         bucket = new DataUnionStatsBucket(bucketId)
         bucket.type = length
         bucket.dataUnion = duAddress.toHexString()
         bucket.startDate = bucketStartDate
         bucket.endDate = bucketStartDate.plus(bucketSeconds)
-        bucket.memberCountAtStart = memberCount
-        bucket.revenueAtStartWei = revenueWei
-        bucket.totalWeightAtStart = totalWeight
+
+        let dataUnion = getDataUnion(duAddress)
+        bucket.memberCountAtStart = dataUnion.memberCount
+        bucket.revenueAtStartWei = dataUnion.revenueWei
+        bucket.totalWeightAtStart = dataUnion.totalWeight
+
         bucket.memberCountChange = 0
         bucket.revenueChangeWei = BigInt.zero()
         bucket.totalWeightChange = BigDecimal.zero()
