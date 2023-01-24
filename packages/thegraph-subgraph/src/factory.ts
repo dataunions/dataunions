@@ -1,4 +1,4 @@
-import { log, BigInt, Address } from '@graphprotocol/graph-ts'
+import { log, BigInt, BigDecimal, Address } from '@graphprotocol/graph-ts'
 
 import { DUCreated } from '../generated/DataUnionFactory/DataUnionFactory'
 import { SidechainDUCreated } from '../generated/DataUnionFactorySidechain/DataUnionFactorySidechain'
@@ -29,6 +29,7 @@ export function createDataUnion(duAddress: Address, initialOwner: Address, creat
     dataUnion.revenueWei = BigInt.zero()
     dataUnion.creationDate = creationDate
     dataUnion.owner = initialOwner.toHexString()
+    dataUnion.totalWeight = BigDecimal.zero()
     dataUnion.save()
 
     // Instantiate a template: start listening to the new DU contract, trigger src/dataunion.ts on events

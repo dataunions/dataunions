@@ -1,16 +1,13 @@
 import { expect } from 'chai'
 
-// TODO: use the npm import once DataUnion is exported in the package
-// import { DataUnion, DataUnionClient } from '@dataunions/client'
-import { DataUnion, DataUnionClient } from '../../client/src'
-import { Wallet, providers, utils } from 'ethers'
 import fetch from 'node-fetch'
+import { Wallet, providers, utils, BigNumber } from 'ethers'
+const { parseEther, formatEther } = utils
 
 import { DATAv2, deployToken } from '@streamr/data-v2'
+import { DataUnion, DataUnionClient } from '@dataunions/client'
 
 import { until } from '../../client/test/until'
-
-const { parseEther, formatEther } = utils
 
 import debug from 'debug'
 const log = debug('dataunions/thegraph-subgraph:test')
@@ -26,7 +23,7 @@ async function query(query: string) {
         body: JSON.stringify({ query }),
     })
     const resJson = await res.json()
-    log('   %o', resJson)
+    log('   %s', JSON.stringify(resJson))
     return resJson.data
 }
 
@@ -181,5 +178,53 @@ describe('DU subgraph', () => {
 
         expect(ownerBefore).to.equal(wallet.address.toLowerCase())
         expect(ownerAfter).to.equal(wallet2.address.toLowerCase())
+    })
+
+    it('detects MemberWeightChanged events', async function () {
+        // this.timeout(100000)
+        const dataUnionId = dataUnion.getAddress().toLowerCase()
+        async function getTotalWeight(): Promise<string> {
+            const res = await query(`{ dataUnion(id: "${dataUnionId}") { totalWeight } }`)
+            return res.dataUnion.totalWeight
+        }
+
+        async function getWeightBuckets(): Promise<Array<any>> {
+            const res = await query(`{
+                dataUnionStatsBuckets(where: {dataUnion: "${dataUnionId}"}) {
+                    totalWeightAtStart
+                    totalWeightChange
+                    type
+                  }
+            }`)
+            return res.dataUnionStatsBuckets
+        }
+
+        const totalWeightBefore = await getTotalWeight()
+        const totalWeightAtStart = '0' // at start of the bucketing period (i.e. before the test)
+        let totalWeightChange: string  // change since before the test, i.e. including the previous cases
+
+        await dataUnion.addMembers(['0x1234567890123456789012345678901234560001', '0x1234567890123456789012345678901234560002'])
+        totalWeightChange = (+totalWeightBefore + 2).toString()
+        await until(async () => await getTotalWeight() == totalWeightChange, 10000, 2000)
+        expect(await getWeightBuckets()).to.deep.equal([
+            { type: 'DAY', totalWeightAtStart, totalWeightChange },
+            { type: 'HOUR', totalWeightAtStart, totalWeightChange },
+        ])
+
+        await dataUnion.addMembersWithWeights(['0x1234567890123456789012345678901234560003'], [3.5])
+        totalWeightChange = (+totalWeightBefore + 5.5).toString() // eslint-disable-line require-atomic-updates
+        await until(async () => await getTotalWeight() == totalWeightChange, 10000, 2000)
+        expect(await getWeightBuckets()).to.deep.equal([
+            { type: 'DAY', totalWeightAtStart, totalWeightChange },
+            { type: 'HOUR', totalWeightAtStart, totalWeightChange },
+        ])
+
+        await dataUnion.setMemberWeights(['0x1234567890123456789012345678901234560001'], [4.5])
+        totalWeightChange = (+totalWeightBefore + 9).toString() // eslint-disable-line require-atomic-updates
+        await until(async () => await getTotalWeight() == totalWeightChange, 10000, 2000)
+        expect(await getWeightBuckets()).to.deep.equal([
+            { type: 'DAY', totalWeightAtStart, totalWeightChange },
+            { type: 'HOUR', totalWeightAtStart, totalWeightChange },
+        ])
     })
 })

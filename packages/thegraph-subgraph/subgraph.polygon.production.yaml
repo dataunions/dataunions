@@ -56,4 +56,6 @@ templates:
           handler: handleRevenueReceived
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
+        - event: MemberWeightChanged(indexed address,uint256,uint256)
+          handler: handleMemberWeightChanged
   # New DU polygon/matic <<

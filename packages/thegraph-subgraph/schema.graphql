@@ -10,6 +10,7 @@ type DataUnion @entity {
   memberCount: Int!
   revenueWei: BigInt!
   creationDate: BigInt!
+  totalWeight: BigDecimal!
   owner: String! # We need this to be String to enable partial match search
 }
 
@@ -25,6 +26,7 @@ type Member @entity {
   dataUnion: DataUnion!
   status: MemberStatus!
   joinDate: BigInt!
+  weight: BigDecimal!
 }
 
 enum BucketType {
@@ -42,6 +44,8 @@ type DataUnionStatsBucket @entity {
   memberCountChange: Int!
   revenueAtStartWei: BigInt!
   revenueChangeWei: BigInt!
+  totalWeightAtStart: BigDecimal!
+  totalWeightChange: BigDecimal!
 }
 
 type RevenueEvent @entity {
