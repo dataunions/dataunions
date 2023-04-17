@@ -1,6 +1,6 @@
 {
     "name": "@dataunions/client",
-    "version": "3.0.8",
+    "version": "3.0.9",
     "description": "JavaScript/TypeScript client library for DataUnions",
     "author": "Data Union DAO <contact@dataunions.org>",
     "license": "Apache-2.0",
@@ -28,10 +28,10 @@
     },
     "scripts": {
         "bootstrap-dist": "npm run copy-package && npm run fix-esm",
-        "build": "npm run bootstrap-dist && npm run build-node",
-        "build-browser": "npm run build-browser-iife -- --outdir=dist/web && npm run build-browser-esm -- --outdir=dist/web",
+        "build": "npm run bootstrap-dist && npm run build-node && npm run build-browser",
+        "build-browser": "npm run build-browser-iife -- --outdir=dist/web && npm run build-browser-esm",
         "build-browser-base": "esbuild src/index.ts --bundle --sourcemap --target=chrome101 --tsconfig=tsconfig.browser.json --legal-comments=linked --define:process.env.NODE_ENV=\\\"${NODE_ENV:-development}\\\" --inject:./process-shim.js",
-        "build-browser-esm": "npm run build-browser-base --outfile=dist/web/index.esm.js -- --format=esm",
+        "build-browser-esm": "npm run build-browser-base -- --outfile=dist/web/index.esm.js --format=esm",
         "build-browser-iife": "npm run build-browser-base -- --format=iife --global-name=DataUnions",
         "build-node": "npm run bootstrap-dist && tsc --build ./tsconfig.node.json",
         "build-production": "npm run clean; npm run bootstrap-dist && NODE_ENV=production npm run build && NODE_ENV=production npm run build-browser",

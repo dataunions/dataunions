@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 
 import fetch from 'node-fetch'
-import { Wallet, providers, utils, BigNumber } from 'ethers'
+import { Wallet, providers, utils } from 'ethers'
 const { parseEther, formatEther } = utils
 
 import { DATAv2, deployToken } from '@streamr/data-v2'
