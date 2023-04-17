@@ -1,6 +1,6 @@
 {
     "name": "@dataunions/client",
-    "version": "3.0.9",
+    "version": "3.0.10",
     "description": "JavaScript/TypeScript client library for DataUnions",
     "author": "Data Union DAO <contact@dataunions.org>",
     "license": "Apache-2.0",
