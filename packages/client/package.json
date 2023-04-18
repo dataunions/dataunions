@@ -1,6 +1,6 @@
 {
     "name": "@dataunions/client",
-    "version": "3.0.10",
+    "version": "3.0.11",
     "description": "JavaScript/TypeScript client library for DataUnions",
     "author": "Data Union DAO <contact@dataunions.org>",
     "license": "Apache-2.0",
@@ -21,6 +21,7 @@
     "main": "./dist/src/index.js",
     "browser": "./dist/web/index.js",
     "exports": {
+        "browser": "./dist/web/index.js",
         "default": {
             "import": "./dist/src/index-esm.mjs",
             "require": "./dist/src/index-commonjs.js"
