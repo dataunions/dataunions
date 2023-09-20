@@ -1,0 +1,15 @@
+POLYGON:
+Creating Typechain artifacts in directory typechain for target ethers-v5
+Successfully generated Typechain artifacts!
+DU template deployed at 0xaFe97F5a1cD3edE2c11d990e0EB0270054AA0589
+DU factory deployed at 0xd0B3a09A6bCee8446d10e6E7e12c78F8725C9B18
+Old DU template at 0x8bec06171315718a0be2Acb816d805029138B2d5
+DU template updated
+
+GNOSIS:
+Creating Typechain artifacts in directory typechain for target ethers-v5
+Successfully generated Typechain artifacts!
+DU template deployed at 0x1d425525c7A5df3736875fe76Bc3B9E776E89AcA
+DU factory deployed at 0xe4515702878931b45Dfe4D89d3Fb3208910C913C
+Old DU template at 0x5Fcc9f1E0D6D84dF5aC1362222078BCA2b5dBF15
+DU template updated
