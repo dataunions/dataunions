@@ -9,7 +9,7 @@ import { parseEther } from "@ethersproject/units"
 
 const {
     PROTOCOL_BENEFICIARY_ADDRESS,
-    CHAIN = "dev0"
+    CHAIN = "dev2"
 } = process.env
 
 const { DATA: tokenAddress } = Chains.load()[CHAIN].contracts

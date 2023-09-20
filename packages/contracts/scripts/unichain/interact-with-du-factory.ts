@@ -59,7 +59,7 @@ const createDU = async () => {
     if (!createdEvent || !createdEvent.args || !createdEvent.args.length) {
         throw new Error("Missing DUCreated event")
     }
-    const [newDuAddress] = createdEvent?.args
+    const newDuAddress = createdEvent?.args?.[0]
     console.log(newDuAddress)
     // const bytecode = await sideChainProvider.getCode(newDuAddress)
     // console.log("bytecode " + bytecode)
