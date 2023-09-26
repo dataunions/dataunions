@@ -1,0 +1,61 @@
+---
+specVersion: 0.0.4
+description: Subgraph definitions for sidechain data unions
+repository: ""
+schema:
+  file: ./schema.graphql
+dataSources:
+  # New DU streamr-docker-dev fast-chain >>
+  - kind: ethereum/contract
+    name: DataUnionFactory
+    network: mumbai
+    source:
+      address: '0x6F5e5fc28c79F7d9cf413093ceDb774B483F14D1'
+      abi: DataUnionFactory
+      startBlock: 40073000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/factory.ts
+      entities:
+        - DataUnion
+      abis:
+        - name: DataUnionFactory
+          file: ./abis/DataUnionFactory.json
+      eventHandlers:
+        - event: DUCreated(indexed address,indexed address,address)
+          handler: handleDUCreated
+  # New DU streamr-docker-dev fast-chain <<
+
+templates:
+  # New DU streamr-docker-dev fast-chain >>
+  - name: DataUnion
+    kind: ethereum/contract
+    network: mumbai
+    source:
+      abi: DataUnionTemplate
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/dataunion.ts
+      entities:
+        - Member
+        - DataUnionStatsBucket
+        - RevenueEvent
+      abis:
+        - name: DataUnionTemplate
+          file: ./abis/DataUnionTemplate.json
+      eventHandlers:
+        - event: MemberJoined(indexed address)
+          handler: handleMemberJoined
+        - event: MemberParted(indexed address,indexed uint8)
+          handler: handleMemberParted
+        - event: RevenueReceived(uint256)
+          handler: handleRevenueReceived
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: MemberWeightChanged(indexed address,uint256,uint256)
+          handler: handleMemberWeightChanged
+  # New DU streamr-docker-dev fast-chain <<
