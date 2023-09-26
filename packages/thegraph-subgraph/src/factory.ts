@@ -10,7 +10,7 @@ import { DataUnion } from '../generated/templates'
 export function handleDU2Created(event: SidechainDUCreated): void {
     let duAddress = event.params.sidenet
     let initialOwner = event.params.owner
-    log.warning('[old] handleDU2Created: address={} blockNumber={}', [duAddress.toHexString(), event.block.number.toString()])
+    log.info('[old] handleDU2Created: address={} blockNumber={}', [duAddress.toHexString(), event.block.number.toString()])
     createDataUnion(duAddress, initialOwner, event.block.timestamp)
 }
 
@@ -19,7 +19,7 @@ export function handleDU2Created(event: SidechainDUCreated): void {
 export function handleDUCreated(event: DUCreated): void {
     let duAddress = event.params.du
     let initialOwner = event.params.owner
-    log.warning('handleDUCreated: address={} blockNumber={}', [duAddress.toHexString(), event.block.number.toString()])
+    log.info('handleDUCreated: address={} blockNumber={}', [duAddress.toHexString(), event.block.number.toString()])
     createDataUnion(duAddress, initialOwner, event.block.timestamp)
 }
 
