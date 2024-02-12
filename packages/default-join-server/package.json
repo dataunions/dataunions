@@ -36,7 +36,7 @@
     "@dataunions/join-server": "3.0.3",
     "dotenv": "16.0.2",
     "mysql2": "2.3.3",
-    "sequelize": "6.23.2",
+    "sequelize": "6.37.0",
     "streamr-client": "6.0.9",
     "uuid": "8.3.2"
   },
