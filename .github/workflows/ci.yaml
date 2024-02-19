@@ -42,7 +42,7 @@ jobs:
           echo "$(pwd)/node_modules/.bin" >> $GITHUB_PATH
       - name: Cache node_modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -96,7 +96,7 @@ jobs:
           echo "$(pwd)/node_modules/.bin" >> $GITHUB_PATH
       - name: Cache node_modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
@@ -125,7 +125,7 @@ jobs:
           echo "$(pwd)/node_modules/.bin" >> $GITHUB_PATH
       - name: Cache node_modules
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
