@@ -1,4 +1,19 @@
-import { networks } from "@streamr/config"
+import { config } from "@streamr/config"
+
+const {
+    dev1: {
+        contracts: {
+            DATA: tokenAddress,
+            DataUnionFactory: factoryAddress,
+            DataUnionTemplate: templateAddress,
+        }
+    },
+    dev0: {
+        contracts: {
+            "core-api": joinPartAgentAddress
+        }
+    }
+} = config
 
 function toNumber(value: any): number | undefined {
     return (value !== undefined) ? Number(value) : undefined
@@ -10,11 +25,11 @@ function toNumber(value: any): number | undefined {
 export const ConfigTest = {
     // theGraphUrl: `http://${process.env.STREAMR_DOCKER_DEV_HOST || '10.200.10.1'}:8000/subgraphs/name/streamr-dev/network-contracts`,
     restUrl: process.env.REST_URL || `http://${process.env.STREAMR_DOCKER_DEV_HOST || 'localhost'}/api/v2`,
-    tokenAddress: process.env.TOKEN_ADDRESS || networks.dev1.contracts.DATA,
+    tokenAddress: process.env.TOKEN_ADDRESS || tokenAddress,
     dataUnion: {
-        factoryAddress: process.env.DU_FACTORY || networks.dev1.contracts.DataUnionFactory,
-        templateAddress: process.env.DU_TEMPLATE || networks.dev1.contracts.DataUnionTemplate,
-        joinPartAgentAddress: networks.dev0.contracts["core-api"], // TODO: this should be the join server
+        factoryAddress: process.env.DU_FACTORY || factoryAddress,
+        templateAddress: process.env.DU_TEMPLATE || templateAddress,
+        joinPartAgentAddress, // TODO: this should be the join server
     },
     network: {
         name: 'dev1',

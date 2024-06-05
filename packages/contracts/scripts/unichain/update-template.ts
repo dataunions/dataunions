@@ -1,6 +1,6 @@
 import { ContractFactory } from "ethers"
 import { ethers } from "hardhat"
-import { Chains } from "@streamr/config"
+import { config } from "@streamr/config"
 
 import { DataUnionFactory, DataUnionTemplate } from "../../typechain"
 
@@ -11,7 +11,7 @@ const {
     contracts: {
         DataUnionFactory: FACTORY_ADDRESS
     }
-} = Chains.load()[CHAIN]
+} = config[CHAIN]
 
 async function main() {
     const dataUnionTemplateFactory = await ethers.getContractFactory("DataUnionTemplate")
