@@ -95,7 +95,7 @@
         "@ethersproject/units": "5.7.0",
         "@ethersproject/wallet": "5.7.0",
         "@ethersproject/web": "5.7.0",
-        "@streamr/config": "2.5.1",
+        "@streamr/config": "5.3.9",
         "debug": "4.3.4",
         "node-fetch": "2.6.7",
         "readable-stream": "4.1.0",
