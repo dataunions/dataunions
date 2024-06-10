@@ -1,4 +1,4 @@
-import { Chains, RPCProtocol } from '@streamr/config'
+import { config } from '@streamr/config'
 import { getAddress, isAddress } from '@ethersproject/address'
 import { BigNumber } from '@ethersproject/bignumber'
 import { Contract } from '@ethersproject/contracts'
@@ -59,8 +59,7 @@ export class DataUnionClient {
         const options: DataUnionClientConfig = { ...DATAUNION_CLIENT_DEFAULTS, ...clientOptions }
 
         // get defaults for networks from @streamr/config
-        const chains = Chains.load()
-        const chain = chains[options.chain]
+        const chain = (config as any)[options.chain]
 
         this.chainName = options.chain
         this.overrides = options.network.ethersOverrides ?? {}
@@ -95,7 +94,7 @@ export class DataUnionClient {
 
         } else if (options.auth.privateKey) {
             // node.js: we sign with the given private key, and we connect to given provider RPC URL
-            const rpcUrl = options.network.rpcs?.[0] || chain?.getRPCEndpointsByProtocol(RPCProtocol.HTTP)[0]
+            const rpcUrl = options.network.rpcs?.[0] ?? chain?.rpcs?.[0] ?? "Must include network.rpcs or chain in the config!"
             const provider = new JsonRpcProvider(rpcUrl)
             this.wallet = new Wallet(options.auth.privateKey, provider)
 
@@ -107,7 +106,7 @@ export class DataUnionClient {
         this.tokenAddress = getAddress(options.tokenAddress ?? chain?.contracts.DATA ?? "Must include tokenAddress or chain in the config!")
         this.factoryAddress = getAddress(options.dataUnion?.factoryAddress ?? chain?.contracts.DataUnionFactory
                                             ?? "Must include dataUnion.factoryAddress or chain in the config!")
-        this.joinPartAgentAddress = getAddress(options.dataUnion?.joinPartAgentAddress ?? chains.ethereum.contracts["core-api"])
+        this.joinPartAgentAddress = getAddress(options.dataUnion?.joinPartAgentAddress ?? config.ethereum.contracts["core-api"])
 
         this.restPlugin = new Rest(options.joinServerUrl)
     }

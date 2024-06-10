@@ -12,8 +12,7 @@ import { until } from '../../client/test/until'
 import debug from 'debug'
 const log = debug('dataunions/thegraph-subgraph:test')
 
-import { Chains } from '@streamr/config'
-const config = Chains.load().dev1
+import { config } from '@streamr/config'
 
 async function query(query: string) {
     log('Sending query "%s"', query)
@@ -28,7 +27,7 @@ async function query(query: string) {
 }
 
 describe('DU subgraph', () => {
-    const provider = new providers.JsonRpcProvider(config.rpcEndpoints[0].url)
+    const provider = new providers.JsonRpcProvider(config.dev2.rpcEndpoints[0].url)
     const tokenAdminWallet = new Wallet('0xfe1d528b7e204a5bdfb7668a1ed3adfee45b4b96960a175c9ef0ad16dd58d728', provider) // testrpc 5
     const wallet = new Wallet('0x957a8212980a9a39bf7c03dcbeea3c722d66f2b359c669feceb0e3ba8209a297', provider) // testrpc 4
     const wallet2 = new Wallet('0xd7609ae3a29375768fac8bc0f8c2f6ac81c5f2ffca2b981e6cf15460f01efe14', provider) // testrpc 6

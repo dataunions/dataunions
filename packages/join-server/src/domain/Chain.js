@@ -22,8 +22,7 @@ class Chain {
 		if (typeof name !== 'string') {
 			throw new Error(`Chain name must be a string`)
 		}
-		const chains = config.Chains.load()
-		const chain = chains[name.toLowerCase()]
+		const chain = config[name.toLowerCase()]
 		if (chain === undefined) {
 			throw new Error(`Chain name is unknown: '${name}'`)
 		}
