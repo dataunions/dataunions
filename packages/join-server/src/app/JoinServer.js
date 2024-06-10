@@ -4,7 +4,7 @@ const cors = require('cors')
 const http = require('http')
 const pino = require('pino')
 const { DataUnionClient } = require('@dataunions/client')
-const config = require('@streamr/config')
+const { config } = require('@streamr/config')
 const rest = require('../rest')
 const { JoinRequestService } = require('./JoinRequestService')
 

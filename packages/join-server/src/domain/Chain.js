@@ -1,4 +1,4 @@
-const config = require('@streamr/config')
+const { config } = require('@streamr/config')
 
 class Chain {
 	constructor(name /* string */) {
@@ -26,7 +26,7 @@ class Chain {
 		if (chain === undefined) {
 			throw new Error(`Chain name is unknown: '${name}'`)
 		}
-		return new Chain(chain.toString())
+		return new Chain(name.toLowerCase())
 	}
 }
 
