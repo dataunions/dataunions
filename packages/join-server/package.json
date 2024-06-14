@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@dataunions/client": "3.0.11",
-    "@streamr/config": "5.3.9",
+    "@streamr/config": "5.3.11",
     "commander": "9.4.0",
     "cors": "2.8.5",
     "ethers": "5.7.0",

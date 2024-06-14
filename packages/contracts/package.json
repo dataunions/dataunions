@@ -26,7 +26,9 @@
         "format-check": "prettier --no-color --config .prettierrc --check contracts/**/*.sol",
         "unit-test": "hardhat test test/contracts/*.test.ts",
         "unit-test-old": "hardhat test test/contracts/du2/*.test.ts",
-        "test": "npm run unit-test"
+        "test": "npm run unit-test",
+        "verify": "hardhat verify $ADDRESS --network $CHAIN --show-stack-traces",
+        "deploy": "hardhat run --network $CHAIN scripts/unichain/deploy-dus.ts"
     },
     "files": [
         "contracts/**/*",
@@ -41,7 +43,7 @@
         "@openzeppelin/contracts": "4.7.3",
         "@openzeppelin/contracts-upgradeable": "4.7.3",
         "@openzeppelin/hardhat-upgrades": "^1.20.0",
-        "@streamr/config": "5.3.9",
+        "@streamr/config": "5.3.11",
         "@typechain/ethers-v5": "6.0.5",
         "@types/chai": "4.3.3",
         "@types/debug": "4.1.7",

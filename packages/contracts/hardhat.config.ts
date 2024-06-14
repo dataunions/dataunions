@@ -73,6 +73,13 @@ const config: HardhatUserConfig = {
                 apiURL: "https://api-amoy.polygonscan.com/api",
                 browserURL: "https://amoy.polygonscan.com"
             },
+        }, {
+            network: "peaq",
+            chainId: 3338,
+            urls: {
+                apiURL: "https://peaq-testnet.api.subscan.io",
+                browserURL: "https://peaq.subscan.io/"
+            },
         }]
     },
 }

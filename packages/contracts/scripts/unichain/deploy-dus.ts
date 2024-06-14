@@ -16,18 +16,22 @@ const {
     contracts: {
         DATA: tokenAddress
     }
-} = config[CHAIN]
+} = (config as any)[CHAIN]
 
 if (!PROTOCOL_BENEFICIARY_ADDRESS) { throw new Error("Environment variable PROTOCOL_BENEFICIARY_ADDRESS not set") }
 const protocolBeneficiaryAddress = getAddress(PROTOCOL_BENEFICIARY_ADDRESS)
 
 async function main() {
-    const dataUnionTemplateFactory = await ethers.getContractFactory("DataUnionTemplate")
+    const signer = (await ethers.getSigners())[0]
+    console.log("Deploying DU contracts from %s", await signer.getAddress())
+    console.log("Native token balance: %s", ethers.utils.formatEther(await signer.getBalance()))
+
+    const dataUnionTemplateFactory = await ethers.getContractFactory("DataUnionTemplate", { signer })
     const dataUnionTemplate = await dataUnionTemplateFactory.deploy()
     await dataUnionTemplate.deployed()
     console.log("DU template deployed at %s", dataUnionTemplate.address)
 
-    const feeOracleFactory = await ethers.getContractFactory("DefaultFeeOracle")
+    const feeOracleFactory = await ethers.getContractFactory("DefaultFeeOracle", { signer })
     const feeOracle = await upgrades.deployProxy(feeOracleFactory, [
         parseEther("0.01"),
         protocolBeneficiaryAddress
@@ -35,7 +39,7 @@ async function main() {
     await feeOracle.deployed()
     console.log("Fee oracle deployed at %s", feeOracle.address)
 
-    const factoryFactory = await ethers.getContractFactory("DataUnionFactory")
+    const factoryFactory = await ethers.getContractFactory("DataUnionFactory", { signer })
     const factory = await upgrades.deployProxy(factoryFactory, [
         dataUnionTemplate.address,
         tokenAddress,
