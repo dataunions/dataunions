@@ -1,4 +1,4 @@
-import { Chains, RPCProtocol } from '@streamr/config'
+import { config } from '@streamr/config'
 import { getAddress, isAddress } from '@ethersproject/address'
 import { BigNumber } from '@ethersproject/bignumber'
 import { Contract } from '@ethersproject/contracts'
@@ -59,8 +59,7 @@ export class DataUnionClient {
         const options: DataUnionClientConfig = { ...DATAUNION_CLIENT_DEFAULTS, ...clientOptions }
 
         // get defaults for networks from @streamr/config
-        const chains = Chains.load()
-        const chain = chains[options.chain]
+        const chain = (config as any)[options.chain]
 
         this.chainName = options.chain
         this.overrides = options.network.ethersOverrides ?? {}
@@ -75,27 +74,10 @@ export class DataUnionClient {
             const metamaskProvider = new Web3Provider(options.auth.ethereum)
             this.wallet = metamaskProvider.getSigner()
 
-            // TODO: is this really needed? Doesn't simple `await wallet.getAddress()` work?
-            // this._getAddress = async () => {
-            //     try {
-            //         const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
-            //         const account = getAddress(accounts[0]) // convert to checksum case
-            //         return account
-            //     } catch {
-            //         throw new Error('no addresses connected+selected in Metamask')
-            //     }
-            // }
-
-            // TODO: handle events
-            // ethereum.on('accountsChanged', (accounts) => { })
-            // https://docs.metamask.io/guide/ethereum-provider.html#events says:
-            //   "We recommend reloading the page unless you have a very good reason not to"
-            //   Of course we can't and won't do that, but if we need something chain-dependent...
-            // ethereum.on('chainChanged', (chainId) => { window.location.reload() });
-
         } else if (options.auth.privateKey) {
             // node.js: we sign with the given private key, and we connect to given provider RPC URL
-            const rpcUrl = options.network.rpcs?.[0] || chain?.getRPCEndpointsByProtocol(RPCProtocol.HTTP)[0]
+            const rpcUrl = options.network.rpcs?.[0] ?? chain?.rpcEndpoints?.[0]
+            if (!rpcUrl) { throw new Error("Must include network.rpcs or chain in the config!") }
             const provider = new JsonRpcProvider(rpcUrl)
             this.wallet = new Wallet(options.auth.privateKey, provider)
 
@@ -107,7 +89,7 @@ export class DataUnionClient {
         this.tokenAddress = getAddress(options.tokenAddress ?? chain?.contracts.DATA ?? "Must include tokenAddress or chain in the config!")
         this.factoryAddress = getAddress(options.dataUnion?.factoryAddress ?? chain?.contracts.DataUnionFactory
                                             ?? "Must include dataUnion.factoryAddress or chain in the config!")
-        this.joinPartAgentAddress = getAddress(options.dataUnion?.joinPartAgentAddress ?? chains.ethereum.contracts["core-api"])
+        this.joinPartAgentAddress = getAddress(options.dataUnion?.joinPartAgentAddress ?? config.ethereum.contracts["core-api"])
 
         this.restPlugin = new Rest(options.joinServerUrl)
     }

@@ -2,7 +2,7 @@ import { ethers, upgrades } from "hardhat"
 
 import { getAddress } from "@ethersproject/address"
 
-import { Chains } from "@streamr/config"
+import { config } from "@streamr/config"
 
 import { DataUnionFactory, DefaultFeeOracle } from "../../typechain"
 import { parseEther } from "@ethersproject/units"
@@ -12,7 +12,12 @@ const {
     CHAIN = "dev2"
 } = process.env
 
-const { DATA: tokenAddress } = Chains.load()[CHAIN].contracts
+const {
+    contracts: {
+        DATA: tokenAddress
+    }
+} = config[CHAIN]
+
 if (!PROTOCOL_BENEFICIARY_ADDRESS) { throw new Error("Environment variable PROTOCOL_BENEFICIARY_ADDRESS not set") }
 const protocolBeneficiaryAddress = getAddress(PROTOCOL_BENEFICIARY_ADDRESS)
 

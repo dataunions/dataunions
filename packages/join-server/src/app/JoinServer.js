@@ -4,7 +4,7 @@ const cors = require('cors')
 const http = require('http')
 const pino = require('pino')
 const { DataUnionClient } = require('@dataunions/client')
-const config = require('@streamr/config')
+const { config } = require('@streamr/config')
 const rest = require('../rest')
 const { JoinRequestService } = require('./JoinRequestService')
 
@@ -60,11 +60,10 @@ class JoinServer {
 
 		if (!clients) {
 			clients = new Map()
-			const chains = config.Chains.load()
-			for (const chainName in chains) {
-				for (const contractName in chains[chainName].contracts) {
+			for (const chainName in config) {
+				for (const contractName in config[chainName].contracts) {
 					if (contractName === "DataUnionFactory") {
-						clients.set(chainName, this.newDataUnionClient(chains[chainName], privateKey))
+						clients.set(chainName, this.newDataUnionClient(config[chainName], privateKey))
 					}
 				}
 			}
@@ -155,7 +154,7 @@ class JoinServer {
 		this.authenticatedRoutes.use((req, res, next) => this.signedRequestValidator(req).then(next).catch((err) => next(err)))
 		this.authenticatedRoutes.post('/join', (req, res, next) => new rest.JoinHandler(this.logger, this.joinRequestService, this.customJoinRequestValidator).handle(req, res, next))
 		this.customRoutes(this.authenticatedRoutes, this.clients)
-		
+
 		this.expressApp.use(this.publicRoutes)
 		this.expressApp.use(this.authenticatedRoutes)
 

@@ -1,17 +1,17 @@
 import { ContractFactory } from "ethers"
 import { ethers } from "hardhat"
-import { Chains } from "@streamr/config"
+import { config } from "@streamr/config"
 
 import { DataUnionFactory, DataUnionTemplate } from "../../typechain"
 
 const { CHAIN } = process.env
-if (!CHAIN) { throw new Error("Please specify CHAIN environment variable (dev0, dev1, gnosis, polygon, mainnet)") }
+if (!CHAIN) { throw new Error("Please specify CHAIN environment variable (dev0, dev1, dev2, gnosis, polygon, polygonAmoy, ethereum)") }
 
 const {
     contracts: {
         DataUnionFactory: FACTORY_ADDRESS
     }
-} = Chains.load()[CHAIN]
+} = config[CHAIN]
 
 async function main() {
     const dataUnionTemplateFactory = await ethers.getContractFactory("DataUnionTemplate")

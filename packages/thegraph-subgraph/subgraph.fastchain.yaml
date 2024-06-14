@@ -10,7 +10,7 @@ dataSources:
     name: DataUnionFactory
     network: xDai
     source:
-      address: '0xb8678223183d560280a7BEF68daAbB0E3daBd97D'
+      address: '0xdc5F6368cd31330adC259386e78604a5E29E9415'
       abi: DataUnionFactory
       startBlock: 0
     mapping:

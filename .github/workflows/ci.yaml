@@ -141,9 +141,9 @@ jobs:
       - name: Start Streamr Docker Stack
         uses: streamr-dev/streamr-docker-dev-action@v1.0.0
         with:
-          services-to-start: 'graph-deploy-dataunion-subgraph'
+          services-to-start: 'graph-deploy-dataunion-subgraph-fastchain'
       - name: Deploy the DU subgraph
-        run: npm run -w packages/thegraph-subgraph deploy-local
+        run: npm run -w packages/thegraph-subgraph deploy-local-fastchain
       - name: Integration Test (with dev-docker environment)
         env:
           TEST_TIMEOUT: '600000'
