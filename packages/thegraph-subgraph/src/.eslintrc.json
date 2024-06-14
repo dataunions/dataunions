@@ -1,5 +1,6 @@
 {
     "rules": {
+        "quotes": ["error", "single"],
         "prefer-const": "off",
         "eqeqeq": "off",
         "@typescript-eslint/ban-types": "off",

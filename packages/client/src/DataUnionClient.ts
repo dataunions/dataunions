@@ -74,27 +74,10 @@ export class DataUnionClient {
             const metamaskProvider = new Web3Provider(options.auth.ethereum)
             this.wallet = metamaskProvider.getSigner()
 
-            // TODO: is this really needed? Doesn't simple `await wallet.getAddress()` work?
-            // this._getAddress = async () => {
-            //     try {
-            //         const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
-            //         const account = getAddress(accounts[0]) // convert to checksum case
-            //         return account
-            //     } catch {
-            //         throw new Error('no addresses connected+selected in Metamask')
-            //     }
-            // }
-
-            // TODO: handle events
-            // ethereum.on('accountsChanged', (accounts) => { })
-            // https://docs.metamask.io/guide/ethereum-provider.html#events says:
-            //   "We recommend reloading the page unless you have a very good reason not to"
-            //   Of course we can't and won't do that, but if we need something chain-dependent...
-            // ethereum.on('chainChanged', (chainId) => { window.location.reload() });
-
         } else if (options.auth.privateKey) {
             // node.js: we sign with the given private key, and we connect to given provider RPC URL
-            const rpcUrl = options.network.rpcs?.[0] ?? chain?.rpcs?.[0] ?? "Must include network.rpcs or chain in the config!"
+            const rpcUrl = options.network.rpcs?.[0] ?? chain?.rpcEndpoints?.[0]
+            if (!rpcUrl) { throw new Error("Must include network.rpcs or chain in the config!") }
             const provider = new JsonRpcProvider(rpcUrl)
             this.wallet = new Wallet(options.auth.privateKey, provider)
 

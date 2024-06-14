@@ -19,6 +19,11 @@ const config: HardhatUserConfig = {
     },
     // for network names, see https://github.com/streamr-dev/network-contracts/blob/master/packages/config/src/networks.json
     networks: {
+        dev2: {
+            chainId: 31337,
+            url: "http://localhost:8547",
+            accounts: ["0x5e98cce00cff5dea6b454889f359a4ec06b9fa6b88e9d69b86de8e1c81887da0"]
+        },
         dev1: {
             chainId: 8997,
             url: "http://localhost:8546",

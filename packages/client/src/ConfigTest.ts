@@ -1,7 +1,7 @@
 import { config } from "@streamr/config"
 
 const {
-    dev1: {
+    dev2: {
         contracts: {
             DATA: tokenAddress,
             DataUnionFactory: factoryAddress,
@@ -32,10 +32,10 @@ export const ConfigTest = {
         joinPartAgentAddress, // TODO: this should be the join server
     },
     network: {
-        name: 'dev1',
-        chainId: 8996,
+        name: 'dev2',
+        chainId: 31337,
         rpcs: [{
-            url: process.env.ETHEREUM_SERVER_URL || `http://${process.env.STREAMR_DOCKER_DEV_HOST || '10.200.10.1'}:8546`,
+            url: process.env.ETHEREUM_SERVER_URL || `http://${process.env.STREAMR_DOCKER_DEV_HOST || '10.200.10.1'}:8547`,
             timeout: toNumber(process.env.TEST_TIMEOUT) ?? 30 * 1000
         }]
     },

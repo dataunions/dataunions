@@ -5,7 +5,7 @@ import { config } from "@streamr/config"
 import { DataUnionFactory, DataUnionTemplate } from "../../typechain"
 
 const { CHAIN } = process.env
-if (!CHAIN) { throw new Error("Please specify CHAIN environment variable (dev0, dev1, gnosis, polygon, mainnet)") }
+if (!CHAIN) { throw new Error("Please specify CHAIN environment variable (dev0, dev1, dev2, gnosis, polygon, polygonAmoy, ethereum)") }
 
 const {
     contracts: {
