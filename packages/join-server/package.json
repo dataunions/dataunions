@@ -35,7 +35,7 @@
     "@streamr/config": "5.3.11",
     "commander": "9.4.0",
     "cors": "2.8.5",
-    "ethers": "5.7.0",
+    "ethers": "6.13.2",
     "express": "5.0.0-beta.1",
     "pino": "8.4.2"
   },
